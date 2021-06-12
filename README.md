@@ -1,2 +1,3 @@
 # SeedLang
-A visualizable low-code programming environment. 
+
+A visualizable low-code programming environment.

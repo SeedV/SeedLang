@@ -1,0 +1,100 @@
+// Copyright 2021 The Aha001 Team.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+strict digraph SeedLang {
+
+    compound = true
+    concentrate = true
+    newrank = true
+    fontname = "Arial"
+
+    node [
+        fontname = "Arial"
+        margin = 0.2
+        shape = box
+        style = rounded
+    ]
+
+    SeedBlock [
+        label = "SeedBlock\n\nBlock Renderer/Editor\nBlock Exchange Format"
+        shape = folder
+    ]
+    SeedAST [ shape = diamond ]
+    SeedX [
+        label = "SeedX\n\nSeedPython\nSeedJS\nSeedLua\n..."
+        shape = folder
+    ]
+    { rank=same SeedBlock SeedAST SeedX }
+
+    SourceCodeVisualizers [
+        label = "Source Code Visualizers"
+        shape = component
+    ]
+    SeedIR []
+    { rank=same SourceCodeVisualizers SeedIR }
+
+    BytecodeCompiler [ label = "Byte Code Compiler" ]
+
+    SeedInterpreter []
+    RuntimeVisualizers [
+        label = "Runtime Visualizers"
+        shape = component
+    ]
+    { rank=same SeedInterpreter RuntimeVisualizers }
+
+    Libraries [ label = "Built-in Libraries" ]
+    Extensions []
+    Debugger [ shape = component ]
+    { rank=same Libraries Extensions Debugger }
+
+    Unsafe [ label = "Unsafe Extensions" ]
+
+    SeedBlock -> SeedAST
+    SeedAST -> SeedBlock
+    SeedAST -> SeedX
+    SeedX -> SeedAST
+    SeedAST -> SeedIR
+    SeedIR -> BytecodeCompiler -> SeedInterpreter
+
+    SourceCodeVisualizers -> SeedAST [
+        constraint = false
+        style = dashed
+        arrowhead = none
+    ]
+    SourceCodeVisualizers -> SeedIR [
+        constraint = true
+        style = dashed
+        arrowhead = none
+    ]
+    RuntimeVisualizers -> SeedInterpreter [
+        constraint = false
+        style = dashed
+        arrowhead = none
+    ]
+
+    subgraph cluster_Sandbox {
+        label = "Sandbox"
+        shape = folder
+        style = dotted
+
+        RuntimeVisualizers
+        Debugger
+
+        SeedInterpreter -> Libraries
+        SeedInterpreter -> Extensions
+    }
+
+    SeedInterpreter -> Unsafe
+
+}

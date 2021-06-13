@@ -29,6 +29,10 @@ following branch naming conventions before submitting a pull request:
  * Temporary hotfix branch: `hotfix_<issue-id>`
  * Temporary feature branch: `feature_<issue-id>`
 
+Please follow [How to Write a Git Commit
+Message](https://chris.beams.io/posts/git-commit/) when writing your commit
+messages whenever possible.
+
 ## Coding conventions
 
 We follow the [Google Style Guides](https://google.github.io/styleguide/) for

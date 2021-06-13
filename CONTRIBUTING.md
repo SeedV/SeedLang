@@ -18,8 +18,13 @@ For the developers who have write-access to the repository, please consider the
 following branch naming conventions before submitting a pull request:
 
  * Release branches: `release_<version>`
- * Personal working branches: `wip_<your-github-id>` or `wip_<your-github-id>_<sequence_no>`
- * Experimental branches: `exp_<your-github-id>` or `exp_<your-github-id>_<sequence_no>`
+ * Personal working branches:
+   * `wip_<your-github-id>`, or
+   * `wip_<your-github-id>_<task-desc>`, or
+   * `wip_<your-github-id>_<sequence_no>`, or
+ * Experimental branches:
+   * `exp_<your-github-id>`, or
+   * `exp_<your-github-id>_<sequence_no>`
  * Temporary bugfix branch: `bugfix_<issue-id>`
  * Temporary hotfix branch: `hotfix_<issue-id>`
  * Temporary feature branch: `feature_<issue-id>`

@@ -15,19 +15,18 @@ code or a SeedX code.
 
 SeedAST has two representations:
 
- * An in-memory data structure.
- * A plaintext exchange format to serialize, deserialize, import and export
-   ASTs.
+* An in-memory data structure.
+* A plaintext exchange format to serialize, deserialize, import and export ASTs.
 
 ## SeedBlock
 
 SeedBlock is a set of utilities and specifications that enable the visual
 programming experience, including:
 
- * A block renderer/editor running at the GUI level to display, layout, and edit
-   programming blocks.
- * A plaintext block exchange format to serialize, deserialize, import, and
-   export programming blocks.
+* A block renderer/editor running at the GUI level to display, layout, and edit
+  programming blocks.
+* A plaintext block exchange format to serialize, deserialize, import, and
+  export programming blocks.
 
 Typically, SeedBlock can be translated into SeedAST, then into any one of the
 SeedX languages.
@@ -37,13 +36,13 @@ SeedX languages.
 SeedX is a set of programming languages that can be translated into SeedAST and
 run by SeedInterpreter.
 
- * SeedPython: an educational programming language that implements a subset of
-   Python features.
- * SeedJS: an educational programming language that implements a subset of
-   JavaScript features.
- * SeedLua: an educational programming language that implements a subset of Lua
-   features.
- * ... ...
+* SeedPython: an educational programming language that implements a subset of
+  Python features.
+* SeedJS: an educational programming language that implements a subset of
+  JavaScript features.
+* SeedLua: an educational programming language that implements a subset of Lua
+  features.
+* ... ...
 
 Typically, SeedX languages can be translated into SeedAST, then into SeedBlock
 representations. For doing this, the feature set of every SeedX language is
@@ -55,10 +54,10 @@ SeedIR is a mid-level intermediate representation. Before running a SeedBlock
 code or a SeedX code, we parse the source code into a SeedAST then generate a
 SeedIR code out of the AST.
 
-## Byte code Compiler
+## Byte Code Compiler
 
-A byte code compiler translates and optimizes SeedIR code into a low-level byte
-code representation.
+A byte code compiler that translates and optimizes SeedIR code into a low-level
+byte code representation.
 
 ## SeedInterpreter
 
@@ -84,14 +83,14 @@ visualizers enable SeedLang to be an educational programming language.
 
 SeedLang has two categories of visualizers:
 
- * Source code visualizers analyze source code statically and show underlying
-   structures. For example, we can visualize the internal structure of a value,
-   a code block, a function, a complex grammar structure, or a semantical
-   constraint with predefined or extension visualizers.
- * Runtime visualizers analyze the execution of a program and visualize the
-   runtime. For example, during an execution process of a program, we can
-   visualize the current states of the stack, a dynamical binding, a function
-   call graph, or the real-time states of a red-black tree.
+* Source code visualizers analyze source code statically and show underlying
+  structures. For example, we can visualize the internal structure of a value, a
+  code block, a function, a complex grammar structure, or a semantical
+  constraint with predefined or extension visualizers.
+* Runtime visualizers analyze the execution of a program and visualize the
+  runtime. For example, during an execution process of a program, we can
+  visualize the current states of the stack, a dynamical binding, a function
+  call graph, or the real-time states of a red-black tree.
 
 SeedLang provides a limited number of predefined visualizers. Third-party
 developers can contribute new visualizers by submitting extensions.
@@ -115,7 +114,7 @@ submitting extensions.
 SeedLang can also invoke unsafe code, but only outside of the sandbox. Unsafe
 code may include:
 
- * Native binary extensions.
+* Native binary extensions.
 
- * The extensions that communicate with system interfaces, for example, to
-   control an Arduino device.
+* The extensions that communicate with system interfaces, for example, to
+  control an Arduino device.

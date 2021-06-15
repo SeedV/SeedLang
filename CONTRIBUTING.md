@@ -44,7 +44,7 @@ guide](https://google.github.io/styleguide/docguide/) whenever possible.
 Directory names and filenames in the repo should be all lowercase, with
 underscores to separate words, unless the coding style of the source language
 prefers or requires other styles. For example, directory names and filenames of
-C# code should be PascalCase.
+C# code should be `PascalCase`.
 
 ### Exceptions
 

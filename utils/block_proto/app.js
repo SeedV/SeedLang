@@ -22,14 +22,14 @@
 import fs from 'fs';
 import yargs from 'yargs';
 import {hideBin} from 'yargs/helpers';
-import {getBlockKinds, render} from './blocks.js';
+import {getBlockList, render} from './blocks.js';
 
 const argv = yargs(hideBin(process.argv)).options({
   'block': {
     alias: 'b',
     describe: 'The kind of the main block to output.',
     demandOption: true,
-    choices: getBlockKinds(),
+    choices: getBlockList(),
   },
   'config': {
     alias: 'c',

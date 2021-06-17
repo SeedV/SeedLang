@@ -27,16 +27,17 @@ import svgjs from '@svgdotjs/svg.js';
  */
 const GLOBAL_DEFS = {
   font: {
-    family: 'monospace',
-    size: 24,
-    anchor: 'start',
-    leading: 24,
+    family: 'Courier',
+    size: '14px',
+    anchor: 'middle',
+    leading: '1em',
   },
-  monospaceTextWidth: 15,
+  fontBaselineHeight: 2,
+  fontCharHeight: 14,
+  fontCharWidth: 9,
   margin: 10,
-  padding: 10,
-  rectRadius: 10,
-  unitHeight: 32,
+  padding: 5,
+  rectRadius: 5,
 };
 
 /**
@@ -54,7 +55,7 @@ const BLOCK_DEFS = {
  * Returns an array of all block kinds.
  * @return {Array}
  */
-export function getBlockKinds() {
+export function getBlockList() {
   return Object.keys(BLOCK_DEFS);
 }
 
@@ -86,16 +87,19 @@ function renderNumber(draw, defs, config) {
   const value = '3.14';
   const textLength = value.length;
   const rectWidth = 2 * GLOBAL_DEFS.padding +
-    textLength * GLOBAL_DEFS.monospaceTextWidth;
-  const rectHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.unitHeight;
+    textLength * GLOBAL_DEFS.fontCharWidth;
+  const rectHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
 
   draw.rect(rectWidth, rectHeight)
       .fill(defs.background)
       .radius(GLOBAL_DEFS.rectRadius)
       .move(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
+
+  const textAnchorX = GLOBAL_DEFS.margin + rectWidth / 2;
+  const textAnchorY = GLOBAL_DEFS.margin + rectHeight -
+    GLOBAL_DEFS.padding - GLOBAL_DEFS.fontBaselineHeight;
   draw.text(value)
       .font(GLOBAL_DEFS.font)
       .fill(defs.color)
-      .move(GLOBAL_DEFS.margin + GLOBAL_DEFS.padding,
-          GLOBAL_DEFS.margin + GLOBAL_DEFS.padding);
+      .move(textAnchorX, textAnchorY);
 }

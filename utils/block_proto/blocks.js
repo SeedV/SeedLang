@@ -23,7 +23,8 @@ import {createSVGWindow} from 'svgdom';
 import svgjs from '@svgdotjs/svg.js';
 
 /**
- * @const {Object}
+ * The settings for all blocks.
+ * @const {!Object}
  */
 const GLOBAL_DEFS = {
   font: {
@@ -41,7 +42,8 @@ const GLOBAL_DEFS = {
 };
 
 /**
- * @const {Object}
+ * The block definitions.
+ * @const {!Object}
  */
 const BLOCK_DEFS = {
   number: {
@@ -53,7 +55,7 @@ const BLOCK_DEFS = {
 
 /**
  * Returns an array of all block kinds.
- * @return {Array}
+ * @return {!Array}
  */
 export function getBlockList() {
   return Object.keys(BLOCK_DEFS);
@@ -62,7 +64,7 @@ export function getBlockList() {
 /**
  * Renders a main block with or without its children blocks.
  * @param {string} block The kind of the main block.
- * @param {string?} config The config string.
+ * @param {?string} config The config string.
  * @return {string} The rendered SVG string.
  */
 export function render(block, config) {
@@ -79,9 +81,9 @@ export function render(block, config) {
 
 /**
  * Renders a number value block.
- * @param {Object} draw The svgjs draw object.
- * @param {Object} defs The definition of the main block kind.
- * @param {string?} config The config string.
+ * @param {!Object} draw The svgjs draw object.
+ * @param {!Object} defs The definition of the main block kind.
+ * @param {?string} config The config string.
  */
 function renderNumber(draw, defs, config) {
   const value = '3.14';

@@ -51,5 +51,5 @@ C# code should be `PascalCase`.
 * For Markdown docs, the default
   [markdownlint](https://github.com/markdownlint/markdownlint) rule set
   overrides the [Google Markdown style
-  guilde](https://google.github.io/styleguide/docguide/style.html) if the two
+  guide](https://google.github.io/styleguide/docguide/style.html) if the two
   conflict.

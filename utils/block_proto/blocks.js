@@ -57,6 +57,12 @@ const BLOCK_DEFS = {
     defaultValue: '3.14',
     renderer: renderRoundRectValue,
   },
+  operator: {
+    background: '#999',
+    color: '#fff',
+    defaultValue: '+',
+    renderer: renderOctagonToken,
+  },
   string: {
     background: '#963',
     color: '#fff',
@@ -64,6 +70,12 @@ const BLOCK_DEFS = {
     delimiterColor: '#fc0',
     defaultValue: 'Hello',
     renderer: renderRoundRectValue,
+  },
+  variable: {
+    background: '#39f',
+    color: '#fff',
+    defaultValue: 'counter',
+    renderer: renderOctagonToken,
   },
 };
 
@@ -116,7 +128,7 @@ function renderCenterText(draw, text, shapeWidth, shapeHeight, color, offset) {
 }
 
 /**
- * Renders a number of string value in a round rectangle shape.
+ * Renders a number or string value in a round rectangle shape.
  * @param {!Object} draw The svgjs draw object.
  * @param {!Object} blockDef The definition of the block kind.
  * @param {?string} config The config string.
@@ -137,16 +149,16 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
       textLength * GLOBAL_DEFS.fontCharWidth;
   const shapeHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
 
-  const blockOffset = offset ||
+  const shapeOffset = offset ||
     new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
 
   draw.rect(shapeWidth, shapeHeight)
       .fill(blockDef.background)
       .radius(GLOBAL_DEFS.rectRadius)
-      .move(blockOffset.x, blockOffset.y);
+      .move(shapeOffset.x, shapeOffset.y);
 
   renderCenterText(draw, valueString, shapeWidth, shapeHeight, blockDef.color,
-      blockOffset);
+      shapeOffset);
 
   if (blockDef.delimiter) {
     // Iterates for the left delimiter and the right delimiter.
@@ -159,10 +171,53 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
       draw.text(blockDef.delimiter)
           .font(GLOBAL_DEFS.font)
           .fill(blockDef.delimiterColor)
-          .move(blockOffset.x + textAnchorX,
-              blockOffset.y + textAnchorY);
+          .move(shapeOffset.x + textAnchorX,
+              shapeOffset.y + textAnchorY);
     }
   }
+
+  return {width: shapeWidth, height: shapeHeight};
+}
+
+/**
+ * Renders a variable or operator token in an octagon block.
+ * @param {!Object} draw The svgjs draw object.
+ * @param {!Object} blockDef The definition of the block kind.
+ * @param {?string} config The config string.
+ * @param {?svgjs.Point} offset The offset of the block. If it is null, the
+ *     block is the main block and will be positioned to the center of the SVG
+ *     canvas.
+ * @return {{width: number, height: number}} The calculated size of the block.
+ *     Margins are not included.
+ */
+function renderOctagonToken(draw, blockDef, config, offset) {
+  const nameString = config ? config : blockDef.defaultValue;
+  const textLength = nameString.length;
+  const shapeWidth = 2 * GLOBAL_DEFS.padding +
+    textLength * GLOBAL_DEFS.fontCharWidth;
+  const shapeHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
+
+  const shapeOffset = offset ||
+      new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
+
+  draw.polygon()
+      .plot([
+        [shapeOffset.x, shapeOffset.y + GLOBAL_DEFS.rectRadius],
+        [shapeOffset.x + GLOBAL_DEFS.rectRadius, shapeOffset.y],
+        [shapeOffset.x + shapeWidth - GLOBAL_DEFS.rectRadius, shapeOffset.y],
+        [shapeOffset.x + shapeWidth, shapeOffset.y + GLOBAL_DEFS.rectRadius],
+        [shapeOffset.x + shapeWidth,
+          shapeOffset.y + shapeHeight - GLOBAL_DEFS.rectRadius],
+        [shapeOffset.x + shapeWidth - GLOBAL_DEFS.rectRadius,
+          shapeOffset.y + shapeHeight],
+        [shapeOffset.x + GLOBAL_DEFS.rectRadius, shapeOffset.y + shapeHeight],
+        [shapeOffset.x, shapeOffset.y + shapeHeight - GLOBAL_DEFS.rectRadius],
+      ])
+      .fill(blockDef.background)
+      .move(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
+
+  renderCenterText(draw, nameString, shapeWidth, shapeHeight, blockDef.color,
+      shapeOffset);
 
   return {width: shapeWidth, height: shapeHeight};
 }

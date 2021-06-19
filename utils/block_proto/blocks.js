@@ -24,6 +24,7 @@
 // @ts-ignore
 import {createSVGWindow} from 'svgdom';
 import svgjs from '@svgdotjs/svg.js';
+import {splitListItems} from './block_utils.js';
 
 /**
  * The settings for all blocks.
@@ -49,6 +50,12 @@ const GLOBAL_DEFS = {
  * @const {!Object}
  */
 export const BLOCK_DEFS = {
+  expression: {
+    background: '#cc6',
+    color: '#fff',
+    defaultValue: 'a,+,b',
+    renderer: renderExpressionContainer,
+  },
   number: {
     background: '#690',
     color: '#fff',
@@ -83,7 +90,7 @@ export const BLOCK_DEFS = {
  * @const {Array<string>}
  */
 export const OPERATORS = [
-  '+', '-', '×', '÷', '^',
+  '+', '-', '*', '×', '/', '÷', '^',
   '==', '!=', '>', '>=', '<', '<=',
   'and', 'or', 'not',
   '(', ')',
@@ -158,7 +165,7 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
       textLength * GLOBAL_DEFS.fontCharWidth;
   const shapeHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
   const shapeOffset = offset ||
-    new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
+      new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
 
   draw.rect(shapeWidth, shapeHeight)
       .fill(blockDef.background)
@@ -199,7 +206,7 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
  *     Margins are not included.
  */
 function renderOctagonToken(draw, blockDef, config, offset) {
-  const nameString = config ? config : blockDef.defaultValue;
+  const nameString = config || blockDef.defaultValue;
   const textLength = nameString.length;
   const shapeWidth = 2 * GLOBAL_DEFS.padding +
     textLength * GLOBAL_DEFS.fontCharWidth;
@@ -226,5 +233,48 @@ function renderOctagonToken(draw, blockDef, config, offset) {
   renderCenterText(draw, nameString, shapeWidth, shapeHeight, blockDef.color,
       shapeOffset);
 
+  return {width: shapeWidth, height: shapeHeight};
+}
+
+/**
+ * Renders an expression in a round rectangle block.
+ * @param {!Object} draw The svgjs draw object.
+ * @param {!Object} blockDef The definition of the block kind.
+ * @param {?string} config The config string.
+ * @param {?svgjs.Point} offset The offset of the block. If it is null, the
+ *     block is the main block and will be positioned to the center of the SVG
+ *     canvas.
+ * @return {{width: number, height: number}} The calculated size of the block.
+ *     Margins are not included.
+ */
+function renderExpressionContainer(draw, blockDef, config, offset) {
+  const expressionString = config || blockDef.defaultValue;
+  const children = splitListItems(expressionString, BLOCK_DEFS, OPERATORS);
+  let shapeWidth = 0;
+  let shapeHeight = 0;
+  const shapeOffset = offset ||
+      new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
+  const shape = draw.rect(shapeWidth, shapeHeight)
+      .fill(blockDef.background)
+      .radius(GLOBAL_DEFS.rectRadius)
+      .move(shapeOffset.x, shapeOffset.y);
+
+  let childOffsetX = shapeOffset.x + GLOBAL_DEFS.padding;
+  const childOffsetY = shapeOffset.y + GLOBAL_DEFS.padding;
+  shapeWidth = GLOBAL_DEFS.padding;
+  shapeHeight = 2 * GLOBAL_DEFS.padding;
+  let highestChild = 0;
+  for (const child of children) {
+    const childShapeSize =
+        child.blockDef.renderer(draw, child.blockDef, child.config,
+            new svgjs.Point(childOffsetX, childOffsetY));
+    childOffsetX += childShapeSize.width + GLOBAL_DEFS.padding;
+    shapeWidth += childShapeSize.width + GLOBAL_DEFS.padding;
+    if (childShapeSize.height > highestChild) {
+      highestChild = childShapeSize.height;
+    }
+  }
+  shapeHeight = 2 * GLOBAL_DEFS.padding + highestChild;
+  shape.size(shapeWidth, shapeHeight);
   return {width: shapeWidth, height: shapeHeight};
 }

@@ -64,7 +64,7 @@ export function splitListItems(listString, blockDefs) {
         config: itemString,
       });
     } else {
-      throw new Error('Not supported item in lists: ' + itemString);
+      throw new Error('Not supported item in the list: ' + itemString);
     }
   }
   if (items.length <= 0) {

@@ -214,7 +214,7 @@ function renderOctagonToken(draw, blockDef, config, offset) {
         [shapeOffset.x, shapeOffset.y + shapeHeight - GLOBAL_DEFS.rectRadius],
       ])
       .fill(blockDef.background)
-      .move(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
+      .move(shapeOffset.x, shapeOffset.y);
 
   renderCenterText(draw, nameString, shapeWidth, shapeHeight, blockDef.color,
       shapeOffset);

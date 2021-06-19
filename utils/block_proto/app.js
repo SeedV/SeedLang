@@ -32,17 +32,20 @@ import {getBlockList, render} from './blocks.js';
 const argv = yargs(hideBin(process.argv)).options({
   'block': {
     alias: 'b',
+    type: 'string',
     describe: 'The kind of the main block to output.',
     demandOption: true,
     choices: getBlockList(),
   },
   'config': {
     alias: 'c',
+    type: 'string',
     describe: 'Optional config string for rendering blocks.',
     demandOption: false,
   },
   'output': {
     alias: 'o',
+    type: 'string',
     describe: 'The output SVG file path.',
     demandOption: false,
   },

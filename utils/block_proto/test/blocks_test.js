@@ -19,6 +19,8 @@
  * @fileoverview Unittests for blocks.js.
  */
 
+// @ts-check
+
 import assert from 'assert';
 import {getBlockList, render} from '../blocks.js';
 
@@ -30,6 +32,6 @@ describe('getBlockList', function() {
 
 describe('render', function() {
   it('checkSVG', function() {
-    assert(render('number').match('<svg.*</svg>'));
+    assert(render('number', null).match('<svg.*</svg>'));
   });
 });

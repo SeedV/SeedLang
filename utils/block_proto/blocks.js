@@ -19,6 +19,9 @@
  * @fileoverview Utilities to define and render blocks.
  */
 
+// @ts-check
+
+// @ts-ignore
 import {createSVGWindow} from 'svgdom';
 import svgjs from '@svgdotjs/svg.js';
 

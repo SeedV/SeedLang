@@ -44,14 +44,14 @@ export function splitListItems(listString, blockDefs, validOperators) {
     if (!itemString) {
       break;
     }
-    if (itemString.match(/^[0-9.eE\-]+$/)) {
-      items.push({
-        blockDef: blockDefs.number,
-        config: itemString,
-      });
-    } else if (validOperators.includes(itemString)) {
+    if (validOperators.includes(itemString)) {
       items.push({
         blockDef: blockDefs.operator,
+        config: itemString,
+      });
+    } else if (itemString.match(/^[0-9.eE\-]+$/)) {
+      items.push({
+        blockDef: blockDefs.number,
         config: itemString,
       });
     } else if (itemString.match(/^[a-zA-Z_]+$/)) {

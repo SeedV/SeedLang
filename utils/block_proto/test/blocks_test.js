@@ -26,7 +26,7 @@ import {getBlockList, render} from '../blocks.js';
 
 describe('getBlockList', function() {
   it('checkNumber', function() {
-    assert.strictEqual(getBlockList().length, 5);
+    assert.strictEqual(getBlockList().length, 6);
   });
 });
 

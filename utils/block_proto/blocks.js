@@ -65,10 +65,24 @@ export const BLOCK_DEFS = {
     renderer: renderRoundRectValue,
   },
   operator: {
-    background: '#999',
-    color: '#fff',
+    background: '#9cf',
+    color: '#000',
     defaultValue: '+',
     renderer: renderOctagonToken,
+    validValues: [
+      '+', '-', '*', '×', '/', '÷', '^',
+      '==', '!=', '>', '>=', '<', '<=',
+      'and', 'or', 'not',
+    ],
+  },
+  parentheses: {
+    background: '#ff9',
+    color: '#000',
+    defaultValue: '(',
+    renderer: renderOctagonToken,
+    validValues: [
+      '(', ')',
+    ],
   },
   string: {
     background: '#963',
@@ -85,16 +99,6 @@ export const BLOCK_DEFS = {
     renderer: renderOctagonToken,
   },
 };
-
-/**
- * @const {Array<string>}
- */
-export const OPERATORS = [
-  '+', '-', '*', '×', '/', '÷', '^',
-  '==', '!=', '>', '>=', '<', '<=',
-  'and', 'or', 'not',
-  '(', ')',
-];
 
 /**
  * Returns an array of all block kinds.
@@ -249,7 +253,7 @@ function renderOctagonToken(draw, blockDef, config, offset) {
  */
 function renderExpressionContainer(draw, blockDef, config, offset) {
   const expressionString = config || blockDef.defaultValue;
-  const children = splitListItems(expressionString, BLOCK_DEFS, OPERATORS);
+  const children = splitListItems(expressionString, BLOCK_DEFS);
   let shapeWidth = 0;
   let shapeHeight = 0;
   const shapeOffset = offset ||

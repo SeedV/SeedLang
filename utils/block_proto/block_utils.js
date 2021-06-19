@@ -34,19 +34,23 @@
  * checker is required here.
  * @param {string} listString The comma separated list string.
  * @param {!Object} blockDefs The definition of all blocks.
- * @param {!Array<string>} validOperators The list of valid operators.
  * @return {!Array<Object>} An array of tagged items.
  */
-export function splitListItems(listString, blockDefs, validOperators) {
+export function splitListItems(listString, blockDefs) {
   const itemStrings = listString.split(',');
   const items = [];
   for (const itemString of itemStrings) {
     if (!itemString) {
       break;
     }
-    if (validOperators.includes(itemString)) {
+    if (blockDefs.operator.validValues.includes(itemString)) {
       items.push({
         blockDef: blockDefs.operator,
+        config: itemString,
+      });
+    } else if (blockDefs.parentheses.validValues.includes(itemString)) {
+      items.push({
+        blockDef: blockDefs.parentheses,
         config: itemString,
       });
     } else if (itemString.match(/^[0-9.eE\-]+$/)) {

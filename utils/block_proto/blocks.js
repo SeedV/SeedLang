@@ -266,7 +266,6 @@ function renderExpressionContainer(draw, blockDef, config, offset) {
   let childOffsetX = shapeOffset.x + GLOBAL_DEFS.padding;
   const childOffsetY = shapeOffset.y + GLOBAL_DEFS.padding;
   shapeWidth = GLOBAL_DEFS.padding;
-  shapeHeight = 2 * GLOBAL_DEFS.padding;
   let highestChild = 0;
   for (const child of children) {
     const childShapeSize =

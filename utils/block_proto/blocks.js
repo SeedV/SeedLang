@@ -120,8 +120,11 @@ export function render(block, config) {
   const draw = svgjs.SVG(); // eslint-disable-line
 
   if (block in BLOCK_DEFS) {
-    const blockSize =
-        BLOCK_DEFS[block].renderer(draw, BLOCK_DEFS[block], config, null);
+    const blockDef = BLOCK_DEFS[block];
+    if (blockDef.validValues && !blockDef.validValues.includes(config)) {
+      config = null;
+    }
+    const blockSize = blockDef.renderer(draw, BLOCK_DEFS[block], config, null);
     draw.size(blockSize.width + 2 * GLOBAL_DEFS.margin,
         blockSize.height + 2 * GLOBAL_DEFS.margin);
   }

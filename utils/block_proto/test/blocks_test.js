@@ -40,7 +40,15 @@ describe('renderRoundRectValue', function() {
     // On the other hand, string blocks always have the delimiter color string.
     assert.match(render('string', null), /#ffcc00/);
   });
-  it('checkUserConfig', function() {
+});
+
+describe('renderWithUserConfig', function() {
+  it('validUserConfig', function() {
     assert.match(render('string', '1234567890'), /1234567890/);
+  });
+  it('invalidUserConfig', function() {
+    const svg = render('operator', '1234567890');
+    assert.doesNotMatch(svg, /1234567890/);
+    assert.match(svg, /\+/);
   });
 });

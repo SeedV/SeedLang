@@ -52,7 +52,18 @@ const BLOCK_DEFS = {
   number: {
     background: '#690',
     color: '#fff',
-    renderer: renderNumber,
+    delimiter: null,
+    delimiterColor: null,
+    defaultValue: '3.14',
+    renderer: renderRoundRectValue,
+  },
+  string: {
+    background: '#963',
+    color: '#fff',
+    delimiter: '"',
+    delimiterColor: '#fc0',
+    defaultValue: 'Hello',
+    renderer: renderRoundRectValue,
   },
 };
 
@@ -76,35 +87,82 @@ export function render(block, config) {
   const draw = svgjs.SVG(); // eslint-disable-line
 
   if (block in BLOCK_DEFS) {
-    BLOCK_DEFS[block].renderer(draw, BLOCK_DEFS[block], config);
+    const blockSize =
+        BLOCK_DEFS[block].renderer(draw, BLOCK_DEFS[block], config, null);
+    draw.size(blockSize.width + 2 * GLOBAL_DEFS.margin,
+        blockSize.height + 2 * GLOBAL_DEFS.margin);
   }
 
   return draw.svg();
 }
 
 /**
- * Renders a number value block.
+ * Renders a center-aligned text on top of a block.
  * @param {!Object} draw The svgjs draw object.
- * @param {!Object} defs The definition of the main block kind.
- * @param {?string} config The config string.
+ * @param {string} text The text to be drawn.
+ * @param {number} shapeWidth The shape width.
+ * @param {number} shapeHeight The shape height.
+ * @param {string} color The text color.
+ * @param {?svgjs.Point} offset The offset of the block.
  */
-function renderNumber(draw, defs, config) {
-  const value = '3.14';
-  const textLength = value.length;
-  const rectWidth = 2 * GLOBAL_DEFS.padding +
-    textLength * GLOBAL_DEFS.fontCharWidth;
-  const rectHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
-
-  draw.rect(rectWidth, rectHeight)
-      .fill(defs.background)
-      .radius(GLOBAL_DEFS.rectRadius)
-      .move(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
-
-  const textAnchorX = GLOBAL_DEFS.margin + rectWidth / 2;
-  const textAnchorY = GLOBAL_DEFS.margin + rectHeight -
-    GLOBAL_DEFS.padding - GLOBAL_DEFS.fontBaselineHeight;
-  draw.text(value)
+function renderCenterText(draw, text, shapeWidth, shapeHeight, color, offset) {
+  const textAnchorX = shapeWidth / 2;
+  const textAnchorY = shapeHeight - GLOBAL_DEFS.padding -
+      GLOBAL_DEFS.fontBaselineHeight;
+  draw.text(text)
       .font(GLOBAL_DEFS.font)
-      .fill(defs.color)
-      .move(textAnchorX, textAnchorY);
+      .fill(color)
+      .move(offset.x + textAnchorX, offset.y + textAnchorY);
+}
+
+/**
+ * Renders a number of string value in a round rectangle shape.
+ * @param {!Object} draw The svgjs draw object.
+ * @param {!Object} blockDef The definition of the block kind.
+ * @param {?string} config The config string.
+ * @param {?svgjs.Point} offset The offset of the block. If it is null, the
+ *     block is the main block and will be positioned to the center of the SVG
+ *     canvas.
+ * @return {{width: number, height: number}} The calculated size of the block.
+ *     Margins are not included.
+ */
+function renderRoundRectValue(draw, blockDef, config, offset) {
+  const valueString = config || blockDef.defaultValue;
+  let textLength = valueString.length;
+  if (blockDef.delimiter) {
+    textLength += 2;
+  }
+
+  const shapeWidth = 2 * GLOBAL_DEFS.padding +
+      textLength * GLOBAL_DEFS.fontCharWidth;
+  const shapeHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
+
+  const blockOffset = offset ||
+    new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
+
+  draw.rect(shapeWidth, shapeHeight)
+      .fill(blockDef.background)
+      .radius(GLOBAL_DEFS.rectRadius)
+      .move(blockOffset.x, blockOffset.y);
+
+  renderCenterText(draw, valueString, shapeWidth, shapeHeight, blockDef.color,
+      blockOffset);
+
+  if (blockDef.delimiter) {
+    // Iterates for the left delimiter and the right delimiter.
+    for (const textAnchorX of [
+      GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharWidth / 2,
+      shapeWidth - GLOBAL_DEFS.padding - GLOBAL_DEFS.fontCharWidth / 2,
+    ]) {
+      const textAnchorY = shapeHeight - GLOBAL_DEFS.padding -
+          GLOBAL_DEFS.fontBaselineHeight;
+      draw.text(blockDef.delimiter)
+          .font(GLOBAL_DEFS.font)
+          .fill(blockDef.delimiterColor)
+          .move(blockOffset.x + textAnchorX,
+              blockOffset.y + textAnchorY);
+    }
+  }
+
+  return {width: shapeWidth, height: shapeHeight};
 }

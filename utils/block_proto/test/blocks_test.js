@@ -26,12 +26,21 @@ import {getBlockList, render} from '../blocks.js';
 
 describe('getBlockList', function() {
   it('checkNumber', function() {
-    assert.strictEqual(getBlockList().length, 1);
+    assert.strictEqual(getBlockList().length, 2);
   });
 });
 
-describe('render', function() {
+describe('renderRoundRectValue', function() {
   it('checkSVG', function() {
-    assert(render('number', null).match('<svg.*</svg>'));
+    assert.match(render('number', null), /<svg.*<\/svg>/);
+  });
+  it('checkNumberAndString', function() {
+    // The SVG code of Number blocks must not contain string delimiters.
+    assert.doesNotMatch(render('number', null), /#ffcc00/);
+    // On the other hand, string blocks always have the delimiter color string.
+    assert.match(render('string', null), /#ffcc00/);
+  });
+  it('checkUserConfig', function() {
+    assert.match(render('string', '1234567890'), /1234567890/);
   });
 });

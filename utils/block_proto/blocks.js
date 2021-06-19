@@ -48,7 +48,7 @@ const GLOBAL_DEFS = {
  * The block definitions.
  * @const {!Object}
  */
-const BLOCK_DEFS = {
+export const BLOCK_DEFS = {
   number: {
     background: '#690',
     color: '#fff',
@@ -78,6 +78,16 @@ const BLOCK_DEFS = {
     renderer: renderOctagonToken,
   },
 };
+
+/**
+ * @const {Array<string>}
+ */
+export const OPERATORS = [
+  '+', '-', '×', '÷', '^',
+  '==', '!=', '>', '>=', '<', '<=',
+  'and', 'or', 'not',
+  '(', ')',
+];
 
 /**
  * Returns an array of all block kinds.
@@ -144,11 +154,9 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
   if (blockDef.delimiter) {
     textLength += 2;
   }
-
   const shapeWidth = 2 * GLOBAL_DEFS.padding +
       textLength * GLOBAL_DEFS.fontCharWidth;
   const shapeHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
-
   const shapeOffset = offset ||
     new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
 
@@ -196,7 +204,6 @@ function renderOctagonToken(draw, blockDef, config, offset) {
   const shapeWidth = 2 * GLOBAL_DEFS.padding +
     textLength * GLOBAL_DEFS.fontCharWidth;
   const shapeHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
-
   const shapeOffset = offset ||
       new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
 

@@ -19,31 +19,39 @@
  * @fileoverview The main entry of the block prototype maker.
  */
 
+// @ts-check
+
 import fs from 'fs';
 import yargs from 'yargs';
 import {hideBin} from 'yargs/helpers';
 import {getBlockList, render} from './blocks.js';
 
+/**
+ * @type {Object}
+ */
 const argv = yargs(hideBin(process.argv)).options({
   'block': {
     alias: 'b',
+    type: 'string',
     describe: 'The kind of the main block to output.',
     demandOption: true,
     choices: getBlockList(),
   },
   'config': {
     alias: 'c',
+    type: 'string',
     describe: 'Optional config string for rendering blocks.',
     demandOption: false,
   },
   'output': {
     alias: 'o',
+    type: 'string',
     describe: 'The output SVG file path.',
     demandOption: false,
   },
 }).argv;
 
-const svg = render(argv.block, argv.config);
+const svg = render(argv.block, argv.config || null);
 if (argv.output) {
   fs.writeFileSync(argv.output, svg);
 } else {

@@ -31,6 +31,20 @@ import {splitListItems} from './block_utils.js';
  * @const {!Object}
  */
 const GLOBAL_DEFS = {
+  bgColors: {
+    expression: '#cc6',
+    number: '#690',
+    operator: '#9cf',
+    parentheses: '#ff9',
+    statement: '#9cf',
+    string: '#963',
+    variable: '#39f',
+  },
+  colors: {
+    dark: '#000',
+    delimiter: '#fc0',
+    light: '#fff',
+  },
   font: {
     family: 'Courier',
     size: '14px',
@@ -51,22 +65,20 @@ const GLOBAL_DEFS = {
  */
 export const BLOCK_DEFS = {
   expression: {
-    background: '#cc6',
-    color: '#fff',
+    background: GLOBAL_DEFS.bgColors.expression,
     defaultValue: 'a,+,b',
     renderer: renderExpressionContainer,
   },
   number: {
-    background: '#690',
-    color: '#fff',
+    background: GLOBAL_DEFS.bgColors.number,
+    color: GLOBAL_DEFS.colors.light,
     delimiter: null,
-    delimiterColor: null,
     defaultValue: '3.14',
     renderer: renderRoundRectValue,
   },
   operator: {
-    background: '#9cf',
-    color: '#000',
+    background: GLOBAL_DEFS.bgColors.operator,
+    color: GLOBAL_DEFS.colors.dark,
     defaultValue: '+',
     renderer: renderOctagonToken,
     validValues: [
@@ -76,8 +88,8 @@ export const BLOCK_DEFS = {
     ],
   },
   parentheses: {
-    background: '#ff9',
-    color: '#000',
+    background: GLOBAL_DEFS.bgColors.parentheses,
+    color: GLOBAL_DEFS.colors.dark,
     defaultValue: '(',
     renderer: renderOctagonToken,
     validValues: [
@@ -85,16 +97,16 @@ export const BLOCK_DEFS = {
     ],
   },
   string: {
-    background: '#963',
-    color: '#fff',
+    background: GLOBAL_DEFS.bgColors.string,
+    color: GLOBAL_DEFS.colors.light,
     delimiter: '"',
-    delimiterColor: '#fc0',
+    delimiterColor: GLOBAL_DEFS.colors.delimiter,
     defaultValue: 'Hello',
     renderer: renderRoundRectValue,
   },
   variable: {
-    background: '#39f',
-    color: '#fff',
+    background: GLOBAL_DEFS.bgColors.variable,
+    color: GLOBAL_DEFS.colors.light,
     defaultValue: 'counter',
     renderer: renderOctagonToken,
   },

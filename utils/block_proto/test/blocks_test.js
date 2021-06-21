@@ -26,7 +26,7 @@ import {getBlockList, render} from '../blocks.js';
 
 describe('getBlockList', function() {
   it('checkNumber', function() {
-    assert.strictEqual(getBlockList().length, 6);
+    assert.strictEqual(getBlockList().length, 11);
   });
 });
 
@@ -47,8 +47,6 @@ describe('renderWithUserConfig', function() {
     assert.match(render('string', '1234567890'), /1234567890/);
   });
   it('invalidUserConfig', function() {
-    const svg = render('operator', '1234567890');
-    assert.doesNotMatch(svg, /1234567890/);
-    assert.match(svg, /\+/);
+    assert.throws(() => render('operator', '1234567890'));
   });
 });

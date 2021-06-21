@@ -24,7 +24,7 @@
 // @ts-ignore
 import {createSVGWindow} from 'svgdom';
 import svgjs from '@svgdotjs/svg.js';
-import {splitListItems} from './block_utils.js';
+import * as utils from './block_utils.js';
 
 /**
  * The settings for all blocks.
@@ -45,6 +45,9 @@ const GLOBAL_DEFS = {
     delimiter: '#fc0',
     light: '#fff',
   },
+  connectorCornerSize: 5,
+  connectorHeight: 4,
+  connectorWidth: 25,
   font: {
     family: 'Courier',
     size: '14px',
@@ -54,9 +57,10 @@ const GLOBAL_DEFS = {
   fontBaselineHeight: 2,
   fontCharHeight: 14,
   fontCharWidth: 9,
-  margin: 10,
-  padding: 5,
-  rectRadius: 5,
+  margin: 30,
+  padding: 6,
+  rectRadius: 6,
+  statementLeftPadding: 20,
 };
 
 /**
@@ -64,22 +68,41 @@ const GLOBAL_DEFS = {
  * @const {!Object}
  */
 export const BLOCK_DEFS = {
+  break: {
+    fields: [
+      {label: 'break', withInput: false},
+    ],
+    renderer: renderStatement,
+  },
+  continue: {
+    fields: [
+      {label: 'continue', withInput: false},
+    ],
+    renderer: renderStatement,
+  },
   expression: {
     background: GLOBAL_DEFS.bgColors.expression,
-    defaultValue: 'a,+,b',
+    defaultConfig: 'a,+,b',
     renderer: renderExpressionContainer,
+  },
+  eval: {
+    defaultConfig: 'x,+,3.14',
+    fields: [
+      {label: 'eval', withInput: true},
+    ],
+    renderer: renderStatement,
   },
   number: {
     background: GLOBAL_DEFS.bgColors.number,
     color: GLOBAL_DEFS.colors.light,
     delimiter: null,
-    defaultValue: '3.14',
+    defaultConfig: '3.14',
     renderer: renderRoundRectValue,
   },
   operator: {
     background: GLOBAL_DEFS.bgColors.operator,
     color: GLOBAL_DEFS.colors.dark,
-    defaultValue: '+',
+    defaultConfig: '+',
     renderer: renderOctagonToken,
     validValues: [
       '+', '-', '*', '×', '/', '÷', '^',
@@ -90,24 +113,39 @@ export const BLOCK_DEFS = {
   parentheses: {
     background: GLOBAL_DEFS.bgColors.parentheses,
     color: GLOBAL_DEFS.colors.dark,
-    defaultValue: '(',
+    defaultConfig: '(',
     renderer: renderOctagonToken,
     validValues: [
       '(', ')',
     ],
+  },
+  return: {
+    defaultConfig: '3.14',
+    fields: [
+      {label: 'return', withInput: true},
+    ],
+    renderer: renderStatement,
+  },
+  set: {
+    defaultConfig: 'counter|x,+,3.14',
+    fields: [
+      {label: 'set', withInput: true},
+      {label: 'to', withInput: true},
+    ],
+    renderer: renderStatement,
   },
   string: {
     background: GLOBAL_DEFS.bgColors.string,
     color: GLOBAL_DEFS.colors.light,
     delimiter: '"',
     delimiterColor: GLOBAL_DEFS.colors.delimiter,
-    defaultValue: 'Hello',
+    defaultConfig: 'Hello',
     renderer: renderRoundRectValue,
   },
   variable: {
     background: GLOBAL_DEFS.bgColors.variable,
     color: GLOBAL_DEFS.colors.light,
-    defaultValue: 'counter',
+    defaultConfig: 'counter',
     renderer: renderOctagonToken,
   },
 };
@@ -134,33 +172,70 @@ export function render(block, config) {
   if (block in BLOCK_DEFS) {
     const blockDef = BLOCK_DEFS[block];
     if (blockDef.validValues && !blockDef.validValues.includes(config)) {
-      config = null;
+      throw new Error('Invalid config string: ' + config);
     }
-    const blockSize = blockDef.renderer(draw, BLOCK_DEFS[block], config, null);
-    draw.size(blockSize.width + 2 * GLOBAL_DEFS.margin,
-        blockSize.height + 2 * GLOBAL_DEFS.margin);
+    const blockShape = blockDef.renderer(draw, BLOCK_DEFS[block], config, null);
+    draw.size(blockShape.width + 2 * GLOBAL_DEFS.margin,
+        blockShape.height + 2 * GLOBAL_DEFS.margin);
   }
 
   return draw.svg();
 }
 
 /**
- * Renders a center-aligned text on top of a block.
+ * A structure to hold the info of a rendered SVG shape (or a shape group).
+ */
+class RenderedShape {
+  /**
+   * @param {!Object} shape The rendered svgjs element.
+   * @param {number} width The calculated width of the rendered shape.
+   * @param {number} height The calculated height of the rendered shape.
+   */
+  constructor(shape, width, height) {
+    this.shape = shape;
+    this.width = width;
+    this.height = height;
+  }
+};
+
+/**
+ * Renders a center-aligned text at the center of a given rectangle area.
  * @param {!Object} draw The svgjs draw object.
  * @param {string} text The text to be drawn.
- * @param {number} shapeWidth The shape width.
- * @param {number} shapeHeight The shape height.
+ * @param {number} shapeWidth The width of the given rectangle area.
+ * @param {number} shapeHeight The height of the given rectangle area.
  * @param {string} color The text color.
  * @param {?svgjs.Point} offset The offset of the block.
+ * @return {!RenderedShape} The rendered SVG element.
  */
 function renderCenterText(draw, text, shapeWidth, shapeHeight, color, offset) {
   const textAnchorX = shapeWidth / 2;
-  const textAnchorY = shapeHeight - GLOBAL_DEFS.padding -
+  const textAnchorY = shapeHeight / 2 + GLOBAL_DEFS.fontCharHeight / 2 -
       GLOBAL_DEFS.fontBaselineHeight;
-  draw.text(text)
+  const shape = draw.text(text)
       .font(GLOBAL_DEFS.font)
       .fill(color)
       .move(offset.x + textAnchorX, offset.y + textAnchorY);
+  return new RenderedShape(shape, shapeWidth, shapeHeight);
+}
+
+/**
+ * Centers a container's children shapes vertically.
+ * @param {!Array<RenderedShape>} childrenShapes The rendered children shapes.
+ * @param {number} shapeHeight The height of the current container shape.
+ * @param {boolean} hasConnectors If the current container shape has top/bottom
+ *     connectors.
+ */
+function centerChildrenVertically(childrenShapes, shapeHeight, hasConnectors) {
+  for (const childShape of childrenShapes) {
+    const childrenAreaHeight =
+        shapeHeight - (hasConnectors ? GLOBAL_DEFS.connectorHeight : 0) -
+            2 * GLOBAL_DEFS.padding;
+    const delta = (childrenAreaHeight - childShape.height) / 2;
+    if (delta > 0) {
+      childShape.shape.dy(delta);
+    }
+  }
 }
 
 /**
@@ -171,11 +246,10 @@ function renderCenterText(draw, text, shapeWidth, shapeHeight, color, offset) {
  * @param {?svgjs.Point} offset The offset of the block. If it is null, the
  *     block is the main block and will be positioned to the center of the SVG
  *     canvas.
- * @return {{width: number, height: number}} The calculated size of the block.
- *     Margins are not included.
+ * @return {!RenderedShape} The rendered shape info.
  */
 function renderRoundRectValue(draw, blockDef, config, offset) {
-  const valueString = config || blockDef.defaultValue;
+  const valueString = config || blockDef.defaultConfig;
   let textLength = valueString.length;
   if (blockDef.delimiter) {
     textLength += 2;
@@ -186,31 +260,30 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
   const shapeOffset = offset ||
       new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
 
-  draw.rect(shapeWidth, shapeHeight)
+  const group = draw.group();
+  group.rect(shapeWidth, shapeHeight)
       .fill(blockDef.background)
       .radius(GLOBAL_DEFS.rectRadius)
       .move(shapeOffset.x, shapeOffset.y);
 
-  renderCenterText(draw, valueString, shapeWidth, shapeHeight, blockDef.color,
+  renderCenterText(group, valueString, shapeWidth, shapeHeight, blockDef.color,
       shapeOffset);
 
   if (blockDef.delimiter) {
     // Iterates for the left delimiter and the right delimiter.
-    for (const textAnchorX of [
-      GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharWidth / 2,
-      shapeWidth - GLOBAL_DEFS.padding - GLOBAL_DEFS.fontCharWidth / 2,
+    for (const textOffsetX of [
+      GLOBAL_DEFS.padding,
+      shapeWidth - GLOBAL_DEFS.padding - GLOBAL_DEFS.fontCharWidth,
     ]) {
-      const textAnchorY = shapeHeight - GLOBAL_DEFS.padding -
-          GLOBAL_DEFS.fontBaselineHeight;
-      draw.text(blockDef.delimiter)
-          .font(GLOBAL_DEFS.font)
-          .fill(blockDef.delimiterColor)
-          .move(shapeOffset.x + textAnchorX,
-              shapeOffset.y + textAnchorY);
+      const delimiterWidth =
+          blockDef.delimiter.length * GLOBAL_DEFS.fontCharWidth;
+      renderCenterText(group, blockDef.delimiter,
+          delimiterWidth, shapeHeight, blockDef.delimiterColor,
+          new svgjs.Point(shapeOffset.x + textOffsetX, shapeOffset.y));
     }
   }
 
-  return {width: shapeWidth, height: shapeHeight};
+  return new RenderedShape(group, shapeWidth, shapeHeight);
 }
 
 /**
@@ -221,11 +294,10 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
  * @param {?svgjs.Point} offset The offset of the block. If it is null, the
  *     block is the main block and will be positioned to the center of the SVG
  *     canvas.
- * @return {{width: number, height: number}} The calculated size of the block.
- *     Margins are not included.
+ * @return {!RenderedShape} The rendered shape info.
  */
 function renderOctagonToken(draw, blockDef, config, offset) {
-  const nameString = config || blockDef.defaultValue;
+  const nameString = config || blockDef.defaultConfig;
   const textLength = nameString.length;
   const shapeWidth = 2 * GLOBAL_DEFS.padding +
     textLength * GLOBAL_DEFS.fontCharWidth;
@@ -233,7 +305,8 @@ function renderOctagonToken(draw, blockDef, config, offset) {
   const shapeOffset = offset ||
       new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
 
-  draw.polygon()
+  const group = draw.group();
+  group.polygon()
       .plot([
         [shapeOffset.x, shapeOffset.y + GLOBAL_DEFS.rectRadius],
         [shapeOffset.x + GLOBAL_DEFS.rectRadius, shapeOffset.y],
@@ -249,10 +322,10 @@ function renderOctagonToken(draw, blockDef, config, offset) {
       .fill(blockDef.background)
       .move(shapeOffset.x, shapeOffset.y);
 
-  renderCenterText(draw, nameString, shapeWidth, shapeHeight, blockDef.color,
+  renderCenterText(group, nameString, shapeWidth, shapeHeight, blockDef.color,
       shapeOffset);
 
-  return {width: shapeWidth, height: shapeHeight};
+  return new RenderedShape(group, shapeWidth, shapeHeight);
 }
 
 /**
@@ -263,36 +336,138 @@ function renderOctagonToken(draw, blockDef, config, offset) {
  * @param {?svgjs.Point} offset The offset of the block. If it is null, the
  *     block is the main block and will be positioned to the center of the SVG
  *     canvas.
- * @return {{width: number, height: number}} The calculated size of the block.
- *     Margins are not included.
+ * @return {!RenderedShape} The rendered shape info.
  */
 function renderExpressionContainer(draw, blockDef, config, offset) {
-  const expressionString = config || blockDef.defaultValue;
-  const children = splitListItems(expressionString, BLOCK_DEFS);
-  let shapeWidth = 0;
-  let shapeHeight = 0;
+  const expressionString = config || blockDef.defaultConfig;
+  const children = utils.splitListItems(expressionString, BLOCK_DEFS);
   const shapeOffset = offset ||
       new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
-  const shape = draw.rect(shapeWidth, shapeHeight)
-      .fill(blockDef.background)
-      .radius(GLOBAL_DEFS.rectRadius)
-      .move(shapeOffset.x, shapeOffset.y);
 
+  /** @type {Array<RenderedShape>} */
+  const childrenShapes = [];
   let childOffsetX = shapeOffset.x + GLOBAL_DEFS.padding;
   const childOffsetY = shapeOffset.y + GLOBAL_DEFS.padding;
-  shapeWidth = GLOBAL_DEFS.padding;
+  let shapeWidth = GLOBAL_DEFS.padding;
   let highestChild = 0;
+  const group = draw.group();
   for (const child of children) {
-    const childShapeSize =
-        child.blockDef.renderer(draw, child.blockDef, child.config,
+    const childShape =
+        child.blockDef.renderer(group, child.blockDef, child.config,
             new svgjs.Point(childOffsetX, childOffsetY));
-    childOffsetX += childShapeSize.width + GLOBAL_DEFS.padding;
-    shapeWidth += childShapeSize.width + GLOBAL_DEFS.padding;
-    if (childShapeSize.height > highestChild) {
-      highestChild = childShapeSize.height;
+    childrenShapes.push(childShape);
+    childOffsetX += childShape.width + GLOBAL_DEFS.padding;
+    shapeWidth += childShape.width + GLOBAL_DEFS.padding;
+    if (childShape.height > highestChild) {
+      highestChild = childShape.height;
     }
   }
-  shapeHeight = 2 * GLOBAL_DEFS.padding + highestChild;
-  shape.size(shapeWidth, shapeHeight);
-  return {width: shapeWidth, height: shapeHeight};
+  const shapeHeight = 2 * GLOBAL_DEFS.padding + highestChild;
+  centerChildrenVertically(childrenShapes, shapeHeight, true);
+
+  group.rect(shapeWidth, shapeHeight)
+      .fill(blockDef.background)
+      .radius(GLOBAL_DEFS.rectRadius)
+      .move(shapeOffset.x, shapeOffset.y)
+      .back();
+
+  return new RenderedShape(group, shapeWidth, shapeHeight);
+}
+
+/**
+ * Renders a statement in a rectangle block with top and bottom connectors.
+ * @param {!Object} draw The svgjs draw object.
+ * @param {!Object} blockDef The definition of the block kind.
+ * @param {?string} config The config string.
+ * @param {?svgjs.Point} offset The offset of the block. If it is null, the
+ *     block is the main block and will be positioned to the center of the SVG
+ *     canvas.
+ * @return {!RenderedShape} The rendered shape info.
+ */
+function renderStatement(draw, blockDef, config, offset) {
+  const configString = config || blockDef.defaultConfig;
+  const inputItems = configString ? utils.splitInputItems(configString) : [];
+  let inputItemIndex = 0;
+  // For a statement block, its anchor point is the top-most point of its
+  // left-most edge. Hence, the y position of the anchor point is lower than the
+  // highest position of the shape, at the top connector.
+  const shapeOffset = offset ||
+      new svgjs.Point(GLOBAL_DEFS.margin,
+          GLOBAL_DEFS.margin + GLOBAL_DEFS.connectorHeight);
+  const background = blockDef.background || GLOBAL_DEFS.bgColors.statement;
+  const color = blockDef.color || GLOBAL_DEFS.colors.dark;
+
+  /** @type {Array<RenderedShape>} */
+  const childrenShapes = [];
+  let childOffsetX = shapeOffset.x + GLOBAL_DEFS.statementLeftPadding;
+  const childOffsetY = shapeOffset.y + GLOBAL_DEFS.padding;
+  let shapeWidth = GLOBAL_DEFS.statementLeftPadding;
+  let highestChild = GLOBAL_DEFS.fontCharHeight;
+  const group = draw.group();
+  for (const field of blockDef.fields) {
+    const labelWidth = field.label.length * GLOBAL_DEFS.fontCharWidth;
+    const childShape =
+        renderCenterText(group, field.label,
+            labelWidth, GLOBAL_DEFS.fontCharHeight, color,
+            new svgjs.Point(childOffsetX, childOffsetY));
+    childrenShapes.push(childShape);
+    childOffsetX += labelWidth + GLOBAL_DEFS.padding;
+    shapeWidth += labelWidth + GLOBAL_DEFS.padding;
+    if (field.withInput) {
+      if (inputItemIndex >= inputItems.length) {
+        throw new Error('Need more input items in: ' + config);
+      }
+      const inputItem = inputItems[inputItemIndex++];
+      const childBlockDef =
+          utils.getBlockDefPerConfigString(inputItem, BLOCK_DEFS);
+      const childShape =
+          childBlockDef.renderer(group, childBlockDef, inputItem,
+              new svgjs.Point(childOffsetX, childOffsetY));
+      childrenShapes.push(childShape);
+      childOffsetX += childShape.width + GLOBAL_DEFS.padding;
+      shapeWidth += childShape.width + GLOBAL_DEFS.padding;
+      if (childShape.height > highestChild) {
+        highestChild = childShape.height;
+      }
+    }
+  }
+  // The calculated shapeHeight includes the height of the top connector.
+  const shapeHeight =
+      2 * GLOBAL_DEFS.padding + highestChild + GLOBAL_DEFS.connectorHeight;
+  centerChildrenVertically(childrenShapes, shapeHeight, true);
+
+  group.polygon()
+      .plot([
+        [shapeOffset.x, shapeOffset.y],
+        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding, shapeOffset.y],
+        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
+            GLOBAL_DEFS.connectorCornerSize,
+        shapeOffset.y - GLOBAL_DEFS.connectorHeight],
+        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
+            GLOBAL_DEFS.connectorWidth - GLOBAL_DEFS.connectorCornerSize,
+        shapeOffset.y - GLOBAL_DEFS.connectorHeight],
+        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
+            GLOBAL_DEFS.connectorWidth,
+        shapeOffset.y],
+        [shapeOffset.x + shapeWidth, shapeOffset.y],
+        [shapeOffset.x + shapeWidth, shapeOffset.y + shapeHeight -
+            GLOBAL_DEFS.connectorHeight],
+        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
+            GLOBAL_DEFS.connectorWidth,
+        shapeOffset.y + shapeHeight - GLOBAL_DEFS.connectorHeight],
+        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
+            GLOBAL_DEFS.connectorWidth - GLOBAL_DEFS.connectorCornerSize,
+        shapeOffset.y + shapeHeight - 2 * GLOBAL_DEFS.connectorHeight],
+        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
+            GLOBAL_DEFS.connectorCornerSize,
+        shapeOffset.y + shapeHeight - 2 * GLOBAL_DEFS.connectorHeight],
+        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding,
+          shapeOffset.y + shapeHeight - GLOBAL_DEFS.connectorHeight],
+        [shapeOffset.x,
+          shapeOffset.y + shapeHeight - GLOBAL_DEFS.connectorHeight],
+      ])
+      .fill(background)
+      .back();
+
+  return new RenderedShape(group, shapeWidth, shapeHeight);
 }

@@ -1,0 +1,14 @@
+-- ASDL's 4 builtin types are:
+-- identifier, int, string, constant
+
+module SeedAST
+{
+    stmt = Assign(identifier variable, expr value)
+        | Eval(expr value)
+
+    expr = Binary(expr left, operator op, expr right)
+        | Variable(identifier name)
+        | Constant(constant value)
+
+    operator = Add | Sub | Mul | Div
+}

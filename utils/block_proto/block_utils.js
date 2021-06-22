@@ -26,7 +26,7 @@
  *
  * The input list string can be:
  *
- *  - An expression, e.g., '(,3.14,+,2.71,),&gt;=,counter'.
+ *  - An expression, e.g., '(,3.14,+,2.71,),>=,counter'.
  *  - A list literal, e.g., '1,2,3,4,5'.
  *
  * As this is an internal prototype drawing utility, we assume the input list

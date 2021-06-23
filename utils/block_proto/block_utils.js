@@ -26,7 +26,7 @@
  *
  * The input list string can be:
  *
- *  - An expression, e.g., '(,3.14,+,2.71,),&gt;=,counter'.
+ *  - An expression, e.g., '(,3.14,+,2.71,),>=,counter'.
  *  - A list literal, e.g., '1,2,3,4,5'.
  *
  * As this is an internal prototype drawing utility, we assume the input list
@@ -40,35 +40,55 @@ export function splitListItems(listString, blockDefs) {
   const itemStrings = listString.split(',');
   const items = [];
   for (const itemString of itemStrings) {
-    if (!itemString) {
-      break;
-    }
-    if (blockDefs.operator.validValues.includes(itemString)) {
+    if (itemString) {
       items.push({
-        blockDef: blockDefs.operator,
+        blockDef: getBlockDefPerConfigString(itemString, blockDefs),
         config: itemString,
       });
-    } else if (blockDefs.parentheses.validValues.includes(itemString)) {
-      items.push({
-        blockDef: blockDefs.parentheses,
-        config: itemString,
-      });
-    } else if (itemString.match(/^[0-9.eE\-]+$/)) {
-      items.push({
-        blockDef: blockDefs.number,
-        config: itemString,
-      });
-    } else if (itemString.match(/^[a-zA-Z_]+$/)) {
-      items.push({
-        blockDef: blockDefs.variable,
-        config: itemString,
-      });
-    } else {
-      throw new Error('Not supported item in the list: ' + itemString);
     }
   }
   if (items.length <= 0) {
     throw new Error('Invalid list string: ' + listString);
   }
   return items;
+}
+
+/**
+ * Splits a '|' separated string into input items for filling a statement.
+ *
+ * As this is an internal prototype drawing utility, we assume the input string
+ * is correctly built and formatted. Neither syntax parser nor semantic checker
+ * is required here.
+ * @param {string} inputString The string of inputs.
+ * @return {!Array<string>} An array of parsed input items.
+ */
+export function splitInputItems(inputString) {
+  const items = inputString.split('|').filter((itemString) => itemString);
+  if (items.length <= 0) {
+    throw new Error('Invalid input string: ' + inputString);
+  }
+  return items;
+}
+
+/**
+ * Determines the block type per a config string, and returns the corresponding
+ * block definition.
+ * @param {string} config
+ * @param {!Object} blockDefs The definition of all blocks.
+ * @return {!Object} The definition of the block.
+ */
+export function getBlockDefPerConfigString(config, blockDefs) {
+  if (config.includes(',')) {
+    return blockDefs.expression;
+  } else if (blockDefs.operator.validValues.includes(config)) {
+    return blockDefs.operator;
+  } else if (blockDefs.parentheses.validValues.includes(config)) {
+    return blockDefs.parentheses;
+  } else if (config.match(/^[0-9.eE\-]+$/)) {
+    return blockDefs.number;
+  } else if (config.match(/^[a-zA-Z_]+$/)) {
+    return blockDefs.variable;
+  } else {
+    throw new Error('Invalid config: ' + config);
+  }
 }

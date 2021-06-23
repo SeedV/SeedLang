@@ -12,4 +12,4 @@ can convert ASDL descriptions into the appropriate data structure definitions
 and functions in any target language.
 
 The definition of the AST nodes for SeedAST is found in the file
-[grammars/SeedAST.asdl](/grammars/SeedPython.g4).
+[grammars/SeedAST.asdl](/grammars/SeedAST.asdl).

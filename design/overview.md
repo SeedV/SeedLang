@@ -1,4 +1,17 @@
-# The overview of the SeedLang architecture
+# SeedLang Architecture
+
+## Overview
+
+SeedLang is a visualizable low-code programming environment that focuses on
+educational purposes.
+
+The design of SeedLang highlights three priorities:
+
+* Full-stack visualization.
+* Clear and minimalist design.
+* Embeddable and extensible.
+
+## Architecture
 
 ![The architecture diagram](overview.png)
 
@@ -48,6 +61,16 @@ Typically, SeedX languages can be translated into SeedAST, then into SeedBlock
 representations. For doing this, the feature set of every SeedX language is
 limited to the common subset that SeedAST defines.
 
+## Natural Programming Extensions
+
+Natural programming extensions introduce natural human-machine interactions into
+the low-code programming environment. For example:
+
+* An NLP extension can translate natural language instructions into SeedAST.
+  Hence, one can control an agent with a voice recognition interface.
+* A pre-trained AI model can also translate human poses and gestures into
+  SeedAST to quickly demonstrate a new concept in the programming environment.
+
 ## SeedIR
 
 SeedIR is a mid-level intermediate representation. Before running a SeedBlock
@@ -71,9 +94,9 @@ run interactive apps on different hardware and OS.
 ## Sandbox
 
 The Sandbox restricts the abilities of SeedInterpreter, to avoid unnecessary or
-risky invocations to the hosting environment. It also set up a security boundary
-for the byte code running inside the virtual machine. Hence, it can detect and
-identify malicious code as early as possible.
+risky invocations to the hosting environment. It also sets up a security
+boundary for the byte code running inside the virtual machine. Hence, it can
+detect and identify malicious code as early as possible.
 
 ## Visualizers
 
@@ -83,17 +106,17 @@ visualizers enable SeedLang to be an educational programming language.
 
 SeedLang has two categories of visualizers:
 
-* Source code visualizers analyze source code statically and show underlying
-  structures. For example, we can visualize the internal structure of a value, a
-  code block, a function, a complex grammar structure, or a semantical
-  constraint with predefined or extension visualizers.
-* Runtime visualizers analyze the execution of a program and visualize the
-  runtime. For example, during an execution process of a program, we can
-  visualize the current states of the stack, a dynamical binding, a function
-  call graph, or the real-time states of a red-black tree.
+* Source code visualizers analyze source code statically and explain semantical
+  structures or underlying relationships. For example, we can visualize the
+  internal structure of a value, a code block, a function, a complex grammar
+  structure, or a semantical constraint with built-in or extended visualizers.
+* Runtime visualizers analyze the execution of a program dynamically and
+  visualize the states during the process. For example, we can visualize the
+  current states of a stack, a dynamic binding, a function call graph, or the
+  real-time states of a red-black tree.
 
-SeedLang provides a limited number of predefined visualizers. Third-party
-developers can contribute new visualizers by submitting extensions.
+SeedLang provides a limited number of built-in visualizers. Third-party
+developers can contribute new visualizers by creating and submitting extensions.
 
 ## Debugger
 
@@ -104,17 +127,16 @@ program, and identify the root cause of a bug.
 
 SeedLang provides a number of built-in libraries to support the runtime.
 
-## Extensions
+## Extended Libraries
 
 Third-party developers can extend the abilities of the SeedLang runtime by
-submitting extensions.
+creating and submitting library extensions.
 
-## Unsafe Extensions
+## Unsafe Extended Libraries
 
 SeedLang can also invoke unsafe code, but only outside of the sandbox. Unsafe
-code may include:
+extended libraries may include:
 
 * Native binary extensions.
-
-* The extensions that communicate with system interfaces, for example, to
-  control an Arduino device.
+* The extensions that invoke system calls or communicate directly with hardware
+  interfaces, for example, to control an Arduino device.

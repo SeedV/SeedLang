@@ -1,6 +1,11 @@
 # SeedLang
 
-A visualizable low-code programming environment.
+SeedLang is a visualizable low-code programming environment that focuses on
+educational purposes.
+
+## Architecture
+
+See the [architecture design doc](design/overview.md).
 
 ## Contributing
 

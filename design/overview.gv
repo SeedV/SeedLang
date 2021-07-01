@@ -26,6 +26,8 @@ strict digraph SeedLang {
         style = rounded
     ]
 
+    NaturalProgrammingExtensions [ label = "Natural Programming Extensions" ]
+
     SeedBlock [
         label = "SeedBlock\n\nBlock Renderer/Editor\nBlock Exchange Format"
         shape = folder
@@ -54,16 +56,18 @@ strict digraph SeedLang {
     { rank=same SeedInterpreter RuntimeVisualizers }
 
     Libraries [ label = "Built-in Libraries" ]
-    Extensions []
+    ExtendedLibraries [ label = "Extended Libraries" ]
     Debugger [ shape = component ]
-    { rank=same Libraries Extensions Debugger }
+    { rank=same Libraries ExtendedLibraries Debugger }
 
-    Unsafe [ label = "Unsafe Extensions" ]
+    Unsafe [ label = "Unsafe Extended Libraries" ]
+
+    NaturalProgrammingExtensions -> SeedAST
 
     SeedBlock -> SeedAST
-    SeedAST -> SeedBlock
+    SeedAST -> SeedBlock [constraint = false]
     SeedAST -> SeedX
-    SeedX -> SeedAST
+    SeedX -> SeedAST [constraint = false]
     SeedAST -> SeedIR
     SeedIR -> BytecodeCompiler -> SeedInterpreter
 
@@ -92,7 +96,7 @@ strict digraph SeedLang {
         Debugger
 
         SeedInterpreter -> Libraries
-        SeedInterpreter -> Extensions
+        SeedInterpreter -> ExtendedLibraries
     }
 
     SeedInterpreter -> Unsafe

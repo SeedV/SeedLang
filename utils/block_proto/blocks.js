@@ -642,26 +642,21 @@ function renderFlowControlStatement(draw, blockDef, config, offset) {
         [shapeOffset.x + shapeFootWidth,
           shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
               shapeBodyHeight + shapeFootHeight],
-
         [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
             GLOBAL_DEFS.connectorWidth,
         shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
             shapeBodyHeight + shapeFootHeight],
-
         [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
             GLOBAL_DEFS.connectorWidth - GLOBAL_DEFS.connectorCornerSize,
         shapeOffset.y + shapeHeadHeight - 2 * GLOBAL_DEFS.connectorHeight +
             shapeBodyHeight + shapeFootHeight],
-
         [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
             + GLOBAL_DEFS.connectorCornerSize,
         shapeOffset.y + shapeHeadHeight - 2 * GLOBAL_DEFS.connectorHeight +
             shapeBodyHeight + shapeFootHeight],
-
         [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding,
           shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
               shapeBodyHeight + shapeFootHeight],
-
         [shapeOffset.x,
           shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
               shapeBodyHeight + shapeFootHeight],

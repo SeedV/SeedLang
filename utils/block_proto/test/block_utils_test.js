@@ -72,6 +72,25 @@ describe('splitInputItems', function() {
   });
 });
 
+describe('splitInputItemsAndCompoundStatements', function() {
+  it('checkSplit1', function() {
+    const s = 'x,>,3_set:counter|counter,+,1_set:x|x,-,1';
+    const ret = utils.splitInputItemsAndCompoundStatements(s, BLOCK_DEFS);
+    assert.strictEqual(ret.inputConfigString, 'x,>,3');
+    assert.strictEqual(ret.statements.length, 2);
+    assert.strictEqual(ret.statements[0].blockConfig, 'counter|counter,+,1');
+    assert.strictEqual(ret.statements[1].blockConfig, 'x|x,-,1');
+  });
+
+  it('checkSplit2', function() {
+    const s = 'x|items_set:y|y,+,x';
+    const ret = utils.splitInputItemsAndCompoundStatements(s, BLOCK_DEFS);
+    assert.strictEqual(ret.inputConfigString, 'x|items');
+    assert.strictEqual(ret.statements.length, 1);
+    assert.strictEqual(ret.statements[0].blockConfig, 'y|y,+,x');
+  });
+});
+
 describe('getBlockDefPerConfigString', function() {
   it('checkTypes', function() {
     let blockDef = utils.getBlockDefPerConfigString('1,+,2', BLOCK_DEFS);

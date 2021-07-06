@@ -71,6 +71,42 @@ export function splitInputItems(inputString) {
 }
 
 /**
+ * Splits a config string of a flow control statement. See an example config
+ * string of an if statement:
+ *
+ * 'x,>,3_set:counter|counter,+,1_set:x|x,-,1'
+ *
+ * The input part and the compound statements are separated by '_'. For each
+ * child statement, the statement name and its input are separated by ':'.
+ * @param {string} configString The config string.
+ * @param {!Object} blockDefs The definition of all blocks.
+ * @return {!Object} The parsed info.
+ */
+export function splitInputItemsAndCompoundStatements(configString, blockDefs) {
+  const ret = {
+    inputConfigString: null,
+    statements: [],
+  };
+  const inputStrings =
+      configString.split('_').filter((itemString) => itemString);
+  if (inputStrings.length > 0) {
+    ret.inputConfigString = inputStrings[0];
+  }
+  for (let i = 1; i < inputStrings.length; i++) {
+    const tokens =
+        inputStrings[i].split(':').filter((itemString) => itemString);
+    if (tokens[0] in blockDefs) {
+      const statement = {
+        blockDef: blockDefs[tokens[0]],
+        blockConfig: tokens[1],
+      };
+      ret.statements.push(statement);
+    }
+  }
+  return ret;
+}
+
+/**
  * Determines the block type per a config string, and returns the corresponding
  * block definition.
  * @param {string} config

@@ -1,0 +1,35 @@
+{
+  "schema": "bxf",
+  "version": "v0.1",
+  "module": {
+    "name": "SingleStatementExample",
+    "doc": "Defines a single statement: set x to 3.14",
+    "blocks": [
+      {
+        "id": "000001",
+        "type": "set",
+        "value": false
+      },
+      {
+        "id": "000002",
+        "type": "variant",
+        "value": "x",
+        "position": {
+          "targetId": "000001",
+          "dockType": "input",
+          "dockPosition": 0
+        }
+      },
+      {
+        "id": "000003",
+        "type": "number",
+        "value": 3.14,
+        "position": {
+          "targetId": "000001",
+          "dockType": "input",
+          "dockPosition": 1
+        }
+      }
+    ]
+  }
+}

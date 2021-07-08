@@ -1,0 +1,117 @@
+{
+  "$comment": "Copyright 2021 The Aha001 Team.\nLicensed under the Apache License, Version 2.0",
+  "$id": "https://www.aha001.com/seedlang/schemas/v0.1/bxf.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Block Exchange Format v0.1",
+  "description": "The block exchange format of SeedLang.",
+  "type": "object",
+  "required": ["schema", "version", "module"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "bxf"
+    },
+    "version": {
+      "const": "v0.1"
+    },
+    "author": {
+      "type": "string"
+    },
+    "copyright": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "module": {
+      "type": "object",
+      "required": ["name", "blocks"],
+      "properties": {
+        "name": {
+          "$comment": "Module names are valid identifiers in SeedBlock.",
+          "type": "string"
+        },
+        "doc": {
+          "$comment": "The description of the module.",
+          "type": "string"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/block"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "point": {
+      "$comment": "A block's position is defined by (x, y) coordinates when it is not docked to another block.",
+      "type": "object",
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    },
+    "dock": {
+      "$comment": "A block's position is defined by the docking relationship when it is docked to another block.",
+      "type": "object",
+      "required": ["targetId", "dockType"],
+      "additionalProperties": false,
+      "properties": {
+        "targetId": {
+          "$comment": "The target block that the current block docks to.",
+          "type": "string"
+        },
+        "dockType": {
+          "$comment": "The current block can be an input, the next statement or the first child statement of the target block.",
+          "enum": ["input", "nextStatement", "childStatement"]
+        },
+        "dockPosition": {
+          "$comment": "Indicates the dock position when there are multiple inputs (e.g., set ... to ...) or child statements (e.g., if then ... else ...).",
+          "type": "number"
+        }
+      }
+    },
+    "block": {
+      "type": "object",
+      "required": ["id", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$comment": "The block id should be unique in the current module.",
+          "type": "string"
+        },
+        "type": {
+          "$comment": "The type of the block.",
+          "type": "string"
+        },
+        "doc": {
+          "$comment": "The description of the block.",
+          "type": "string"
+        },
+        "value": {
+          "$comment": "The value of primitive value blocks. E.g. 3 for a Number block, \"Hello\" for a String block.",
+          "type": ["boolean", "number", "string"]
+        },
+        "position": {
+          "$comment": "A block is positioned by (x, y) coordinates or its docked relationship.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/point"
+            },
+            {
+              "$ref": "#/$defs/dock"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

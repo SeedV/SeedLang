@@ -12,7 +12,7 @@
       },
       {
         "id": "000002",
-        "type": "variant",
+        "type": "variable",
         "value": "x",
         "position": {
           "targetId": "000001",

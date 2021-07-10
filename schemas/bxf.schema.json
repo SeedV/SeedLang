@@ -98,17 +98,17 @@
         },
         "value": {
           "$comment": "The value of primitive value blocks. E.g. 3 for a Number block, \"Hello\" for a String block.",
-          "type": ["boolean", "number", "string"]
+          "oneOf": [
+            {"type": "boolean"},
+            {"type": "number"},
+            {"type": "string"}
+          ]
         },
         "position": {
           "$comment": "A block is positioned by (x, y) coordinates or its docked relationship.",
           "oneOf": [
-            {
-              "$ref": "#/$defs/point"
-            },
-            {
-              "$ref": "#/$defs/dock"
-            }
+            {"$ref": "#/$defs/point"},
+            {"$ref": "#/$defs/dock"}
           ]
         }
       }

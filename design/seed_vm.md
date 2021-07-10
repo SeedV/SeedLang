@@ -29,8 +29,8 @@ be passed as arguments to functions, and returned from functions as well.
 
 All the SeedLang values are objects from SeedLang's perspective. They all
 support properties and functions like `name`, `type`, `doc`, `toString()`, etc.
-But in SeedVm, `Nil`, `Boolean` and `Number` are implemented by primitive number
-types, other types are implemented by objects of the host language.
+But in SeedVm, `Nil`, `Boolean` and `Number` are implemented with primitive
+number types, other types are implemented with objects of the host language.
 
 The description of 8 value types are listed as follows:
 
@@ -130,7 +130,7 @@ LOADBOOL A B C              # R(A) := (Bool)B; if C then PC++
 LOADK A Bx                  # R(A) := Kst(Bx)
 ```
 
-`MOVE` instruction is not needed for arithmetic expression. All arithmetic
+`MOVE` instruction is not needed for arithmetic expressions. All arithmetic
 operators are in 2 or 3 operand style. The entire local stack frame is already
 visible to operands `R(A)`, `R(B)` and `R(C)` so there is no need for any extra
 MOVE instructions.

@@ -39,17 +39,17 @@
             "problemMatcher": "$msCompile"
         },
         {
-          "label": "test",
-          "command": "dotnet",
-          "type": "process",
-          "group": "test",
-          "args": [
-            "test",
-            "${workspaceFolder}/csharp",
-            "/property:GenerateFullPaths=true",
-            "/consoleloggerparameters:NoSummary"
-          ],
-          "problemMatcher": "$msCompile"
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "group": "test",
+            "args": [
+                "test",
+                "${workspaceFolder}/csharp",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }

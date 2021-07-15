@@ -16,7 +16,7 @@ using System;
 
 namespace SeedLang {
   class Program {
-    static void Main(string[] args) {
+    static void Main(string[] _) {
       Console.WriteLine("Hello World!");
     }
   }

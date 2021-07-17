@@ -1,9 +1,24 @@
 /*
+ * Copyright 2021 The Aha001 Team.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * This is a derived work of https://github.com/bkiers/Python3-parser.
+ * Here is the original license notice:
+ *
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Bart Kiers
- * Copyright (c) 2019 Robert Einhorn
- * Copyright (c) 2021 The Aha001 Team.
+ * Copyright (c) 2014 by Bart Kiers
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,21 +41,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  *
- * Project      : Python3-parser; an ANTLR4 grammar for Python 3
- *                https://github.com/bkiers/Python3-parser
+ * Project      : python3-parser; an ANTLR4 grammar for Python 3
+ *                https://github.com/bkiers/python3-parser
  * Developed by : Bart Kiers, bart@big-o.nl
- *
- * Project      : an ANTLR4 grammar for Tiny Python without embedded actions
- *                https://github.com/antlr/grammars-v4/tree/master/python/tiny-python/tiny-grammar-without-actions
- * Developed by : Robert Einhorn, robert.einhorn.hu@gmail.com
- *
- * Project      : SeedLang
- *                https://github.com/aha-001/SeedLang/tree/main/grammars
- * Developed by : Wang Yongwu, codingpotato@gmail.com
  */
-
-// Based on the Bart Kiers's ANTLR4 Python 3.3 grammar: https://github.com/bkiers/Python3-parser
-// and the Python 3.3.7 Language Reference:             https://docs.python.org/3.3/reference/grammar.html
 
 grammar SeedPython;
 
@@ -125,8 +129,8 @@ SKIP_: ( SPACES | COMMENT | LINE_JOINING) -> skip;
 
 UNKNOWN_CHAR: .;
 
-/* 
- * Fragments 
+/*
+ * Fragments
  */
 
 fragment NON_ZERO_DIGIT: [1-9];

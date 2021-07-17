@@ -21,7 +21,7 @@ jobs:
         with:
           dotnet-version: 5.0.x
       - name: Generate ANTLR4 parser
-        working-directory: ./grammar
+        working-directory: ./grammars
         run: ./generate_parser.sh
         shell: bash
       - name: Restore dependencies

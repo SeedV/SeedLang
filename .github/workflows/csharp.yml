@@ -2,9 +2,9 @@ name: CSharp
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -20,6 +20,10 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 5.0.x
+      - name: Generate ANTLR4 parser
+        working-directory: ./grammars
+        run: ./generate_parser.sh
+        shell: bash
       - name: Restore dependencies
         working-directory: ./csharp
         run: dotnet restore

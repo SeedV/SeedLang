@@ -17,7 +17,7 @@
 -- ASDL's 4 builtin types are:
 -- identifier, int, string, constant
 
-module SeedAST
+module SeedAst
 {
     stmt = Assign(identifier variable, expr value)
         | Eval(expr value)

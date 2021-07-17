@@ -1,4 +1,31 @@
 {
   "dotnet-test-explorer.testProjectPath": "**/*Tests.@(csproj|vbproj|fsproj)",
-  "omnisharp.enableRoslynAnalyzers": true
+  "omnisharp.enableRoslynAnalyzers": true,
+  "antlr4.format": {
+    "alignTrailingComments": false,
+    "allowShortBlocksOnASingleLine": true,
+    "breakBeforeBraces": false,
+    "columnLimit": 80,
+    "continuationIndentWidth": 4,
+    "indentWidth": 2,
+    "keepEmptyLinesAtTheStartOfBlocks": false,
+    "maxEmptyLinesToKeep": 1,
+    "reflowComments": false,
+    "spaceBeforeAssignmentOperators": true,
+    "tabWidth": 2,
+    "useTab": false,
+    "alignColons": "none",
+    "singleLineOverrulesHangingColon": true,
+    "allowShortRulesOnASingleLine": true,
+    "alignSemicolons": "none",
+    "breakBeforeParens": false,
+    "ruleInternalsOnSingleLine": false,
+    "minEmptyLines": 0,
+    "groupedAlignments": true,
+    "alignFirstTokens": false,
+    "alignLexerCommands": false,
+    "alignActions": false,
+    "alignLabels": true,
+    "alignTrailers": false
+  }
 }

@@ -214,6 +214,12 @@ csharp_preserve_single_line_statements = true
 # https://github.com/dotnet/roslyn/pull/54259 has been published.
 dotnet_style_allow_statement_immediately_after_block_experimental = false
 
+# Disable IDE0090 target-typed new expression (feature of C# 9)
+csharp_style_implicit_object_creation_when_type_is_apparent = false
+
+# Disable IDE0066 use switch expression (fxexature of C# 8)
+csharp_style_prefer_switch_expression = false
+
 [src/CodeStyle/**.{cs,vb}]
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none

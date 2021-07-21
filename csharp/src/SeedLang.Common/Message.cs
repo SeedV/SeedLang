@@ -81,7 +81,7 @@ namespace SeedLang.Common {
     }
 
     static (string name, int requiredArgumentNumber) Parse(Message message) {
-      string name = Enum.GetName(message);
+      string name = Enum.GetName(typeof(Message), message);
       if (name.Length <= 0) {
         return ("", 0);
       }

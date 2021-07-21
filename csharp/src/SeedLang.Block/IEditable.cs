@@ -17,9 +17,9 @@ namespace SeedLang.Block {
   // the UI layer.
   public interface IEditable {
     // Gets the editable block content, a plain text code.
-    string GetEditableCode();
+    string GetEditableText();
 
     // Updates the block content with a new plain text code.
-    bool UpdateCode(string code);
+    bool UpdateText(string text);
   }
 }

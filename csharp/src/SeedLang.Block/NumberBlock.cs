@@ -15,18 +15,18 @@
 namespace SeedLang.Block {
   // The block that holds a literal number.
   public class NumberBlock : PrimitiveValueBlock {
-    public NumberBlock(string initialCode) {
-      UpdateCode(initialCode);
+    public NumberBlock(string initialText) {
+      UpdateText(initialText);
     }
 
-    public override string GetEditableCode() {
+    public override string GetEditableText() {
       return Value;
     }
 
-    public override bool UpdateCode(string code) {
-      // TODO: Validates the input code by the underlying SeedLand engine.
+    public override bool UpdateText(string text) {
+      // TODO: Validates the input text by the underlying SeedLang engine.
 
-      Value = code;
+      Value = text;
       return true;
     }
   }

@@ -33,7 +33,7 @@ namespace SeedLang.Block.Tests {
       var module = new Module();
       module.Add(new NumberBlock("3.14"));
       Assert.Single(module.Blocks);
-      Assert.Equal("3.14", ((NumberBlock)module.Blocks[0]).GetEditableCode());
+      Assert.Equal("3.14", ((NumberBlock)module.Blocks[0]).GetEditableText());
       module.Clear();
       Assert.Empty(module.Blocks);
     }
@@ -41,9 +41,9 @@ namespace SeedLang.Block.Tests {
     [Fact]
     public void TestPrimitiveBlocks() {
       var block = new NumberBlock("3.14");
-      Assert.Equal("3.14", block.GetEditableCode());
-      block.UpdateCode("10");
-      Assert.Equal("10", block.GetEditableCode());
+      Assert.Equal("3.14", block.GetEditableText());
+      block.UpdateText("10");
+      Assert.Equal("10", block.GetEditableText());
     }
   }
 }

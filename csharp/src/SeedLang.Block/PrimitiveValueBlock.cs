@@ -17,8 +17,8 @@ namespace SeedLang.Block {
   public abstract class PrimitiveValueBlock : BaseBlock, IEditable {
     public string Value { get; set; }
 
-    public abstract string GetEditableCode();
+    public abstract string GetEditableText();
 
-    public abstract bool UpdateCode(string code);
+    public abstract bool UpdateText(string text);
   }
 }

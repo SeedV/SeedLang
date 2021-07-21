@@ -25,7 +25,7 @@ namespace SeedLang.Block {
   public class BlockProgram {
     private static readonly object _padlock = new object();
     private static BlockProgram _instance = null;
-    private readonly List<Module> _modules;
+    private readonly List<Module> _modules = new List<Module>();
 
     // A readonly interface for the client to access the contents of the program.
     public IReadOnlyList<Module> Modules => _modules;
@@ -43,7 +43,6 @@ namespace SeedLang.Block {
     }
 
     BlockProgram() {
-      _modules = new List<Module>();
     }
 
     // Clears the in-memory program.

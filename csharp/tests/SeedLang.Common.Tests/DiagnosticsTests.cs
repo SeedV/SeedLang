@@ -22,8 +22,6 @@ namespace SeedLang.Common.Tests {
       Assert.Empty(collection.Diagnostics);
       collection.Report(new Diagnostic("AstParser", Severity.Error, new Range(), Message.Okay.Get()));
       Assert.Single(collection.Diagnostics);
-      collection.Clear();
-      Assert.Empty(collection.Diagnostics);
     }
   }
 }

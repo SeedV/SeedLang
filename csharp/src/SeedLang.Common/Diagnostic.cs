@@ -15,10 +15,10 @@
 namespace SeedLang.Common {
   // Pre-defined diagnostic reporter names for the system components.
   public static class SystemReporters {
-    public static const string SeedBlock = "SeedLang.Block";
-    public static const string SeedX = "SeedLang.X";
-    public static const string SeedAst = "SeedLang.Ast";
-    public static const string SeedVM = "SeedLang.VM";
+    public const string SeedBlock = "SeedLang.Block";
+    public const string SeedX = "SeedLang.X";
+    public const string SeedAst = "SeedLang.Ast";
+    public const string SeedVM = "SeedLang.VM";
   }
 
   // An immutable dignostic info, such as a compiler error or warning.

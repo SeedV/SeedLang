@@ -15,9 +15,9 @@
 namespace SeedLang.Common {
   // Common severity levels for diagnostics, logging info, etc.
   public enum Severity {
-    Fatal,
-    Error,
-    Warning,
-    Info,
+    Info = 0,
+    Warning = 1,
+    Error = 2,
+    Fatal = 3,
   }
 }

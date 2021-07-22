@@ -13,9 +13,23 @@
 // limitations under the License.
 
 namespace SeedLang.Common {
+  // Pre-defined diagnostic reporter names for the system components.
+  public static class SystemReporters {
+    public static const string SeedBlock = "SeedLang.Block";
+    public static const string SeedX = "SeedLang.X";
+    public static const string SeedAst = "SeedLang.Ast";
+    public static const string SeedVM = "SeedLang.VM";
+  }
+
   // An immutable dignostic info, such as a compiler error or warning.
   public class Diagnostic {
-    // The name or ID of the reporter.
+    // The name of the reporter.
+    //
+    // SeedLang system components that report diagnostics are named as "SeedLang.ComponentName". See
+    // SystemReporters for pre-defined names.
+    //
+    // Third-party extensions that report diagnostics will be named as "Contributor.ExtensionName".
+    // There will be an ExtensionHelper to help format reporter names.
     public string Reporter { get; }
     // The time that the diagnostic is reported.
     public string Timestamp { get; }

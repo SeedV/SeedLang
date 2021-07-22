@@ -15,7 +15,7 @@
 using System.Collections.Generic;
 
 namespace SeedLang.Common {
-  // The collection class to maintain a set of diagnostics.
+  // An immutable collection class to hold a set of diagnostics.
   //
   // A SeedLang environment may have one or more DiagnosticCollection instances. For example, a
   // single global DiagnosticCollection instance might be suitable for many simple circumstances,
@@ -40,19 +40,6 @@ namespace SeedLang.Common {
       diagnostics.Add(diagnostic);
     }
 
-    // Deletes a diagnostic from the collection.
-    public void Delete(Diagnostic diagnostic) {
-      Delete(diagnostic.Reporter, diagnostic.Timestamp);
-    }
-
-    // Deletes a diagnostic that the specified reporter reported at the given timestamp.
-    public void Delete(string reporter, string timestamp) {
-      // TODO: Implement the internal HashTable to support deleting by reporter/timestamp.
-    }
-
-    // Clears the collection.
-    public void Clear() {
-      diagnostics.Clear();
-    }
+    // TODO: implement indexing, sorting, searching and grouping features.
   }
 }

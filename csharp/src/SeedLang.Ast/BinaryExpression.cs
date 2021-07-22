@@ -19,24 +19,10 @@ namespace SeedLang.Ast {
     Add,
     Substract,
     Multiply,
-    Divide
-  }
-
-  public static class BinaryOperatorExtensions {
-    public static string Symbol(this BinaryOperator op) {
-      switch (op) {
-        case BinaryOperator.Add:
-          return "+";
-        case BinaryOperator.Substract:
-          return "-";
-        case BinaryOperator.Multiply:
-          return "*";
-        case BinaryOperator.Divide:
-          return "/";
-        default:
-          throw new ArgumentException("Unsupported binary operator.");
-      }
-    }
+    Divide,
+    FloorDivide,
+    Power,
+    Modulus
   }
 
   public sealed class BinaryExpression : Expression {

@@ -47,7 +47,7 @@ namespace SeedLang.Ast.Tests {
       var three = Expression.Number(3);
       var left = Expression.Binary(one, BinaryOperator.Add, two);
       var binary = Expression.Binary(left, BinaryOperator.Multiply, three);
-      var eval = Expression.Eval(binary);
+      var eval = Statement.Eval(binary);
       Assert.Equal("eval ((1 + 2) * 3)\n", eval.ToString());
     }
   }

@@ -17,15 +17,17 @@ using System;
 namespace SeedLang.Ast {
   // The base class of specialized visitor to traverse the AST tree.
   public abstract class AstVisitor {
-    // Dispatch to the specific visit mothod of the node.
-    public void Visit(AstNode node) => node.Accept(this);
+    // Dispatches to the specific visit method of the node.
+    public void Visit(AstNode node) {
+      node.Accept(this);
+    }
 
     protected internal abstract void VisitBinaryExpression(BinaryExpression binary);
-
-    protected internal abstract void VisitEvalStatement(EvalStatement eval);
 
     protected internal abstract void VisitNumberConstant(NumberConstantExpression number);
 
     protected internal abstract void VisitStringConstant(StringConstantExpression str);
+
+    protected internal abstract void VisitEvalStatement(EvalStatement eval);
   }
 }

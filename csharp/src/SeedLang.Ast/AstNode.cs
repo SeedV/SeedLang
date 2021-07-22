@@ -13,12 +13,14 @@
 // limitations under the License.
 
 namespace SeedLang.Ast {
-  // The base class of all AST nodes.
+  // The base class of all the AST nodes.
   public abstract class AstNode {
-    // Create the string representation of the AST node.
-    public override string ToString() => AstStringBuilder.AstToString(this);
+    // Creates the string representation of the AST node.
+    public override string ToString() {
+      return AstStringBuilder.AstToString(this);
+    }
 
-    // Dispatch to the specific visit mothod of this node type.
+    // Dispatches to the specific visit method of this node type.
     protected internal abstract void Accept(AstVisitor visitor);
   }
 }

@@ -12,16 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Diagnostics;
 using System.Text;
 
 namespace SeedLang.Ast {
+  internal static class BinaryOperatorExtensions {
+    // Returns the internal string representation of the binary operator.
+    internal static string Symbol(this BinaryOperator op) {
+      switch (op) {
+        case BinaryOperator.Add:
+          return "+";
+        case BinaryOperator.Substract:
+          return "-";
+        case BinaryOperator.Multiply:
+          return "*";
+        case BinaryOperator.Divide:
+          return "/";
+        case BinaryOperator.FloorDivide:
+          return "//";
+        case BinaryOperator.Power:
+          return "**";
+        case BinaryOperator.Modulus:
+          return "%";
+        default:
+          throw new ArgumentException("Unsupported binary operator.");
+      }
+    }
+  }
+
   internal sealed class AstStringBuilder : AstVisitor {
     private readonly StringBuilder _out = new StringBuilder();
 
-    // Output a given AST tree to a string.
-    public override string ToString() => _out.ToString();
+    public override string ToString() {
+      return _out.ToString();
+    }
 
+    // Outputs a given AST tree to a string.
     internal static string AstToString(AstNode node) {
       Debug.Assert(node != null);
       var asb = new AstStringBuilder();

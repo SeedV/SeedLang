@@ -15,5 +15,9 @@
 namespace SeedLang.Ast {
   // The base class of all statement nodes.
   public abstract class Statement : AstNode {
+    // Creates the eval statement.
+    public static EvalStatement Eval(Expression expr) {
+      return new EvalStatement(expr);
+    }
   }
 }

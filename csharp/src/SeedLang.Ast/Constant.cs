@@ -20,7 +20,9 @@ namespace SeedLang.Ast {
   public class NumberConstantExpression : Constant {
     public double Value { get; set; }
 
-    internal NumberConstantExpression(double value) => Value = value;
+    internal NumberConstantExpression(double value) {
+      Value = value;
+    }
 
     protected internal override void Accept(AstVisitor visitor) {
       visitor.VisitNumberConstant(this);
@@ -30,7 +32,9 @@ namespace SeedLang.Ast {
   public class StringConstantExpression : Constant {
     public string Value { get; set; }
 
-    internal StringConstantExpression(string value) => Value = value;
+    internal StringConstantExpression(string value) {
+      Value = value;
+    }
 
     protected internal override void Accept(AstVisitor visitor) {
       visitor.VisitStringConstant(this);

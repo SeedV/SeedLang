@@ -16,8 +16,12 @@ namespace SeedLang.Ast {
   public sealed class EvalStatement : Statement {
     public Expression Expr { get; }
 
-    internal EvalStatement(Expression expr) => Expr = expr;
+    internal EvalStatement(Expression expr) {
+      Expr = expr;
+    }
 
-    protected internal override void Accept(AstVisitor visitor) => visitor.VisitEvalStatement(this);
+    protected internal override void Accept(AstVisitor visitor) {
+      visitor.VisitEvalStatement(this);
+    }
   }
 }

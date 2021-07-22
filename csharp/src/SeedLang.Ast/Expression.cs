@@ -17,14 +17,19 @@ using System;
 namespace SeedLang.Ast {
   // The base class of all expression nodes.
   public abstract class Expression : AstNode {
+    // Creates the binary expression.
     public static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
       return new BinaryExpression(left, op, right);
     }
 
-    public static NumberConstantExpression Number(double value) => new NumberConstantExpression(value);
+    // Creates the number constant expression.
+    public static NumberConstantExpression Number(double value) {
+      return new NumberConstantExpression(value);
+    }
 
-    public static StringConstantExpression String(string value) => new StringConstantExpression(value);
-
-    public static EvalStatement Eval(Expression expr) => new EvalStatement(expr);
+    // Creates the string constant expression.
+    public static StringConstantExpression String(string value) {
+      return new StringConstantExpression(value);
+    }
   }
 }

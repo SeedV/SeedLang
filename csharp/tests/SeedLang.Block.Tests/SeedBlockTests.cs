@@ -11,13 +11,39 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 using Xunit;
 
 namespace SeedLang.Block.Tests {
   public class SeedBlockTests {
     [Fact]
-    public void TestSeedBlock() {
-      Assert.Equal(1, 1);
+    public void TestBlockProgram() {
+      var program = BlockProgram.Instance;
+      Assert.Empty(program.Modules);
+      program.LoadModuleFromString("");
+      Assert.Single(program.Modules);
+      program.LoadModuleFromString("");
+      Assert.Equal(2, program.Modules.Count);
+      program.Clear();
+      Assert.Empty(program.Modules);
+    }
+
+    [Fact]
+    public void TestModule() {
+      var module = new Module();
+      module.Add(new NumberBlock("3.14"));
+      Assert.Single(module.Blocks);
+      Assert.Equal("3.14", ((NumberBlock)module.Blocks[0]).GetEditableText());
+      module.Clear();
+      Assert.Empty(module.Blocks);
+    }
+
+    [Fact]
+    public void TestPrimitiveBlocks() {
+      var block = new NumberBlock("3.14");
+      Assert.Equal("3.14", block.GetEditableText());
+      block.UpdateText("10");
+      Assert.Equal("10", block.GetEditableText());
     }
   }
 }

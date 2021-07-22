@@ -159,10 +159,10 @@ csharp_style_allow_embedded_statements_on_same_line_experimental = false
 csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false
 
-# Prefer "var" everywhere
-csharp_style_var_for_built_in_types = true:suggestion
+# "var" preferences, following Google C# style
+csharp_style_var_for_built_in_types = false
 csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = true:suggestion
+csharp_style_var_elsewhere = false
 
 # Prefer method-like constructs to have a block body
 csharp_style_expression_bodied_methods = false:none
@@ -209,6 +209,12 @@ csharp_space_between_square_brackets = false
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
+
+# Disable IDE0056, to be compatible with C# 7.3 (netstandard2.0)
+csharp_style_prefer_index_operator = false
+
+# Disable IDE0057, to be compatible with C# 7.3 (netstandard2.0)
+csharp_style_prefer_range_operator = false
 
 # Currently only enabled for C# due to crash in VB analyzer.  VB can be enabled once
 # https://github.com/dotnet/roslyn/pull/54259 has been published.

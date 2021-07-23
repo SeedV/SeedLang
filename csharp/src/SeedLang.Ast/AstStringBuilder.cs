@@ -23,7 +23,7 @@ namespace SeedLang.Ast {
       switch (op) {
         case BinaryOperator.Add:
           return "+";
-        case BinaryOperator.Substract:
+        case BinaryOperator.Subtract:
           return "-";
         case BinaryOperator.Multiply:
           return "*";

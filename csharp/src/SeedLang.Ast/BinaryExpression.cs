@@ -17,7 +17,7 @@ using System;
 namespace SeedLang.Ast {
   public enum BinaryOperator {
     Add,
-    Substract,
+    Subtract,
     Multiply,
     Divide,
     FloorDivide,

@@ -19,4 +19,9 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SeedLang.Ast\SeedLang.Ast.csproj" />
+    <ProjectReference Include="..\..\src\SeedLang.X\SeedLang.X.csproj" />
+  </ItemGroup>
+
 </Project>

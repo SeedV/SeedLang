@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * This is a derived work of https://github.com/bkiers/Python3-parser.
  * Here is the original license notice:
  *
@@ -48,6 +48,10 @@
 
 grammar SeedPython;
 
+@header {
+  #pragma warning disable 3021
+}
+
 tokens {
   INDENT,
   DEDENT
@@ -66,7 +70,9 @@ file_input: (NEWLINE | stmt)* EOF;
 
 stmt: simple_stmt | compound_stmt;
 
-simple_stmt: small_stmt NEWLINE;
+simple_stmt:
+  small_stmt (';' small_stmt)* (';')? NEWLINE;
+
 small_stmt:
   assignment_stmt
   | eval_stmt
@@ -84,6 +90,7 @@ if_stmt:
     'else' ':' suite
   )?;
 while_stmt: 'while' test ':' suite;
+
 suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT;
 
 test: expr (comp_op expr)*;
@@ -106,17 +113,19 @@ SUB: '-';
 MUL: '*';
 DIV: '/';
 
-STRING: STRING_LITERAL;
-NUMBER: INTEGER;
+NUMBER: INTEGER | FLOAT_NUMBER;
+
 INTEGER: DECIMAL_INTEGER;
 
-NEWLINE: ( '\r'? '\n' | '\r' | '\f') SPACES?;
+DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
 
-IDENTIFIER: ID_START ID_CONTINUE*;
+FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
+
+STRING: STRING_LITERAL;
 
 STRING_LITERAL: '"' .*? '"';
 
-DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
+IDENTIFIER: ID_START ID_CONTINUE*;
 
 OPEN_PAREN: '(';
 CLOSE_PAREN: ')';
@@ -125,6 +134,8 @@ CLOSE_BRACK: ']';
 OPEN_BRACE: '{';
 CLOSE_BRACE: '}';
 
+NEWLINE: ( '\r'? '\n' | '\r' | '\f') SPACES?;
+
 SKIP_: ( SPACES | COMMENT | LINE_JOINING) -> skip;
 
 UNKNOWN_CHAR: .;
@@ -132,6 +143,18 @@ UNKNOWN_CHAR: .;
 /*
  * Fragments
  */
+
+fragment POINT_FLOAT:
+  INT_PART? FRACTION
+  | INT_PART '.';
+
+fragment EXPONENT_FLOAT: (INT_PART | POINT_FLOAT) EXPONENT;
+
+fragment INT_PART: DIGIT+;
+
+fragment FRACTION: '.' DIGIT+;
+
+fragment EXPONENT: [eE] [+-]? DIGIT+;
 
 fragment NON_ZERO_DIGIT: [1-9];
 

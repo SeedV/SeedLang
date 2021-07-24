@@ -25,49 +25,48 @@ namespace SeedLang.X {
   // result of the last one. PythonVisitor overrides the method if the default implement is not
   // correct.
   internal class PythonVisitor : SeedPythonBaseVisitor<AstNode> {
-    // Visits add and subtract binary expressions.
+    // Visits an add or subtract binary expression.
     //
-    // The expr() method of the Add_subContext return a ExprContext array which contains exact 2
+    // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
     // items: the left and right ExprContexts.
     public override AstNode VisitAdd_sub([NotNull] SeedPythonParser.Add_subContext context) {
       return BuildBinary(context.op, context.expr());
     }
 
-    // Visits multiply and divide binary expressions.
+    // Visits a multiply and divide binary expression.
     //
-    // The expr() method of the Add_subContext return a ExprContext array which contains exact 2
+    // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
     // items: the left and right ExprContexts.
     public override AstNode VisitMul_div([NotNull] SeedPythonParser.Mul_divContext context) {
       return BuildBinary(context.op, context.expr());
     }
 
-    // Visits number expression.
+    // Visits a number expression.
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {
       return Expression.Number(double.Parse(context.GetText()));
     }
 
-    // Visits grouping expression.
+    // Visits a grouping expression.
     //
-    // There isn't corresponding grouping AST node. The order of the expression node in the AST tree
-    // represent the grouping structure.
+    // There is no corresponding grouping AST node. The order of the expression node in the AST tree
+    // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedPythonParser.GroupingContext context) {
       return Visit(context.expr());
     }
 
-    // Visits the simple statement.
+    // Visits a simple statement.
     //
     // The small_stmt() method of the Simple_stmtContext returns a array which contains all the
     // small statements. There is at least one small statement in it.
-    //
-    // TODO: parse all the small statements in it, only parse the first one now.
     public override AstNode VisitSimple_stmt(
       [NotNull] SeedPythonParser.Simple_stmtContext context) {
+      // TODO: parse all the small statements in it, only parse the first one now.
       SeedPythonParser.Small_stmtContext[] smallStatements = context.small_stmt();
       Debug.Assert(smallStatements.Length > 0);
       return Visit(smallStatements[0]);
     }
 
-    // Visits the eval statement.
+    // Visits an eval statement.
     public override AstNode VisitEval_stmt([NotNull] SeedPythonParser.Eval_stmtContext context) {
       var expr = Visit(context.expr()) as Expression;
       return Statement.Eval(expr);
@@ -75,7 +74,7 @@ namespace SeedLang.X {
 
     // Builds a binary expression node from the opToken and exprs.
     //
-    // The exprContexts parameter must contains exact 2 items: the left and right ExprContext.
+    // The exprContexts parameter must contain exact 2 items: the left and right ExprContext.
     private BinaryExpression BuildBinary(IToken opToken,
                                          SeedPythonParser.ExprContext[] exprContexts) {
       Debug.Assert(exprContexts.Length == 2);

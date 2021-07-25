@@ -18,9 +18,9 @@ using System.Collections.Generic;
 namespace SeedLang.Ast {
   // A executor class to execute an program represented by an AST tree.
   //
-  // The executor traverses through the AST tree by implementing the interfaces of AstVisitor. The
-  // visit method of an expression will return the result of the expression. The return value of a
-  // statement is not used.
+  // The executor traverses through the AST tree by implementing the interfaces of the AstVisitor
+  // class. The visit method of an expression will return the result of the expression. The return
+  // value of a statement visit method is not used.
   public sealed class Executor : AstVisitor<BaseValue> {
     // The global environment of the executor.
     private readonly Dictionary<string, BaseValue> _globals = new Dictionary<string, BaseValue>();
@@ -70,7 +70,7 @@ namespace SeedLang.Ast {
         func.Call(Visit(eval.Expr));
       } else {
         // TODO: throw an exception of the global native function doesn't exist. Might need a comman
-        // exception class in SeedLang.Ast?
+        // exception class in SeedLang.Ast.
       }
       return null;
     }

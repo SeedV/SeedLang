@@ -21,6 +21,6 @@ namespace SeedLang.Ast {
     }
 
     // Dispatches to the specific visit method of this node type.
-    protected internal abstract void Accept(AstVisitor visitor);
+    protected internal abstract Result Accept<Result>(AstVisitor<Result> visitor);
   }
 }

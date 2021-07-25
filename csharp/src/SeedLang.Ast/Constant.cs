@@ -24,8 +24,8 @@ namespace SeedLang.Ast {
       Value = value;
     }
 
-    protected internal override void Accept(AstVisitor visitor) {
-      visitor.VisitNumberConstant(this);
+    protected internal override Result Accept<Result>(AstVisitor<Result> visitor) {
+      return visitor.VisitNumberConstant(this);
     }
   }
 
@@ -36,8 +36,8 @@ namespace SeedLang.Ast {
       Value = value;
     }
 
-    protected internal override void Accept(AstVisitor visitor) {
-      visitor.VisitStringConstant(this);
+    protected internal override Result Accept<Result>(AstVisitor<Result> visitor) {
+      return visitor.VisitStringConstant(this);
     }
   }
 }

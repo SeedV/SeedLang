@@ -17,6 +17,9 @@ using System.Diagnostics;
 using System.Text;
 
 namespace SeedLang.Ast {
+  // A placeholder used in AstStringBuild as the return type of visit methods.
+  using NullResult = Object;
+
   internal static class BinaryOperatorExtensions {
     // Returns the internal string representation of the binary operator.
     internal static string Symbol(this BinaryOperator op) {
@@ -41,7 +44,11 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal sealed class AstStringBuilder : AstVisitor {
+  // A helper class to create the string representation of a AST tree.
+  //
+  // The AstStringBuilder class implements the interfaces of AstVisitor to traverse the AST tree.
+  // The return value of a visit method is not used.
+  internal sealed class AstStringBuilder : AstVisitor<NullResult> {
     private readonly StringBuilder _out = new StringBuilder();
 
     public override string ToString() {
@@ -56,20 +63,24 @@ namespace SeedLang.Ast {
       return asb.ToString();
     }
 
-    protected internal override void VisitBinaryExpression(BinaryExpression binary) {
+    protected internal override NullResult VisitBinaryExpression(BinaryExpression binary) {
       _out.Append($"({binary.Left} {binary.Op.Symbol()} {binary.Right})");
+      return null;
     }
 
-    protected internal override void VisitNumberConstant(NumberConstantExpression number) {
+    protected internal override NullResult VisitNumberConstant(NumberConstantExpression number) {
       _out.Append(number.Value);
+      return null;
     }
 
-    protected internal override void VisitStringConstant(StringConstantExpression str) {
+    protected internal override NullResult VisitStringConstant(StringConstantExpression str) {
       _out.Append(str.Value);
+      return null;
     }
 
-    protected internal override void VisitEvalStatement(EvalStatement eval) {
+    protected internal override NullResult VisitEvalStatement(EvalStatement eval) {
       _out.Append($"eval {eval.Expr}\n");
+      return null;
     }
   }
 }

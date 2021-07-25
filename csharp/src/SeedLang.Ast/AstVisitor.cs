@@ -12,22 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-
 namespace SeedLang.Ast {
-  // The base class of specialized visitor to traverse the AST tree.
-  public abstract class AstVisitor {
-    // Dispatches to the specific visit method of the node.
-    public void Visit(AstNode node) {
-      node.Accept(this);
+  // The base class of visitors to traverse an AST tree. The generic parameter Result is the return
+  // type of visit methods.
+  public abstract class AstVisitor<Result> {
+    // Dispatches to the specific visit method of the AST node.
+    public Result Visit(AstNode node) {
+      return node.Accept(this);
     }
 
-    protected internal abstract void VisitBinaryExpression(BinaryExpression binary);
+    protected internal abstract Result VisitBinaryExpression(BinaryExpression binary);
 
-    protected internal abstract void VisitNumberConstant(NumberConstantExpression number);
+    protected internal abstract Result VisitNumberConstant(NumberConstantExpression number);
 
-    protected internal abstract void VisitStringConstant(StringConstantExpression str);
+    protected internal abstract Result VisitStringConstant(StringConstantExpression str);
 
-    protected internal abstract void VisitEvalStatement(EvalStatement eval);
+    protected internal abstract Result VisitEvalStatement(EvalStatement eval);
   }
 }

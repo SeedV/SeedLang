@@ -12,16 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Ast {
-  public sealed class EvalStatement : Statement {
-    public Expression Expr { get; }
+using System;
 
-    internal EvalStatement(Expression expr) {
-      Expr = expr;
+namespace SeedLang.Ast {
+  // An immutable string value class.
+  internal class StringValue : BaseValue {
+    private readonly string _value;
+
+    public StringValue(string value) {
+      _value = value;
     }
 
-    protected internal override Result Accept<Result>(AstVisitor<Result> visitor) {
-      return visitor.VisitEvalStatement(this);
+    public override double ToNumber() {
+      // TODO: implicit cast from string to number is not allowed (like Python), throw an exception
+      // here.
+      throw new NotImplementedException();
+    }
+
+    public override string ToString() {
+      return _value;
     }
   }
 }

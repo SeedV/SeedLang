@@ -12,16 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Ast {
-  public sealed class EvalStatement : Statement {
-    public Expression Expr { get; }
+using System;
 
-    internal EvalStatement(Expression expr) {
-      Expr = expr;
+namespace SeedLang.Ast {
+  // A immutable native function class.
+  internal class NativeFuncValue : BaseValue {
+    private readonly Func<BaseValue, BaseValue> _func;
+
+    public NativeFuncValue(Func<BaseValue, BaseValue> func) {
+      _func = func;
     }
 
-    protected internal override Result Accept<Result>(AstVisitor<Result> visitor) {
-      return visitor.VisitEvalStatement(this);
+    public BaseValue Call(BaseValue param) {
+      return _func(param);
+    }
+
+    public override double ToNumber() {
+      // TODO: throw an exception as native function couldn't be converted to number.
+      throw new NotImplementedException();
     }
   }
 }

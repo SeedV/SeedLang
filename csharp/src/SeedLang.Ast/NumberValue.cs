@@ -12,16 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Ast {
-  public sealed class EvalStatement : Statement {
-    public Expression Expr { get; }
+using System;
 
-    internal EvalStatement(Expression expr) {
-      Expr = expr;
+namespace SeedLang.Ast {
+  // A immutable number value class.
+  internal class NumberValue : BaseValue {
+    private readonly double _value;
+
+    public NumberValue(double value) {
+      _value = value;
     }
 
-    protected internal override Result Accept<Result>(AstVisitor<Result> visitor) {
-      return visitor.VisitEvalStatement(this);
+    public override double ToNumber() {
+      return _value;
     }
   }
 }

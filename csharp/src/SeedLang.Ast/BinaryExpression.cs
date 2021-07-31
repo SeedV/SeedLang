@@ -36,7 +36,7 @@ namespace SeedLang.Ast {
       Right = right;
     }
 
-    protected internal override void Accept(AstVisitor visitor) {
+    protected internal override void Accept(IVisitor visitor) {
       visitor.VisitBinaryExpression(this);
     }
   }

@@ -12,22 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
-  // The base class of specialized visitor to traverse the AST tree.
-  public abstract class AstVisitor {
-    // Dispatches to the specific visit method of the node.
-    public void Visit(AstNode node) {
-      node.Accept(this);
+  // An immutable number value class.
+  internal class NumberValue : BaseValue {
+    private readonly double _value;
+
+    public override ValueType Type {
+      get {
+        return ValueType.Number;
+      }
     }
 
-    protected internal abstract void VisitBinaryExpression(BinaryExpression binary);
+    internal NumberValue(double value) {
+      _value = value;
+    }
 
-    protected internal abstract void VisitNumberConstant(NumberConstantExpression number);
+    public override double ToNumber() {
+      return _value;
+    }
 
-    protected internal abstract void VisitStringConstant(StringConstantExpression str);
-
-    protected internal abstract void VisitEvalStatement(EvalStatement eval);
+    public override string ToString() {
+      return $"{_value}";
+    }
   }
 }

@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Ast {
-  // The base class of all AST nodes.
-  public abstract class AstNode {
-    // Creates the string representation of the AST node.
-    public override string ToString() {
-      return AstStringBuilder.AstToString(this);
-    }
+namespace SeedLang.Runtime {
+  // The interface of all visualizer classes.
+  public interface IVisualizer {
+    // Called when a binary expression is evaluated.
+    void OnBinaryExpression(IValue left, IValue right, IValue result);
 
-    // Dispatches to the specific visit method of this node type.
-    protected internal abstract void Accept(IVisitor visitor);
+    // Called when an eval statement is executed.
+    void OnEvalStatement(IValue value);
   }
 }

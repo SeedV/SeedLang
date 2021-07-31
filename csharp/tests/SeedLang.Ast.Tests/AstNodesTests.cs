@@ -18,7 +18,7 @@ namespace SeedLang.Ast.Tests {
   public class AstNodesTests {
     [Fact]
     public void TestNumberConstant() {
-      var value = 1.5;
+      double value = 1.5;
       var number = Expression.Number(value);
       Assert.Equal(value, number.Value);
       Assert.Equal(value.ToString(), number.ToString());
@@ -26,7 +26,7 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestStringConstant() {
-      var strValue = "test string";
+      string strValue = "test string";
       var str = Expression.String(strValue);
       Assert.Equal(strValue, str.Value);
       Assert.Equal(strValue, str.ToString());

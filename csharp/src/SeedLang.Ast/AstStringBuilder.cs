@@ -41,7 +41,8 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal sealed class AstStringBuilder : AstVisitor {
+  // A helper class to create the string representation of an AST tree.
+  internal sealed class AstStringBuilder : IVisitor {
     private readonly StringBuilder _out = new StringBuilder();
 
     public override string ToString() {
@@ -52,23 +53,23 @@ namespace SeedLang.Ast {
     internal static string AstToString(AstNode node) {
       Debug.Assert(node != null);
       var asb = new AstStringBuilder();
-      asb.Visit(node);
+      node.Accept(asb);
       return asb.ToString();
     }
 
-    protected internal override void VisitBinaryExpression(BinaryExpression binary) {
+    public void VisitBinaryExpression(BinaryExpression binary) {
       _out.Append($"({binary.Left} {binary.Op.Symbol()} {binary.Right})");
     }
 
-    protected internal override void VisitNumberConstant(NumberConstantExpression number) {
+    public void VisitNumberConstant(NumberConstantExpression number) {
       _out.Append(number.Value);
     }
 
-    protected internal override void VisitStringConstant(StringConstantExpression str) {
+    public void VisitStringConstant(StringConstantExpression str) {
       _out.Append(str.Value);
     }
 
-    protected internal override void VisitEvalStatement(EvalStatement eval) {
+    public void VisitEvalStatement(EvalStatement eval) {
       _out.Append($"eval {eval.Expr}\n");
     }
   }

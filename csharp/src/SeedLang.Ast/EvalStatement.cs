@@ -20,7 +20,7 @@ namespace SeedLang.Ast {
       Expr = expr;
     }
 
-    protected internal override void Accept(AstVisitor visitor) {
+    protected internal override void Accept(IVisitor visitor) {
       visitor.VisitEvalStatement(this);
     }
   }

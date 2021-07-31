@@ -12,15 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+
 namespace SeedLang.Ast {
-  // The base class of all AST nodes.
-  public abstract class AstNode {
-    // Creates the string representation of the AST node.
-    public override string ToString() {
-      return AstStringBuilder.AstToString(this);
+  // An immutable string value class.
+  internal class StringValue : BaseValue {
+    private readonly string _value;
+
+    public override Runtime.ValueType Type {
+      get {
+        return Runtime.ValueType.String;
+      }
     }
 
-    // Dispatches to the specific visit method of this node type.
-    protected internal abstract void Accept(IVisitor visitor);
+    internal StringValue(string value) {
+      _value = value;
+    }
+
+    // TODO: decide if implicit cast from a string to a number is allowed (Python does not support)
+    public override double ToNumber() {
+      try {
+        return double.Parse(_value);
+      } catch (Exception) {
+        return 0;
+      }
+    }
+
+    public override string ToString() {
+      return _value;
+    }
   }
 }

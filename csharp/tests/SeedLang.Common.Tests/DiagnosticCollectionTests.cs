@@ -15,7 +15,7 @@
 using Xunit;
 
 namespace SeedLang.Common.Tests {
-  public class DiagnosticsTests {
+  public class DiagnosticCollectionTests {
     [Fact]
     public void TestDiagnosticCollection() {
       var collection = new DiagnosticCollection();

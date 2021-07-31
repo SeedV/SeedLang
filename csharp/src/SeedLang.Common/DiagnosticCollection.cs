@@ -15,7 +15,7 @@
 using System.Collections.Generic;
 
 namespace SeedLang.Common {
-  // An immutable collection class to hold a set of diagnostics.
+  // A collection to maintain a set of diagnostics.
   //
   // A SeedLang environment may have one or more DiagnosticCollection instances. For example, a
   // single global DiagnosticCollection instance might be suitable for many simple circumstances,
@@ -28,16 +28,16 @@ namespace SeedLang.Common {
   //    supprot the features like temporary editing and validating, static checking, partial
   //    execution, editing during debugging, etc.
   public class DiagnosticCollection {
-    private readonly List<Diagnostic> diagnostics = new List<Diagnostic>();
+    private readonly List<Diagnostic> _diagnostics = new List<Diagnostic>();
 
-    public IReadOnlyList<Diagnostic> Diagnostics => diagnostics;
+    public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
     public DiagnosticCollection() {
     }
 
     // Reports a new diagnostic.
     public void Report(Diagnostic diagnostic) {
-      diagnostics.Add(diagnostic);
+      _diagnostics.Add(diagnostic);
     }
 
     // TODO: implement indexing, sorting, searching and grouping features.

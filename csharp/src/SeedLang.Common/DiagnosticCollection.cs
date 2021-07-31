@@ -30,6 +30,14 @@ namespace SeedLang.Common {
   public class DiagnosticCollection {
     private readonly List<Diagnostic> _diagnostics = new List<Diagnostic>();
 
+    // The readonly view of the collection. Client code can use C#'s LINQ queries to search on the
+    // collection or group the results. For example:
+    //
+    // var collection = new DiagnosticCollection();
+    // var query = from diagnostic in collection.Diagnostics
+    //             where diagnostic.Reporter == SystemReporters.SeedAst &&
+    //                   diagnostic.Severity == Severity.Error
+    //             select diagnostic;
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
     public DiagnosticCollection() {
@@ -39,7 +47,5 @@ namespace SeedLang.Common {
     public void Report(Diagnostic diagnostic) {
       _diagnostics.Add(diagnostic);
     }
-
-    // TODO: implement indexing, sorting, searching and grouping features.
   }
 }

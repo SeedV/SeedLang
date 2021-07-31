@@ -17,7 +17,7 @@ using System;
 namespace SeedLang.Common {
   // An immutable class to represent a position in a SeedBlock source code.
   //
-  // Typically a position in a block-style language is an ID of a specified block.
+  // Typically a position in a block-style language is the ID of a specified block.
   public class BlockCodePosition : CodePostion {
     public string BlockId { get; }
 

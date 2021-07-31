@@ -26,7 +26,7 @@ namespace SeedLang.Common {
     }
 
     public override int GetHashCode() {
-      return Line << 8 | Column;
+      return Tuple.Create(Line, Column).GetHashCode();
     }
 
     public override string ToString() {

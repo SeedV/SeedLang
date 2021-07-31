@@ -30,7 +30,7 @@ namespace SeedLang.Common {
     }
 
     public override string ToString() {
-      return $"Block {BlockId}";
+      return $"Block: {BlockId}";
     }
 
     public override int CompareTo(CodePostion pos) {

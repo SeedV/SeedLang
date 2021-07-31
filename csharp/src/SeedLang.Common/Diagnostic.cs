@@ -35,16 +35,19 @@ namespace SeedLang.Common {
     public string Timestamp { get; }
     // The severity of the diagnostic.
     public Severity Severity { get; }
+    // The name of the source code module.
+    public string Module { get; }
     // The corresponding code range of the diagnostic.
-    public Range Range { get; }
+    public CodeRange Range { get; }
     // The string message. This message should be localized and formatted by the
     // SeedLang.Common.Message type.
     public string LocalizedMessage { get; }
 
-    public Diagnostic(string reporter, Severity severity, Range range, string localizedMessage) {
+    public Diagnostic(string reporter, Severity severity, string module, CodeRange range, string localizedMessage) {
       Reporter = reporter;
       Timestamp = Utils.Timestamp();
       Severity = severity;
+      Module = module;
       Range = range;
       LocalizedMessage = localizedMessage;
     }

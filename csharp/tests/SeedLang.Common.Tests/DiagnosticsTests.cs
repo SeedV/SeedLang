@@ -18,9 +18,12 @@ namespace SeedLang.Common.Tests {
   public class DiagnosticsTests {
     [Fact]
     public void TestDiagnosticCollection() {
-      DiagnosticCollection collection = new DiagnosticCollection();
+      var collection = new DiagnosticCollection();
       Assert.Empty(collection.Diagnostics);
-      collection.Report(new Diagnostic("AstParser", Severity.Error, new Range(), Message.Okay.Get()));
+      collection.Report(
+          new Diagnostic(SystemReporters.SeedAst, Severity.Error,
+                         "someModule", CodeRange.Empty,
+                         Message.Okay.Get()));
       Assert.Single(collection.Diagnostics);
     }
   }

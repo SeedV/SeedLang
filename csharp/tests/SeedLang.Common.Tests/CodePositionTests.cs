@@ -19,6 +19,15 @@ namespace SeedLang.Common.Tests {
   public class CodePositionTests {
     [Fact]
     public void TestTextCodePositions() {
+      TextCodePosition pos1 = null;
+      TextCodePosition pos2 = null;
+      Assert.Equal(pos1, pos2);
+      Assert.True(pos1 == pos2);
+      Assert.NotEqual(pos1, new TextCodePosition(1, 1));
+      Assert.True(pos1 != new TextCodePosition(1, 1));
+      Assert.Throws<NotSupportedException>(() => pos1 < pos2);
+      Assert.Throws<NotSupportedException>(() => pos1 > new TextCodePosition(1, 1));
+
       Assert.Equal(new TextCodePosition(1, 3), new TextCodePosition(1, 3));
       Assert.True(new TextCodePosition(1, 3) == new TextCodePosition(1, 3));
       Assert.NotEqual(new TextCodePosition(1, 3), new TextCodePosition(1, 4));
@@ -44,6 +53,15 @@ namespace SeedLang.Common.Tests {
 
     [Fact]
     public void TestBlockCodePositions() {
+      BlockCodePosition pos1 = null;
+      BlockCodePosition pos2 = null;
+      Assert.Equal(pos1, pos2);
+      Assert.True(pos1 == pos2);
+      Assert.NotEqual(pos1, new BlockCodePosition("001"));
+      Assert.True(pos1 != new BlockCodePosition("001"));
+      Assert.Throws<NotSupportedException>(() => pos1 < pos2);
+      Assert.Throws<NotSupportedException>(() => pos1 > new BlockCodePosition("001"));
+
       Assert.Equal(new BlockCodePosition("001"), new BlockCodePosition("001"));
       Assert.True(new BlockCodePosition("001") == new BlockCodePosition("001"));
       Assert.NotEqual(new BlockCodePosition("001"), new BlockCodePosition("002"));
@@ -58,8 +76,8 @@ namespace SeedLang.Common.Tests {
     }
 
     [Theory]
-    [InlineData("001", "Block 001")]
-    [InlineData("someId", "Block someId")]
+    [InlineData("001", "Block: 001")]
+    [InlineData("someId", "Block: someId")]
     public void TestBlockCodePositionToString(string blockId, string desc) {
       Assert.Equal(desc, new BlockCodePosition(blockId).ToString());
     }

@@ -26,7 +26,7 @@ namespace SeedLang.Common {
     public abstract int CompareTo(CodePostion pos);
 
     public virtual bool Equals(CodePostion pos) {
-      return CompareTo(pos) == 0;
+      return !(pos is null) && CompareTo(pos) == 0;
     }
 
     public override bool Equals(object obj) {
@@ -34,6 +34,9 @@ namespace SeedLang.Common {
     }
 
     public static bool operator ==(CodePostion pos1, CodePostion pos2) {
+      if (pos1 is null) {
+        return pos2 is null;
+      }
       return pos1.Equals(pos2);
     }
 
@@ -42,18 +45,30 @@ namespace SeedLang.Common {
     }
 
     public static bool operator <(CodePostion pos1, CodePostion pos2) {
+      if (pos1 is null || pos2 is null) {
+        throw new NotSupportedException();
+      }
       return pos1.CompareTo(pos2) < 0;
     }
 
     public static bool operator <=(CodePostion pos1, CodePostion pos2) {
+      if (pos1 is null || pos2 is null) {
+        throw new NotSupportedException();
+      }
       return pos1.CompareTo(pos2) <= 0;
     }
 
     public static bool operator >(CodePostion pos1, CodePostion pos2) {
+      if (pos1 is null || pos2 is null) {
+        throw new NotSupportedException();
+      }
       return pos1.CompareTo(pos2) > 0;
     }
 
     public static bool operator >=(CodePostion pos1, CodePostion pos2) {
+      if (pos1 is null || pos2 is null) {
+        throw new NotSupportedException();
+      }
       return pos1.CompareTo(pos2) >= 0;
     }
   }

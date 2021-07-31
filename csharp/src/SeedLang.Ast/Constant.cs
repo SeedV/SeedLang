@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections.Generic;
+
 namespace SeedLang.Ast {
   // The base class of constant expressions.
   public abstract class Constant : Expression {
@@ -24,8 +27,8 @@ namespace SeedLang.Ast {
       Value = value;
     }
 
-    protected internal override Result Accept<Result>(AstVisitor<Result> visitor) {
-      return visitor.VisitNumberConstant(this);
+    protected internal override void Accept(IVisitor visitor) {
+      visitor.VisitNumberConstant(this);
     }
   }
 
@@ -36,8 +39,8 @@ namespace SeedLang.Ast {
       Value = value;
     }
 
-    protected internal override Result Accept<Result>(AstVisitor<Result> visitor) {
-      return visitor.VisitStringConstant(this);
+    protected internal override void Accept(IVisitor visitor) {
+      visitor.VisitStringConstant(this);
     }
   }
 }

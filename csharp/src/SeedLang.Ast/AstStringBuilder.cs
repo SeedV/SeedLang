@@ -17,9 +17,6 @@ using System.Diagnostics;
 using System.Text;
 
 namespace SeedLang.Ast {
-  // A placeholder used in AstStringBuild as the return type of visit methods.
-  using NullResult = Object;
-
   internal static class BinaryOperatorExtensions {
     // Returns the internal string representation of the binary operator.
     internal static string Symbol(this BinaryOperator op) {
@@ -44,11 +41,8 @@ namespace SeedLang.Ast {
     }
   }
 
-  // A helper class to create the string representation of a AST tree.
-  //
-  // The AstStringBuilder class implements the interfaces of AstVisitor to traverse the AST tree.
-  // The return value of a visit method is not used.
-  internal sealed class AstStringBuilder : AstVisitor<NullResult> {
+  // A helper class to create the string representation of an AST tree.
+  internal sealed class AstStringBuilder : IVisitor {
     private readonly StringBuilder _out = new StringBuilder();
 
     public override string ToString() {
@@ -59,28 +53,24 @@ namespace SeedLang.Ast {
     internal static string AstToString(AstNode node) {
       Debug.Assert(node != null);
       var asb = new AstStringBuilder();
-      asb.Visit(node);
+      node.Accept(asb);
       return asb.ToString();
     }
 
-    protected internal override NullResult VisitBinaryExpression(BinaryExpression binary) {
+    public void VisitBinaryExpression(BinaryExpression binary) {
       _out.Append($"({binary.Left} {binary.Op.Symbol()} {binary.Right})");
-      return null;
     }
 
-    protected internal override NullResult VisitNumberConstant(NumberConstantExpression number) {
+    public void VisitNumberConstant(NumberConstantExpression number) {
       _out.Append(number.Value);
-      return null;
     }
 
-    protected internal override NullResult VisitStringConstant(StringConstantExpression str) {
+    public void VisitStringConstant(StringConstantExpression str) {
       _out.Append(str.Value);
-      return null;
     }
 
-    protected internal override NullResult VisitEvalStatement(EvalStatement eval) {
+    public void VisitEvalStatement(EvalStatement eval) {
       _out.Append($"eval {eval.Expr}\n");
-      return null;
     }
   }
 }

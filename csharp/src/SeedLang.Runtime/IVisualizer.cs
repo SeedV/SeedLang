@@ -12,24 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+namespace SeedLang.Runtime {
+  // The interface of all visualizer classes.
+  public interface IVisualizer {
+    // Called when a binary expression is evaluated.
+    void OnBinaryExpression(IValue left, IValue right, IValue result);
 
-namespace SeedLang.Ast {
-  // A immutable native function class.
-  internal class NativeFuncValue : BaseValue {
-    private readonly Func<BaseValue, BaseValue> _func;
-
-    public NativeFuncValue(Func<BaseValue, BaseValue> func) {
-      _func = func;
-    }
-
-    public BaseValue Call(BaseValue param) {
-      return _func(param);
-    }
-
-    public override double ToNumber() {
-      // TODO: throw an exception as native function couldn't be converted to number.
-      throw new NotImplementedException();
-    }
+    // Called when an eval statement is executed.
+    void OnEvalStatement(IValue value);
   }
 }

@@ -12,25 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {
-  public class ExecutorTests {
-    [Fact]
-    public void TestExecuteNumberExpression() {
-      double value = 1.5;
-      var number = Expression.Number(value);
-      var executor = new Executor();
-      Assert.Equal(value, executor.Run(number).ToNumber());
+  internal class MockupVisualizer : IVisualizer {
+    public IValue Left { get; private set; }
+    public IValue Right { get; private set; }
+    public IValue Result { get; private set; }
+
+    public void OnBinaryExpression(IValue left, IValue right, IValue result) {
+      Left = left;
+      Right = right;
+      Result = result;
     }
 
+    public void OnEvalStatement(IValue value) {
+      Result = value;
+    }
+  }
+
+  public class ExecutorTests {
     [Fact]
     public void TestExecuteBinaryExpression() {
       var left = Expression.Number(1);
       var right = Expression.Number(2);
       var binary = Expression.Binary(left, BinaryOperator.Add, right);
-      var executor = new Executor();
-      Assert.Equal(3, executor.Run(binary).ToNumber());
+      var visualizer = new MockupVisualizer();
+      var executor = new Executor(visualizer);
+      executor.Run(binary);
+
+      Assert.NotNull(visualizer.Left);
+      Assert.NotNull(visualizer.Right);
+      Assert.NotNull(visualizer.Result);
+
+      Assert.Equal(1, visualizer.Left.ToNumber());
+      Assert.Equal(2, visualizer.Right.ToNumber());
+      Assert.Equal(3, visualizer.Result.ToNumber());
     }
 
     [Fact]
@@ -41,15 +59,12 @@ namespace SeedLang.Ast.Tests {
       var left = Expression.Binary(one, BinaryOperator.Add, two);
       var binary = Expression.Binary(left, BinaryOperator.Multiply, three);
       var eval = Statement.Eval(binary);
-      var executor = new Executor();
-      BaseValue result = null;
-      executor.RegisterNativeFunc("print", value => {
-        result = value;
-        return null;
-      });
+      var visualizer = new MockupVisualizer();
+      var executor = new Executor(visualizer);
       executor.Run(eval);
-      Assert.NotNull(result);
-      Assert.Equal(9, result.ToNumber());
+
+      Assert.NotNull(visualizer.Result);
+      Assert.Equal(9, visualizer.Result.ToNumber());
     }
   }
 }

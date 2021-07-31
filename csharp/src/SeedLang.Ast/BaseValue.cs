@@ -12,11 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // The base class of all the value classes that are used during AST tree execution.
-  public abstract class BaseValue {
+  internal abstract class BaseValue : IValue {
+    public abstract ValueType Type { get; }
+
+    public abstract double ToNumber();
+
     public static BaseValue operator +(BaseValue lhs, BaseValue rhs) {
       return new NumberValue(lhs.ToNumber() + rhs.ToNumber());
     }
@@ -32,7 +36,5 @@ namespace SeedLang.Ast {
     public static BaseValue operator /(BaseValue lhs, BaseValue rhs) {
       return new NumberValue(lhs.ToNumber() / rhs.ToNumber());
     }
-
-    public abstract double ToNumber();
   }
 }

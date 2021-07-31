@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\SeedLang.Ast\SeedLang.Ast.csproj" />
+    <ProjectReference Include="..\..\src\SeedLang.Runtime\SeedLang.Runtime.csproj" />
   </ItemGroup>
 
 </Project>

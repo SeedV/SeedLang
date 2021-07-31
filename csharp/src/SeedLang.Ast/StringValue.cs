@@ -19,14 +19,23 @@ namespace SeedLang.Ast {
   internal class StringValue : BaseValue {
     private readonly string _value;
 
-    public StringValue(string value) {
+    public override Runtime.ValueType Type {
+      get {
+        return Runtime.ValueType.String;
+      }
+    }
+
+    internal StringValue(string value) {
       _value = value;
     }
 
+    // TODO: decide if implicit cast from a string to a number is allowed (Python does not support)
     public override double ToNumber() {
-      // TODO: implicit cast from string to number is not allowed (like Python), throw an exception
-      // here.
-      throw new NotImplementedException();
+      try {
+        return double.Parse(_value);
+      } catch (Exception) {
+        return 0;
+      }
     }
 
     public override string ToString() {

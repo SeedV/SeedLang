@@ -13,66 +13,71 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
+using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
-  // A executor class to execute an program represented by an AST tree.
+  // An executor class to execute a program represented by an AST tree.
   //
-  // The executor traverses through the AST tree by implementing the interfaces of the AstVisitor
-  // class. The visit method of an expression will return the result of the expression. The return
-  // value of a statement visit method is not used.
-  public sealed class Executor : AstVisitor<BaseValue> {
-    // The global environment of the executor.
-    private readonly Dictionary<string, BaseValue> _globals = new Dictionary<string, BaseValue>();
+  // The executor traverses through the AST tree by implementing the IVisitor interface.
+  public sealed class Executor : IVisitor {
+    // The visualizer object to visualize the execution result.
+    private readonly IVisualizer _visualizer;
+    // The result of current executed expression.
+    private BaseValue _expressionResult;
 
     public Executor() {
+      _visualizer = new NullVisualizer();
+    }
+
+    public Executor(IVisualizer visualizer) {
+      _visualizer = visualizer;
     }
 
     // Executes the given AST tree.
-    public BaseValue Run(AstNode node) {
-      return Visit(node);
+    public void Run(AstNode node) {
+      Visit(node);
     }
 
-    // Registers a native function with a name in the global environment.
-    public void RegisterNativeFunc(string name, Func<BaseValue, BaseValue> func) {
-      // TODO: handle the ArgumentException when the name already exists.
-      _globals.Add(name, new NativeFuncValue(func));
-    }
-
-    protected internal override BaseValue VisitBinaryExpression(BinaryExpression binary) {
-      BaseValue left = Visit(binary.Left);
-      BaseValue right = Visit(binary.Right);
+    public void VisitBinaryExpression(BinaryExpression binary) {
+      Visit(binary.Left);
+      BaseValue left = _expressionResult;
+      Visit(binary.Right);
+      BaseValue right = _expressionResult;
       // TODO: handle other operators.
       switch (binary.Op) {
         case BinaryOperator.Add:
-          return left + right;
+          _expressionResult = left + right;
+          break;
         case BinaryOperator.Subtract:
-          return left - right;
+          _expressionResult = left - right;
+          break;
         case BinaryOperator.Multiply:
-          return left * right;
+          _expressionResult = left * right;
+          break;
         case BinaryOperator.Divide:
-          return left / right;
+          _expressionResult = left / right;
+          break;
         default:
           throw new ArgumentException("Unsupported binary operator.");
       }
+      _visualizer.OnBinaryExpression(left, right, _expressionResult);
     }
 
-    protected internal override BaseValue VisitNumberConstant(NumberConstantExpression number) {
-      return new NumberValue(number.Value);
+    public void VisitNumberConstant(NumberConstantExpression number) {
+      _expressionResult = new NumberValue(number.Value);
     }
 
-    protected internal override BaseValue VisitStringConstant(StringConstantExpression str) {
-      return new StringValue(str.Value);
+    public void VisitStringConstant(StringConstantExpression str) {
+      _expressionResult = new StringValue(str.Value);
     }
 
-    protected internal override BaseValue VisitEvalStatement(EvalStatement eval) {
-      if (_globals["print"] is NativeFuncValue func) {
-        func.Call(Visit(eval.Expr));
-      } else {
-        // TODO: throw an exception of the global native function doesn't exist. Might need a comman
-        // exception class in SeedLang.Ast.
-      }
-      return null;
+    public void VisitEvalStatement(EvalStatement eval) {
+      Visit(eval.Expr);
+      _visualizer.OnEvalStatement(_expressionResult);
+    }
+
+    private void Visit(AstNode node) {
+      node.Accept(this);
     }
   }
 }

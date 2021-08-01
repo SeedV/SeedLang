@@ -24,7 +24,7 @@ namespace SeedLang.X {
   // the AST tree based on the predefined rules.
   public sealed class PythonParser {
     // Parses SeedPython source code into the AST tree based on the parse rule.
-    public static AstNode Parse(string source, ParseRule rule, DiagnosticCollection diagnostic) {
+    public static AstNode Parse(string source, ParseRule rule, DiagnosticCollection diagnostics) {
       var inputStream = new AntlrInputStream(source);
       var lexer = new SeedPythonLexer(inputStream);
       var tokenStream = new CommonTokenStream(lexer);
@@ -32,7 +32,7 @@ namespace SeedLang.X {
 
       // Remove default error listerners which include a console error reporter.
       parser.RemoveErrorListeners();
-      var errorListener = new SyntaxErrorListener(diagnostic);
+      var errorListener = new SyntaxErrorListener(diagnostics);
       parser.AddErrorListener(errorListener);
       var visitor = new PythonVisitor();
 

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections;
 using System.Collections.Generic;
 
 namespace SeedLang.Common {
@@ -27,19 +28,33 @@ namespace SeedLang.Common {
   // 2) The editor/IDE may use a separate DiagnosticCollection to maintain a temporary state to
   //    supprot the features like temporary editing and validating, static checking, partial
   //    execution, editing during debugging, etc.
-  public class DiagnosticCollection {
-    private readonly List<Diagnostic> diagnostics = new List<Diagnostic>();
+  public class DiagnosticCollection : IEnumerable {
+    private readonly List<Diagnostic> _diagnostics = new List<Diagnostic>();
 
-    public IReadOnlyList<Diagnostic> Diagnostics => diagnostics;
+    public Diagnostic this[int index] {
+      get {
+        return _diagnostics[index];
+      }
+    }
+
+    public int Count {
+      get {
+        return _diagnostics.Count;
+      }
+    }
 
     public DiagnosticCollection() {
     }
 
     // Reports a new diagnostic.
     public void Report(Diagnostic diagnostic) {
-      diagnostics.Add(diagnostic);
+      _diagnostics.Add(diagnostic);
     }
 
-    // TODO: implement indexing, sorting, searching and grouping features.
+    public IEnumerator GetEnumerator() {
+      return _diagnostics.GetEnumerator();
+    }
+
+    // TODO: implement sorting, searching and grouping features.
   }
 }

@@ -13,11 +13,25 @@
 // limitations under the License.
 
 using System;
+using SeedLang.Common;
 
-namespace SeedLang {
+namespace SeedLang.Shell {
   class Program {
     static void Main(string[] _) {
-      Console.WriteLine("Hello World!");
+      // TODO: add a REPL class to encapsulate the input and execution process.
+      while (true) {
+        Console.Write("> ");
+        string line = Console.ReadLine();
+        if (line == "quit") {
+          break;
+        }
+        DiagnosticCollection diagnostics = Engine.RunStatement(line + "\n");
+        if (diagnostics.Count > 0) {
+          foreach (var diagnostic in diagnostics) {
+            Console.WriteLine(diagnostic);
+          }
+        }
+      }
     }
   }
 }

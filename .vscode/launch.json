@@ -10,7 +10,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/csharp/src/SeedLang/bin/Debug/net5.0/SeedLang.dll",
+      "program": "${workspaceFolder}/csharp/src/SeedLang.Shell/bin/Debug/net5.0/SeedLang.Shell.dll",
       "args": [],
       "cwd": "${workspaceFolder}/csharp/src/SeedLang",
       // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console

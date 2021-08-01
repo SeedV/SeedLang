@@ -15,6 +15,7 @@
 using System;
 using Antlr4.Runtime;
 using SeedLang.Ast;
+using SeedLang.Common;
 
 namespace SeedLang.X {
   // The parser of SeedPython language.
@@ -23,24 +24,25 @@ namespace SeedLang.X {
   // the AST tree based on the predefined rules.
   public sealed class PythonParser {
     // Parses SeedPython source code into the AST tree based on the parse rule.
-    public static AstNode Parse(string source, ParseRule rule) {
-      try {
-        var inputStream = new AntlrInputStream(source);
-        var lexer = new SeedPythonLexer(inputStream);
-        var tokenStream = new CommonTokenStream(lexer);
-        var parser = new SeedPythonParser(tokenStream);
-        var visitor = new PythonVisitor();
-        switch (rule) {
-          case ParseRule.Expression:
-            return visitor.Visit(parser.expr());
-          case ParseRule.Statement:
-            return visitor.Visit(parser.stmt());
-          default:
-            throw new ArgumentException("Unknown parse rule: " + rule);
-        }
-      } catch (Exception) {
-        // TODO: implement parse exception handling.
-        throw;
+    public static AstNode Parse(string source, ParseRule rule, DiagnosticCollection diagnostic) {
+      var inputStream = new AntlrInputStream(source);
+      var lexer = new SeedPythonLexer(inputStream);
+      var tokenStream = new CommonTokenStream(lexer);
+      var parser = new SeedPythonParser(tokenStream);
+
+      // Remove default error listerners which include a console error reporter.
+      parser.RemoveErrorListeners();
+      var errorListener = new SyntaxErrorListener(diagnostic);
+      parser.AddErrorListener(errorListener);
+      var visitor = new PythonVisitor();
+
+      switch (rule) {
+        case ParseRule.Expression:
+          return visitor.Visit(parser.expr());
+        case ParseRule.Statement:
+          return visitor.Visit(parser.stmt());
+        default:
+          throw new ArgumentException("Unknown parse rule: " + rule);
       }
     }
   }

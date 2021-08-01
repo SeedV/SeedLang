@@ -48,5 +48,9 @@ namespace SeedLang.Common {
       Range = range;
       LocalizedMessage = localizedMessage;
     }
+
+    public override string ToString() {
+      return $"[Error: {Range}, {Severity}, {Reporter}, {Timestamp}] {LocalizedMessage}";
+    }
   }
 }

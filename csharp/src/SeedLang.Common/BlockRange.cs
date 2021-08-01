@@ -19,7 +19,7 @@ namespace SeedLang.Common {
 
     public BlockPosition Position;
 
-    // A code range is defined as a specified block. The block can be either a standalone primitive
+    // A block range is defined as a specified block. The block can be either a standalone primitive
     // block, or a compound block that contains other blocks as its inputs or child statements.
     public BlockRange(BlockPosition position) {
       Position = position;

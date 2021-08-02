@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Text;
+
 namespace SeedLang.Common {
   // Pre-defined diagnostic reporter names for the system components.
   public static class SystemReporters {
@@ -22,7 +25,7 @@ namespace SeedLang.Common {
   }
 
   // An immutable dignostic info, such as a compiler error or warning.
-  public class Diagnostic {
+  public sealed class Diagnostic {
     // The name of the reporter.
     //
     // SeedLang system components that report diagnostics are named as "SeedLang.ComponentName". See
@@ -35,18 +38,35 @@ namespace SeedLang.Common {
     public string Timestamp { get; }
     // The severity of the diagnostic.
     public Severity Severity { get; }
+    // The name of the source code module.
+    public string Module { get; }
     // The corresponding code range of the diagnostic.
     public Range Range { get; }
     // The string message. This message should be localized and formatted by the
     // SeedLang.Common.Message type.
     public string LocalizedMessage { get; }
 
-    public Diagnostic(string reporter, Severity severity, Range range, string localizedMessage) {
+    public Diagnostic(string reporter,
+                      Severity severity,
+                      string module,
+                      Range range,
+                      string localizedMessage) {
       Reporter = reporter;
       Timestamp = Utils.Timestamp();
       Severity = severity;
+      Module = module;
       Range = range;
       LocalizedMessage = localizedMessage;
+    }
+
+    public override string ToString() {
+      var sb = new StringBuilder();
+      sb.Append(Timestamp);
+      sb.AppendFormat(" {0}", Enum.GetName(typeof(Severity), Severity));
+      sb.AppendFormat(" ({0}) <{1}> ", Reporter, Module);
+      sb.Append(Range is null ? "[]" : Range.ToString());
+      sb.AppendFormat(": {0}", LocalizedMessage);
+      return sb.ToString();
     }
   }
 }

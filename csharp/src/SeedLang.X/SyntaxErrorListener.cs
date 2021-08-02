@@ -34,9 +34,18 @@ namespace SeedLang.X {
                                      string msg,
                                      RecognitionException e) {
       var length = offendingSymbol.StopIndex - offendingSymbol.StartIndex + 1;
-      var range = new Range(offendingSymbol.Line, offendingSymbol.Column, length);
+      var range = new TextRange(offendingSymbol.Line,
+                                offendingSymbol.Column,
+                                offendingSymbol.Line,
+                                offendingSymbol.Column + length);
+      // TODO: set a correct module name.
+      const string moduleName = "module";
       // TODO: map the msg to the localized message defined in the common component.
-      _diagnostics.Report(new Diagnostic(SystemReporters.SeedX, Severity.Fatal, range, msg));
+      _diagnostics.Report(new Diagnostic(SystemReporters.SeedX,
+                                         Severity.Fatal,
+                                         moduleName,
+                                         range,
+                                         msg));
     }
   }
 }

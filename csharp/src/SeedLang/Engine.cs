@@ -36,13 +36,13 @@ namespace SeedLang {
 
     // Runs a statement and returns diagnostic information collected during parsing and execution.
     public static DiagnosticCollection RunStatement(string source) {
-      var diagnostics = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(source, ParseRule.Statement, diagnostics);
-      if (node != null && diagnostics.Count == 0) {
+      var collection = new DiagnosticCollection();
+      AstNode node = PythonParser.Parse(source, ParseRule.Statement, collection);
+      if (!(node is null) && collection.Diagnostics.Count == 0) {
         // TODO: implement the execution of statements.
         Console.Write($"AST: {node}");
       }
-      return diagnostics;
+      return collection;
     }
   }
 }

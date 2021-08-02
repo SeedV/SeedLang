@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections;
 using System.Collections.Generic;
 
 namespace SeedLang.Common {
-  // An immutable collection class to hold a set of diagnostics.
+  // A collection to maintain a set of diagnostics.
   //
   // A SeedLang environment may have one or more DiagnosticCollection instances. For example, a
   // single global DiagnosticCollection instance might be suitable for many simple circumstances,
@@ -28,20 +27,18 @@ namespace SeedLang.Common {
   // 2) The editor/IDE may use a separate DiagnosticCollection to maintain a temporary state to
   //    supprot the features like temporary editing and validating, static checking, partial
   //    execution, editing during debugging, etc.
-  public class DiagnosticCollection : IEnumerable {
+  public class DiagnosticCollection {
     private readonly List<Diagnostic> _diagnostics = new List<Diagnostic>();
 
-    public Diagnostic this[int index] {
-      get {
-        return _diagnostics[index];
-      }
-    }
-
-    public int Count {
-      get {
-        return _diagnostics.Count;
-      }
-    }
+    // The readonly view of the collection. Client code can use C#'s LINQ queries to search on the
+    // collection or group the results. For example:
+    //
+    // var collection = new DiagnosticCollection();
+    // var query = from diagnostic in collection.Diagnostics
+    //             where diagnostic.Reporter == SystemReporters.SeedAst &&
+    //                   diagnostic.Severity == Severity.Error
+    //             select diagnostic;
+    public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
     public DiagnosticCollection() {
     }
@@ -50,11 +47,5 @@ namespace SeedLang.Common {
     public void Report(Diagnostic diagnostic) {
       _diagnostics.Add(diagnostic);
     }
-
-    public IEnumerator GetEnumerator() {
-      return _diagnostics.GetEnumerator();
-    }
-
-    // TODO: implement sorting, searching and grouping features.
   }
 }

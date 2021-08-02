@@ -12,28 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+
 namespace SeedLang.Common {
-  // Represents a range in the source code. Here, the source code can be either a plain text source
-  // code, or a SeedBlock module.
-  public class Range {
-    // The line index of the starting character.
-    // TODO: consider how to express SeedBlock ranges.
-    public int Line { get; }
+  // The base class of all the concrete code range classes.
+  public abstract class Range : IEquatable<Range> {
+    // All the subclasses must provide a customized ToString() method to return the display string.
+    public abstract override string ToString();
 
-    // The column index of the staring character.
-    public int CharPosition { get; }
+    public abstract override int GetHashCode();
 
-    // The length of this range.
-    public int Length { get; }
+    public abstract bool Equals(Range range);
 
-    public Range(int line, int charPosition, int length) {
-      Line = line;
-      CharPosition = charPosition;
-      Length = length;
+    public override bool Equals(object obj) {
+      return Equals(obj as Range);
     }
 
-    public override string ToString() {
-      return $"Line: {Line}, Column: {CharPosition}, Length: {Length}";
+    public static bool operator ==(Range range1, Range range2) {
+      if (range1 is null) {
+        return range2 is null;
+      }
+      return range1.Equals(range2);
+    }
+
+    public static bool operator !=(Range range1, Range range2) {
+      return !(range1 == range2);
     }
   }
 }

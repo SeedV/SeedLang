@@ -25,9 +25,9 @@ namespace SeedLang.Shell {
         if (line == "quit") {
           break;
         }
-        DiagnosticCollection diagnostics = Engine.RunStatement(line + "\n");
-        if (diagnostics.Count > 0) {
-          foreach (var diagnostic in diagnostics) {
+        DiagnosticCollection collection = Engine.RunStatement(line + "\n");
+        if (collection.Diagnostics.Count > 0) {
+          foreach (var diagnostic in collection.Diagnostics) {
             Console.WriteLine(diagnostic);
           }
         }

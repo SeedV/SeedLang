@@ -25,7 +25,7 @@ namespace SeedLang.Common {
     public abstract bool Equals(Range range);
 
     public override bool Equals(object obj) {
-      return obj is Range objRange && Equals(objRange);
+      return Equals(obj as Range);
     }
 
     public static bool operator ==(Range range1, Range range2) {

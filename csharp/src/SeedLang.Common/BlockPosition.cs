@@ -18,23 +18,23 @@ namespace SeedLang.Common {
   // An immutable class to represent a position in a SeedBlock source code.
   //
   // Typically a position in a block-style language is the ID of a specified block.
-  public class BlockPosition : IEquatable<BlockPosition> {
+  public struct BlockPosition : IEquatable<BlockPosition> {
     public string BlockId { get; }
 
     public BlockPosition(string blockId) {
       BlockId = blockId;
     }
 
+    public override string ToString() {
+      return BlockId is null ? "" : $"Block: {BlockId}";
+    }
+
     public override int GetHashCode() {
       return BlockId.GetHashCode();
     }
 
-    public override string ToString() {
-      return $"Block: {BlockId}";
-    }
-
     public bool Equals(BlockPosition pos) {
-      return !(pos is null) && BlockId == pos.BlockId;
+      return BlockId == pos.BlockId;
     }
 
     public override bool Equals(object obj) {
@@ -42,9 +42,6 @@ namespace SeedLang.Common {
     }
 
     public static bool operator ==(BlockPosition pos1, BlockPosition pos2) {
-      if (pos1 is null) {
-        return pos2 is null;
-      }
       return pos1.Equals(pos2);
     }
 

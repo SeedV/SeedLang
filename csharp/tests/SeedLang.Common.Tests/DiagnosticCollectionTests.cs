@@ -23,12 +23,12 @@ namespace SeedLang.Common.Tests {
       Assert.Empty(collection.Diagnostics);
       collection.Report(
           new Diagnostic(SystemReporters.SeedAst, Severity.Error,
-                         "module1", TextRange.Empty,
+                         "module1", null,
                          Message.Okay.Get()));
       Assert.Single(collection.Diagnostics);
       collection.Report(
           new Diagnostic(SystemReporters.SeedBlock, Severity.Warning,
-                         "module2", TextRange.Empty,
+                         "module2", null,
                          Message.Okay.Get()));
       Assert.Equal(2, collection.Diagnostics.Count);
     }
@@ -38,19 +38,19 @@ namespace SeedLang.Common.Tests {
       var collection = new DiagnosticCollection();
       collection.Report(
           new Diagnostic(SystemReporters.SeedAst, Severity.Error,
-                         "module1", TextRange.Empty,
+                         "module1", null,
                          Message.Okay.Get()));
       collection.Report(
           new Diagnostic(SystemReporters.SeedAst, Severity.Info,
-                         "module2", TextRange.Empty,
+                         "module2", null,
                          Message.Okay.Get()));
       collection.Report(
           new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal,
-                         "module3", TextRange.Empty,
+                         "module3", null,
                          Message.Okay.Get()));
       collection.Report(
           new Diagnostic(SystemReporters.SeedBlock, Severity.Warning,
-                         "module4", TextRange.Empty,
+                         "module4", null,
                          Message.Okay.Get()));
       var query1 = from diagnostic in collection.Diagnostics
                    where diagnostic.Reporter == SystemReporters.SeedAst &&

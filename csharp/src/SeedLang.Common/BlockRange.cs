@@ -15,8 +15,6 @@
 namespace SeedLang.Common {
   // Represents a range in a SeedBlock source code.
   public class BlockRange : Range {
-    public static readonly BlockRange Empty = new BlockRange(null as BlockPosition);
-
     public BlockPosition Position;
 
     // A block range is defined as a specified block. The block can be either a standalone primitive
@@ -28,22 +26,25 @@ namespace SeedLang.Common {
     public BlockRange(string blockId) : this(new BlockPosition(blockId)) {
     }
 
-    // Returns if the range is empty. A range can be empty when a diagnostic cannot be associated to
-    // a particular code position.
-    public override bool IsEmpty() {
-      return Position == null;
+    public override string ToString() {
+      return $"[{Position}]";
     }
 
     public override int GetHashCode() {
       return Position.GetHashCode();
     }
 
-    public override string ToString() {
-      return IsEmpty() ? "[]" : $"[{Position}]";
-    }
-
     public override bool Equals(Range range) {
-      return (range is BlockRange blockRange) && Position == blockRange.Position;
+      if (range is null) {
+        return false;
+      }
+      if (ReferenceEquals(this, range)) {
+        return true;
+      }
+      if (GetType() != range.GetType()) {
+        return false;
+      }
+      return Position == (range as BlockRange).Position;
     }
   }
 }

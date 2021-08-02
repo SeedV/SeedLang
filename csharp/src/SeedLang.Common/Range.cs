@@ -17,13 +17,10 @@ using System;
 namespace SeedLang.Common {
   // The base class of all the concrete code range classes.
   public abstract class Range : IEquatable<Range> {
-    // Returns if the range is empty. A range can be empty when a diagnostic cannot be associated to
-    // a particular code position.
-    public abstract bool IsEmpty();
+    // All the subclasses must provide a customized ToString() method to return the display string.
+    public abstract override string ToString();
 
     public abstract override int GetHashCode();
-
-    public abstract override string ToString();
 
     public abstract bool Equals(Range range);
 

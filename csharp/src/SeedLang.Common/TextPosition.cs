@@ -16,7 +16,7 @@ using System;
 
 namespace SeedLang.Common {
   // An immutable class to represent a position in a plaintext source code.
-  public class TextPosition : IComparable<TextPosition>, IEquatable<TextPosition> {
+  public struct TextPosition : IComparable<TextPosition>, IEquatable<TextPosition> {
     public int Line { get; }
     public int Column { get; }
 
@@ -25,18 +25,15 @@ namespace SeedLang.Common {
       Column = column;
     }
 
-    public override int GetHashCode() {
-      return Tuple.Create(Line, Column).GetHashCode();
-    }
-
     public override string ToString() {
       return $"Ln {Line}, Col {Column}";
     }
 
+    public override int GetHashCode() {
+      return Tuple.Create(Line, Column).GetHashCode();
+    }
+
     public int CompareTo(TextPosition pos) {
-      if (pos is null) {
-        throw new NotSupportedException();
-      }
       if (Line < pos.Line) {
         return -1;
       } else if (Line > pos.Line) {
@@ -52,8 +49,8 @@ namespace SeedLang.Common {
       }
     }
 
-    public virtual bool Equals(TextPosition pos) {
-      return !(pos is null) && CompareTo(pos) == 0;
+    public bool Equals(TextPosition pos) {
+      return CompareTo(pos) == 0;
     }
 
     public override bool Equals(object obj) {
@@ -61,9 +58,6 @@ namespace SeedLang.Common {
     }
 
     public static bool operator ==(TextPosition pos1, TextPosition pos2) {
-      if (pos1 is null) {
-        return pos2 is null;
-      }
       return pos1.Equals(pos2);
     }
 
@@ -72,30 +66,18 @@ namespace SeedLang.Common {
     }
 
     public static bool operator <(TextPosition pos1, TextPosition pos2) {
-      if (pos1 is null || pos2 is null) {
-        throw new NotSupportedException();
-      }
       return pos1.CompareTo(pos2) < 0;
     }
 
     public static bool operator <=(TextPosition pos1, TextPosition pos2) {
-      if (pos1 is null || pos2 is null) {
-        throw new NotSupportedException();
-      }
       return pos1.CompareTo(pos2) <= 0;
     }
 
     public static bool operator >(TextPosition pos1, TextPosition pos2) {
-      if (pos1 is null || pos2 is null) {
-        throw new NotSupportedException();
-      }
       return pos1.CompareTo(pos2) > 0;
     }
 
     public static bool operator >=(TextPosition pos1, TextPosition pos2) {
-      if (pos1 is null || pos2 is null) {
-        throw new NotSupportedException();
-      }
       return pos1.CompareTo(pos2) >= 0;
     }
   }

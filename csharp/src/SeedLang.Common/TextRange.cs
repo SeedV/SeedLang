@@ -17,8 +17,6 @@ using System;
 namespace SeedLang.Common {
   // Represents a range in a plaintext source code.
   public class TextRange : Range {
-    public static readonly TextRange Empty = new TextRange(null, null);
-
     public TextPosition Start { get; }
     public TextPosition End { get; }
 
@@ -32,24 +30,25 @@ namespace SeedLang.Common {
         this(new TextPosition(startLine, startColumn), new TextPosition(endLine, endColumn)) {
     }
 
-    // Returns if the range is empty. A range can be empty when a diagnostic cannot be associated to
-    // a particular code position.
-    public override bool IsEmpty() {
-      return Start == null;
+    public override string ToString() {
+      return $"[{Start} - {End}]";
     }
 
     public override int GetHashCode() {
-      int n1 = Start == null ? -1 : Start.GetHashCode();
-      int n2 = End == null ? -1 : End.GetHashCode();
-      return Tuple.Create(n1, n2).GetHashCode();
-    }
-
-    public override string ToString() {
-      return IsEmpty() ? "[]" : $"[{Start} - {End}]";
+      return Tuple.Create(Start.GetHashCode(), End.GetHashCode()).GetHashCode();
     }
 
     public override bool Equals(Range range) {
-      return (range is TextRange textRange) && Start == textRange.Start && End == textRange.End;
+      if (range is null) {
+        return false;
+      }
+      if (ReferenceEquals(this, range)) {
+        return true;
+      }
+      if (GetType() != range.GetType()) {
+        return false;
+      }
+      return Start == (range as TextRange).Start && End == (range as TextRange).End;
     }
   }
 }

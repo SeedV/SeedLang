@@ -19,11 +19,6 @@ namespace SeedLang.Common.Tests {
   public class PositionTests {
     [Fact]
     public void TestTextPositions() {
-      const TextPosition pos = null;
-      Assert.False(new TextPosition(1, 3).Equals(pos));
-      Assert.Throws<NotSupportedException>(() => new TextPosition(1, 3) < pos);
-      Assert.Throws<NotSupportedException>(() => new TextPosition(1, 3) > pos);
-      Assert.Throws<NotSupportedException>(() => new TextPosition(1, 3).CompareTo(pos));
       Assert.True(new TextPosition(1, 3).Equals(new TextPosition(1, 3)));
       Assert.True(new TextPosition(1, 3) == new TextPosition(1, 3));
       Assert.False(new TextPosition(1, 3).Equals(new TextPosition(1, 4)));
@@ -49,8 +44,6 @@ namespace SeedLang.Common.Tests {
 
     [Fact]
     public void TestBlockPositions() {
-      const BlockPosition pos = null;
-      Assert.False(new BlockPosition("001").Equals(pos));
       Assert.True(new BlockPosition("001").Equals(new BlockPosition("001")));
       Assert.True(new BlockPosition("001") == new BlockPosition("001"));
       Assert.False(new BlockPosition("001").Equals(new BlockPosition("002")));

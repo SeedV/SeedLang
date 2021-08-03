@@ -37,6 +37,8 @@ namespace SeedLang {
     // Runs a statement and returns diagnostic information collected during parsing and execution.
     public static DiagnosticCollection RunStatement(string source) {
       var collection = new DiagnosticCollection();
+      // TODO: need a method to choose the corresponding parser (SeedBlock or SeedX) of this source
+      // code.
       AstNode node = PythonParser.Parse(source, ParseRule.Statement, collection);
       if (!(node is null) && collection.Diagnostics.Count == 0) {
         // TODO: implement the execution of statements.

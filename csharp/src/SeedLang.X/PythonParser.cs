@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using System.ComponentModel;
 using Antlr4.Runtime;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -30,7 +30,7 @@ namespace SeedLang.X {
       var tokenStream = new CommonTokenStream(lexer);
       var parser = new SeedPythonParser(tokenStream);
 
-      // Remove default error listerners which include a console error reporter.
+      // Removes default error listerners which include a console error reporter.
       parser.RemoveErrorListeners();
       var errorListener = new SyntaxErrorListener(diagnostics);
       parser.AddErrorListener(errorListener);
@@ -42,7 +42,7 @@ namespace SeedLang.X {
         case ParseRule.Statement:
           return visitor.Visit(parser.stmt());
         default:
-          throw new ArgumentException("Unknown parse rule: " + rule);
+          throw new InvalidEnumArgumentException(nameof(rule), (int)rule, typeof(ParseRule));
       }
     }
   }

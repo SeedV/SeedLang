@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using SeedLang.Ast;
+using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.X.Tests {
@@ -27,7 +28,9 @@ namespace SeedLang.X.Tests {
     [InlineData("1e+20", "1E+20")]
     [InlineData("1e-5", "1E-05")]
     public void TestParseNumber(string input, string expected) {
-      AstNode node = PythonParser.Parse(input, ParseRule.Expression);
+      var collection = new DiagnosticCollection();
+      AstNode node = PythonParser.Parse(input, ParseRule.Expression, collection);
+      Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
 
@@ -36,15 +39,38 @@ namespace SeedLang.X.Tests {
     [InlineData("1 - 2 * 3", "(1 - (2 * 3))")]
     [InlineData("(1 + 2) / 3", "((1 + 2) / 3)")]
     public void TestParseBinaryExpression(string input, string expected) {
-      AstNode node = PythonParser.Parse(input, ParseRule.Expression);
+      var collection = new DiagnosticCollection();
+      AstNode node = PythonParser.Parse(input, ParseRule.Expression, collection);
+      Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
 
     [Theory]
-    [InlineData("eval 1 + 2 * 3 - 4", "eval ((1 + (2 * 3)) - 4)\n")]
+    [InlineData("eval 1 + 2 * 3 - 4\n", "eval ((1 + (2 * 3)) - 4)\n")]
     public void TestParseEvalStatement(string input, string expected) {
-      AstNode node = PythonParser.Parse(input, ParseRule.Statement);
+      var collection = new DiagnosticCollection();
+      AstNode node = PythonParser.Parse(input, ParseRule.Statement, collection);
+      Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
+    }
+
+    [Theory]
+    [InlineData(
+      "1\n",
+      "mismatched input '1' expecting {'eval', 'break', 'continue', 'if', 'while', IDENTIFIER}"
+    )]
+    [InlineData(
+      "eval1\n",
+      @"mismatched input '\n' expecting '='"
+    )]
+    public void TestParseError(string input, string localizedMessage) {
+      var collection = new DiagnosticCollection();
+      AstNode node = PythonParser.Parse(input, ParseRule.Statement, collection);
+      Assert.Null(node);
+      Assert.Single(collection.Diagnostics);
+      Assert.Equal(SystemReporters.SeedX, collection.Diagnostics[0].Reporter);
+      Assert.Equal(Severity.Fatal, collection.Diagnostics[0].Severity);
+      Assert.Equal(localizedMessage, collection.Diagnostics[0].LocalizedMessage);
     }
   }
 }

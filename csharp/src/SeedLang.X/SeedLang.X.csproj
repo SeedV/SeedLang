@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SeedLang.Ast\SeedLang.Ast.csproj" />
+    <ProjectReference Include="..\SeedLang.Common\SeedLang.Common.csproj" />
   </ItemGroup>
 
 </Project>

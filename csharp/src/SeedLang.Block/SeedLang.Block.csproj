@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="..\SeedLang.Common\SeedLang.Common.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
   </PropertyGroup>

@@ -13,12 +13,10 @@
 // limitations under the License.
 
 namespace SeedLang.Block {
-  // The common class for all the block types that only have a primitive value as their content.
-  public abstract class PrimitiveValueBlock : BaseBlock, IEditable {
-    public string Value { get; set; } = "";
-
-    public abstract string GetEditableText();
-
-    public abstract bool UpdateText(string text);
+  // Common settings used by the Block Exchange Format.
+  public static class BxfConstants {
+    public const string Schema = "bxf";
+    public const string Version = "v0.1";
+    public const int IdLength = 8;
   }
 }

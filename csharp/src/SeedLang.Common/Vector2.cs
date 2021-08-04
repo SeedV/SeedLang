@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Block {
-  // The common class for all the block types that only have a primitive value as their content.
-  public abstract class PrimitiveValueBlock : BaseBlock, IEditable {
-    public string Value { get; set; } = "";
+namespace SeedLang.Common {
+  // A simple Vector2 struct.
+  //
+  // .Net has a System.Numerics.Vector2 struct but it requires .Net 5.0 or .Net Standard 2.1.
+  public struct Vector2 {
+    public int X { get; set; }
+    public int Y { get; set; }
 
-    public abstract string GetEditableText();
-
-    public abstract bool UpdateText(string text);
+    public Vector2(int x, int y) {
+      X = x;
+      Y = y;
+    }
   }
 }

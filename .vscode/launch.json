@@ -13,8 +13,9 @@
       "program": "${workspaceFolder}/csharp/src/SeedLang.Shell/bin/Debug/net5.0/SeedLang.Shell.dll",
       "args": [],
       "cwd": "${workspaceFolder}/csharp/src/SeedLang",
+      // Use integratedTerminal to allow reading from the console.
       // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-      "console": "internalConsole",
+      "console": "integratedTerminal",
       "stopAtEntry": false
     },
     {

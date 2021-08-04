@@ -61,6 +61,8 @@ tokens {
  * Parser rules
  */
 
+single_expr: expr EOF;
+
 single_input:
   NEWLINE
   | simple_stmt

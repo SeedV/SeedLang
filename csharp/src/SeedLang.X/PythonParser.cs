@@ -23,6 +23,31 @@ namespace SeedLang.X {
   // The PythonParser provides interfaces to validate the SeedPython source code, and parse it into
   // the AST tree based on the predefined rules.
   public sealed class PythonParser {
+    public static void Dryrun(string source, ParseRule rule, DiagnosticCollection diagnostics) {
+      var inputStream = new AntlrInputStream(source);
+      var lexer = new SeedPythonLexer(inputStream);
+      var tokenStream = new CommonTokenStream(lexer);
+      var parser = new SeedPythonParser(tokenStream);
+
+      // Removes default error listerners which include a console error reporter.
+      parser.RemoveErrorListeners();
+      if (!(diagnostics is null)) {
+        var errorListener = new SyntaxErrorListener(diagnostics);
+        parser.AddErrorListener(errorListener);
+      }
+
+      switch (rule) {
+        case ParseRule.Expression:
+          parser.single_expr();
+          break;
+        case ParseRule.Statement:
+          parser.stmt();
+          break;
+        default:
+          throw new InvalidEnumArgumentException(nameof(rule), (int)rule, typeof(ParseRule));
+      }
+    }
+
     // Parses SeedPython source code into the AST tree based on the parse rule.
     public static AstNode Parse(string source, ParseRule rule, DiagnosticCollection diagnostics) {
       var inputStream = new AntlrInputStream(source);

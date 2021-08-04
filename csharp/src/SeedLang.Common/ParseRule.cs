@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.X {
+namespace SeedLang.Common {
   // The parse rules which can be used to validate and parse SeedX languages.
   public enum ParseRule {
     Expression,

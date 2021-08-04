@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using System;
-using SeedLang.Ast;
+using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.X;
 
@@ -22,29 +22,36 @@ namespace SeedLang {
   //
   // This is a singleton class. The interfaces include validating and running a SeedBlock or SeedX
   // program, registering observers to visualize program execution, etc.
-  public sealed class Engine {
-    private static readonly Lazy<Engine> _engine = new Lazy<Engine>(() => new Engine());
+  public sealed class Engine : IEngine {
+    private static readonly Lazy<IEngine> _engine = new Lazy<IEngine>(() => new Engine());
 
-    public static Engine Instance {
+    public static IEngine Instance {
       get {
         return _engine.Value;
       }
     }
 
+    public IEnumerable<string> BinaryOperators { get { return new List<string>(); } }
+
     private Engine() {
     }
 
-    // Runs a statement and returns diagnostic information collected during parsing and execution.
-    public static DiagnosticCollection RunStatement(string source) {
-      var collection = new DiagnosticCollection();
+    public bool Dryrun(string source,
+                   string module = "",
+                   ParseRule rule = ParseRule.Statement,
+                   Language language = Language.Python,
+                   DiagnosticCollection errors = null) {
       // TODO: need a method to choose the corresponding parser (SeedBlock or SeedX) of this source
       // code.
-      AstNode node = PythonParser.Parse(source, ParseRule.Statement, collection);
-      if (!(node is null) && collection.Diagnostics.Count == 0) {
-        // TODO: implement the execution of statements.
-        Console.Write($"AST: {node}");
-      }
-      return collection;
+      PythonParser.Dryrun(source, rule, errors);
+      return errors.Diagnostics.Count == 0;
+    }
+
+    public DiagnosticCollection Run(string source,
+                                    string module = "",
+                                    ParseRule rule = ParseRule.Statement,
+                                    Language language = Language.Python) {
+      throw new NotImplementedException();
     }
   }
 }

@@ -26,6 +26,11 @@ namespace SeedLang.Block {
   public sealed class Program {
     private static readonly Lazy<Program> _engine = new Lazy<Program>(() => new Program());
 
+    private readonly List<Module> _modules = new List<Module>();
+
+    // A readonly interface for the client to access the contents of the program.
+    public IReadOnlyList<Module> Modules => _modules;
+
     public static Program Instance {
       get {
         return _engine.Value;
@@ -34,11 +39,6 @@ namespace SeedLang.Block {
 
     private Program() {
     }
-
-    private readonly List<Module> _modules = new List<Module>();
-
-    // A readonly interface for the client to access the contents of the program.
-    public IReadOnlyList<Module> Modules => _modules;
 
     // Adds a new module.
     public void Add(Module module) {

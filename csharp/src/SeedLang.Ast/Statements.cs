@@ -12,32 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-
 namespace SeedLang.Ast {
-  public enum BinaryOperator {
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    FloorDivide,
-    Power,
-    Modulus
+  // The base class of all statement nodes.
+  public abstract class Statement : AstNode {
+    // The factory method to creates the eval statement.
+    public static EvalStatement Eval(Expression expr) {
+      return new EvalStatement(expr);
+    }
   }
 
-  public sealed class BinaryExpression : Expression {
-    public Expression Left { get; set; }
-    public BinaryOperator Op { get; set; }
-    public Expression Right { get; set; }
+  public class EvalStatement : Statement {
+    public Expression Expr { get; }
 
-    internal BinaryExpression(Expression left, BinaryOperator op, Expression right) {
-      Left = left;
-      Op = op;
-      Right = right;
-    }
-
-    protected internal override void Accept(IVisitor visitor) {
-      visitor.VisitBinaryExpression(this);
+    internal EvalStatement(Expression expr) {
+      Expr = expr;
     }
   }
 }

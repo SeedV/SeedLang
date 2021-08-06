@@ -17,9 +17,7 @@ using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // An executor class to execute a program represented by an AST tree.
-  //
-  // The executor traverses through the AST tree by implementing the IVisitor interface.
-  public sealed class Executor : IVisitor {
+  public sealed class Executor : AstWalker {
     // The visualizer object to visualize the execution result.
     private readonly IVisualizer _visualizer;
     // The result of current executed expression.
@@ -38,7 +36,7 @@ namespace SeedLang.Ast {
       Visit(node);
     }
 
-    public void VisitBinaryExpression(BinaryExpression binary) {
+    protected override void Visit(BinaryExpression binary) {
       Visit(binary.Left);
       BaseValue left = _expressionResult;
       Visit(binary.Right);
@@ -63,21 +61,17 @@ namespace SeedLang.Ast {
       _visualizer.OnBinaryExpression(left, right, _expressionResult);
     }
 
-    public void VisitNumberConstant(NumberConstantExpression number) {
+    protected override void Visit(NumberConstantExpression number) {
       _expressionResult = new NumberValue(number.Value);
     }
 
-    public void VisitStringConstant(StringConstantExpression str) {
+    protected override void Visit(StringConstantExpression str) {
       _expressionResult = new StringValue(str.Value);
     }
 
-    public void VisitEvalStatement(EvalStatement eval) {
+    protected override void Visit(EvalStatement eval) {
       Visit(eval.Expr);
       _visualizer.OnEvalStatement(_expressionResult);
-    }
-
-    private void Visit(AstNode node) {
-      node.Accept(this);
     }
   }
 }

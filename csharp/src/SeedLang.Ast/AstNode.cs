@@ -19,8 +19,5 @@ namespace SeedLang.Ast {
     public override string ToString() {
       return AstStringBuilder.AstToString(this);
     }
-
-    // Dispatches to the specific visit method of this node type.
-    protected internal abstract void Accept(IVisitor visitor);
   }
 }

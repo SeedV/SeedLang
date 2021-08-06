@@ -17,19 +17,57 @@ using System;
 namespace SeedLang.Ast {
   // The base class of all expression nodes.
   public abstract class Expression : AstNode {
-    // Creates the binary expression.
+    // The factory method to create the binary expression.
     public static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
       return new BinaryExpression(left, op, right);
     }
 
-    // Creates the number constant expression.
+    // The factory method to create the number constant expression.
     public static NumberConstantExpression Number(double value) {
       return new NumberConstantExpression(value);
     }
 
-    // Creates the string constant expression.
+    // The factory method to create the string constant expression.
     public static StringConstantExpression String(string value) {
       return new StringConstantExpression(value);
+    }
+  }
+
+  public enum BinaryOperator {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    FloorDivide,
+    Power,
+    Modulus
+  }
+
+  public class BinaryExpression : Expression {
+    public Expression Left { get; set; }
+    public BinaryOperator Op { get; set; }
+    public Expression Right { get; set; }
+
+    internal BinaryExpression(Expression left, BinaryOperator op, Expression right) {
+      Left = left;
+      Op = op;
+      Right = right;
+    }
+  }
+
+  public class NumberConstantExpression : Expression {
+    public double Value { get; set; }
+
+    internal NumberConstantExpression(double value) {
+      Value = value;
+    }
+  }
+
+  public class StringConstantExpression : Expression {
+    public string Value { get; set; }
+
+    internal StringConstantExpression(string value) {
+      Value = value;
     }
   }
 }

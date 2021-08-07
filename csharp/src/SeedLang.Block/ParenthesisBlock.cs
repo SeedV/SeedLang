@@ -15,6 +15,15 @@
 namespace SeedLang.Block {
   // The block that holds a grouping operator, i.e., either side of a pair of parentheses.
   public class ParenthesisBlock : OperatorBlock {
+    public enum Type {
+      Left,
+      Right
+    }
+
+    public ParenthesisBlock(Type type) {
+      Name = type == Type.Left ? "(" : ")";
+    }
+
     public override void Accept(IBlockVisitor visitor) {
       visitor.VisitEnter(this);
       visitor.VisitExit(this);

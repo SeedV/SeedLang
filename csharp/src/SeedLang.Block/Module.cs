@@ -28,7 +28,8 @@ namespace SeedLang.Block {
   //   standalone block, or the root node of a docked block group. The position of a root block is
   //   defined by a canvas coordinates (x, y).
   // * Docked block: The block that is docked to a target block. The position of a docked block is
-  //   defined by its relationship (the dock type, and the dock position) with the target block.
+  //   defined by its relationship with the target block - the dock type, the target block ID and
+  //   the dock slot index.
   public class Module {
     // The visitor class to collect the IDs of a docked block group.
     protected class DockedBlockCollector : IBlockVisitor {
@@ -105,23 +106,23 @@ namespace SeedLang.Block {
 
     // Moves a root block to a new canvas position. The blocks that dock to the root block will be
     // still docked as before.
-    public void MoveRootBlock(string blockId, Vector2 canvasPosition) {
+    public void MoveRootBlock(string blockId, Vector2 newCanvasPosition) {
       Debug.Assert(IsRootBlock(blockId));
       Debug.Assert(_blocks.ContainsKey(blockId));
       BaseBlock block = _blocks[blockId];
-      block.Pos.CanvasPosition = canvasPosition;
+      block.Pos.CanvasPosition = newCanvasPosition;
     }
 
     // Docks a block to a target block.
     public void DockBlock(string blockId, string targetBlockId,
-                          Position.DockType type, int dockPosition) {
+                          Position.DockType type, int dockSlotIndex) {
       Debug.Assert(_blocks.ContainsKey(blockId));
       BaseBlock block = _blocks[blockId];
       Debug.Assert(_blocks.ContainsKey(targetBlockId));
       BaseBlock targetBlock = _blocks[targetBlockId];
       _rootBlockIdSet.Remove(blockId);
       Debug.Assert(targetBlock is IDockable);
-      (targetBlock as IDockable).Dock(block, type, dockPosition);
+      (targetBlock as IDockable).Dock(block, type, dockSlotIndex);
     }
 
     // Un-docks a block from its target block.

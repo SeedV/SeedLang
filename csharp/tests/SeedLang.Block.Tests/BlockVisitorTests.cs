@@ -38,8 +38,8 @@ namespace SeedLang.Block.Tests {
       var numberBlock1 = new NumberBlock { Id = "001", Value = "3.14" };
       var numberBlock2 = new NumberBlock { Id = "002", Value = "5" };
       var operatorBlock = new ArithmeticOperatorBlock { Id = "003", Name = "*" };
-      var parenthsisBlock1 = new ParenthesisBlock { Id = "004", Name = "(" };
-      var parenthsisBlock2 = new ParenthesisBlock { Id = "005", Name = ")" };
+      var parenthsisBlock1 = new ParenthesisBlock(ParenthesisBlock.Type.Left) { Id = "004" };
+      var parenthsisBlock2 = new ParenthesisBlock(ParenthesisBlock.Type.Right) { Id = "005" };
       expressionBlock.Dock(parenthsisBlock2, Position.DockType.Input, 0);
       expressionBlock.Dock(numberBlock1, Position.DockType.Input, 0);
       expressionBlock.Dock(operatorBlock, Position.DockType.Input, 0);

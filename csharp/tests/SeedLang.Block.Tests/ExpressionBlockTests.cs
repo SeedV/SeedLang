@@ -23,8 +23,8 @@ namespace SeedLang.Block.Tests {
       var numberBlock1 = new NumberBlock { Id = "001", Value = "3.14" };
       var numberBlock2 = new NumberBlock { Id = "002", Value = "5" };
       var operatorBlock = new ArithmeticOperatorBlock { Id = "003", Name = "*" };
-      var parenthsisBlock1 = new ParenthesisBlock { Id = "004", Name = "(" };
-      var parenthsisBlock2 = new ParenthesisBlock { Id = "005", Name = ")" };
+      var parenthsisBlock1 = new ParenthesisBlock(ParenthesisBlock.Type.Left) { Id = "004" };
+      var parenthsisBlock2 = new ParenthesisBlock(ParenthesisBlock.Type.Right) { Id = "005" };
 
       Assert.Empty(expressionBlock.Inputs);
       Assert.True(expressionBlock.CanDock(numberBlock1, Position.DockType.Input, 0));
@@ -36,61 +36,61 @@ namespace SeedLang.Block.Tests {
       expressionBlock.Dock(numberBlock1, Position.DockType.Input, 0);
       Assert.Single(expressionBlock.Inputs);
       Assert.Equal(Position.DockType.Input, numberBlock1.Pos.Type);
-      Assert.Equal(0, numberBlock1.Pos.DockPosition);
+      Assert.Equal(0, numberBlock1.Pos.DockSlotIndex);
       Assert.Equal("000", numberBlock1.Pos.TargetBlockId);
 
       expressionBlock.Dock(operatorBlock, Position.DockType.Input, 0);
       Assert.Equal(2, expressionBlock.Inputs.Count);
       Assert.Equal(Position.DockType.Input, operatorBlock.Pos.Type);
-      Assert.Equal(0, operatorBlock.Pos.DockPosition);
+      Assert.Equal(0, operatorBlock.Pos.DockSlotIndex);
       Assert.Equal("000", operatorBlock.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, numberBlock1.Pos.Type);
-      Assert.Equal(1, numberBlock1.Pos.DockPosition);
+      Assert.Equal(1, numberBlock1.Pos.DockSlotIndex);
       Assert.Equal("000", numberBlock1.Pos.TargetBlockId);
 
       expressionBlock.Dock(numberBlock2, Position.DockType.Input, 0);
       Assert.Equal(3, expressionBlock.Inputs.Count);
       Assert.Equal(Position.DockType.Input, numberBlock2.Pos.Type);
-      Assert.Equal(0, numberBlock2.Pos.DockPosition);
+      Assert.Equal(0, numberBlock2.Pos.DockSlotIndex);
       Assert.Equal("000", numberBlock2.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, operatorBlock.Pos.Type);
-      Assert.Equal(1, operatorBlock.Pos.DockPosition);
+      Assert.Equal(1, operatorBlock.Pos.DockSlotIndex);
       Assert.Equal("000", operatorBlock.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, numberBlock1.Pos.Type);
-      Assert.Equal(2, numberBlock1.Pos.DockPosition);
+      Assert.Equal(2, numberBlock1.Pos.DockSlotIndex);
       Assert.Equal("000", numberBlock1.Pos.TargetBlockId);
 
       expressionBlock.Dock(parenthsisBlock1, Position.DockType.Input, 0);
       Assert.Equal(4, expressionBlock.Inputs.Count);
       Assert.Equal(Position.DockType.Input, parenthsisBlock1.Pos.Type);
-      Assert.Equal(0, parenthsisBlock1.Pos.DockPosition);
+      Assert.Equal(0, parenthsisBlock1.Pos.DockSlotIndex);
       Assert.Equal("000", parenthsisBlock1.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, numberBlock2.Pos.Type);
-      Assert.Equal(1, numberBlock2.Pos.DockPosition);
+      Assert.Equal(1, numberBlock2.Pos.DockSlotIndex);
       Assert.Equal("000", numberBlock2.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, operatorBlock.Pos.Type);
-      Assert.Equal(2, operatorBlock.Pos.DockPosition);
+      Assert.Equal(2, operatorBlock.Pos.DockSlotIndex);
       Assert.Equal("000", operatorBlock.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, numberBlock1.Pos.Type);
-      Assert.Equal(3, numberBlock1.Pos.DockPosition);
+      Assert.Equal(3, numberBlock1.Pos.DockSlotIndex);
       Assert.Equal("000", numberBlock1.Pos.TargetBlockId);
 
       expressionBlock.Dock(parenthsisBlock2, Position.DockType.Input, 4);
       Assert.Equal(5, expressionBlock.Inputs.Count);
       Assert.Equal(Position.DockType.Input, parenthsisBlock1.Pos.Type);
-      Assert.Equal(0, parenthsisBlock1.Pos.DockPosition);
+      Assert.Equal(0, parenthsisBlock1.Pos.DockSlotIndex);
       Assert.Equal("000", parenthsisBlock1.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, numberBlock2.Pos.Type);
-      Assert.Equal(1, numberBlock2.Pos.DockPosition);
+      Assert.Equal(1, numberBlock2.Pos.DockSlotIndex);
       Assert.Equal("000", numberBlock2.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, operatorBlock.Pos.Type);
-      Assert.Equal(2, operatorBlock.Pos.DockPosition);
+      Assert.Equal(2, operatorBlock.Pos.DockSlotIndex);
       Assert.Equal("000", operatorBlock.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, numberBlock1.Pos.Type);
-      Assert.Equal(3, numberBlock1.Pos.DockPosition);
+      Assert.Equal(3, numberBlock1.Pos.DockSlotIndex);
       Assert.Equal("000", numberBlock1.Pos.TargetBlockId);
       Assert.Equal(Position.DockType.Input, parenthsisBlock2.Pos.Type);
-      Assert.Equal(4, parenthsisBlock2.Pos.DockPosition);
+      Assert.Equal(4, parenthsisBlock2.Pos.DockSlotIndex);
       Assert.Equal("000", parenthsisBlock2.Pos.TargetBlockId);
 
       Assert.Equal("(5*3.14)", expressionBlock.GetEditableText());

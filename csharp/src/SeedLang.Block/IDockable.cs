@@ -18,14 +18,14 @@ namespace SeedLang.Block {
   // The common interface of all the blocks that can be docked with other blocks.
   public interface IDockable {
     // Tests if the input block can be docked to the instance, as the specified dock type and dock
-    // position.
-    bool CanDock(BaseBlock block, Position.DockType type, int dockPosition);
+    // slot index.
+    bool CanDock(BaseBlock block, Position.DockType type, int dockSlotIndex);
 
     // Docks the input block to the instance.
     //
     // It's this method's duty to update the position states of: (1) the target block itself, (2)
     // the input block, and (3) other relevant blocks.
-    void Dock(BaseBlock block, Position.DockType type, int dockPosition);
+    void Dock(BaseBlock block, Position.DockType type, int dockSlotIndex);
 
     // Un-docks the input block from the instance.
     //

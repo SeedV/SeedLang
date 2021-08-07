@@ -28,8 +28,8 @@ namespace SeedLang.Block.Tests {
       var numberBlock1 = new NumberBlock { Value = "3.14" };
       var numberBlock2 = new NumberBlock { Value = "5" };
       var operatorBlock = new ArithmeticOperatorBlock { Name = "*" };
-      var parenthsisBlock1 = new ParenthesisBlock { Name = "(" };
-      var parenthsisBlock2 = new ParenthesisBlock { Name = ")" };
+      var parenthsisBlock1 = new ParenthesisBlock(ParenthesisBlock.Type.Left);
+      var parenthsisBlock2 = new ParenthesisBlock(ParenthesisBlock.Type.Right);
 
       module.AddStandaloneBlock(expressionBlock);
       Assert.Single(module.Blocks);

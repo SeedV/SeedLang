@@ -40,11 +40,11 @@ namespace SeedLang.Block {
       return true;
     }
 
-    public bool CanDock(BaseBlock block, Position.DockType type, int dockPosition) {
+    public bool CanDock(BaseBlock block, Position.DockType type, int dockSlotIndex) {
       // TODO: Support docking as the next statement.
       return type == Position.DockType.Input &&
           block is IEditable &&
-          dockPosition >= 0 && dockPosition <= _inputs.Count;
+          dockSlotIndex >= 0 && dockSlotIndex <= _inputs.Count;
     }
 
     public void Dock(BaseBlock block, Position.DockType type, int dockPosition) {
@@ -85,7 +85,7 @@ namespace SeedLang.Block {
         var inputBlock = _inputs[i];
         inputBlock.Pos.Type = Position.DockType.Input;
         inputBlock.Pos.TargetBlockId = Id;
-        inputBlock.Pos.DockPosition = i;
+        inputBlock.Pos.DockSlotIndex = i;
       }
     }
   }

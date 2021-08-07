@@ -70,7 +70,7 @@ namespace SeedLang.Block.Tests {
 
     [Fact]
     public void TestParenthesisBlock() {
-      var block = new ParenthesisBlock() { Name = "(" };
+      var block = new ParenthesisBlock(ParenthesisBlock.Type.Left);
       Assert.Equal("(", block.GetEditableText());
       Assert.Equal("(", block.Name);
       block.UpdateText(")");

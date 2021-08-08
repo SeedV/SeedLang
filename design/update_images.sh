@@ -12,18 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Re-generate design images from their source files - Graphviz dot files, SVG
-# files, etc.
 #
 # Prerequisites:
-#
-# (1) Install Graphviz per the guide at https://graphviz.org/download/
-#
-# (2) Install pngquant per the guide at https://pngquant.org/install.html
+# * Graphviz
+# * Node.js
 
 # Re-generate design images from Graphviz dot files.
 dot -Tsvg -ooverview.svg overview.gv
+dot -Tsvg -oseed_block_inter_module_view.svg seed_block_inter_module_view.gv
+dot -Tsvg -oseed_block_inter_object_view.svg seed_block_inter_object_view.gv
+dot -Tsvg -oseed_block_code_view.svg seed_block_code_view.gv
 
-# Compress the generated png images.
-pngquant --force --ext .png *.png
+# Re-generate SeedBlock example images with the block prototype util.
+node ../utils/block_proto -b break -o example_block_images/break_block.svg
+node ../utils/block_proto -b if -o example_block_images/if_block.svg
+node ../utils/block_proto -b number -o example_block_images/number_block.svg
+node ../utils/block_proto -b set -o example_block_images/set_block.svg
+node ../utils/block_proto -b string -o example_block_images/string_block.svg

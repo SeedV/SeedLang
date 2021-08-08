@@ -1,0 +1,76 @@
+// Copyright 2021 The Aha001 Team.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+strict digraph SeedBlockInterModuleView {
+
+    compound = true
+    concentrate = true
+    newrank = true
+    fontname = "Arial"
+
+    graph [
+        nodesep="1"
+        ranksep="1"
+    ]
+
+    node [
+        fontname = "Arial"
+        margin = 0.2
+        shape = record
+    ]
+
+    edge [
+        fontname = "Arial"
+    ]
+
+    Timer [
+        label = "Timer | { " +
+                "Property: Count | " +
+                "Function: RegisterEvent_Tick } "
+    ]
+
+    Wall [
+        label = "Wall | { " +
+                "Property: Position | " +
+                "Property: Health | " +
+                "Function: RegisterEvent_Hit | " +
+                "Function: OnEvent_Tick }"
+    ]
+
+    Tank [
+        label = "Tank | { " +
+                "Property: Position | " +
+                "Property: Speed | " +
+                "Property: Health | " +
+                "Function: RegisterEvent_Fire | " +
+                "Function: OnEvent_Hit |" +
+                "Function: OnEvent_Tick }"
+    ]
+
+    EnemyTank [
+        label = "EnemyTank | { " +
+                "Property: Position | " +
+                "Property: Speed | " +
+                "Property: Health | " +
+                "Function: RegisterEvent_Fire | " +
+                "Function: OnEvent_Hit |" +
+                "Function: OnEvent_Tick }"
+    ]
+
+    Wall -> Tank [ style = dotted label = "HandleEvent_Hit" ]
+    Wall -> EnemyTank [ style = dotted label = "HandleEvent_Hit" ]
+
+    Timer -> Tank [ style = dotted label = "HandleEvent_Tick" ]
+    Timer -> EnemyTank [ style = dotted label = "HandleEvent_Tick" ]
+}

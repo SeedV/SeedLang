@@ -1,0 +1,95 @@
+// Copyright 2021 The Aha001 Team.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+strict digraph SeedBlockInterModuleView {
+
+    compound = true
+    concentrate = true
+    newrank = true
+    fontname = "Arial"
+
+    node [
+        fontname = "Arial"
+        margin = 0.2
+        shape = component
+    ]
+
+    Main [
+        label = "Main\n(User Module)"
+    ]
+
+    BattleGameMainLoop [
+        label = "BattleGameMainLoop\n(Extended Library)"
+    ]
+
+    BattleField [
+        label = "BattleField\n(Extended Library)"
+    ]
+
+    Tank [
+        label = "Tank\n(Extended Library)"
+    ]
+
+    EnemyTank [
+        label = "EnemyTank\n(Extended Library)"
+    ]
+
+    { rank=same BattleGameMainLoop BattleField Tank EnemyTank }
+
+    Math [
+        label = "Math\n(Built-in Library)"
+        style = dashed
+    ]
+
+    Physics [
+        label = "Physics\n(Built-in Library)"
+        style = dashed
+    ]
+
+    InputManager [
+        label = "InputManager\n(Built-in Library)"
+        style = dashed
+    ]
+
+    EventSystem [
+        label = "EventSystem\n(Built-in Library)"
+        style = dashed
+    ]
+
+    ThreeD [
+        label = "3D\n(Built-in Library)"
+        style = dashed
+    ]
+
+    ThreeDTerrain [
+        label = "3DTerrain\n(Built-in Library)"
+        style = dashed
+    ]
+
+    Main -> BattleGameMainLoop
+    Main -> BattleField
+    Main -> Tank
+    Main -> EnemyTank
+
+    BattleGameMainLoop -> InputManager [ style = dashed ]
+    BattleGameMainLoop -> EventSystem [ style = dashed ]
+
+    BattleField -> ThreeDTerrain [ style = dashed ]
+    Tank -> ThreeD [ style = dashed ]
+    EnemyTank -> ThreeD [ style = dashed ]
+    ThreeDTerrain -> ThreeD [ style = dashed ]
+
+    ThreeD -> Math [ style = dashed ]
+    ThreeD -> Physics [ style = dashed ]
+}

@@ -25,16 +25,13 @@ namespace SeedLang {
   // This is a singleton class. The interfaces include validating and running a SeedBlock or SeedX
   // program, registering observers to visualize program execution, etc.
   public sealed class Engine : IEngine {
-    private static readonly Lazy<IEngine> _engine = new Lazy<IEngine>(() => new Engine());
+    private static readonly Lazy<IEngine> _lazyInstance = new Lazy<IEngine>(() => new Engine());
 
-    public static IEngine Instance {
-      get {
-        return _engine.Value;
-      }
-    }
+    public static IEngine Instance => _lazyInstance.Value;
 
     public IEnumerable<string> BinaryOperators {
       get {
+        // TODO: implement it.
         return new List<string>();
       }
     }

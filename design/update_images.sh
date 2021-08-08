@@ -23,7 +23,7 @@
 # (2) Install pngquant per the guide at https://pngquant.org/install.html
 
 # Re-generate design images from Graphviz dot files.
-dot -Tpng -ooverview.png overview.gv
+dot -Tsvg -ooverview.svg overview.gv
 
 # Compress the generated png images.
 pngquant --force --ext .png *.png

@@ -13,7 +13,7 @@ The design of SeedLang highlights three priorities:
 
 ## Architecture
 
-![The architecture diagram](overview.png)
+![The architecture diagram](overview.svg)
 
 ## SeedAST
 

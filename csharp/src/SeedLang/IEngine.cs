@@ -16,23 +16,22 @@ using System.Collections.Generic;
 using SeedLang.Common;
 
 namespace SeedLang {
-  public enum Language {
-    Block,
-    Python
-  }
-
+  // The interface of the SeedLang engine.
   public interface IEngine {
+    // A collection that contains all binary operators.
     IEnumerable<string> BinaryOperators { get; }
 
-    bool Dryrun(string source,
-                string module = "",
-                ParseRule rule = ParseRule.Statement,
-                Language language = Language.Python,
-                DiagnosticCollection errors = null);
-
-    DiagnosticCollection Run(string source,
-                             string module = "",
-                             ParseRule rule = ParseRule.Statement,
-                             Language language = Language.Python);
+    // Runs source code with the specified module name, language, target parsing rule and runing
+    // type.
+    //
+    // There are three mothods to run the source code.
+    // 1) Dryrun: parses and validates the source code without runing.
+    // 2) Source: parses the source code into an AST tree, and runs it by traversing the AST tree.
+    // 3) Bytecode: parses and compiles the source code into bytecode, and runs it in a VM.
+    //
+    // The parsing and running diagnostic information will be collected into the diagnostic
+    // collection.
+    bool Run(string source, string module, Language language, ParseRule rule, RunType runType,
+             DiagnosticCollection collection = null);
   }
 }

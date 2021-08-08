@@ -13,12 +13,13 @@
 // limitations under the License.
 
 namespace SeedLang.Common {
-  // The parse rules which can be used to validate and parse SeedBlock or SeedX languages.
-  public enum ParseRule {
-    Identifier,
-    Number,
-    String,
-    Expression,
-    Statement,
+  // The running type of SeedBlock and SeedX source code.
+  public enum RunType {
+    // Parses and validates the source code without runing.
+    Dryrun,
+    // Parses the source code into an AST tree, and runs it by traversing the AST tree.
+    Source,
+    // Parses and compiles the source code into bytecode, and runs it in a VM.
+    Bytecode,
   }
 }

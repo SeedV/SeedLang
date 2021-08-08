@@ -25,6 +25,36 @@ namespace SeedLang.X {
   // result of the last one. PythonVisitor overrides the method if the default implement is not
   // correct.
   internal class PythonVisitor : SeedPythonBaseVisitor<AstNode> {
+    // Visits a single identifier.
+    public override AstNode VisitSingle_identifier(
+      [NotNull] SeedPythonParser.Single_identifierContext context) {
+      return Visit(context.identifier());
+    }
+
+    // Visits a single number.
+    public override AstNode VisitSingle_number(
+      [NotNull] SeedPythonParser.Single_numberContext context) {
+      return Visit(context.number());
+    }
+
+    // Visits a single string.
+    public override AstNode VisitSingle_string(
+      [NotNull] SeedPythonParser.Single_stringContext context) {
+      return Visit(context.@string());
+    }
+
+    // Visits a single expression.
+    public override AstNode VisitSingle_expr(
+      [NotNull] SeedPythonParser.Single_exprContext context) {
+      return Visit(context.expr());
+    }
+
+    // Visits a single statement.
+    public override AstNode VisitSingle_stmt(
+      [NotNull] SeedPythonParser.Single_stmtContext context) {
+      return Visit(context.small_stmt());
+    }
+
     // Visits an add or subtract binary expression.
     //
     // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2

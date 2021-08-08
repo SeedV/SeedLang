@@ -13,12 +13,9 @@
 // limitations under the License.
 
 namespace SeedLang.Common {
-  // The parse rules which can be used to validate and parse SeedBlock or SeedX languages.
-  public enum ParseRule {
-    Identifier,
-    Number,
-    String,
-    Expression,
-    Statement,
+  // All languages that the SeedLang system supports.
+  public enum Language {
+    Block,
+    Python,
   }
 }

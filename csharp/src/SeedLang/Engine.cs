@@ -14,11 +14,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.X;
 
 namespace SeedLang {
-  // A facade class to provide an unified interface for the SeedLang system.
+  // A facade class to implement the SeedLang engine interface.
   //
   // This is a singleton class. The interfaces include validating and running a SeedBlock or SeedX
   // program, registering observers to visualize program execution, etc.
@@ -31,27 +33,39 @@ namespace SeedLang {
       }
     }
 
-    public IEnumerable<string> BinaryOperators { get { return new List<string>(); } }
+    public IEnumerable<string> BinaryOperators {
+      get {
+        return new List<string>();
+      }
+    }
 
     private Engine() {
     }
 
-    public bool Dryrun(string source,
-                   string module = "",
-                   ParseRule rule = ParseRule.Statement,
-                   Language language = Language.Python,
-                   DiagnosticCollection errors = null) {
-      // TODO: need a method to choose the corresponding parser (SeedBlock or SeedX) of this source
-      // code.
-      PythonParser.Dryrun(source, rule, errors);
-      return errors.Diagnostics.Count == 0;
-    }
+    public bool Run(string source, string module, Language language, ParseRule rule,
+                    RunType runType, DiagnosticCollection collection = null) {
+      if (runType == RunType.Dryrun) {
+        switch (language) {
+          case Language.Python:
+            return PythonParser.Validate(source, module, rule, collection);
+          default:
+            Debug.Assert(false, $"Not implemented SeedX language: {language}");
+            return false;
+        }
+      }
 
-    public DiagnosticCollection Run(string source,
-                                    string module = "",
-                                    ParseRule rule = ParseRule.Statement,
-                                    Language language = Language.Python) {
-      throw new NotImplementedException();
+      AstNode node = null;
+      switch (language) {
+        case Language.Python:
+          node = PythonParser.Parse(source, module, rule, collection);
+          break;
+        default:
+          Debug.Assert(false, $"Not implemented SeedX language: {language}");
+          break;
+      }
+      // TODO: run AST node or compile it into bytecode and run it.
+      Console.WriteLine(node);
+      return true;
     }
   }
 }

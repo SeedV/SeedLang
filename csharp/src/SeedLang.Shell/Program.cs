@@ -21,8 +21,8 @@ namespace SeedLang.Shell {
   class Program {
     class Options {
       [Option('r', "rule", Required = false, Default = "statement",
-        HelpText = "The parse rule of the source code."
-                   + " Allowed values are statement, expression, number or identifier.")]
+        HelpText = "The parse rule of the source code." +
+                   " Allowed values are identifier, number, string, expression or statement.")]
       public string Rule { get; set; }
 
       [Option('l', "language", Required = false, Default = "python",
@@ -30,9 +30,9 @@ namespace SeedLang.Shell {
           "The language of the source code. Allowed values are python, lua or javascript.")]
       public string Language { get; set; }
 
-      [Option('d', "dryrun", Required = false,
-        HelpText = "Verify the source code without running it.")]
-      public bool Dryrun { get; set; }
+      [Option('t', "type", Required = false, Default = "source",
+        HelpText = "Run type. Allowed values are dryrun, source or bytecode.")]
+      public string Type { get; set; }
     }
 
     static void Main(string[] args) {
@@ -48,6 +48,38 @@ namespace SeedLang.Shell {
 
     private static void RunOptions(Options options) {
       // TODO: add a REPL class to encapsulate the input and execution process.
+      Language language = Language.Python;
+      ParseRule rule = ParseRule.Statement;
+      switch (options.Rule) {
+        case "identifier":
+          rule = ParseRule.Identifier;
+          break;
+        case "number":
+          rule = ParseRule.Number;
+          break;
+        case "string":
+          rule = ParseRule.String;
+          break;
+        case "expression":
+          rule = ParseRule.Expression;
+          break;
+        case "statement":
+          rule = ParseRule.Statement;
+          break;
+      }
+      RunType type = RunType.Source;
+      switch (options.Type) {
+        case "dryrun":
+          type = RunType.Dryrun;
+          break;
+        case "source":
+          type = RunType.Source;
+          break;
+        case "bytecode":
+          type = RunType.Bytecode;
+          break;
+      }
+
       while (true) {
         Console.Write("> ");
         string line = Console.ReadLine();
@@ -55,11 +87,9 @@ namespace SeedLang.Shell {
           break;
         }
         var collection = new DiagnosticCollection();
-        if (!Engine.Instance.Dryrun(line,
-                                    "",
-                                    ParseRule.Expression,
-                                    Language.Python,
-                                    collection)) {
+        if (Engine.Instance.Run(line, "", language, rule, type, collection)) {
+          Console.WriteLine("Ok.");
+        } else {
           foreach (var diagnostic in collection.Diagnostics) {
             Console.WriteLine(diagnostic);
           }

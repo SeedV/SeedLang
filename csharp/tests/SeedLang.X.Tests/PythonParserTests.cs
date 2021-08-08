@@ -19,6 +19,23 @@ using Xunit;
 namespace SeedLang.X.Tests {
   public class PythonParserTests {
     [Theory]
+    [InlineData("0", true)]
+    [InlineData("0.", true)]
+    [InlineData(".0", true)]
+    [InlineData(".5", true)]
+    [InlineData("1.5", true)]
+    [InlineData("1e3", true)]
+    [InlineData("1e+20", true)]
+    [InlineData("1e-5", true)]
+    [InlineData("..1", false)]
+    [InlineData("1.2.3", false)]
+    [InlineData("1a", false)]
+    public void TestValidateNumber(string input, bool result) {
+      var collection = new DiagnosticCollection();
+      Assert.Equal(result, PythonParser.Validate(input, "", ParseRule.Number, collection));
+    }
+
+    [Theory]
     [InlineData("0", "0")]
     [InlineData("0.", "0")]
     [InlineData(".0", "0")]
@@ -29,7 +46,7 @@ namespace SeedLang.X.Tests {
     [InlineData("1e-5", "1E-05")]
     public void TestParseNumber(string input, string expected) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, ParseRule.Expression, collection);
+      AstNode node = PythonParser.Parse(input, "", ParseRule.Number, collection);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
@@ -40,32 +57,40 @@ namespace SeedLang.X.Tests {
     [InlineData("(1 + 2) / 3", "((1 + 2) / 3)")]
     public void TestParseBinaryExpression(string input, string expected) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, ParseRule.Expression, collection);
+      AstNode node = PythonParser.Parse(input, "", ParseRule.Expression, collection);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
 
     [Theory]
-    [InlineData("eval 1 + 2 * 3 - 4\n", "eval ((1 + (2 * 3)) - 4)\n")]
+    [InlineData("eval 1 + 2 * 3 - 4", true)]
+    [InlineData("eval 1 +", false)]
+    public void TestValidateEvalStatement(string input, bool result) {
+      var collection = new DiagnosticCollection();
+      Assert.Equal(result, PythonParser.Validate(input, "", ParseRule.Statement, collection));
+    }
+
+    [Theory]
+    [InlineData("eval 1 + 2 * 3 - 4", "eval ((1 + (2 * 3)) - 4)\n")]
     public void TestParseEvalStatement(string input, string expected) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, ParseRule.Statement, collection);
+      AstNode node = PythonParser.Parse(input, "", ParseRule.Statement, collection);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
 
     [Theory]
     [InlineData(
-      "1\n",
-      "mismatched input '1' expecting {'eval', 'break', 'continue', 'if', 'while', IDENTIFIER}"
+      "1",
+      "mismatched input '1' expecting {'eval', 'break', 'continue', IDENTIFIER}"
     )]
     [InlineData(
-      "eval1\n",
-      @"mismatched input '\n' expecting '='"
+      "eval1",
+      @"mismatched input '<EOF>' expecting '='"
     )]
     public void TestParseError(string input, string localizedMessage) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, ParseRule.Statement, collection);
+      AstNode node = PythonParser.Parse(input, "", ParseRule.Statement, collection);
       Assert.Null(node);
       Assert.Single(collection.Diagnostics);
       Assert.Equal(SystemReporters.SeedX, collection.Diagnostics[0].Reporter);

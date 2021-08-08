@@ -18,13 +18,13 @@ namespace SeedLang.Block {
     // Parses a BXF JSON string and returns the module object.
     public static Module ParseFromString(string _) {
       // TODO: implement this.
-      return new Module();
+      return new Module("");
     }
 
     // Parses a BXF JSON file and returns the module object.
     public static Module ParseFromFile(string _) {
       // TODO: implement this.
-      return new Module();
+      return new Module("");
     }
   }
 }

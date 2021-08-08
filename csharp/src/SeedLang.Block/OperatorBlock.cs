@@ -13,12 +13,18 @@
 // limitations under the License.
 
 namespace SeedLang.Block {
-  // The common class for all the block types that only have a primitive value as their content.
-  public abstract class PrimitiveValueBlock : BaseBlock, IEditable {
-    public string Value { get; set; } = "";
+  // The block that holds an operator.
+  public abstract class OperatorBlock : BaseBlock, IEditable {
+    public string Name { get; set; } = "";
 
-    public abstract string GetEditableText();
+    public string GetEditableText() {
+      return Name;
+    }
 
-    public abstract bool UpdateText(string text);
+    public bool UpdateText(string text) {
+      // TODO: Validate the input text with the underlying SeedLang engine.
+      Name = text;
+      return true;
+    }
   }
 }

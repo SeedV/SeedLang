@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 
 namespace SeedLang.Block {
@@ -22,27 +23,22 @@ namespace SeedLang.Block {
   // JSON files then wrapped into a ZIP package.
   //
   // This is a singleton class. There can be only one program instance in the memory.
-  public class BlockProgram {
-    private static readonly object _padlock = new object();
-    private static BlockProgram _instance = null;
+  public sealed class Program {
+    private static readonly Lazy<Program> _lazyInstance = new Lazy<Program>(() => new Program());
+
     private readonly List<Module> _modules = new List<Module>();
 
     // A readonly interface for the client to access the contents of the program.
     public IReadOnlyList<Module> Modules => _modules;
 
-    // The thread-safe singleton pattern.
-    public static BlockProgram Instance {
-      get {
-        lock (_padlock) {
-          if (_instance == null) {
-            _instance = new BlockProgram();
-          }
-          return _instance;
-        }
-      }
+    public static Program Instance => _lazyInstance.Value;
+
+    private Program() {
     }
 
-    BlockProgram() {
+    // Adds a new module.
+    public void Add(Module module) {
+      _modules.Add(module);
     }
 
     // Clears the in-memory program.

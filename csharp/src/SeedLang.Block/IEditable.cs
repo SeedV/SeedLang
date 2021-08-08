@@ -13,8 +13,7 @@
 // limitations under the License.
 
 namespace SeedLang.Block {
-  // All editable blocks should implement this interface to provide the content getter and setter to
-  // the UI layer.
+  // The common interface of all the editable blocks.
   public interface IEditable {
     // Gets the editable block content, a plain text code.
     string GetEditableText();

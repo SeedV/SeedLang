@@ -13,12 +13,12 @@
 // limitations under the License.
 
 namespace SeedLang.Block {
-  // The common class for all the block types that only have a primitive value as their content.
-  public abstract class PrimitiveValueBlock : BaseBlock, IEditable {
-    public string Value { get; set; } = "";
+  // The interface to visit a group of docked blocks.
+  public interface IBlockVisitor {
+    // Invoked as soon as a block is being visited, when its docked blocks have not been reached.
+    void VisitEnter(BaseBlock block);
 
-    public abstract string GetEditableText();
-
-    public abstract bool UpdateText(string text);
+    // Invoked when a block's all docked blocks have been visited.
+    void VisitExit(BaseBlock block);
   }
 }

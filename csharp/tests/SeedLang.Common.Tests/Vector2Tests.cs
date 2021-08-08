@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Block {
-  // The common class for all the block types that only have a primitive value as their content.
-  public abstract class PrimitiveValueBlock : BaseBlock, IEditable {
-    public string Value { get; set; } = "";
+using Xunit;
 
-    public abstract string GetEditableText();
-
-    public abstract bool UpdateText(string text);
+namespace SeedLang.Common.Tests {
+  public class Vector2Tests {
+    [Fact]
+    public void TestVector2() {
+      Assert.Equal(new Vector2(0, 0), new Vector2());
+      Assert.Equal(new Vector2(1, 2), new Vector2(1, 2));
+    }
   }
 }

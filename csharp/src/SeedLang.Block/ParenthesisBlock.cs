@@ -13,12 +13,20 @@
 // limitations under the License.
 
 namespace SeedLang.Block {
-  // The common class for all the block types that only have a primitive value as their content.
-  public abstract class PrimitiveValueBlock : BaseBlock, IEditable {
-    public string Value { get; set; } = "";
+  // The block that holds a grouping operator, i.e., either side of a pair of parentheses.
+  public class ParenthesisBlock : OperatorBlock {
+    public enum Type {
+      Left,
+      Right
+    }
 
-    public abstract string GetEditableText();
+    public ParenthesisBlock(Type type) {
+      Name = type == Type.Left ? "(" : ")";
+    }
 
-    public abstract bool UpdateText(string text);
+    public override void Accept(IBlockVisitor visitor) {
+      visitor.VisitEnter(this);
+      visitor.VisitExit(this);
+    }
   }
 }

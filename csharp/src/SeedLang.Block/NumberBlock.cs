@@ -15,19 +15,21 @@
 namespace SeedLang.Block {
   // The block that holds a literal number.
   public class NumberBlock : PrimitiveValueBlock {
-    public NumberBlock(string initialText) {
-      UpdateText(initialText);
-    }
+    // TODO: support number format for display.
 
     public override string GetEditableText() {
       return Value;
     }
 
     public override bool UpdateText(string text) {
-      // TODO: Validates the input text by the underlying SeedLang engine.
-
+      // TODO: Validate the input text with the underlying SeedLang engine.
       Value = text;
       return true;
+    }
+
+    public override void Accept(IBlockVisitor visitor) {
+      visitor.VisitEnter(this);
+      visitor.VisitExit(this);
     }
   }
 }

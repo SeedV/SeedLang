@@ -13,10 +13,15 @@
 // limitations under the License.
 
 namespace SeedLang.Block {
-  // The supported block types.
-  public enum BlockType {
-    Number,
-    Operator,
-    Expression,
+  // The block that represents an arithmetic operator.
+  public class ArithmeticOperatorBlock : OperatorBlock {
+    // TODO: suppot name -> display name conversion. E.g., arithmetic operations "*" will be
+    // converted to "\u00D7" (the multiplication sign) for display, "/" will be converted to
+    // "\u00F7" (the division sign) for display.
+
+    public override void Accept(IBlockVisitor visitor) {
+      visitor.VisitEnter(this);
+      visitor.VisitExit(this);
+    }
   }
 }

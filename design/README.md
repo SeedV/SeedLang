@@ -4,9 +4,9 @@ Here go the design documentation of SeedLang.
 
 ## Do NOT update images manually
 
-The diagram images and example images under this directory are auto-generated.
-Do not update them directly. Instead, run the following shell command to
-re-generate them:
+The diagram and example images under this directory are auto-generated. Do not
+update them directly. Instead, run the following shell command to re-generate
+them:
 
 ```shell
 ./update_images.sh

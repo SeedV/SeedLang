@@ -45,7 +45,7 @@
     }
   },
   "$defs": {
-    "point": {
+    "canvasPosition": {
       "$comment": "A block's position is defined by (x, y) coordinates when it is not docked to another block.",
       "type": "object",
       "required": ["x", "y"],
@@ -59,7 +59,7 @@
         }
       }
     },
-    "dock": {
+    "dockPosition": {
       "$comment": "A block's position is defined by the docking relationship when it is docked to another block.",
       "type": "object",
       "required": ["targetId", "dockType"],
@@ -73,8 +73,8 @@
           "$comment": "The current block can be an input, the next statement or the first child statement of the target block.",
           "enum": ["input", "nextStatement", "childStatement"]
         },
-        "dockPosition": {
-          "$comment": "Indicates the dock position when there are multiple inputs (e.g., set ... to ...) or child statements (e.g., if then ... else ...).",
+        "dockSlotIndex": {
+          "$comment": "The zero-based index of the dock slot.",
           "type": "number"
         }
       }
@@ -107,8 +107,8 @@
         "position": {
           "$comment": "A block is positioned by (x, y) coordinates or its docked relationship.",
           "oneOf": [
-            {"$ref": "#/$defs/point"},
-            {"$ref": "#/$defs/dock"}
+            {"$ref": "#/$defs/canvasPosition"},
+            {"$ref": "#/$defs/dockPosition"}
           ]
         }
       }

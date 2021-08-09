@@ -17,7 +17,7 @@
         "position": {
           "targetId": "000001",
           "dockType": "input",
-          "dockPosition": 0
+          "dockSlotIndex": 0
         }
       },
       {
@@ -27,7 +27,7 @@
         "position": {
           "targetId": "000001",
           "dockType": "input",
-          "dockPosition": 1
+          "dockSlotIndex": 1
         }
       }
     ]

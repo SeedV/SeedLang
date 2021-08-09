@@ -32,16 +32,16 @@ namespace SeedLang.Block {
   //   the dock slot index.
   public class Module {
     // The visitor class to collect the IDs of a docked block group.
-    protected class DockedBlockCollector : IBlockVisitor {
+    protected class DockedBlockCollector : AbstractBlockVisitor {
       private readonly List<string> _blockIds = new List<string>();
 
       public IReadOnlyList<string> BlockIds => _blockIds;
 
-      public void VisitEnter(BaseBlock block) {
+      public override void VisitEnter(BaseBlock block) {
         _blockIds.Add(block.Id);
       }
 
-      public void VisitExit(BaseBlock block) {
+      public override void VisitExit(BaseBlock block) {
       }
     }
 
@@ -55,7 +55,10 @@ namespace SeedLang.Block {
     private readonly HashSet<string> _rootBlockIdSet = new HashSet<string>();
 
     // The module name.
-    public string Name { get; set; }
+    public string Name { get; set; } = "";
+
+    // The module doc.
+    public string Doc { get; set; } = "";
 
     // The readonly view of all the blocks in the module.
     public IReadOnlyCollection<BaseBlock> Blocks => _blocks.Values;

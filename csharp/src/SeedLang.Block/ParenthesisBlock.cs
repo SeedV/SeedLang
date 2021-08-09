@@ -26,6 +26,7 @@ namespace SeedLang.Block {
 
     public override void Accept(IBlockVisitor visitor) {
       visitor.VisitEnter(this);
+      visitor.VisitParenthesisBlock(this);
       visitor.VisitExit(this);
     }
   }

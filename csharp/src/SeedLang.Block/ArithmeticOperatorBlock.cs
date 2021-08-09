@@ -21,6 +21,7 @@ namespace SeedLang.Block {
 
     public override void Accept(IBlockVisitor visitor) {
       visitor.VisitEnter(this);
+      visitor.VisitArithmeticOperatorBlock(this);
       visitor.VisitExit(this);
     }
   }

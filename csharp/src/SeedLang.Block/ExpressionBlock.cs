@@ -64,6 +64,7 @@ namespace SeedLang.Block {
       foreach (var input in _inputs) {
         input.Accept(visitor);
       }
+      visitor.VisitExpressionBlock(this);
       visitor.VisitExit(this);
     }
 

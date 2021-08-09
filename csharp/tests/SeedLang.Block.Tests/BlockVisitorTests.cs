@@ -17,17 +17,17 @@ using Xunit;
 
 namespace SeedLang.Block.Tests {
   public class BlockVisitorTests {
-    private class MyVisitor : IBlockVisitor {
+    private class MyVisitor : AbstractBlockVisitor {
       public int Count { get; set; } = 0;
       public StringBuilder Preorder { get; set; } = new StringBuilder();
       public StringBuilder Postorder { get; set; } = new StringBuilder();
 
-      public void VisitEnter(BaseBlock block) {
+      public override void VisitEnter(BaseBlock block) {
         Count++;
         Preorder.AppendFormat("{0} ", block.GetType().Name);
       }
 
-      public void VisitExit(BaseBlock block) {
+      public override void VisitExit(BaseBlock block) {
         Postorder.AppendFormat("{0} ", block.GetType().Name);
       }
     }

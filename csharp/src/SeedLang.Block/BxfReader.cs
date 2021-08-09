@@ -14,7 +14,7 @@
 
 namespace SeedLang.Block {
   // The utilities to parse BXF JSON strings or files.
-  public sealed class BxfParser {
+  public sealed class BxfReader {
     // Parses a BXF JSON string and returns the module object.
     public static Module ParseFromString(string _) {
       // TODO: implement this.

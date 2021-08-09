@@ -48,7 +48,7 @@ namespace SeedLang.Block {
 
     // Parses a module string in the BXF format and loads the module to the program.
     public void LoadModuleFromString(string bxfJson) {
-      var module = BxfParser.ParseFromString(bxfJson);
+      var module = BxfReader.ParseFromString(bxfJson);
       if (module != null) {
         _modules.Add(module);
       }

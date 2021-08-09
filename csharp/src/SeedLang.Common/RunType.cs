@@ -16,9 +16,9 @@ namespace SeedLang.Common {
   // The running type of SeedBlock and SeedX source code.
   public enum RunType {
     // Parses and validates the source code without runing.
-    Dryrun,
+    DryRun,
     // Parses the source code into an AST tree, and runs it by traversing the AST tree.
-    Source,
+    Ast,
     // Parses and compiles the source code into bytecode, and runs it in a VM.
     Bytecode,
   }

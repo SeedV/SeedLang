@@ -21,17 +21,17 @@ namespace SeedLang {
     // A collection that contains all binary operators.
     IEnumerable<string> BinaryOperators { get; }
 
-    // Runs source code with the specified module name, language, target parsing rule and runing
-    // type.
+    // Runs source code with the specified module name, programming language, target parsing rule
+    // and runing type.
     //
-    // There are three mothods to run the source code.
+    // There are three methods to run the source code.
     // 1) Dryrun: parses and validates the source code without runing.
     // 2) Source: parses the source code into an AST tree, and runs it by traversing the AST tree.
     // 3) Bytecode: parses and compiles the source code into bytecode, and runs it in a VM.
     //
     // The parsing and running diagnostic information will be collected into the diagnostic
     // collection.
-    bool Run(string source, string module, Language language, ParseRule rule, RunType runType,
-             DiagnosticCollection collection = null);
+    bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
+             RunType runType, DiagnosticCollection collection = null);
   }
 }

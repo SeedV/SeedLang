@@ -48,8 +48,9 @@ namespace SeedLang.Shell {
 
     private static void RunOptions(Options options) {
       // TODO: add a REPL class to encapsulate the input and execution process.
-      Language language = Language.Python;
+      ProgrammingLanguage language = ProgrammingLanguage.Python;
       ParseRule rule = ParseRule.Statement;
+      // TODO: use a dictionary to convert the input string to the parse rule.
       switch (options.Rule) {
         case "identifier":
           rule = ParseRule.Identifier;
@@ -67,13 +68,14 @@ namespace SeedLang.Shell {
           rule = ParseRule.Statement;
           break;
       }
-      RunType type = RunType.Source;
+      RunType type = RunType.Ast;
+      // TODO: use a dictionary to convert the input string to the running type.
       switch (options.Type) {
         case "dryrun":
-          type = RunType.Dryrun;
+          type = RunType.DryRun;
           break;
         case "source":
-          type = RunType.Source;
+          type = RunType.Ast;
           break;
         case "bytecode":
           type = RunType.Bytecode;

@@ -14,7 +14,7 @@
 
 namespace SeedLang.Common {
   // All languages that the SeedLang system supports.
-  public enum Language {
+  public enum ProgrammingLanguage {
     Block,
     Python,
   }

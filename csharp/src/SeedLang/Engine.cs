@@ -39,11 +39,11 @@ namespace SeedLang {
     private Engine() {
     }
 
-    public bool Run(string source, string module, Language language, ParseRule rule,
+    public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
                     RunType runType, DiagnosticCollection collection = null) {
-      if (runType == RunType.Dryrun) {
+      if (runType == RunType.DryRun) {
         switch (language) {
-          case Language.Python:
+          case ProgrammingLanguage.Python:
             return PythonParser.Validate(source, module, rule, collection);
           default:
             Debug.Assert(false, $"Not implemented SeedX language: {language}");
@@ -53,7 +53,7 @@ namespace SeedLang {
 
       AstNode node = null;
       switch (language) {
-        case Language.Python:
+        case ProgrammingLanguage.Python:
           node = PythonParser.Parse(source, module, rule, collection);
           break;
         default:

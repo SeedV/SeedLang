@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -28,13 +27,6 @@ namespace SeedLang {
     private static readonly Lazy<IEngine> _lazyInstance = new Lazy<IEngine>(() => new Engine());
 
     public static IEngine Instance => _lazyInstance.Value;
-
-    public IEnumerable<string> BinaryOperators {
-      get {
-        // TODO: implement it.
-        return new List<string>();
-      }
-    }
 
     private Engine() {
     }

@@ -18,9 +18,6 @@ using SeedLang.Common;
 namespace SeedLang {
   // The interface of the SeedLang engine.
   public interface IEngine {
-    // A collection that contains all binary operators.
-    IEnumerable<string> BinaryOperators { get; }
-
     // Runs source code with the specified module name, programming language, target parsing rule
     // and runing type.
     //

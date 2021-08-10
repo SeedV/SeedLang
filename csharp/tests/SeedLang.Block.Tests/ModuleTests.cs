@@ -20,7 +20,7 @@ namespace SeedLang.Block.Tests {
   public class ModuleTests {
     [Fact]
     public void TestModule() {
-      var module = new Module("test");
+      var module = new Module { Name = "Main" };
       Assert.Empty(module.Blocks);
       Assert.Equal(0, module.RootBlockCount);
 

@@ -58,8 +58,8 @@ namespace SeedLang.Block.Tests {
       Assert.Equal("", block.Id);
       Assert.Equal("", block.Doc);
       Assert.Equal(Position.DockType.UnDocked, block.Pos.Type);
-      Assert.Equal("", block.GetEditableText());
-      Assert.Equal("", block.Name);
+      Assert.Equal("+", block.GetEditableText());
+      Assert.Equal("+", block.Name);
       block = new ArithmeticOperatorBlock() { Name = "*" };
       Assert.Equal("*", block.GetEditableText());
       Assert.Equal("*", block.Name);

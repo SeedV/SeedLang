@@ -20,14 +20,22 @@ namespace SeedLang.Block {
       Right
     }
 
+    public ParenthesisBlock() {
+      Name = BxfConstants.LeftParenthsis;
+    }
+
     public ParenthesisBlock(Type type) {
-      Name = type == Type.Left ? "(" : ")";
+      Name = type == Type.Left ? BxfConstants.LeftParenthsis : BxfConstants.RightParenthsis;
     }
 
     public override void Accept(IBlockVisitor visitor) {
       visitor.VisitEnter(this);
       visitor.VisitParenthesisBlock(this);
       visitor.VisitExit(this);
+    }
+
+    protected override bool ValidateText(string text) {
+      return text == BxfConstants.LeftParenthsis || text == BxfConstants.RightParenthsis;
     }
   }
 }

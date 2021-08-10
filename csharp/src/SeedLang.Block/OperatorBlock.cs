@@ -12,19 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using SeedLang.Common;
+
 namespace SeedLang.Block {
   // The block that holds an operator.
   public abstract class OperatorBlock : BaseBlock, IEditable {
-    public string Name { get; set; } = "";
+    private string _name = BxfConstants.DefaultOperatorName;
 
-    public string GetEditableText() {
-      return Name;
+    public string Name {
+      get {
+        return GetEditableText();
+      }
+      set {
+        UpdateText(value);
+      }
     }
 
-    public bool UpdateText(string text) {
-      // TODO: Validate the input text with the underlying SeedLang engine.
-      Name = text;
-      return true;
+    public virtual string GetEditableText() {
+      return _name;
     }
+
+    public virtual void UpdateText(string text) {
+      if (ValidateText(text)) {
+        _name = text;
+      } else {
+        throw new ArgumentException(Message.InvalidOperatorName1.Format(text));
+      }
+    }
+
+    protected abstract bool ValidateText(string text);
   }
 }

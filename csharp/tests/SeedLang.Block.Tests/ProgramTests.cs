@@ -20,9 +20,19 @@ namespace SeedLang.Block.Tests {
     public void TestBlockProgram() {
       var program = Program.Instance;
       Assert.Empty(program.Modules);
-      program.LoadModuleFromString("");
+      const string minimalBxf = @"
+{
+  ""schema"": ""bxf"",
+  ""version"": ""v0.1"",
+  ""module"": {
+    ""name"": ""MinimalBxfExample"",
+    ""blocks"": []
+  }
+}
+";
+      program.LoadModuleFromString(minimalBxf);
       Assert.Single(program.Modules);
-      program.Add(new Module(""));
+      program.Add(new Module());
       Assert.Equal(2, program.Modules.Count);
       program.Clear();
       Assert.Empty(program.Modules);

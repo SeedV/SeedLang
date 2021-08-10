@@ -49,6 +49,31 @@ namespace SeedLang.Common {
     ExampleMessageWithOneArgument1,
     ExampleMessageWithTwoArguments2,
     ExampleMessageWithNineArguments9,
+
+    // Failed to read a file.
+    FailedToReadFile2,
+    // Not a valid JSON string/file.
+    InvalidJson1,
+    // Invalid BXF schema tag.
+    InvalidBxfSchema1,
+    // Invalid BXF version.
+    InvalidBxfVersion1,
+    // Module name is empty.
+    EmptyModuleName,
+    // Invalid block ID.
+    InvalidBlockId1,
+    // Invalid operator name.
+    InvalidOperatorName1,
+    // Invalid primitive value.
+    InvalidPrimitiveValue1,
+    // Invalid block type.
+    InvalidBlockType1,
+    // Duplicate block ID.
+    DuplicateBlockId1,
+    // Target block ID does not exist.
+    TargetBlockIdNotExist1,
+    // Target block is not dockable.
+    TargetBlockNotDockable4,
   }
 
   public static class MessageHelper {

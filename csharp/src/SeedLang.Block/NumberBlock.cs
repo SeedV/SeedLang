@@ -17,20 +17,15 @@ namespace SeedLang.Block {
   public class NumberBlock : PrimitiveValueBlock {
     // TODO: support number format for display.
 
-    public override string GetEditableText() {
-      return Value;
-    }
-
-    public override bool UpdateText(string text) {
-      // TODO: Validate the input text with the underlying SeedLang engine.
-      Value = text;
-      return true;
-    }
-
     public override void Accept(IBlockVisitor visitor) {
       visitor.VisitEnter(this);
       visitor.VisitNumberBlock(this);
       visitor.VisitExit(this);
+    }
+
+    protected override bool ValidateText(string text) {
+      // TODO: Validate the input text with the underlying parser.
+      return true;
     }
   }
 }

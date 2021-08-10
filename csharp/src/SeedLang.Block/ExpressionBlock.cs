@@ -32,12 +32,10 @@ namespace SeedLang.Block {
       return sb.ToString();
     }
 
-    public bool UpdateText(string text) {
+    public void UpdateText(string text) {
       // TODO: Validate and parse the input text with the underlying SeedLang engine.
 
       // TODO: Fill _inputs with the parse result.
-
-      return true;
     }
 
     public bool CanDock(BaseBlock block, Position.DockType type, int dockSlotIndex) {

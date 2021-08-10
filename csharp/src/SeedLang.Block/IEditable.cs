@@ -19,6 +19,8 @@ namespace SeedLang.Block {
     string GetEditableText();
 
     // Updates the block content with a new plain text code.
-    bool UpdateText(string text);
+    //
+    // Throws a new ArgumentException if the input is not a valid text.
+    void UpdateText(string text);
   }
 }

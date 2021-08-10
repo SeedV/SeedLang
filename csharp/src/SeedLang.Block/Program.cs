@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using SeedLang.Common;
 
 namespace SeedLang.Block {
   // The in-memory representation of a SeedBlock program.
@@ -48,8 +49,22 @@ namespace SeedLang.Block {
 
     // Parses a module string in the BXF format and loads the module to the program.
     public void LoadModuleFromString(string bxfJson) {
-      var module = BxfReader.ParseFromString(bxfJson);
-      if (module != null) {
+      var diagnosticCollection = new DiagnosticCollection();
+      var module = BxfReader.ReadFromString(bxfJson, diagnosticCollection);
+      if (module == null) {
+        // TODO: Deal with error messages.
+      } else {
+        _modules.Add(module);
+      }
+    }
+
+    // Parses a module file in the BXF format and loads the module to the program.
+    public void LoadModuleFromFile(string path) {
+      var diagnosticCollection = new DiagnosticCollection();
+      var module = BxfReader.ReadFromFile(path, diagnosticCollection);
+      if (module == null) {
+        // TODO: Deal with error messages.
+      } else {
         _modules.Add(module);
       }
     }

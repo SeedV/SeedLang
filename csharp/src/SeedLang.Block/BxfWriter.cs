@@ -12,29 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Newtonsoft.Json;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 
 namespace SeedLang.Block {
   // The utility to generate Bxf JSON strings or files.
   public static class BxfWriter {
-    private class BlockInfo {
-      public string Id { get; }
-      public string Type { get; }
-      public string Value { get; }
-      public Position Pos { get; }
-      public BlockInfo(string id, string type, string value, Position pos) {
-        Id = id;
-        Type = type;
-        Value = value;
-        Pos = pos;
+    private class BxfBlockCollector : IBlockVisitor {
+      private readonly List<BxfBlock> _bxfBlocks;
+
+      public BxfBlockCollector(List<BxfBlock> bxfBlocks) {
+        _bxfBlocks = bxfBlocks;
       }
-    }
-
-    private class BlockInfoCollector : IBlockVisitor {
-      private readonly List<BlockInfo> _blocks = new List<BlockInfo>();
-
-      public IReadOnlyList<BlockInfo> Blocks => _blocks;
 
       public void VisitEnter(BaseBlock block) {
       }
@@ -42,63 +33,58 @@ namespace SeedLang.Block {
       public void VisitExit(BaseBlock block) {
       }
 
+      public void VisitArithmeticOperatorBlock(ArithmeticOperatorBlock block) {
+        var bxfBlock = new BxfBlock(block.Id, BxfConstants.BlockType.ArithmeticOperator,
+                                    block.Doc, block.Name, block.Pos);
+        _bxfBlocks.Add(bxfBlock);
+      }
+
       public void VisitExpressionBlock(ExpressionBlock block) {
-        _blocks.Add(new BlockInfo(block.Id, "expression", "", block.Pos));
+        var bxfBlock = new BxfBlock(block.Id, BxfConstants.BlockType.Expression,
+                                    block.Doc, "", block.Pos);
+        _bxfBlocks.Add(bxfBlock);
       }
 
       public void VisitNumberBlock(NumberBlock block) {
-        _blocks.Add(new BlockInfo(block.Id, "number", block.Value, block.Pos));
-      }
-
-      public void VisitArithmeticOperatorBlock(ArithmeticOperatorBlock block) {
-        _blocks.Add(new BlockInfo(block.Id, "operator", block.Name, block.Pos));
+        var bxfBlock = new BxfBlock(block.Id, BxfConstants.BlockType.Number,
+                                    block.Doc, block.Value, block.Pos);
+        _bxfBlocks.Add(bxfBlock);
       }
 
       public void VisitParenthesisBlock(ParenthesisBlock block) {
-        _blocks.Add(new BlockInfo(block.Id, "operator", block.Name, block.Pos));
+        var bxfBlock = new BxfBlock(block.Id, BxfConstants.BlockType.Parenthsis,
+                                    block.Doc, block.Name, block.Pos);
+        _bxfBlocks.Add(bxfBlock);
       }
     }
 
+    // Serializes a SeedBlock module to a JSON string.
     public static string WriteToString(Module module) {
-      var sb = new StringWriter();
-      sb.WriteLine('{');
-      sb.WriteLine($"  \"schema\": \"{BxfConstants.Schema}\",");
-      sb.WriteLine($"  \"version\": \"{BxfConstants.Version}\",");
-      sb.WriteLine("  \"module\": {");
-      sb.WriteLine($"    \"name\": \"{module.Name}\",");
-      sb.WriteLine($"    \"doc\": \"{module.Doc}\",");
-      sb.WriteLine("    \"blocks\": [");
+      var obj = new BxfObject();
+      // TODO: Fill in "author", "copyright", etc. when the info is available.
+      obj.Module.Name = module.Name;
+      obj.Module.Doc = module.Doc;
+      var blockCollector = new BxfBlockCollector(obj.Module.Blocks);
       foreach (var rootBlock in module.RootBlockIterator) {
-        var collector = new BlockInfoCollector();
-        rootBlock.Accept(collector);
-        for (int i = 0; i < collector.Blocks.Count; i++) {
-          var block = collector.Blocks[i];
-          sb.WriteLine("      {");
-          sb.WriteLine($"        \"id\": \"{block.Id}\",");
-          sb.WriteLine($"        \"type\": \"{block.Type}\",");
-          sb.WriteLine($"        \"value\": \"{block.Value}\",");
-          sb.WriteLine("        \"position\": {");
-          if (!block.Pos.IsDocked) {
-            sb.WriteLine($"          \"x\": {block.Pos.CanvasPosition.X},");
-            sb.WriteLine($"          \"y\": {block.Pos.CanvasPosition.Y}");
-          } else {
-            string docType =
-              block.Pos.Type == Position.DockType.Input ? "input" :
-              (block.Pos.Type == Position.DockType.ChildStatement ?
-               "childStatement" : "nextStatement");
-            sb.WriteLine($"          \"targetId\": \"{block.Pos.TargetBlockId}\",");
-            sb.WriteLine($"          \"dockType\": \"{docType}\",");
-            sb.WriteLine($"          \"dockSlotIndex\": {block.Pos.DockSlotIndex}");
-          }
-          sb.WriteLine("        }");
-          sb.WriteLine(i == collector.Blocks.Count - 1 ? "      }" : "      },");
-        }
+        rootBlock.Accept(blockCollector);
       }
-      sb.WriteLine("    ]");
-      sb.WriteLine("  }");
-      sb.WriteLine('}');
-      return sb.ToString();
+      try {
+        return JsonConvert.SerializeObject(obj, Formatting.Indented);
+      } catch (JsonException e) {
+        // Must not run into this since WriteToString is a pure internal data serialization.
+        Debug.Fail($"Serialization failed: {e}");
+        return null;
+      }
+    }
+
+    // Serializes a SeedBlock module to a JSON file.
+    //
+    // Throws an exception when there are IO errors. See the API doc of File.WriteAllText. It's the
+    // client code's duty to catch or re-throw the exception.
+    public static void WriteToFile(string path, Module module) {
+      string json = WriteToString(module);
+      Debug.Assert(!string.IsNullOrEmpty(json));
+      File.WriteAllText(path, json);
     }
   }
 }
-

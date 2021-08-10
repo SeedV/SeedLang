@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SeedLang.X\SeedLang.X.csproj" />
     <ProjectReference Include="..\SeedLang.Ast\SeedLang.Ast.csproj" />
+    <ProjectReference Include="..\SeedLang.Common\SeedLang.Common.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -20,32 +20,23 @@ namespace SeedLang.X {
   // A syntax error listener class to collect ANTLR4 parse errors and store them into a diagnostic
   // collection.
   internal class SyntaxErrorListener : BaseErrorListener {
-    private readonly DiagnosticCollection _diagnostics;
+    private readonly string _module;
+    private readonly DiagnosticCollection _collection;
 
-    public SyntaxErrorListener(DiagnosticCollection diagnostics) {
-      _diagnostics = diagnostics;
+    public SyntaxErrorListener(string module, DiagnosticCollection collection) {
+      _module = module ?? "";
+      _collection = collection ?? new DiagnosticCollection();
     }
 
-    public override void SyntaxError(TextWriter output,
-                                     IRecognizer recognizer,
-                                     IToken offendingSymbol,
-                                     int line,
-                                     int charPositionInLine,
-                                     string msg,
-                                     RecognitionException e) {
+    public override void SyntaxError(TextWriter output, IRecognizer recognizer,
+                                     IToken offendingSymbol, int line, int charPositionInLine,
+                                     string msg, RecognitionException e) {
       var length = offendingSymbol.StopIndex - offendingSymbol.StartIndex + 1;
-      var range = new TextRange(offendingSymbol.Line,
-                                offendingSymbol.Column,
-                                offendingSymbol.Line,
+      var range = new TextRange(offendingSymbol.Line, offendingSymbol.Column, offendingSymbol.Line,
                                 offendingSymbol.Column + length);
-      // TODO: set a correct module name.
-      const string moduleName = "module";
       // TODO: map the msg to the localized message defined in the common component.
-      _diagnostics.Report(new Diagnostic(SystemReporters.SeedX,
-                                         Severity.Fatal,
-                                         moduleName,
-                                         range,
-                                         msg));
+      _collection.Report(new Diagnostic(SystemReporters.SeedX, Severity.Fatal, _module, range,
+                                        msg));
     }
   }
 }

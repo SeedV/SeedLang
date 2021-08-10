@@ -61,17 +61,17 @@ tokens {
  * Parser rules
  */
 
-single_input:
-  NEWLINE
-  | simple_stmt
-  | compound_stmt NEWLINE;
+single_identifier: identifier EOF;
+single_number: number EOF;
+single_string: string EOF;
+single_expr: expr EOF;
+single_stmt: small_stmt EOF;
 
 file_input: (NEWLINE | stmt)* EOF;
 
 stmt: simple_stmt | compound_stmt;
 
-simple_stmt:
-  small_stmt (';' small_stmt)* (';')? NEWLINE;
+simple_stmt: small_stmt (';' small_stmt)* (';')?;
 
 small_stmt:
   assignment_stmt
@@ -100,9 +100,15 @@ comp_op: '<' | '>' | '==' | '>=' | '<=' | '!=';
 expr:
   expr op = (MUL | DIV) expr   # mul_div
   | expr op = (ADD | SUB) expr # add_sub
-  | IDENTIFIER                 # identifier
-  | NUMBER                     # number
+  | identifier                 # id
+  | number                     # num
   | '(' expr ')'               # grouping;
+
+identifier: IDENTIFIER;
+
+number: INTEGER | FLOAT_NUMBER;
+
+string: STRING_LITERAL;
 
 /*
  * Lexer rules
@@ -113,7 +119,7 @@ SUB: '-';
 MUL: '*';
 DIV: '/';
 
-NUMBER: INTEGER | FLOAT_NUMBER;
+IDENTIFIER: ID_START ID_CONTINUE*;
 
 INTEGER: DECIMAL_INTEGER;
 
@@ -121,11 +127,7 @@ DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
 
 FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
 
-STRING: STRING_LITERAL;
-
 STRING_LITERAL: '"' .*? '"';
-
-IDENTIFIER: ID_START ID_CONTINUE*;
 
 OPEN_PAREN: '(';
 CLOSE_PAREN: ')';

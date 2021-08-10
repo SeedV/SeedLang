@@ -154,9 +154,21 @@ namespace SeedLang.Block {
                              Message.InvalidBlockType1.Format(bxfBlock.Type)));
           return null;
       }
+      if (string.IsNullOrEmpty(bxfBlock.Id)) {
+        diagnosticCollection.Report(
+              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+                             Message.EmptyBlockId.ToString()));
+        return null;
+      }
       block.Id = bxfBlock.Id ?? "";
       block.Doc = bxfBlock.Doc ?? "";
       block.Pos = bxfBlock.ToBlockPosition();
+      if (block.Pos is null) {
+        diagnosticCollection.Report(
+              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+                             Message.BlockHasNoPosition.ToString()));
+        return null;
+      }
       if (block is IEditable) {
         try {
           (block as IEditable).UpdateText(bxfBlock.Content ?? "");

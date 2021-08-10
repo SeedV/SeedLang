@@ -60,6 +60,10 @@ namespace SeedLang.Common {
     InvalidBxfVersion1,
     // Module name is empty.
     EmptyModuleName,
+    // Empty block ID.
+    EmptyBlockId,
+    // Block has no position.
+    BlockHasNoPosition,
     // Invalid block ID.
     InvalidBlockId1,
     // Invalid operator name.

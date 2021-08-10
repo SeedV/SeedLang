@@ -123,8 +123,57 @@ namespace SeedLang.Block.Tests {
     }
 
     [Fact]
-    public void TestDupIds() {
-      string jsonWithDupIds = @"
+    public void TestInvalidId() {
+      string json = @"
+{
+  ""schema"": ""bxf"",
+  ""version"": ""v0.1"",
+  ""module"": {
+    ""name"": ""Main"",
+    ""blocks"": [
+      {
+        ""id"": """",
+        ""type"": ""number"",
+        ""doc"": """",
+        ""content"": ""3.14"",
+        ""dockPosition"": {
+          ""targetBlockId"": ""InvalidId"",
+          ""dockType"": ""input"",
+          ""dockSlotIndex"": 0
+        }
+      },
+      {
+        ""id"": ""InvalidId"",
+        ""type"": ""number"",
+        ""doc"": """",
+        ""content"": ""3.14"",
+        ""dockPosition"": {
+          ""targetBlockId"": ""InvalidId"",
+          ""dockType"": ""input"",
+          ""dockSlotIndex"": 0
+        }
+      }
+    ]
+  }
+}";
+      var diagnosticCollection = new DiagnosticCollection();
+      var moduleParsed = BxfReader.ReadFromString(json, diagnosticCollection);
+      Assert.Equal(2, diagnosticCollection.Diagnostics.Count);
+      Assert.Equal(Severity.Error, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("EmptyBlockId",
+                   diagnosticCollection.Diagnostics[0].LocalizedMessage);
+      Assert.Equal(Severity.Error, diagnosticCollection.Diagnostics[1].Severity);
+      Assert.Equal("InvalidBlockId InvalidId",
+                   diagnosticCollection.Diagnostics[1].LocalizedMessage);
+      // The BxfReader should report errors and still returns a correct module.
+      Assert.NotNull(moduleParsed);
+      Assert.Equal(0, moduleParsed.Blocks.Count);
+      Assert.Equal(0, moduleParsed.RootBlockCount);
+    }
+
+    [Fact]
+    public void TestDupId() {
+      string json = @"
 {
   ""schema"": ""bxf"",
   ""version"": ""v0.1"",
@@ -178,18 +227,47 @@ namespace SeedLang.Block.Tests {
   }
 }";
       var diagnosticCollection = new DiagnosticCollection();
-      var moduleParsed = BxfReader.ReadFromString(jsonWithDupIds, diagnosticCollection);
+      var moduleParsed = BxfReader.ReadFromString(json, diagnosticCollection);
       Assert.Single(diagnosticCollection.Diagnostics);
       Assert.Equal(Severity.Error, diagnosticCollection.Diagnostics[0].Severity);
       Assert.Equal("DuplicateBlockId 00000002",
                    diagnosticCollection.Diagnostics[0].LocalizedMessage);
-      // The BxfReader should report an error but still reads a correct module, without including
-      // the wrong block.
+      // The BxfReader should report errors and still returns a correct module.
       Assert.NotNull(moduleParsed);
       Assert.Equal(3, moduleParsed.Blocks.Count);
       Assert.Equal(1, moduleParsed.RootBlockCount);
       var block = moduleParsed.GetBlock("00000000");
       Assert.Equal("3.14*", (block as IEditable).GetEditableText());
+    }
+
+    [Fact]
+    public void TestNoPosition() {
+      string json = @"
+{
+  ""schema"": ""bxf"",
+  ""version"": ""v0.1"",
+  ""module"": {
+    ""name"": ""Main"",
+    ""blocks"": [
+      {
+        ""id"": ""00000000"",
+        ""type"": ""number"",
+        ""doc"": """",
+        ""content"": ""3.14""
+      }
+    ]
+  }
+}";
+      var diagnosticCollection = new DiagnosticCollection();
+      var moduleParsed = BxfReader.ReadFromString(json, diagnosticCollection);
+      Assert.Single(diagnosticCollection.Diagnostics);
+      Assert.Equal(Severity.Error, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("BlockHasNoPosition",
+                   diagnosticCollection.Diagnostics[0].LocalizedMessage);
+      // The BxfReader should report errors and still returns a correct module.
+      Assert.NotNull(moduleParsed);
+      Assert.Equal(0, moduleParsed.Blocks.Count);
+      Assert.Equal(0, moduleParsed.RootBlockCount);
     }
 
     [Fact]

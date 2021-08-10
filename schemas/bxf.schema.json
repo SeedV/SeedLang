@@ -62,10 +62,10 @@
     "dockPosition": {
       "$comment": "A block's position is defined by the docking relationship when it is docked to another block.",
       "type": "object",
-      "required": ["targetId", "dockType"],
+      "required": ["targetBlockId", "dockType"],
       "additionalProperties": false,
       "properties": {
-        "targetId": {
+        "targetBlockId": {
           "$comment": "The target block that the current block docks to.",
           "type": "string"
         },
@@ -96,20 +96,15 @@
           "$comment": "The description of the block.",
           "type": "string"
         },
-        "value": {
-          "$comment": "The value of primitive value blocks. E.g. 3 for a Number block, \"Hello\" for a String block.",
-          "oneOf": [
-            {"type": "boolean"},
-            {"type": "number"},
-            {"type": "string"}
-          ]
+        "content": {
+          "$comment": "The value or name of primitive blocks. E.g. \"3\" for a number block, \"+\" for an arithmetic operator block.",
+          "type": "string"
         },
-        "position": {
-          "$comment": "A block is positioned by (x, y) coordinates or its docked relationship.",
-          "oneOf": [
-            {"$ref": "#/$defs/canvasPosition"},
-            {"$ref": "#/$defs/dockPosition"}
-          ]
+        "canvasPosition": {
+          "$ref": "#/$defs/canvasPosition"
+        },
+        "dockPosition": {
+          "$ref": "#/$defs/dockPosition"
         }
       }
     }

@@ -43,6 +43,8 @@ namespace SeedLang.Common {
   // With this intermediate layer, we will be able to introduce lightweighted or cross-platform
   // localization solutions other than .Net's default ResourceManager when necessary.
   public enum Message {
+    // Example message strings.
+
     Okay,
     Yes,
     No,
@@ -50,34 +52,24 @@ namespace SeedLang.Common {
     ExampleMessageWithTwoArguments2,
     ExampleMessageWithNineArguments9,
 
-    // Failed to read a file.
-    FailedToReadFile2,
-    // Not a valid JSON string/file.
-    InvalidJson1,
-    // Invalid BXF schema tag.
-    InvalidBxfSchema1,
-    // Invalid BXF version.
-    InvalidBxfVersion1,
-    // Module name is empty.
-    EmptyModuleName,
-    // Empty block ID.
-    EmptyBlockId,
-    // Block has no position.
-    BlockHasNoPosition,
-    // Invalid block ID.
-    InvalidBlockId1,
-    // Invalid operator name.
-    InvalidOperatorName1,
-    // Invalid primitive value.
-    InvalidPrimitiveValue1,
-    // Invalid block type.
-    InvalidBlockType1,
-    // Duplicate block ID.
-    DuplicateBlockId1,
-    // Target block ID does not exist.
-    TargetBlockIdNotExist1,
-    // Target block is not dockable.
-    TargetBlockNotDockable4,
+    // SeedLang message strings.
+    //
+    // Please keep the following message IDs in alphabetical order.
+
+    BlockHasNoPosition,                 // Block has no position.
+    DuplicateBlockId1,                  // Duplicate block ID.
+    EmptyBlockId,                       // Empty block ID.
+    EmptyModuleName,                    // Module name is empty.
+    FailedToReadFile2,                  // Failed to read a file.
+    InvalidBlockId1,                    // Invalid block ID.
+    InvalidBlockType1,                  // Invalid block type.
+    InvalidBxfSchema1,                  // Invalid BXF schema tag.
+    InvalidBxfVersion1,                 // Invalid BXF version.
+    InvalidJson1,                       // Not a valid JSON string/file.
+    InvalidOperatorName1,               // Invalid operator name.
+    InvalidPrimitiveValue1,             // Invalid primitive value.
+    TargetBlockIdNotExist1,             // Target block ID does not exist.
+    TargetBlockNotDockable4,            // Target block is not dockable.
   }
 
   public static class MessageHelper {

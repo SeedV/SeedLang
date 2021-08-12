@@ -46,7 +46,6 @@ namespace SeedLang.Block {
     }
 
     public void Dock(BaseBlock block, Position.DockType type, int dockPosition) {
-      // TODO: Support docking as the next statement.
       Debug.Assert(CanDock(block, type, dockPosition));
       InsertInputBlock(dockPosition, block);
     }

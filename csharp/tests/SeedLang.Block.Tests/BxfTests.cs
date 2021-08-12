@@ -160,9 +160,11 @@ namespace SeedLang.Block.Tests {
       var moduleParsed = BxfReader.ReadFromString(json, diagnosticCollection);
       Assert.Equal(2, diagnosticCollection.Diagnostics.Count);
       Assert.Equal(Severity.Error, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("Main", diagnosticCollection.Diagnostics[0].Module);
       Assert.Equal("EmptyBlockId",
                    diagnosticCollection.Diagnostics[0].LocalizedMessage);
       Assert.Equal(Severity.Error, diagnosticCollection.Diagnostics[1].Severity);
+      Assert.Equal("Main", diagnosticCollection.Diagnostics[1].Module);
       Assert.Equal("InvalidBlockId InvalidId",
                    diagnosticCollection.Diagnostics[1].LocalizedMessage);
       // The BxfReader should report errors and still returns a correct module.
@@ -230,6 +232,7 @@ namespace SeedLang.Block.Tests {
       var moduleParsed = BxfReader.ReadFromString(json, diagnosticCollection);
       Assert.Single(diagnosticCollection.Diagnostics);
       Assert.Equal(Severity.Error, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("Main", diagnosticCollection.Diagnostics[0].Module);
       Assert.Equal("DuplicateBlockId 00000002",
                    diagnosticCollection.Diagnostics[0].LocalizedMessage);
       // The BxfReader should report errors and still returns a correct module.
@@ -262,6 +265,7 @@ namespace SeedLang.Block.Tests {
       var moduleParsed = BxfReader.ReadFromString(json, diagnosticCollection);
       Assert.Single(diagnosticCollection.Diagnostics);
       Assert.Equal(Severity.Error, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("Main", diagnosticCollection.Diagnostics[0].Module);
       Assert.Equal("BlockHasNoPosition",
                    diagnosticCollection.Diagnostics[0].LocalizedMessage);
       // The BxfReader should report errors and still returns a correct module.
@@ -298,6 +302,7 @@ namespace SeedLang.Block.Tests {
       Assert.Null(moduleParsed);
       Assert.Single(diagnosticCollection.Diagnostics);
       Assert.Equal(Severity.Fatal, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("Main", diagnosticCollection.Diagnostics[0].Module);
       Assert.Equal("TargetBlockIdNotExist InvalidId",
                    diagnosticCollection.Diagnostics[0].LocalizedMessage);
     }
@@ -340,6 +345,7 @@ namespace SeedLang.Block.Tests {
       Assert.Null(moduleParsed);
       Assert.Single(diagnosticCollection.Diagnostics);
       Assert.Equal(Severity.Fatal, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("Main", diagnosticCollection.Diagnostics[0].Module);
       Assert.Equal("TargetBlockNotDockable 00000001 00000000 Input 0",
                    diagnosticCollection.Diagnostics[0].LocalizedMessage);
     }
@@ -382,6 +388,7 @@ namespace SeedLang.Block.Tests {
       Assert.Null(moduleParsed);
       Assert.Single(diagnosticCollection.Diagnostics);
       Assert.Equal(Severity.Fatal, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("Main", diagnosticCollection.Diagnostics[0].Module);
       Assert.Equal("TargetBlockNotDockable 00000001 00000000 Input 1",
                    diagnosticCollection.Diagnostics[0].LocalizedMessage);
     }
@@ -424,6 +431,7 @@ namespace SeedLang.Block.Tests {
       Assert.Null(moduleParsed);
       Assert.Single(diagnosticCollection.Diagnostics);
       Assert.Equal(Severity.Fatal, diagnosticCollection.Diagnostics[0].Severity);
+      Assert.Equal("Main", diagnosticCollection.Diagnostics[0].Module);
       Assert.Equal("TargetBlockNotDockable 00000001 00000000 ChildStatement 0",
                    diagnosticCollection.Diagnostics[0].LocalizedMessage);
     }

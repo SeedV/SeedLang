@@ -30,7 +30,7 @@ namespace SeedLang.Block {
     //
     // The parser tries to tolerate non-critical issues in the input string and collect as many
     // diagnostic messages as possible, until a fatal issue is met. Hence, even when the return
-    // value is a valid SeedBlock module, diagnosticCollection may still contain one ore more
+    // value is a valid SeedBlock module, diagnosticCollection may still contain one or more
     // detected issues.
     public static Module ReadFromString(string json, DiagnosticCollection diagnosticCollection) {
       // TODO: Consider supporting async operation since this operation may cost some time.
@@ -80,6 +80,8 @@ namespace SeedLang.Block {
             Message.InvalidBxfSchema1.Format(bxfObject.Schema)));
         return null;
       }
+      // TODO: Here is an exact version matching. Change it to a version compatibility check when
+      // new version numbers are supported.
       if (bxfObject.Version != BxfConstants.Version) {
         diagnosticCollection.Report(
             new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, null, null,
@@ -101,11 +103,11 @@ namespace SeedLang.Block {
       var cachedBlocks = new List<BaseBlock>();
 
       foreach (var bxfBlock in bxfObject.Module.Blocks) {
-        var block = ConvertBxfToBlock(bxfBlock, diagnosticCollection);
+        var block = ConvertBxfToBlock(module, bxfBlock, diagnosticCollection);
         if (block is null) {
           continue;
         }
-        int idNumber = ParseBlockId(block.Id, diagnosticCollection);
+        int idNumber = ParseBlockId(module, block.Id, diagnosticCollection);
         if (idNumber < 0) {
           continue;
         }
@@ -114,7 +116,7 @@ namespace SeedLang.Block {
         }
         if (idSet.Contains(block.Id)) {
           diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+            new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
                            Message.DuplicateBlockId1.Format(block.Id)));
           continue;
         }
@@ -126,13 +128,15 @@ namespace SeedLang.Block {
         module.BatchLoadBlocks(cachedBlocks, maxIdNumber);
       } catch (ArgumentException e) {
         diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, null, null, e.Message));
+            new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, module.Name, null,
+                           e.Message));
         return null;
       }
       return module;
     }
 
-    private static BaseBlock ConvertBxfToBlock(BxfBlock bxfBlock,
+    private static BaseBlock ConvertBxfToBlock(Module module,
+                                               BxfBlock bxfBlock,
                                                DiagnosticCollection diagnosticCollection) {
       BaseBlock block;
       switch (bxfBlock.Type) {
@@ -150,22 +154,22 @@ namespace SeedLang.Block {
           break;
         default:
           diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
                              Message.InvalidBlockType1.Format(bxfBlock.Type)));
           return null;
       }
       if (string.IsNullOrEmpty(bxfBlock.Id)) {
         diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
                              Message.EmptyBlockId.ToString()));
         return null;
       }
-      block.Id = bxfBlock.Id ?? "";
+      block.Id = bxfBlock.Id;
       block.Doc = bxfBlock.Doc ?? "";
       block.Pos = bxfBlock.ToBlockPosition();
       if (block.Pos is null) {
         diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
                              Message.BlockHasNoPosition.ToString()));
         return null;
       }
@@ -174,18 +178,21 @@ namespace SeedLang.Block {
           (block as IEditable).UpdateText(bxfBlock.Content ?? "");
         } catch (ArgumentException e) {
           diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null, e.Message));
+              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
+                             e.Message));
         }
       }
       return block;
     }
 
-    private static int ParseBlockId(string id, DiagnosticCollection diagnosticCollection) {
+    private static int ParseBlockId(Module module,
+                                    string id,
+                                    DiagnosticCollection diagnosticCollection) {
       try {
         return int.Parse(id);
       } catch (Exception) {
         diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
                              Message.InvalidBlockId1.Format(id)));
         return -1;
       }

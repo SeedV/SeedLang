@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Common;
 
 namespace SeedLang.Block {
@@ -20,7 +21,7 @@ namespace SeedLang.Block {
   //
   // This class is different with SeedLang.Common.BlockPosition, which represents a syntaxical code
   // position in a SeedBlock module.
-  public class Position {
+  public class Position : IEquatable<Position> {
     // How the block is docked to another block.
     public enum DockType {
       // The block is standalone, not docked to any other block. The block's position is defined by
@@ -70,6 +71,57 @@ namespace SeedLang.Block {
       Type = type;
       TargetBlockId = targetBlockId;
       DockSlotIndex = dockSlotIndex;
+    }
+
+    public override string ToString() {
+      if (IsDocked) {
+        return $"DockPosition: ({Enum.GetName(typeof(DockType), Type)}, " +
+               $"{TargetBlockId}, {DockSlotIndex})";
+      } else {
+        return $"CanvasPosition: ({CanvasPosition.X}, {CanvasPosition.Y})";
+      }
+    }
+
+    public override int GetHashCode() {
+      if (IsDocked) {
+        return Tuple.Create(Type, TargetBlockId, DockSlotIndex).GetHashCode();
+      } else {
+        return Tuple.Create(CanvasPosition.X, CanvasPosition.Y).GetHashCode();
+      }
+    }
+
+    public bool Equals(Position pos) {
+      if (pos is null) {
+        return false;
+      }
+      if (ReferenceEquals(this, pos)) {
+        return true;
+      }
+      if (GetType() != pos.GetType()) {
+        return false;
+      }
+      if (IsDocked) {
+        return Type == pos.Type &&
+               TargetBlockId == pos.TargetBlockId &&
+               DockSlotIndex == pos.DockSlotIndex;
+      } else {
+        return CanvasPosition.X == pos.CanvasPosition.X && CanvasPosition.Y == pos.CanvasPosition.Y;
+      }
+    }
+
+    public override bool Equals(object obj) {
+      return Equals(obj as Position);
+    }
+
+    public static bool operator ==(Position pos1, Position pos2) {
+      if (pos1 is null) {
+        return pos2 is null;
+      }
+      return pos1.Equals(pos2);
+    }
+
+    public static bool operator !=(Position pos1, Position pos2) {
+      return !(pos1 == pos2);
     }
   }
 }

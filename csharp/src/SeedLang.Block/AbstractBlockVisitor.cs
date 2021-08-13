@@ -13,26 +13,38 @@
 // limitations under the License.
 
 namespace SeedLang.Block {
-  // The interface to visit a block when walking a group of docked blocks.
-  public interface IBlockVisitor {
+  // A convenient abstract class that hides the concrete block dispatchers with empty callback
+  // methods. Only VisitEnter() and VisitExit() have to be provided when implementing this abstract
+  // class.
+  //
+  // Some simple visitors only need to handle the cases that the walker enters or exits a block,
+  // without knowing the concrete block type. For example, a block counter can implement this
+  // abstract class and increase its inner counter in VisitEnter().
+  //
+  // Visitors can still override one or more concrete block dispatcher methods if it's necessary.
+  public abstract class AbstractBlockVisitor : IBlockVisitor {
     // Invoked as soon as a block is being visited, before its docked blocks are reached. This is
     // the first callback when a block is being visited.
-    void VisitEnter(BaseBlock block);
+    public abstract void VisitEnter(BaseBlock block);
 
     // Invoked after all the docked blocks and the block itself have been visited. This is the last
     // callback when a block is being visited.
-    void VisitExit(BaseBlock block);
+    public abstract void VisitExit(BaseBlock block);
 
     // Invoked when an arithmetic operator block is visited.
-    void VisitArithmeticOperatorBlock(ArithmeticOperatorBlock block);
+    public virtual void VisitArithmeticOperatorBlock(ArithmeticOperatorBlock block) {
+    }
 
     // Invoked when an expression block is visited, after its docked blocks have been visited.
-    void VisitExpressionBlock(ExpressionBlock block);
+    public virtual void VisitExpressionBlock(ExpressionBlock block) {
+    }
 
     // Invoked when a number block is visited.
-    void VisitNumberBlock(NumberBlock block);
+    public virtual void VisitNumberBlock(NumberBlock block) {
+    }
 
     // Invoked when a parenthesis block is visited.
-    void VisitParenthesisBlock(ParenthesisBlock block);
+    public virtual void VisitParenthesisBlock(ParenthesisBlock block) {
+    }
   }
 }

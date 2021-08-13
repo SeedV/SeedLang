@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Common;
@@ -32,17 +33,28 @@ namespace SeedLang.Block {
   //   the dock slot index.
   public class Module {
     // The visitor class to collect the IDs of a docked block group.
-    protected class DockedBlockCollector : IBlockVisitor {
+    protected class DockedBlockCollector : AbstractBlockVisitor {
       private readonly List<string> _blockIds = new List<string>();
 
       public IReadOnlyList<string> BlockIds => _blockIds;
 
-      public void VisitEnter(BaseBlock block) {
+      public override void VisitEnter(BaseBlock block) {
         _blockIds.Add(block.Id);
       }
 
-      public void VisitExit(BaseBlock block) {
+      public override void VisitExit(BaseBlock block) {
       }
+    }
+
+    // String IDs of all the blocks that docked to the same root block. The IDs are grouped by the
+    // dock type and sorted by the dock slot index.
+    protected class DockedBlockIdGroups {
+      public readonly SortedList<int, string> InputBlockIds = new SortedList<int, string>();
+
+      public readonly SortedList<int, string> ChildStatementBlockIds =
+          new SortedList<int, string>();
+
+      public string NexStatementBlockId = null;
     }
 
     // Each module maintains its own block ID generator.
@@ -55,7 +67,10 @@ namespace SeedLang.Block {
     private readonly HashSet<string> _rootBlockIdSet = new HashSet<string>();
 
     // The module name.
-    public string Name { get; set; }
+    public string Name { get; set; } = "";
+
+    // The module doc.
+    public string Doc { get; set; } = "";
 
     // The readonly view of all the blocks in the module.
     public IReadOnlyCollection<BaseBlock> Blocks => _blocks.Values;
@@ -70,10 +85,6 @@ namespace SeedLang.Block {
           yield return _blocks[id];
         }
       }
-    }
-
-    public Module(string name) {
-      Name = name;
     }
 
     // Clears the module.
@@ -114,6 +125,8 @@ namespace SeedLang.Block {
     }
 
     // Docks a block to a target block.
+    //
+    // Throws a new ArgumentException if the target block is not dockable.
     public void DockBlock(string blockId, string targetBlockId,
                           Position.DockType type, int dockSlotIndex) {
       Debug.Assert(_blocks.ContainsKey(blockId));
@@ -121,8 +134,14 @@ namespace SeedLang.Block {
       Debug.Assert(_blocks.ContainsKey(targetBlockId));
       BaseBlock targetBlock = _blocks[targetBlockId];
       _rootBlockIdSet.Remove(blockId);
-      Debug.Assert(targetBlock is IDockable);
-      (targetBlock as IDockable).Dock(block, type, dockSlotIndex);
+      if (targetBlock is IDockable &&
+          (targetBlock as IDockable).CanDock(block, type, dockSlotIndex)) {
+        (targetBlock as IDockable).Dock(block, type, dockSlotIndex);
+      } else {
+        throw new ArgumentException(Message.TargetBlockNotDockable4.Format(
+            blockId, targetBlockId, Enum.GetName(typeof(Position.DockType), type),
+            dockSlotIndex.ToString()));
+      }
     }
 
     // Un-docks a block from its target block.
@@ -156,11 +175,70 @@ namespace SeedLang.Block {
     // The blocks already have their IDs before they are loaded to the module, and the _idGenerator
     // will be reset with the maximum existing ID as its last ID after the batch loading.
     //
-    // The module itself will be cleared before the batch loading.
-    public void LoadBlocks(IReadOnlyCollection<BaseBlock> _) {
-      // TODO: Consider supporting async since this operation may cost some time.
+    // The module will be cleared before the batch loading.
+    //
+    // Throws a new ArgumentException if the input blocks' docking relationships are not correctly
+    // maintained.
+    internal void BatchLoadBlocks(IReadOnlyCollection<BaseBlock> blocks, int maxIdNumber) {
       Clear();
-      // TODO: implement the batch loading.
+
+      // A docking graph to associate sorted input blocks and statement blocks with their target
+      // block. The docked block IDs are sorted by the block position's DockSlotIndex.
+      var dockingGraph = new Dictionary<string, DockedBlockIdGroups>();
+
+      foreach (var block in blocks) {
+        _blocks.Add(block.Id, block);
+        // Adds all the blocks, including the non-root blocks, as root blocks without changing the
+        // block's inner state. Non-root blocks will be made really docked in the DockBlock()
+        // method.
+        _rootBlockIdSet.Add(block.Id);
+        // Creates an entry in the docking graph for every root block.
+        if (!block.Pos.IsDocked) {
+          dockingGraph.Add(block.Id, new DockedBlockIdGroups());
+        }
+      }
+
+      foreach (var block in blocks) {
+        if (block.Pos.IsDocked) {
+          if (!_blocks.ContainsKey(block.Pos.TargetBlockId)) {
+            throw new ArgumentException(
+                Message.TargetBlockIdNotExist1.Format(block.Pos.TargetBlockId));
+          } else {
+            var idGroups = dockingGraph[block.Pos.TargetBlockId];
+            switch (block.Pos.Type) {
+              case Position.DockType.Input:
+                idGroups.InputBlockIds.Add(block.Pos.DockSlotIndex, block.Id);
+                break;
+              case Position.DockType.NextStatement:
+                idGroups.NexStatementBlockId = block.Id;
+                break;
+              case Position.DockType.ChildStatement:
+                idGroups.ChildStatementBlockIds.Add(block.Pos.DockSlotIndex, block.Id);
+                break;
+            }
+          }
+        }
+      }
+
+      // Actually docks blocks together by walking the dockingGraph.
+      foreach (var rootBlockId in dockingGraph.Keys) {
+        var idGroups = dockingGraph[rootBlockId];
+        foreach (var keyValuePair in idGroups.InputBlockIds) {
+          int dockSlotIndex = keyValuePair.Key;
+          string blockId = keyValuePair.Value;
+          DockBlock(blockId, rootBlockId, Position.DockType.Input, dockSlotIndex);
+        }
+        foreach (var keyValuePair in idGroups.ChildStatementBlockIds) {
+          int dockSlotIndex = keyValuePair.Key;
+          string blockId = keyValuePair.Value;
+          DockBlock(blockId, rootBlockId, Position.DockType.ChildStatement, dockSlotIndex);
+        }
+        if (!(idGroups.NexStatementBlockId is null)) {
+          DockBlock(idGroups.NexStatementBlockId, rootBlockId, Position.DockType.NextStatement, 0);
+        }
+      }
+
+      _idGenerator.Reset(maxIdNumber);
     }
   }
 }

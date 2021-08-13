@@ -6,28 +6,32 @@
     "doc": "Defines a single statement: set x to 3.14",
     "blocks": [
       {
-        "id": "000001",
+        "id": "00000000",
         "type": "set",
-        "value": false
-      },
-      {
-        "id": "000002",
-        "type": "variable",
-        "value": "x",
-        "position": {
-          "targetId": "000001",
-          "dockType": "input",
-          "dockPosition": 0
+        "content": "",
+        "canvasPosition": {
+          "x": 0,
+          "y": 0
         }
       },
       {
-        "id": "000003",
-        "type": "number",
-        "value": 3.14,
-        "position": {
-          "targetId": "000001",
+        "id": "00000001",
+        "type": "variable",
+        "content": "x",
+        "dockPosition": {
+          "targetBlockId": "000001",
           "dockType": "input",
-          "dockPosition": 1
+          "dockSlotIndex": 0
+        }
+      },
+      {
+        "id": "00000002",
+        "type": "number",
+        "content": "3.14",
+        "dockPosition": {
+          "targetBlockId": "000001",
+          "dockType": "input",
+          "dockSlotIndex": 1
         }
       }
     ]

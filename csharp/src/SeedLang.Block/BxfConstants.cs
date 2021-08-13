@@ -15,8 +15,20 @@
 namespace SeedLang.Block {
   // Common settings used by the Block Exchange Format.
   public static class BxfConstants {
+    // Implementation-independent block type names for the BXF format.
+    public static class BlockType {
+      public const string ArithmeticOperator = "arithmeticOperator";
+      public const string Expression = "expression";
+      public const string Number = "number";
+      public const string Parenthsis = "parenthesis";
+    }
+
+    // Constant values for the BXF format.
     public const string Schema = "bxf";
     public const string Version = "v0.1";
     public const int IdLength = 8;
+    public const string DefaultOperatorName = "+";
+    public const string LeftParenthsis = "(";
+    public const string RightParenthsis = ")";
   }
 }

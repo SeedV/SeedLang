@@ -1,0 +1,8 @@
+{
+  "schema": "bxf",
+  "version": "v0.1",
+  "module": {
+    "name": "MinimalBxfExample",
+    "blocks": []
+  }
+}

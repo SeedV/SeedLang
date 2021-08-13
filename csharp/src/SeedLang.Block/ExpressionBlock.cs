@@ -32,12 +32,10 @@ namespace SeedLang.Block {
       return sb.ToString();
     }
 
-    public bool UpdateText(string text) {
+    public void UpdateText(string text) {
       // TODO: Validate and parse the input text with the underlying SeedLang engine.
 
       // TODO: Fill _inputs with the parse result.
-
-      return true;
     }
 
     public bool CanDock(BaseBlock block, Position.DockType type, int dockSlotIndex) {
@@ -48,7 +46,6 @@ namespace SeedLang.Block {
     }
 
     public void Dock(BaseBlock block, Position.DockType type, int dockPosition) {
-      // TODO: Support docking as the next statement.
       Debug.Assert(CanDock(block, type, dockPosition));
       InsertInputBlock(dockPosition, block);
     }
@@ -64,6 +61,7 @@ namespace SeedLang.Block {
       foreach (var input in _inputs) {
         input.Accept(visitor);
       }
+      visitor.VisitExpressionBlock(this);
       visitor.VisitExit(this);
     }
 

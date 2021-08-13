@@ -12,13 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using SeedLang.Common;
+
 namespace SeedLang.Block {
   // The common class for all the block types that only have a primitive value as their content.
   public abstract class PrimitiveValueBlock : BaseBlock, IEditable {
-    public string Value { get; set; } = "";
+    private string _value = "";
 
-    public abstract string GetEditableText();
+    public string Value {
+      get {
+        return GetEditableText();
+      }
+      set {
+        UpdateText(value);
+      }
+    }
 
-    public abstract bool UpdateText(string text);
+    public virtual string GetEditableText() {
+      return _value;
+    }
+
+    public virtual void UpdateText(string text) {
+      if (ValidateText(text)) {
+        _value = text;
+      } else {
+        throw new ArgumentException(Message.InvalidPrimitiveValue1.Format(text));
+      }
+    }
+
+    protected abstract bool ValidateText(string text);
   }
 }

@@ -21,7 +21,13 @@ namespace SeedLang.Block {
 
     public override void Accept(IBlockVisitor visitor) {
       visitor.VisitEnter(this);
+      visitor.VisitArithmeticOperatorBlock(this);
       visitor.VisitExit(this);
+    }
+
+    protected override bool ValidateText(string text) {
+      // TODO: Validate the input text with the underlying parser.
+      return true;
     }
   }
 }

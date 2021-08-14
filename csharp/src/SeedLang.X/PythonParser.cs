@@ -26,7 +26,11 @@ namespace SeedLang.X {
     // Validate SeedPython source code based on the parse rule.
     public static bool Validate(string source, string module, ParseRule rule,
                                 DiagnosticCollection collection) {
-      DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
+      if (string.IsNullOrEmpty(source) || module is null) {
+        return false;
+      }
+      var localCollection = collection ?? new DiagnosticCollection();
+      int diagnosticCount = localCollection.Diagnostics.Count;
       SeedPythonParser parser = SetupParser(source, module, localCollection);
       switch (rule) {
         case ParseRule.Identifier:
@@ -48,29 +52,42 @@ namespace SeedLang.X {
           Debug.Assert(false, $"Not implemented parse rule: {rule}");
           break;
       }
-      return localCollection.Diagnostics.Count == 0;
+      return localCollection.Diagnostics.Count == diagnosticCount;
     }
 
-    // Parses SeedPython source code into the AST tree based on the parse rule.
+    // Parses SeedPython source code into the AST tree based on the parse rule. Returns null if
+    // any parsing error happens.
     public static AstNode Parse(string source, string module, ParseRule rule,
                                 DiagnosticCollection collection) {
-      SeedPythonParser parser = SetupParser(source, module, collection);
+      if (string.IsNullOrEmpty(source) || module is null) {
+        return null;
+      }
+      DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
+      int diagnosticCount = localCollection.Diagnostics.Count;
+      SeedPythonParser parser = SetupParser(source, module, localCollection);
       var visitor = new PythonVisitor();
+      AstNode node = null;
       switch (rule) {
         case ParseRule.Identifier:
-          return visitor.Visit(parser.single_identifier());
+          node = visitor.Visit(parser.single_identifier());
+          break;
         case ParseRule.Number:
-          return visitor.Visit(parser.single_number());
+          node = visitor.Visit(parser.single_number());
+          break;
         case ParseRule.String:
-          return visitor.Visit(parser.single_string());
+          node = visitor.Visit(parser.single_string());
+          break;
         case ParseRule.Expression:
-          return visitor.Visit(parser.single_expr());
+          node = visitor.Visit(parser.single_expr());
+          break;
         case ParseRule.Statement:
-          return visitor.Visit(parser.single_stmt());
+          node = visitor.Visit(parser.single_stmt());
+          break;
         default:
-          Debug.Assert(false, $"Not implemented parse rule: {rule}");
-          return null;
+          Debug.Assert(false, $"Unsupported parse rule: {rule}");
+          break;
       }
+      return localCollection.Diagnostics.Count > diagnosticCount ? null : node;
     }
 
     private static SeedPythonParser SetupParser(string source, string module,
@@ -80,10 +97,10 @@ namespace SeedLang.X {
       var tokenStream = new CommonTokenStream(lexer);
       var parser = new SeedPythonParser(tokenStream);
       // Removes default error listerners which include a console error reporter.
+      lexer.RemoveErrorListeners();
       parser.RemoveErrorListeners();
       if (!(collection is null)) {
-        var errorListener = new SyntaxErrorListener(module, collection);
-        parser.AddErrorListener(errorListener);
+        parser.ErrorHandler = new SyntaxErrorStrategy(module, collection);
       }
       return parser;
     }

@@ -68,6 +68,11 @@ namespace SeedLang.Common {
     InvalidJson1,                       // Not a valid JSON string/file.
     InvalidOperatorName1,               // Invalid operator name.
     InvalidPrimitiveValue1,             // Invalid primitive value.
+    SyntaxErrorFailedPredicate1,        // Semantic predicate failed syntax error.
+    SyntaxErrorInputMismatch2,          // Input mismatch syntax error.
+    SyntaxErrorMissingToken2,           // Missing token syntax error.
+    SyntaxErrorNoViableAlternative1,    // No viable alternative path syntax error.
+    SyntaxErrorUnwantedToken2,          // Unwanted token syntax error.
     TargetBlockIdNotExist1,             // Target block ID does not exist.
     TargetBlockNotDockable4,            // Target block is not dockable.
   }

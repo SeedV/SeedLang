@@ -47,6 +47,7 @@ namespace SeedLang.X.Tests {
     public void TestParseNumber(string input, string expected) {
       var collection = new DiagnosticCollection();
       AstNode node = PythonParser.Parse(input, "", ParseRule.Number, collection);
+      Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
@@ -58,6 +59,7 @@ namespace SeedLang.X.Tests {
     public void TestParseBinaryExpression(string input, string expected) {
       var collection = new DiagnosticCollection();
       AstNode node = PythonParser.Parse(input, "", ParseRule.Expression, collection);
+      Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
@@ -75,20 +77,17 @@ namespace SeedLang.X.Tests {
     public void TestParseEvalStatement(string input, string expected) {
       var collection = new DiagnosticCollection();
       AstNode node = PythonParser.Parse(input, "", ParseRule.Statement, collection);
+      Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
 
+    // TODO: add test cases for other syntax errors after grammar is more complex.
     [Theory]
-    [InlineData(
-      "1",
-      "mismatched input '1' expecting {'eval', 'break', 'continue', IDENTIFIER}"
-    )]
-    [InlineData(
-      "eval1",
-      @"mismatched input '<EOF>' expecting '='"
-    )]
-    public void TestParseError(string input, string localizedMessage) {
+    [InlineData("1", "SyntaxErrorInputMismatch '1' {'eval', 'break', 'continue', IDENTIFIER}")]
+    [InlineData("eval1", @"SyntaxErrorInputMismatch '<EOF>' '='")]
+    [InlineData("eval 1.2 =", @"SyntaxErrorUnwantedToken '=' <EOF>")]
+    public void TestParseSingleSyntaxError(string input, string localizedMessage) {
       var collection = new DiagnosticCollection();
       AstNode node = PythonParser.Parse(input, "", ParseRule.Statement, collection);
       Assert.Null(node);

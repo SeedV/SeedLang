@@ -19,16 +19,12 @@ namespace SeedLang.Ast {
   // An executor class to execute a program represented by an AST tree.
   public sealed class Executor : AstWalker {
     // The visualizer object to visualize the execution result.
-    private readonly IVisualizer _visualizer;
+    private readonly VisualizerCenter _visualizerCenter;
     // The result of current executed expression.
     private BaseValue _expressionResult;
 
-    public Executor() {
-      _visualizer = new NullVisualizer();
-    }
-
-    public Executor(IVisualizer visualizer) {
-      _visualizer = visualizer;
+    public Executor(VisualizerCenter visualizerCenter) {
+      _visualizerCenter = visualizerCenter;
     }
 
     // Executes the given AST tree.
@@ -58,7 +54,7 @@ namespace SeedLang.Ast {
         default:
           throw new ArgumentException("Unsupported binary operator.");
       }
-      _visualizer.OnBinaryExpression(left, right, _expressionResult);
+      _visualizerCenter.BinaryEvent.Notify(new BinaryEvent(left, right, _expressionResult));
     }
 
     protected override void Visit(NumberConstantExpression number) {
@@ -71,7 +67,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(EvalStatement eval) {
       Visit(eval.Expr);
-      _visualizer.OnEvalStatement(_expressionResult);
+      _visualizerCenter.EvalEvent.Notify(new EvalEvent(_expressionResult));
     }
   }
 }

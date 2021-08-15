@@ -14,11 +14,7 @@
 
 namespace SeedLang.Runtime {
   // The interface of all visualizer classes.
-  public interface IVisualizer {
-    // Called when a binary expression is evaluated.
-    void OnBinaryExpression(IValue left, IValue right, IValue result);
-
-    // Called when an eval statement is executed.
-    void OnEvalStatement(IValue value);
+  public interface IVisualizer<in Event> {
+    void On(Event e);
   }
 }

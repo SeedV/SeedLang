@@ -13,12 +13,23 @@
 // limitations under the License.
 
 namespace SeedLang.Runtime {
-  // A null visualizer class which does nothing for all notifications.
-  public class NullVisualizer : IVisualizer {
-    public void OnBinaryExpression(IValue left, IValue right, IValue result) {
-    }
+  public class BinaryEvent {
+    public IValue Left { get; }
+    public IValue Right { get; }
+    public IValue Result { get; }
 
-    public void OnEvalStatement(IValue value) {
+    public BinaryEvent(IValue left, IValue right, IValue result) {
+      Left = left;
+      Right = right;
+      Result = result;
+    }
+  }
+
+  public class EvalEvent {
+    public IValue Value { get; }
+
+    public EvalEvent(IValue value) {
+      Value = value;
     }
   }
 }

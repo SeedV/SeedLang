@@ -18,7 +18,7 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
-  // A Read-Evaluate-Print-Loop class to execute SeedX program interactively.
+  // A Read-Evaluate-Print-Loop class to execute SeedX programs interactively.
   internal sealed class Repl {
     private class Visualizer : IVisualizer<BinaryEvent>, IVisualizer<EvalEvent> {
       private readonly Dictionary<BinaryOperator, string> _operatorStrings =

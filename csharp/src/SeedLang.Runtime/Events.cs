@@ -13,7 +13,7 @@
 // limitations under the License.
 
 namespace SeedLang.Runtime {
-  // The event is triggered when a binary expression is evaluated.
+  // An event which is triggered when a binary expression is evaluated.
   public class BinaryEvent {
     public IValue Left { get; }
     public BinaryOperator Op { get; }
@@ -28,7 +28,7 @@ namespace SeedLang.Runtime {
     }
   }
 
-  // The event is triggered when an eval statement is executed.
+  // An event which is triggered when an eval statement is executed.
   public class EvalEvent {
     public IValue Value { get; }
 

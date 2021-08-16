@@ -18,11 +18,13 @@ using Xunit;
 namespace SeedLang.Ast.Tests {
   internal class MockupVisualizer : IVisualizer<BinaryEvent>, IVisualizer<EvalEvent> {
     public IValue Left { get; private set; }
+    public BinaryOperator Op { get; private set; }
     public IValue Right { get; private set; }
     public IValue Result { get; private set; }
 
     public void On(BinaryEvent e) {
       Left = e.Left;
+      Op = e.Op;
       Right = e.Right;
       Result = e.Result;
     }
@@ -44,11 +46,8 @@ namespace SeedLang.Ast.Tests {
       var executor = new Executor(visualizerCenter);
       executor.Run(binary);
 
-      Assert.NotNull(visualizer.Left);
-      Assert.NotNull(visualizer.Right);
-      Assert.NotNull(visualizer.Result);
-
       Assert.Equal(1, visualizer.Left.ToNumber());
+      Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.ToNumber());
       Assert.Equal(3, visualizer.Result.ToNumber());
     }
@@ -66,8 +65,6 @@ namespace SeedLang.Ast.Tests {
       visualizerCenter.Subscribe(visualizer);
       var executor = new Executor(visualizerCenter);
       executor.Run(eval);
-
-      Assert.NotNull(visualizer.Result);
       Assert.Equal(9, visualizer.Result.ToNumber());
     }
   }

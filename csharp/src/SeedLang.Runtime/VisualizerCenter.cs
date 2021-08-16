@@ -17,7 +17,7 @@ using System.Collections.Generic;
 
 namespace SeedLang.Runtime {
   // The visualizer center to observer execution events and dispatch them to the subscribed
-  // visualizer.
+  // visualizers.
   public class VisualizerCenter {
     public EventHandler<BinaryEvent> BinaryEvent { get; } = new EventHandler<BinaryEvent>();
     public EventHandler<EvalEvent> EvalEvent { get; } = new EventHandler<EvalEvent>();
@@ -44,7 +44,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    // Unsubscribes a visualizer to this visualizer center. Loops each event handler, and
+    // Unsubscribes a visualizer from this visualizer center. Loops each event handler, and
     // unsubscribe from it if the visualizer implement the IVisualizer interface of this event.
     public void Unsubscribe<Visualizer>(Visualizer visualizer) {
       foreach (var eventHandler in _eventHandlers) {

@@ -15,11 +15,13 @@
 using System.Collections.Generic;
 
 namespace SeedLang.Runtime {
+  // The interface of a subscribable object.
   internal interface ISubscribable<in Visualizer> {
     void Subscribe(Visualizer visualizer);
     void Unsubscribe(Visualizer visualizer);
   }
 
+  // The event handler that will notify all the subscribed visualizers when the event is triggered.
   public class EventHandler<Event> : ISubscribable<IVisualizer<Event>> {
     private readonly List<IVisualizer<Event>> _visualizers = new List<IVisualizer<Event>>();
 

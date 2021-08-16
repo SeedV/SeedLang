@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SeedLang\SeedLang.csproj" />
+    <ProjectReference Include="..\SeedLang.Runtime\SeedLang.Runtime.csproj" />
   </ItemGroup>
 
   <ItemGroup>

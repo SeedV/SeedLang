@@ -13,8 +13,14 @@
 // limitations under the License.
 
 namespace SeedLang.Runtime {
-  // The interface of a visualizer to visualize the given event.
-  public interface IVisualizer<in Event> {
-    void On(Event e);
+  // The operators of a binary expression.
+  public enum BinaryOperator {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    FloorDivide,
+    Power,
+    Modulus
   }
 }

@@ -16,6 +16,7 @@ using System;
 using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
+using SeedLang.Runtime;
 using SeedLang.X;
 
 namespace SeedLang {
@@ -28,7 +29,13 @@ namespace SeedLang {
 
     public static IEngine Instance => _lazyInstance.Value;
 
+    private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
+
     private Engine() {
+    }
+
+    public void Subscribe<Visualizer>(Visualizer visualizer) {
+      _visualizerCenter.Subscribe(visualizer);
     }
 
     public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
@@ -52,9 +59,12 @@ namespace SeedLang {
           Debug.Assert(false, $"Not implemented SeedX language: {language}");
           break;
       }
-      // TODO: run AST node or compile it into bytecode and run it.
-      Console.WriteLine(node);
-      return true;
+      if (!(node is null)) {
+        var executor = new Executor(_visualizerCenter);
+        executor.Run(node);
+        return true;
+      }
+      return false;
     }
   }
 }

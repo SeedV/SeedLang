@@ -14,9 +14,10 @@ using System.Reflection;
 // limitations under the License.
 
 using System.Collections.Generic;
-using System;
 
 namespace SeedLang.Runtime {
+  // The visualizer center to observer execution events and dispatch them to the subscribed
+  // visualizer.
   public class VisualizerCenter {
     public EventHandler<BinaryEvent> BinaryEvent { get; } = new EventHandler<BinaryEvent>();
     public EventHandler<EvalEvent> EvalEvent { get; } = new EventHandler<EvalEvent>();
@@ -24,6 +25,7 @@ namespace SeedLang.Runtime {
     private readonly List<object> _eventHandlers = new List<object>();
 
     public VisualizerCenter() {
+      // Collects all the event handlers into a list.
       foreach (var property in GetType().GetProperties()) {
         if (property.PropertyType.IsGenericType &&
             property.PropertyType.GetGenericTypeDefinition() == typeof(EventHandler<>)) {
@@ -32,6 +34,8 @@ namespace SeedLang.Runtime {
       }
     }
 
+    // Subscribes a visualizer to this visualizer center. Loops each event handler, and subscribe to
+    // it if the visualizer implement the IVisualizer interface of this event.
     public void Subscribe<Visualizer>(Visualizer visualizer) {
       foreach (var eventHandler in _eventHandlers) {
         if (eventHandler is ISubscribable<Visualizer> subscribable) {
@@ -40,6 +44,8 @@ namespace SeedLang.Runtime {
       }
     }
 
+    // Unsubscribes a visualizer to this visualizer center. Loops each event handler, and
+    // unsubscribe from it if the visualizer implement the IVisualizer interface of this event.
     public void Unsubscribe<Visualizer>(Visualizer visualizer) {
       foreach (var eventHandler in _eventHandlers) {
         if (eventHandler is ISubscribable<Visualizer> subscribable) {

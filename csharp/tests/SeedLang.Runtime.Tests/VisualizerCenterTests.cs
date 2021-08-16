@@ -38,9 +38,8 @@ namespace SeedLang.Runtime.Tests {
       visualizerCenter.Subscribe(binaryVisualizer);
       visualizerCenter.EvalEvent.Notify(new EvalEvent(new MockupValue()));
       Assert.False(binaryVisualizer.Notified);
-      visualizerCenter.BinaryEvent.Notify(new BinaryEvent(new MockupValue(),
-                                                          new MockupValue(),
-                                                          new MockupValue()));
+      visualizerCenter.BinaryEvent.Notify(new BinaryEvent(new MockupValue(), BinaryOperator.Add,
+                                                          new MockupValue(), new MockupValue()));
       Assert.True(binaryVisualizer.Notified);
     }
 
@@ -51,9 +50,11 @@ namespace SeedLang.Runtime.Tests {
       var visualizerCenter = new VisualizerCenter();
       visualizerCenter.Subscribe(binaryVisualizer);
       visualizerCenter.Subscribe(multipleVisualizer);
-      visualizerCenter.BinaryEvent.Notify(new BinaryEvent(new MockupValue(),
-                                                          new MockupValue(),
-                                                          new MockupValue()));
+      Assert.False(binaryVisualizer.Notified);
+      Assert.False(multipleVisualizer.BinaryEventNotified);
+      Assert.False(multipleVisualizer.EvalEventNotified);
+      visualizerCenter.BinaryEvent.Notify(new BinaryEvent(new MockupValue(), BinaryOperator.Add,
+                                                          new MockupValue(), new MockupValue()));
       visualizerCenter.EvalEvent.Notify(new EvalEvent(new MockupValue()));
       Assert.True(binaryVisualizer.Notified);
       Assert.True(multipleVisualizer.BinaryEventNotified);

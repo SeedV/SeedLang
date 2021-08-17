@@ -42,7 +42,7 @@ namespace SeedLang.Ast.Tests {
       var binary = Expression.Binary(left, BinaryOperator.Add, right);
       var visualizer = new MockupVisualizer();
       var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Subscribe(visualizer);
+      visualizerCenter.Register(visualizer);
       var executor = new Executor(visualizerCenter);
       executor.Run(binary);
 
@@ -62,7 +62,7 @@ namespace SeedLang.Ast.Tests {
       var eval = Statement.Eval(binary);
       var visualizer = new MockupVisualizer();
       var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Subscribe(visualizer);
+      visualizerCenter.Register(visualizer);
       var executor = new Executor(visualizerCenter);
       executor.Run(eval);
       Assert.Equal(9, visualizer.Result.ToNumber());

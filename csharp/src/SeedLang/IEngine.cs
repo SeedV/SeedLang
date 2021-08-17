@@ -18,11 +18,14 @@ using SeedLang.Common;
 namespace SeedLang {
   // The interface of the SeedLang engine.
   public interface IEngine {
-    // Subscribes a visualizer to visualizer center.
+    // Registers a visualizer into the visualizer center of the engine.
     //
     // The visualizer can implement one or more IVisualizer<Event> interfaces to visualize SeedLang
     // execution events.
-    void Subscribe<Visualizer>(Visualizer visualizer);
+    void Register<Visualizer>(Visualizer visualizer);
+
+    // Unregisters a visualizer from the visualizer center of the engine.
+    void Unregister<Visualizer>(Visualizer visualizer);
 
     // Runs source code with the specified module name, programming language, target parsing rule
     // and runing type.

@@ -32,33 +32,47 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestSubscribeVisualizer() {
+    public void TestRegisterVisualizer() {
       var binaryVisualizer = new MockupBinaryVisualizer();
       var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Subscribe(binaryVisualizer);
-      visualizerCenter.EvalEvent.Notify(new EvalEvent(new MockupValue()));
+      visualizerCenter.Register(binaryVisualizer);
+      visualizerCenter.EvalPublisher.Notify(new EvalEvent(new MockupValue()));
       Assert.False(binaryVisualizer.Notified);
-      visualizerCenter.BinaryEvent.Notify(new BinaryEvent(new MockupValue(), BinaryOperator.Add,
-                                                          new MockupValue(), new MockupValue()));
+      var binaryEvent = new BinaryEvent(new MockupValue(), BinaryOperator.Add,
+                                        new MockupValue(), new MockupValue());
+      visualizerCenter.BinaryPublisher.Notify(binaryEvent);
       Assert.True(binaryVisualizer.Notified);
     }
 
     [Fact]
-    public void TestSubscribeMultipleVisualizers() {
+    public void TestRegisterMultipleVisualizers() {
       var binaryVisualizer = new MockupBinaryVisualizer();
       var multipleVisualizer = new MockupMultipleVisualizer();
       var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Subscribe(binaryVisualizer);
-      visualizerCenter.Subscribe(multipleVisualizer);
+      visualizerCenter.Register(binaryVisualizer);
+      visualizerCenter.Register(multipleVisualizer);
       Assert.False(binaryVisualizer.Notified);
       Assert.False(multipleVisualizer.BinaryEventNotified);
       Assert.False(multipleVisualizer.EvalEventNotified);
-      visualizerCenter.BinaryEvent.Notify(new BinaryEvent(new MockupValue(), BinaryOperator.Add,
-                                                          new MockupValue(), new MockupValue()));
-      visualizerCenter.EvalEvent.Notify(new EvalEvent(new MockupValue()));
+      var binaryEvent = new BinaryEvent(new MockupValue(), BinaryOperator.Add,
+                                        new MockupValue(), new MockupValue());
+      visualizerCenter.BinaryPublisher.Notify(binaryEvent);
+      visualizerCenter.EvalPublisher.Notify(new EvalEvent(new MockupValue()));
       Assert.True(binaryVisualizer.Notified);
       Assert.True(multipleVisualizer.BinaryEventNotified);
       Assert.True(multipleVisualizer.EvalEventNotified);
+    }
+
+    [Fact]
+    public void TestUnregisterVisualizer() {
+      var binaryVisualizer = new MockupBinaryVisualizer();
+      var visualizerCenter = new VisualizerCenter();
+      visualizerCenter.Register(binaryVisualizer);
+      visualizerCenter.Unregister(binaryVisualizer);
+      var binaryEvent = new BinaryEvent(new MockupValue(), BinaryOperator.Add,
+                                        new MockupValue(), new MockupValue());
+      visualizerCenter.BinaryPublisher.Notify(binaryEvent);
+      Assert.False(binaryVisualizer.Notified);
     }
   }
 }

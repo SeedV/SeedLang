@@ -23,7 +23,7 @@ namespace SeedLang {
   // A facade class to implement the SeedLang engine interface.
   //
   // This is a singleton class. The interfaces include validating and running a SeedBlock or SeedX
-  // program, registering observers to visualize program execution, etc.
+  // program, registering visualizers to visualize program execution, etc.
   public sealed class Engine : IEngine {
     private static readonly Lazy<IEngine> _lazyInstance = new Lazy<IEngine>(() => new Engine());
 
@@ -34,8 +34,12 @@ namespace SeedLang {
     private Engine() {
     }
 
-    public void Subscribe<Visualizer>(Visualizer visualizer) {
-      _visualizerCenter.Subscribe(visualizer);
+    public void Register<Visualizer>(Visualizer visualizer) {
+      _visualizerCenter.Register(visualizer);
+    }
+
+    public void Unregister<Visualizer>(Visualizer visualizer) {
+      _visualizerCenter.Unregister(visualizer);
     }
 
     public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,

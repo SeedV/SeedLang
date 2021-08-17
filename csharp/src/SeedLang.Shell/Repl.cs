@@ -50,10 +50,10 @@ namespace SeedLang.Shell {
       _language = language;
       _rule = rule;
       _runType = runType;
-      Engine.Instance.Subscribe(_visualizer);
     }
 
     internal void Execute() {
+      Engine.Instance.Register(_visualizer);
       while (true) {
         Console.Write("> ");
         string line = Console.ReadLine();
@@ -67,6 +67,7 @@ namespace SeedLang.Shell {
           }
         }
       }
+      Engine.Instance.Unregister(_visualizer);
     }
   }
 }

@@ -18,7 +18,7 @@ using SeedLang.Runtime;
 namespace SeedLang.Ast {
   // An executor class to execute a program represented by an AST tree.
   public sealed class Executor : AstWalker {
-    // The visualizer center to observer AST execution events and dispatch to the subscribed
+    // The visualizer center to observe AST execution events and dispatch them to the registered
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
     // The result of current executed expression.
@@ -55,7 +55,7 @@ namespace SeedLang.Ast {
         default:
           throw new ArgumentException("Unsupported binary operator.");
       }
-      _visualizerCenter.BinaryEvent.Notify(
+      _visualizerCenter.BinaryPublisher.Notify(
           new BinaryEvent(left, binary.Op, right, _expressionResult));
     }
 
@@ -69,7 +69,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(EvalStatement eval) {
       Visit(eval.Expr);
-      _visualizerCenter.EvalEvent.Notify(new EvalEvent(_expressionResult));
+      _visualizerCenter.EvalPublisher.Notify(new EvalEvent(_expressionResult));
     }
   }
 }

@@ -15,21 +15,26 @@
 using System.Collections.Generic;
 
 namespace SeedLang.Runtime {
-  // The interface of subscribable objects.
-  internal interface ISubscribable<in Visualizer> {
-    void Subscribe(Visualizer visualizer);
-    void Unsubscribe(Visualizer visualizer);
+  // The interface of the event publisher.
+  internal interface IPublisher<in Visualizer> {
+    // Registers a visualizer into this event publisher.
+    void Register(Visualizer visualizer);
+
+    // Unregisters a visualizer into this event publisher.
+    void Unregister(Visualizer visualizer);
   }
 
-  // The event handler to notify all the subscribed visualizers when the event is triggered.
-  public class EventHandler<Event> : ISubscribable<IVisualizer<Event>> {
+  // The publisher to notify all the registered visualizers when the event is triggered.
+  public class Publisher<Event> : IPublisher<IVisualizer<Event>> {
     private readonly List<IVisualizer<Event>> _visualizers = new List<IVisualizer<Event>>();
 
-    public void Subscribe(IVisualizer<Event> visualizer) {
-      _visualizers.Add(visualizer);
+    public void Register(IVisualizer<Event> visualizer) {
+      if (!_visualizers.Contains(visualizer)) {
+        _visualizers.Add(visualizer);
+      }
     }
 
-    public void Unsubscribe(IVisualizer<Event> visualizer) {
+    public void Unregister(IVisualizer<Event> visualizer) {
       _visualizers.Remove(visualizer);
     }
 

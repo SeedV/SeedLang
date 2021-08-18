@@ -17,9 +17,10 @@ using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
+using SeedLang.Runtime;
 
 namespace SeedLang.X {
-  // The visitor class to visit each SeedPython parse tree and generate the corresponding AST tree.
+  // The visitor class to visit a SeedPython parse tree and generate the corresponding AST tree.
   //
   // The default implement of SeedPythonBaseVisitor is to visit all the children and return the
   // result of the last one. PythonVisitor overrides the method if the default implement is not
@@ -27,31 +28,31 @@ namespace SeedLang.X {
   internal class PythonVisitor : SeedPythonBaseVisitor<AstNode> {
     // Visits a single identifier.
     public override AstNode VisitSingle_identifier(
-      [NotNull] SeedPythonParser.Single_identifierContext context) {
+        [NotNull] SeedPythonParser.Single_identifierContext context) {
       return Visit(context.identifier());
     }
 
     // Visits a single number.
     public override AstNode VisitSingle_number(
-      [NotNull] SeedPythonParser.Single_numberContext context) {
+        [NotNull] SeedPythonParser.Single_numberContext context) {
       return Visit(context.number());
     }
 
     // Visits a single string.
     public override AstNode VisitSingle_string(
-      [NotNull] SeedPythonParser.Single_stringContext context) {
+        [NotNull] SeedPythonParser.Single_stringContext context) {
       return Visit(context.@string());
     }
 
     // Visits a single expression.
     public override AstNode VisitSingle_expr(
-      [NotNull] SeedPythonParser.Single_exprContext context) {
+        [NotNull] SeedPythonParser.Single_exprContext context) {
       return Visit(context.expr());
     }
 
     // Visits a single statement.
     public override AstNode VisitSingle_stmt(
-      [NotNull] SeedPythonParser.Single_stmtContext context) {
+        [NotNull] SeedPythonParser.Single_stmtContext context) {
       return Visit(context.small_stmt());
     }
 
@@ -89,7 +90,7 @@ namespace SeedLang.X {
     // The small_stmt() method of the Simple_stmtContext returns a array which contains all the
     // small statements. There is at least one small statement in it.
     public override AstNode VisitSimple_stmt(
-      [NotNull] SeedPythonParser.Simple_stmtContext context) {
+        [NotNull] SeedPythonParser.Simple_stmtContext context) {
       // TODO: parse all the small statements in it, only parse the first one now.
       SeedPythonParser.Small_stmtContext[] smallStatements = context.small_stmt();
       Debug.Assert(smallStatements.Length > 0);

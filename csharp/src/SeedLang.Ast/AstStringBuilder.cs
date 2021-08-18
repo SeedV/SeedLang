@@ -15,6 +15,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   internal static class BinaryOperatorExtensions {

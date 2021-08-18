@@ -18,12 +18,21 @@ using SeedLang.Common;
 namespace SeedLang {
   // The interface of the SeedLang engine.
   public interface IEngine {
+    // Registers a visualizer into the visualizer center of the engine.
+    //
+    // The visualizer can implement one or more IVisualizer<Event> interfaces to visualize SeedLang
+    // execution events.
+    void Register<Visualizer>(Visualizer visualizer);
+
+    // Unregisters a visualizer from the visualizer center of the engine.
+    void Unregister<Visualizer>(Visualizer visualizer);
+
     // Runs source code with the specified module name, programming language, target parsing rule
     // and runing type.
     //
     // There are three methods to run the source code.
     // 1) Dryrun: parses and validates the source code without runing.
-    // 2) Source: parses the source code into an AST tree, and runs it by traversing the AST tree.
+    // 2) Ast: parses the source code into an AST tree, and runs it by traversing the AST tree.
     // 3) Bytecode: parses and compiles the source code into bytecode, and runs it in a VM.
     //
     // The parsing and running diagnostic information will be collected into the diagnostic

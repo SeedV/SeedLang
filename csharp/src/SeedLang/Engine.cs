@@ -16,19 +16,30 @@ using System;
 using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
+using SeedLang.Runtime;
 using SeedLang.X;
 
 namespace SeedLang {
   // A facade class to implement the SeedLang engine interface.
   //
   // This is a singleton class. The interfaces include validating and running a SeedBlock or SeedX
-  // program, registering observers to visualize program execution, etc.
+  // program, registering visualizers to visualize program execution, etc.
   public sealed class Engine : IEngine {
     private static readonly Lazy<IEngine> _lazyInstance = new Lazy<IEngine>(() => new Engine());
 
     public static IEngine Instance => _lazyInstance.Value;
 
+    private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
+
     private Engine() {
+    }
+
+    public void Register<Visualizer>(Visualizer visualizer) {
+      _visualizerCenter.Register(visualizer);
+    }
+
+    public void Unregister<Visualizer>(Visualizer visualizer) {
+      _visualizerCenter.Unregister(visualizer);
     }
 
     public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
@@ -52,9 +63,12 @@ namespace SeedLang {
           Debug.Assert(false, $"Not implemented SeedX language: {language}");
           break;
       }
-      // TODO: run AST node or compile it into bytecode and run it.
-      Console.WriteLine(node);
-      return true;
+      if (!(node is null)) {
+        var executor = new Executor(_visualizerCenter);
+        executor.Run(node);
+        return true;
+      }
+      return false;
     }
   }
 }

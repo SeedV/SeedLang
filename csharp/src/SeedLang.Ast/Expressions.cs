@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // The base class of all expression nodes.
@@ -31,16 +31,6 @@ namespace SeedLang.Ast {
     public static StringConstantExpression String(string value) {
       return new StringConstantExpression(value);
     }
-  }
-
-  public enum BinaryOperator {
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    FloorDivide,
-    Power,
-    Modulus
   }
 
   public class BinaryExpression : Expression {

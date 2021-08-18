@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {

@@ -16,19 +16,21 @@ using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {
-  internal class MockupVisualizer : IVisualizer {
+  internal class MockupVisualizer : IVisualizer<BinaryEvent>, IVisualizer<EvalEvent> {
     public IValue Left { get; private set; }
+    public BinaryOperator Op { get; private set; }
     public IValue Right { get; private set; }
     public IValue Result { get; private set; }
 
-    public void OnBinaryExpression(IValue left, IValue right, IValue result) {
-      Left = left;
-      Right = right;
-      Result = result;
+    public void On(BinaryEvent e) {
+      Left = e.Left;
+      Op = e.Op;
+      Right = e.Right;
+      Result = e.Result;
     }
 
-    public void OnEvalStatement(IValue value) {
-      Result = value;
+    public void On(EvalEvent e) {
+      Result = e.Value;
     }
   }
 
@@ -39,14 +41,13 @@ namespace SeedLang.Ast.Tests {
       var right = Expression.Number(2);
       var binary = Expression.Binary(left, BinaryOperator.Add, right);
       var visualizer = new MockupVisualizer();
-      var executor = new Executor(visualizer);
+      var visualizerCenter = new VisualizerCenter();
+      visualizerCenter.Register(visualizer);
+      var executor = new Executor(visualizerCenter);
       executor.Run(binary);
 
-      Assert.NotNull(visualizer.Left);
-      Assert.NotNull(visualizer.Right);
-      Assert.NotNull(visualizer.Result);
-
       Assert.Equal(1, visualizer.Left.ToNumber());
+      Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.ToNumber());
       Assert.Equal(3, visualizer.Result.ToNumber());
     }
@@ -60,10 +61,10 @@ namespace SeedLang.Ast.Tests {
       var binary = Expression.Binary(left, BinaryOperator.Multiply, three);
       var eval = Statement.Eval(binary);
       var visualizer = new MockupVisualizer();
-      var executor = new Executor(visualizer);
+      var visualizerCenter = new VisualizerCenter();
+      visualizerCenter.Register(visualizer);
+      var executor = new Executor(visualizerCenter);
       executor.Run(eval);
-
-      Assert.NotNull(visualizer.Result);
       Assert.Equal(9, visualizer.Result.ToNumber());
     }
   }

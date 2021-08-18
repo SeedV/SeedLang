@@ -38,6 +38,8 @@ namespace SeedLang.Runtime {
     //
     // Loops each event publisher, and registers into it if the visualizer implements the
     // IVisualizer interface of this event.
+    // The parameter of IPublisher<in Visualizer> must be contravariance with a "in" modifier, so
+    // that the Visualizer can be cast to IVisualizer<Event> interface to make the check work.
     public void Register<Visualizer>(Visualizer visualizer) {
       foreach (var p in _publishers) {
         if (p is IPublisher<Visualizer> publisher) {

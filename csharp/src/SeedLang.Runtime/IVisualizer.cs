@@ -14,7 +14,7 @@
 
 namespace SeedLang.Runtime {
   // The interface of visualizers to visualize the given event.
-  public interface IVisualizer<in Event> {
+  public interface IVisualizer<Event> {
     void On(Event e);
   }
 }

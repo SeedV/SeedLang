@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace SeedLang.Block {
   // Common settings used by the Block Exchange Format.
   public static class BxfConstants {
@@ -30,5 +33,15 @@ namespace SeedLang.Block {
     public const string DefaultOperatorName = "+";
     public const string LeftParenthsis = "(";
     public const string RightParenthsis = ")";
+
+    // The serialization options used by BxfWriter and BxfReader.
+    public static JsonSerializerOptions JsonOptions { get; set; } = new JsonSerializerOptions {
+      Converters = {
+        new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+      },
+      IgnoreNullValues = true,
+      PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+      WriteIndented = true,
+    };
   }
 }

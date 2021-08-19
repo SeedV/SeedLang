@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 using System.Collections.Generic;
 
 namespace SeedLang.Block {
@@ -26,34 +23,28 @@ namespace SeedLang.Block {
   //
   // TODO: It's possible to build an auto-generator to create the following C# code based on
   // /schemas/bxf.schema.json. Consider this possibility in the future.
-  [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
-              NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfObject {
-    public string Schema = BxfConstants.Schema;
-    public string Version = BxfConstants.Version;
-    public string Author = null;
-    public string Copyright = null;
-    public string License = null;
-    public BxfModule Module = new BxfModule();
+    public string Schema { get; set; } = BxfConstants.Schema;
+    public string Version { get; set; } = BxfConstants.Version;
+    public string Author { get; set; } = null;
+    public string Copyright { get; set; } = null;
+    public string License { get; set; } = null;
+    public BxfModule Module { get; set; } = new BxfModule();
   }
 
-  [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
-              NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfModule {
-    public string Name = null;
-    public string Doc = null;
-    public List<BxfBlock> Blocks = new List<BxfBlock>();
+    public string Name { get; set; } = null;
+    public string Doc { get; set; } = null;
+    public List<BxfBlock> Blocks { get; set; } = new List<BxfBlock>();
   }
 
-  [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
-              NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfBlock {
-    public string Id = null;
-    public string Type = null;
-    public string Doc = null;
-    public string Content = null;
-    public BxfCanvasPosition CanvasPosition = null;
-    public BxfDockPosition DockPosition = null;
+    public string Id { get; set; } = null;
+    public string Type { get; set; } = null;
+    public string Doc { get; set; } = null;
+    public string Content { get; set; } = null;
+    public BxfCanvasPosition CanvasPosition { get; set; } = null;
+    public BxfDockPosition DockPosition { get; set; } = null;
 
     public BxfBlock() {
     }
@@ -96,20 +87,14 @@ namespace SeedLang.Block {
     }
   }
 
-  [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
-              NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfCanvasPosition {
-    public int X = 0;
-    public int Y = 0;
+    public int X { get; set; } = 0;
+    public int Y { get; set; } = 0;
   }
 
-  [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
-              NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfDockPosition {
-    public string TargetBlockId = null;
-    // Uses camelCased enum name when serializing Position.DockType.
-    [JsonConverter(typeof(StringEnumConverter), true)]
-    public Position.DockType DockType;
-    public int DockSlotIndex = 0;
+    public string TargetBlockId { get; set; } = null;
+    public Position.DockType DockType { get; set; }
+    public int DockSlotIndex { get; set; } = 0;
   }
 }

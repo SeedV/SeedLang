@@ -24,6 +24,7 @@ namespace SeedLang.Ast {
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
 
+    // The dictionary to store variable names and current values of global variables.
     private readonly Dictionary<string, BaseValue> _globals = new Dictionary<string, BaseValue>();
 
     // The result of current executed expression.
@@ -69,6 +70,8 @@ namespace SeedLang.Ast {
       if (_globals.TryGetValue(identifier.Name, out var value)) {
         _expressionResult = value;
       } else {
+        // TODO: should the result be a null value or default number value if the variable is not
+        // assigned before using? Another option is to report a runtime error.
         _expressionResult = new NumberValue();
       }
     }
@@ -84,6 +87,8 @@ namespace SeedLang.Ast {
     protected override void Visit(AssignmentStatement assignment) {
       Visit(assignment.Expr);
       _globals[assignment.Identifier.Name] = _expressionResult;
+      var e = new AssignmentEvent(assignment.Identifier.Name, _expressionResult);
+      _visualizerCenter.AssignmentPublisher.Notify(e);
     }
 
     protected override void Visit(EvalStatement eval) {

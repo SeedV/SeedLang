@@ -73,6 +73,16 @@ namespace SeedLang.X.Tests {
     }
 
     [Theory]
+    [InlineData("id = 1", "id = 1\n")]
+    public void TestParseAssignmentStatement(string input, string expected) {
+      var collection = new DiagnosticCollection();
+      AstNode node = PythonParser.Parse(input, "", ParseRule.Statement, collection);
+      Assert.NotNull(node);
+      Assert.Empty(collection.Diagnostics);
+      Assert.Equal(expected, node.ToString());
+    }
+
+    [Theory]
     [InlineData("eval 1 + 2 * 3 - 4", "eval ((1 + (2 * 3)) - 4)\n")]
     public void TestParseEvalStatement(string input, string expected) {
       var collection = new DiagnosticCollection();

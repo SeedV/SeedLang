@@ -28,6 +28,17 @@ namespace SeedLang.Runtime {
     }
   }
 
+  // An event which is triggered when an assignment statement is executed.
+  public class AssignmentEvent {
+    public string Identifier { get; }
+    public IValue Value { get; }
+
+    public AssignmentEvent(string identifier, IValue value) {
+      Identifier = identifier;
+      Value = value;
+    }
+  }
+
   // An event which is triggered when an eval statement is executed.
   public class EvalEvent {
     public IValue Value { get; }

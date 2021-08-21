@@ -106,8 +106,13 @@ namespace SeedLang.X {
     public override AstNode VisitAssignment_stmt(
         [NotNull] SeedPythonParser.Assignment_stmtContext context) {
       var identifier = Visit(context.identifier()) as IdentifierExpression;
-      var expr = Visit(context.expr()) as Expression;
-      return Statement.Assignment(identifier, expr);
+      // TODO: if null check is needed in other visit mothods.
+      var exprContext = context.expr();
+      if (!(exprContext is null)) {
+        var expr = Visit(exprContext) as Expression;
+        return Statement.Assignment(identifier, expr);
+      }
+      return null;
     }
 
     // Visits an eval statement.

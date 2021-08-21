@@ -53,6 +53,27 @@ namespace SeedLang.Ast.Tests {
     }
 
     [Fact]
+    public void TestExecuteAssignmentStatement() {
+      var visualizer = new MockupVisualizer();
+      var visualizerCenter = new VisualizerCenter();
+      visualizerCenter.Register(visualizer);
+      var executor = new Executor(visualizerCenter);
+
+      var identifier = Expression.Identifier("id");
+      var eval = Statement.Eval(identifier);
+      executor.Run(identifier);
+      executor.Run(eval);
+
+      Assert.Equal(0, visualizer.Result.ToNumber());
+
+      var assignment = Statement.Assignment(identifier, Expression.Number(1));
+      executor.Run(assignment);
+      executor.Run(eval);
+
+      Assert.Equal(1, visualizer.Result.ToNumber());
+    }
+
+    [Fact]
     public void TestExecuteEvalStatement() {
       var one = Expression.Number(1);
       var two = Expression.Number(2);

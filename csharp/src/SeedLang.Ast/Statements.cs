@@ -15,9 +15,24 @@
 namespace SeedLang.Ast {
   // The base class of all statement nodes.
   public abstract class Statement : AstNode {
+    // The factory method to creates the assignment statement.
+    public static AssignmentStatement Assignment(IdentifierExpression identifier, Expression expr) {
+      return new AssignmentStatement(identifier, expr);
+    }
+
     // The factory method to creates the eval statement.
     public static EvalStatement Eval(Expression expr) {
       return new EvalStatement(expr);
+    }
+  }
+
+  public class AssignmentStatement : Statement {
+    public IdentifierExpression Identifier { get; }
+    public Expression Expr { get; }
+
+    internal AssignmentStatement(IdentifierExpression identifier, Expression expr) {
+      Identifier = identifier;
+      Expr = expr;
     }
   }
 

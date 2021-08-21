@@ -25,6 +25,10 @@ namespace SeedLang.Ast {
       }
     }
 
+    internal NumberValue() {
+      _value = 0;
+    }
+
     internal NumberValue(double value) {
       _value = value;
     }

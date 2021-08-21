@@ -18,6 +18,14 @@ using Xunit;
 namespace SeedLang.Ast.Tests {
   public class AstNodesTests {
     [Fact]
+    public void TestIdentifier() {
+      string name = "test name";
+      var identifier = Expression.Identifier(name);
+      Assert.Equal(name, identifier.Name);
+      Assert.Equal(name, identifier.ToString());
+    }
+
+    [Fact]
     public void TestNumberConstant() {
       double value = 1.5;
       var number = Expression.Number(value);
@@ -39,6 +47,14 @@ namespace SeedLang.Ast.Tests {
       var right = Expression.Number(2);
       var binary = Expression.Binary(left, BinaryOperator.Add, right);
       Assert.Equal("(1 + 2)", binary.ToString());
+    }
+
+    [Fact]
+    public void TestAssignmentStatement() {
+      var identifier = Expression.Identifier("id");
+      var expr = Expression.Number(1);
+      var assignment = Statement.Assignment(identifier, expr);
+      Assert.Equal("id = 1\n", assignment.ToString());
     }
 
     [Fact]

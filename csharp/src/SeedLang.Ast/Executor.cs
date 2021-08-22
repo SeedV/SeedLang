@@ -25,6 +25,7 @@ namespace SeedLang.Ast {
     private readonly VisualizerCenter _visualizerCenter;
 
     // The dictionary to store variable names and current values of global variables.
+    // TODO: define a class to handle global symbol table lookup.
     private readonly Dictionary<string, BaseValue> _globals = new Dictionary<string, BaseValue>();
 
     // The result of current executed expression.

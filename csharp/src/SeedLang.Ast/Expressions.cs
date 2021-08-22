@@ -22,6 +22,11 @@ namespace SeedLang.Ast {
       return new BinaryExpression(left, op, right);
     }
 
+    // The factory method to create the identifier expression.
+    public static IdentifierExpression Identifier(string name) {
+      return new IdentifierExpression(name);
+    }
+
     // The factory method to create the number constant expression.
     public static NumberConstantExpression Number(double value) {
       return new NumberConstantExpression(value);
@@ -42,6 +47,14 @@ namespace SeedLang.Ast {
       Left = left;
       Op = op;
       Right = right;
+    }
+  }
+
+  public class IdentifierExpression : Expression {
+    public string Name { get; set; }
+
+    internal IdentifierExpression(string name) {
+      Name = name;
     }
   }
 

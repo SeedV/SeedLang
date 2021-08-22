@@ -72,6 +72,11 @@ namespace SeedLang.X {
       return BuildBinary(context.op, context.expr());
     }
 
+    // Visits an identifier.
+    public override AstNode VisitIdentifier([NotNull] SeedPythonParser.IdentifierContext context) {
+      return Expression.Identifier(context.GetText());
+    }
+
     // Visits a number expression.
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {
       return Expression.Number(double.Parse(context.GetText()));
@@ -95,6 +100,19 @@ namespace SeedLang.X {
       SeedPythonParser.Small_stmtContext[] smallStatements = context.small_stmt();
       Debug.Assert(smallStatements.Length > 0);
       return Visit(smallStatements[0]);
+    }
+
+    // Visits an assignment statement.
+    public override AstNode VisitAssignment_stmt(
+        [NotNull] SeedPythonParser.Assignment_stmtContext context) {
+      var identifier = Visit(context.identifier()) as IdentifierExpression;
+      // TODO: if null check is needed in other visit mothods.
+      var exprContext = context.expr();
+      if (!(exprContext is null)) {
+        var expr = Visit(exprContext) as Expression;
+        return Statement.Assignment(identifier, expr);
+      }
+      return null;
     }
 
     // Visits an eval statement.

@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
@@ -21,6 +23,11 @@ namespace SeedLang.Ast {
     // The visualizer center to observe AST execution events and dispatch them to the registered
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
+
+    // The dictionary to store variable names and current values of global variables.
+    // TODO: define a class to handle global symbol table lookup.
+    private readonly Dictionary<string, BaseValue> _globals = new Dictionary<string, BaseValue>();
+
     // The result of current executed expression.
     private BaseValue _expressionResult;
 
@@ -53,10 +60,21 @@ namespace SeedLang.Ast {
           _expressionResult = left / right;
           break;
         default:
-          throw new ArgumentException("Unsupported binary operator.");
+          Debug.Fail($"Unsupported binary operator: {binary.Op}");
+          break;
       }
       _visualizerCenter.BinaryPublisher.Notify(
           new BinaryEvent(left, binary.Op, right, _expressionResult));
+    }
+
+    protected override void Visit(IdentifierExpression identifier) {
+      if (_globals.TryGetValue(identifier.Name, out var value)) {
+        _expressionResult = value;
+      } else {
+        // TODO: should the result be a null value or default number value if the variable is not
+        // assigned before using? Another option is to report a runtime error.
+        _expressionResult = new NumberValue();
+      }
     }
 
     protected override void Visit(NumberConstantExpression number) {
@@ -65,6 +83,13 @@ namespace SeedLang.Ast {
 
     protected override void Visit(StringConstantExpression str) {
       _expressionResult = new StringValue(str.Value);
+    }
+
+    protected override void Visit(AssignmentStatement assignment) {
+      Visit(assignment.Expr);
+      _globals[assignment.Identifier.Name] = _expressionResult;
+      var e = new AssignmentEvent(assignment.Identifier.Name, _expressionResult);
+      _visualizerCenter.AssignmentPublisher.Notify(e);
     }
 
     protected override void Visit(EvalStatement eval) {

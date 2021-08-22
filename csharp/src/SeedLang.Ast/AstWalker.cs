@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Diagnostics;
+
 namespace SeedLang.Ast {
   // A base class to traverse an AST tree.
   public abstract class AstWalker {
@@ -24,6 +27,9 @@ namespace SeedLang.Ast {
         case Statement statement:
           Visit(statement);
           break;
+        default:
+          Debug.Fail($"Not implemented node type: {node.GetType()}");
+          break;
       }
     }
 
@@ -33,11 +39,17 @@ namespace SeedLang.Ast {
         case BinaryExpression binary:
           Visit(binary);
           break;
+        case IdentifierExpression identifier:
+          Visit(identifier);
+          break;
         case NumberConstantExpression number:
           Visit(number);
           break;
         case StringConstantExpression str:
           Visit(str);
+          break;
+        default:
+          Debug.Fail($"Not implemented expression type: {expression.GetType()}");
           break;
       }
     }
@@ -45,17 +57,27 @@ namespace SeedLang.Ast {
     // Dispatches to the correspoding visit method based on the type of the statement node.
     public void Visit(Statement statement) {
       switch (statement) {
+        case AssignmentStatement assignment:
+          Visit(assignment);
+          break;
         case EvalStatement eval:
           Visit(eval);
+          break;
+        default:
+          Debug.Fail($"Not implemented statement type: {statement.GetType()}");
           break;
       }
     }
 
     protected abstract void Visit(BinaryExpression binary);
 
+    protected abstract void Visit(IdentifierExpression expression);
+
     protected abstract void Visit(NumberConstantExpression number);
 
     protected abstract void Visit(StringConstantExpression str);
+
+    protected abstract void Visit(AssignmentStatement assignment);
 
     protected abstract void Visit(EvalStatement eval);
   }

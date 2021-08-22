@@ -31,7 +31,12 @@ namespace SeedLang {
 
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
 
+    // TODO: check the lifetime of the executor. It shall not be as long as the engine, but need be
+    // longer than a run method.
+    private readonly Executor _executor;
+
     private Engine() {
+      _executor = new Executor(_visualizerCenter);
     }
 
     public void Register<Visualizer>(Visualizer visualizer) {
@@ -64,8 +69,7 @@ namespace SeedLang {
           break;
       }
       if (!(node is null)) {
-        var executor = new Executor(_visualizerCenter);
-        executor.Run(node);
+        _executor.Run(node);
         return true;
       }
       return false;

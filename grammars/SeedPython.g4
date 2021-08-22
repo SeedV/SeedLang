@@ -78,7 +78,7 @@ small_stmt:
   | eval_stmt
   | flow_stmt;
 
-assignment_stmt: IDENTIFIER '=' expr;
+assignment_stmt: identifier '=' expr;
 eval_stmt: 'eval' expr;
 flow_stmt: break_stmt | continue_stmt;
 break_stmt: 'break';

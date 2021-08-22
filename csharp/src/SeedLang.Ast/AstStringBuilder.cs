@@ -62,12 +62,20 @@ namespace SeedLang.Ast {
       _out.Append($"({binary.Left} {binary.Op.Symbol()} {binary.Right})");
     }
 
+    protected override void Visit(IdentifierExpression expression) {
+      _out.Append($"{expression.Name}");
+    }
+
     protected override void Visit(NumberConstantExpression number) {
       _out.Append(number.Value);
     }
 
     protected override void Visit(StringConstantExpression str) {
       _out.Append(str.Value);
+    }
+
+    protected override void Visit(AssignmentStatement assignment) {
+      _out.Append($"{assignment.Identifier} = {assignment.Expr}\n");
     }
 
     protected override void Visit(EvalStatement eval) {

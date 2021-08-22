@@ -20,7 +20,9 @@ using SeedLang.Runtime;
 namespace SeedLang.Shell {
   // A Read-Evaluate-Print-Loop class to execute SeedX programs interactively.
   internal sealed class Repl {
-    private class Visualizer : IVisualizer<BinaryEvent>, IVisualizer<EvalEvent> {
+    private class Visualizer : IVisualizer<AssignmentEvent>,
+                               IVisualizer<BinaryEvent>,
+                               IVisualizer<EvalEvent> {
       private readonly Dictionary<BinaryOperator, string> _operatorStrings =
         new Dictionary<BinaryOperator, string>() {
           {BinaryOperator.Add, "+"},
@@ -32,6 +34,10 @@ namespace SeedLang.Shell {
           {BinaryOperator.Modulus, "%"},
         };
 
+      public void On(AssignmentEvent e) {
+        Console.WriteLine($"{e.Identifier} = {e.Value}");
+      }
+
       public void On(BinaryEvent e) {
         Console.WriteLine($"{e.Left} {_operatorStrings[e.Op]} {e.Right} = {e.Result}");
       }
@@ -39,6 +45,7 @@ namespace SeedLang.Shell {
       public void On(EvalEvent e) {
         Console.WriteLine($"eval {e.Value}");
       }
+
     }
 
     private readonly ProgrammingLanguage _language;

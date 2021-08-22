@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using SeedLang.Common;
 using System.IO;
+using System.Text.Json;
 
 namespace SeedLang.Block {
   // The utilities to parse BXF JSON strings or files.
@@ -36,7 +36,7 @@ namespace SeedLang.Block {
       // TODO: Consider supporting async operation since this operation may cost some time.
       BxfObject bxfObject;
       try {
-        bxfObject = JsonConvert.DeserializeObject<BxfObject>(json);
+        bxfObject = JsonSerializer.Deserialize<BxfObject>(json, BxfConstants.JsonOptions);
       } catch (JsonException e) {
         diagnosticCollection.Report(
             new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, null, null,

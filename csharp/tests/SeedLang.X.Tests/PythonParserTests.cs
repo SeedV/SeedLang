@@ -32,7 +32,8 @@ namespace SeedLang.X.Tests {
     [InlineData("1a", false)]
     public void TestValidateNumber(string input, bool result) {
       var collection = new DiagnosticCollection();
-      Assert.Equal(result, PythonParser.Validate(input, "", ParseRule.Number, collection));
+      var parser = new PythonParser();
+      Assert.Equal(result, parser.Validate(input, "", ParseRule.Number, collection));
     }
 
     [Theory]
@@ -46,7 +47,8 @@ namespace SeedLang.X.Tests {
     [InlineData("1e-5", "1E-05")]
     public void TestParseNumber(string input, string expected) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, "", ParseRule.Number, collection);
+      var parser = new PythonParser();
+      Assert.True(parser.TryParse(input, "", ParseRule.Number, collection, out AstNode node));
       Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
@@ -58,7 +60,8 @@ namespace SeedLang.X.Tests {
     [InlineData("(1 + 2) / 3", "((1 + 2) / 3)")]
     public void TestParseBinaryExpression(string input, string expected) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, "", ParseRule.Expression, collection);
+      var parser = new PythonParser();
+      Assert.True(parser.TryParse(input, "", ParseRule.Expression, collection, out AstNode node));
       Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
@@ -69,14 +72,16 @@ namespace SeedLang.X.Tests {
     [InlineData("eval 1 +", false)]
     public void TestValidateEvalStatement(string input, bool result) {
       var collection = new DiagnosticCollection();
-      Assert.Equal(result, PythonParser.Validate(input, "", ParseRule.Statement, collection));
+      var parser = new PythonParser();
+      Assert.Equal(result, parser.Validate(input, "", ParseRule.Statement, collection));
     }
 
     [Theory]
     [InlineData("id = 1", "id = 1\n")]
     public void TestParseAssignmentStatement(string input, string expected) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, "", ParseRule.Statement, collection);
+      var parser = new PythonParser();
+      Assert.True(parser.TryParse(input, "", ParseRule.Statement, collection, out AstNode node));
       Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
@@ -86,7 +91,8 @@ namespace SeedLang.X.Tests {
     [InlineData("eval 1 + 2 * 3 - 4", "eval ((1 + (2 * 3)) - 4)\n")]
     public void TestParseEvalStatement(string input, string expected) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, "", ParseRule.Statement, collection);
+      var parser = new PythonParser();
+      Assert.True(parser.TryParse(input, "", ParseRule.Statement, collection, out AstNode node));
       Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
@@ -99,7 +105,8 @@ namespace SeedLang.X.Tests {
     [InlineData("eval 1.2 =", @"SyntaxErrorUnwantedToken '=' <EOF>")]
     public void TestParseSingleSyntaxError(string input, string localizedMessage) {
       var collection = new DiagnosticCollection();
-      AstNode node = PythonParser.Parse(input, "", ParseRule.Statement, collection);
+      var parser = new PythonParser();
+      Assert.False(parser.TryParse(input, "", ParseRule.Statement, collection, out AstNode node));
       Assert.Null(node);
       Assert.Single(collection.Diagnostics);
       Assert.Equal(SystemReporters.SeedX, collection.Diagnostics[0].Reporter);

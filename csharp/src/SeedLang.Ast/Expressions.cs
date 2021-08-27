@@ -12,27 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // The base class of all expression nodes.
   public abstract class Expression : AstNode {
-    // The factory method to create the binary expression.
+    // The factory method to create a binary expression.
     public static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
       return new BinaryExpression(left, op, right);
     }
 
-    // The factory method to create the identifier expression.
+    // The factory method to create an identifier expression.
     public static IdentifierExpression Identifier(string name) {
       return new IdentifierExpression(name);
     }
 
-    // The factory method to create the number constant expression.
+    // The factory method to create a number constant expression from a string.
+    public static NumberConstantExpression Number(string valueStr) {
+      try {
+        return Number(double.Parse(valueStr));
+      } catch (Exception) {
+        return Number(0);
+      }
+    }
+
+    // The factory method to create a number constant expression.
     public static NumberConstantExpression Number(double value) {
       return new NumberConstantExpression(value);
     }
 
-    // The factory method to create the string constant expression.
+    // The factory method to create a string constant expression.
     public static StringConstantExpression String(string value) {
       return new StringConstantExpression(value);
     }

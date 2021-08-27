@@ -48,23 +48,13 @@
 
 grammar SeedPython;
 
-@header {
-  #pragma warning disable 3021
-}
+import Common;
 
 tokens {
   INDENT,
   DEDENT
 }
 
-/*
- * Parser rules
- */
-
-single_identifier: identifier EOF;
-single_number: number EOF;
-single_string: string EOF;
-single_expr: expr EOF;
 single_stmt: small_stmt EOF;
 
 file_input: (NEWLINE | stmt)* EOF;
@@ -73,12 +63,9 @@ stmt: simple_stmt | compound_stmt;
 
 simple_stmt: small_stmt (';' small_stmt)* (';')?;
 
-small_stmt:
-  assignment_stmt
-  | eval_stmt
-  | flow_stmt;
+small_stmt: assign_stmt | eval_stmt | flow_stmt;
 
-assignment_stmt: identifier '=' expr;
+assign_stmt: IDENTIFIER '=' expr;
 eval_stmt: 'eval' expr;
 flow_stmt: break_stmt | continue_stmt;
 break_stmt: 'break';
@@ -96,79 +83,3 @@ suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT;
 test: expr (comp_op expr)*;
 
 comp_op: '<' | '>' | '==' | '>=' | '<=' | '!=';
-
-expr:
-  expr op = (MUL | DIV) expr   # mul_div
-  | expr op = (ADD | SUB) expr # add_sub
-  | identifier                 # id
-  | number                     # num
-  | '(' expr ')'               # grouping;
-
-identifier: IDENTIFIER;
-
-number: INTEGER | FLOAT_NUMBER;
-
-string: STRING_LITERAL;
-
-/*
- * Lexer rules
- */
-
-ADD: '+';
-SUB: '-';
-MUL: '*';
-DIV: '/';
-
-IDENTIFIER: ID_START ID_CONTINUE*;
-
-INTEGER: DECIMAL_INTEGER;
-
-DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
-
-FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
-
-STRING_LITERAL: '"' .*? '"';
-
-OPEN_PAREN: '(';
-CLOSE_PAREN: ')';
-OPEN_BRACK: '[';
-CLOSE_BRACK: ']';
-OPEN_BRACE: '{';
-CLOSE_BRACE: '}';
-
-NEWLINE: ( '\r'? '\n' | '\r' | '\f') SPACES?;
-
-SKIP_: ( SPACES | COMMENT | LINE_JOINING) -> skip;
-
-UNKNOWN_CHAR: .;
-
-/*
- * Fragments
- */
-
-fragment POINT_FLOAT:
-  INT_PART? FRACTION
-  | INT_PART '.';
-
-fragment EXPONENT_FLOAT: (INT_PART | POINT_FLOAT) EXPONENT;
-
-fragment INT_PART: DIGIT+;
-
-fragment FRACTION: '.' DIGIT+;
-
-fragment EXPONENT: [eE] [+-]? DIGIT+;
-
-fragment NON_ZERO_DIGIT: [1-9];
-
-fragment DIGIT: [0-9];
-
-fragment SPACES: [ \t]+;
-
-fragment COMMENT: '#' ~[\r\n\f]*;
-
-fragment LINE_JOINING:
-  '\\' SPACES? ('\r'? '\n' | '\r' | '\f');
-
-fragment ID_START: '_' | [A-Z] | [a-z];
-
-fragment ID_CONTINUE: ID_START | [0-9];

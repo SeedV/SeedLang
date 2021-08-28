@@ -21,7 +21,7 @@ using SeedLang.Common;
 namespace SeedLang.X {
   // The text parser of SeedBlock language.
   //
-  // The BlockParser inherits the interfaces of BaseParser and provides additional interface to
+  // The BlockParser inherits the interfaces of BaseParser and provides an additional interface to
   // visit expression source code of block programs.
   public class BlockParser : BaseParser {
     // The listener interface to be notified when the tokens of expression source code are visited.

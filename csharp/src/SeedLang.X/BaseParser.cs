@@ -21,8 +21,8 @@ using SeedLang.Common;
 namespace SeedLang.X {
   // The abstract base class of the block parser and all SeedX language parsers.
   //
-  // It provides interfaces to validate the SeedPython source code, and parse it into an AST tree
-  // based on the predefined rules.
+  // It provides interfaces to validate the text source code, and parse it into an AST tree based on
+  // the predefined rules.
   public abstract class BaseParser {
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.

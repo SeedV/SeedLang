@@ -16,8 +16,12 @@ using System.Collections.Generic;
 using SeedLang.X;
 
 namespace SeedLang.Block {
-  // A parser class which is responsible to convert a block program to an AST tree, an inline
-  // expression text to a list of blocks, and an inline expression text to an AST tree.
+  // The parser that converts a block program to an AST tree, an inline expression text to a list of
+  // blocks, or an inline expression text to an AST tree.
+  //
+  // This class is different from SeedLang.X.BlockParser, which is only responsible for parsing text
+  // source code of block programs. This class invokes the interfaces of SeedLang.X.BlockParser to
+  // convert from an inline expression text to a list of blocks or an AST tree.
   public class Parser {
     private class ExressionListener : BlockParser.IExpressionListener {
       public readonly List<BaseBlock> Blocks = new List<BaseBlock>();

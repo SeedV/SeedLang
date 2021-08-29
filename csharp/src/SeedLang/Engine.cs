@@ -49,30 +49,27 @@ namespace SeedLang {
 
     public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
                     RunType runType, DiagnosticCollection collection = null) {
+      BaseParser parser = MakeParser(language);
       if (runType == RunType.DryRun) {
-        switch (language) {
-          case ProgrammingLanguage.Python:
-            return PythonParser.Validate(source, module, rule, collection);
-          default:
-            Debug.Assert(false, $"Not implemented SeedX language: {language}");
-            return false;
-        }
+        return parser.Validate(source, module, rule, collection);
       }
-
-      AstNode node = null;
-      switch (language) {
-        case ProgrammingLanguage.Python:
-          node = PythonParser.Parse(source, module, rule, collection);
-          break;
-        default:
-          Debug.Assert(false, $"Not implemented SeedX language: {language}");
-          break;
-      }
-      if (!(node is null)) {
+      if (parser.TryParse(source, module, rule, collection, out AstNode node)) {
         _executor.Run(node);
         return true;
       }
       return false;
+    }
+
+    private static BaseParser MakeParser(ProgrammingLanguage language) {
+      switch (language) {
+        case ProgrammingLanguage.Block:
+          return new BlockParser();
+        case ProgrammingLanguage.Python:
+          return new PythonParser();
+        default:
+          Debug.Assert(false, $"Not implemented SeedX language: {language}");
+          return null;
+      }
     }
   }
 }

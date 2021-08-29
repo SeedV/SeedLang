@@ -16,9 +16,9 @@
 
 grammar SeedBlock;
 
-/*
- * Parser rules
- */
+import Common;
+
+single_stmt: stmt EOF;
 
 prog: stmt+;
 
@@ -26,34 +26,3 @@ stmt: assign_stmt | eval_stmt;
 
 assign_stmt: 'set' IDENTIFIER 'to' expr;
 eval_stmt: 'eval' expr;
-
-expr:
-    expr op = (MUL | DIV) expr   # mul_div
-    | expr op = (ADD | SUB) expr # add_sub
-    | IDENTIFIER                 # identifier
-    | NUMBER                     # number
-    | '(' expr ')'               # grouping;
-
-/*
- * Lexer rules
- */
-
-ADD: '+';
-SUB: '-';
-MUL: '*';
-DIV: '/';
-
-IDENTIFIER: ID_START ID_CONTINUE*;
-NUMBER: NON_ZERO_DIGIT DIGIT* | '0'+;
-
-WHITESPACE: [ \t\r\n] -> skip;
-
-/*
- * Fragments
- */
-
-fragment NON_ZERO_DIGIT: [1-9];
-fragment DIGIT: [0-9];
-fragment SPACES: [ \t]+;
-fragment ID_START: '_' | [A-Z] | [a-z];
-fragment ID_CONTINUE: ID_START | [0-9];

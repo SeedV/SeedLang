@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SeedLang.Common\SeedLang.Common.csproj" />
+    <ProjectReference Include="..\SeedLang.X\SeedLang.X.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

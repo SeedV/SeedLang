@@ -72,6 +72,13 @@ namespace SeedLang.X {
       return BuildBinary(context.op, context.expr());
     }
 
+    // Visits an unary expression.
+    public override AstNode VisitUnary([NotNull] SeedPythonParser.UnaryContext context) {
+      var expr = Visit(context.expr()) as Expression;
+      // TODO: handle other unary operators.
+      return Expression.Unary(UnaryOperator.Negative, expr);
+    }
+
     // Visits an identifier.
     public override AstNode VisitIdentifier([NotNull] SeedPythonParser.IdentifierContext context) {
       return Expression.Identifier(context.GetText());

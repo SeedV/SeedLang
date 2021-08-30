@@ -51,6 +51,9 @@ namespace SeedLang.X.Tests {
       }
     }
 
+    private readonly DiagnosticCollection _collection = new DiagnosticCollection();
+    private readonly BlockParser _parser = new BlockParser();
+
     [Theory]
     [InlineData("0", true)]
     [InlineData("0.", true)]
@@ -64,9 +67,7 @@ namespace SeedLang.X.Tests {
     [InlineData("1.2.3", false)]
     [InlineData("1a", false)]
     public void TestValidateNumber(string input, bool result) {
-      var collection = new DiagnosticCollection();
-      var parser = new BlockParser();
-      Assert.Equal(result, parser.Validate(input, "", ParseRule.Number, collection));
+      Assert.Equal(result, _parser.Validate(input, "", ParseRule.Number, _collection));
     }
 
     [Theory]
@@ -79,11 +80,9 @@ namespace SeedLang.X.Tests {
     [InlineData("1e+20", "1E+20")]
     [InlineData("1e-5", "1E-05")]
     public void TestParseNumber(string input, string expected) {
-      var collection = new DiagnosticCollection();
-      var parser = new BlockParser();
-      Assert.True(parser.TryParse(input, "", ParseRule.Number, collection, out AstNode node));
+      Assert.True(_parser.TryParse(input, "", ParseRule.Number, _collection, out AstNode node));
       Assert.NotNull(node);
-      Assert.Empty(collection.Diagnostics);
+      Assert.Empty(_collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
 
@@ -92,11 +91,9 @@ namespace SeedLang.X.Tests {
     [InlineData("1 - 2 * 3", "(1 - (2 * 3))")]
     [InlineData("(1 + 2) / 3", "((1 + 2) / 3)")]
     public void TestParseBinaryExpression(string input, string expected) {
-      var collection = new DiagnosticCollection();
-      var parser = new BlockParser();
-      Assert.True(parser.TryParse(input, "", ParseRule.Expression, collection, out AstNode node));
+      Assert.True(_parser.TryParse(input, "", ParseRule.Expression, _collection, out AstNode node));
       Assert.NotNull(node);
-      Assert.Empty(collection.Diagnostics);
+      Assert.Empty(_collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
     }
 
@@ -104,10 +101,11 @@ namespace SeedLang.X.Tests {
     [InlineData("1.5 + 210 - 3 * 4 / 5", "1.5,+,210,-,3,*,4,/,5")]
     [InlineData("(1 + 2) / 3", "(,1,+,2,),/,3")]
     [InlineData("(1 + 2) / -3", "(,1,+,2,),/,-3")]
+    [InlineData("-(1 + -2) - 3", "-,(,1,+,-2,),-,3")]
+    [InlineData("-(1 - -2)", "-,(,1,-,-2,)")]
     public void TestVisitExpression(string input, string expected) {
-      var parser = new BlockParser();
       var listener = new MockupExpressionListener();
-      parser.VisitExpression(input, listener);
+      _parser.VisitExpression(input, listener);
       Assert.Equal(expected, listener.ToString());
     }
   }

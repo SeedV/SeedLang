@@ -30,9 +30,9 @@ single_string: STRING EOF;
 single_expr: expr EOF;
 
 expr:
-  expr op = (MUL | DIV) expr   # mul_div
+  op = SUB expr                # unary
+  | expr op = (MUL | DIV) expr # mul_div
   | expr op = (ADD | SUB) expr # add_sub
-  | SUB expr                   # unary
   | IDENTIFIER                 # identifier
   | NUMBER                     # number
   | '(' expr ')'               # grouping;

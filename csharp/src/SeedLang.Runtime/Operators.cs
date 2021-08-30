@@ -13,7 +13,7 @@
 // limitations under the License.
 
 namespace SeedLang.Runtime {
-  // The operators of a binary expression.
+  // The operators of binary expressions.
   public enum BinaryOperator {
     Add,
     Subtract,
@@ -22,5 +22,10 @@ namespace SeedLang.Runtime {
     FloorDivide,
     Power,
     Modulus
+  }
+
+  // The operators of unary expressions.
+  public enum UnaryOperator {
+    Negative,
   }
 }

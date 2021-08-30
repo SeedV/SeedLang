@@ -46,6 +46,11 @@ namespace SeedLang.Ast {
     public static StringConstantExpression String(string value) {
       return new StringConstantExpression(value);
     }
+
+    // The factory method to create a unary expression.
+    public static UnaryExpression Unary(UnaryOperator op, Expression expr) {
+      return new UnaryExpression(op, expr);
+    }
   }
 
   public class BinaryExpression : Expression {
@@ -81,6 +86,16 @@ namespace SeedLang.Ast {
 
     internal StringConstantExpression(string value) {
       Value = value;
+    }
+  }
+
+  public class UnaryExpression : Expression {
+    public UnaryOperator Op { get; set; }
+    public Expression Expr { get; set; }
+
+    internal UnaryExpression(UnaryOperator op, Expression expr) {
+      Op = op;
+      Expr = expr;
     }
   }
 }

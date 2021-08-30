@@ -45,7 +45,6 @@ namespace SeedLang.Shell {
       public void On(EvalEvent e) {
         Console.WriteLine($"eval {e.Value}");
       }
-
     }
 
     private readonly ProgrammingLanguage _language;

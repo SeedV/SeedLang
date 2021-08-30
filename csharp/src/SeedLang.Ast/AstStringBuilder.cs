@@ -42,6 +42,18 @@ namespace SeedLang.Ast {
     }
   }
 
+  internal static class UnaryOperatorExtensions {
+    // Returns the internal string representation of the unary operator.
+    internal static string Symbol(this UnaryOperator op) {
+      switch (op) {
+        case UnaryOperator.Negative:
+          return "-";
+        default:
+          throw new ArgumentException("Unsupported unary operator.");
+      }
+    }
+  }
+
   // A helper class to create the string representation of an AST tree.
   internal sealed class AstStringBuilder : AstWalker {
     private readonly StringBuilder _out = new StringBuilder();
@@ -72,6 +84,10 @@ namespace SeedLang.Ast {
 
     protected override void Visit(StringConstantExpression str) {
       _out.Append(str.Value);
+    }
+
+    protected override void Visit(UnaryExpression unary) {
+      _out.Append($"({unary.Op.Symbol()} {unary.Expr})");
     }
 
     protected override void Visit(AssignmentStatement assignment) {

@@ -50,6 +50,12 @@ namespace SeedLang.Ast.Tests {
     }
 
     [Fact]
+    public void TestUnaryExpression() {
+      var unary = Expression.Unary(UnaryOperator.Negative, Expression.Number(1));
+      Assert.Equal("(- 1)", unary.ToString());
+    }
+
+    [Fact]
     public void TestAssignmentStatement() {
       var identifier = Expression.Identifier("id");
       var expr = Expression.Number(1);

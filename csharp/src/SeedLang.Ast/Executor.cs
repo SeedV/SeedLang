@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Runtime;
@@ -83,6 +82,12 @@ namespace SeedLang.Ast {
 
     protected override void Visit(StringConstantExpression str) {
       _expressionResult = new StringValue(str.Value);
+    }
+
+    protected override void Visit(UnaryExpression unary) {
+      Visit(unary.Expr);
+      // TODO: handle other unary operators, and add an unary event for visualization if needed.
+      _expressionResult = new NumberValue(_expressionResult.ToNumber() * -1);
     }
 
     protected override void Visit(AssignmentStatement assignment) {

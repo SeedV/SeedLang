@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Diagnostics;
 
 namespace SeedLang.Ast {
@@ -48,6 +47,9 @@ namespace SeedLang.Ast {
         case StringConstantExpression str:
           Visit(str);
           break;
+        case UnaryExpression unary:
+          Visit(unary);
+          break;
         default:
           Debug.Fail($"Not implemented expression type: {expression.GetType()}");
           break;
@@ -76,6 +78,8 @@ namespace SeedLang.Ast {
     protected abstract void Visit(NumberConstantExpression number);
 
     protected abstract void Visit(StringConstantExpression str);
+
+    protected abstract void Visit(UnaryExpression unary);
 
     protected abstract void Visit(AssignmentStatement assignment);
 

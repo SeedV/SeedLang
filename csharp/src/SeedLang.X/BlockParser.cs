@@ -45,6 +45,11 @@ namespace SeedLang.X {
       int lastTokenType = SeedBlockParser.UNKNOWN_CHAR;
       bool negative = false;
       foreach (var token in lexer.GetAllTokens()) {
+        if (negative && token.Type != SeedBlockLexer.NUMBER) {
+          // TODO: define a const string for the negative sign?
+          listener.VisitArithmeticOperator("-");
+          negative = false;
+        }
         switch (token.Type) {
           case SeedBlockLexer.ADD:
           case SeedBlockLexer.MUL:
@@ -52,16 +57,18 @@ namespace SeedLang.X {
             listener.VisitArithmeticOperator(token.Text);
             break;
           case SeedBlockLexer.SUB:
-            if (lastTokenType != SeedBlockParser.NUMBER) {
-              negative = true;
-            } else {
+            if (lastTokenType == SeedBlockParser.NUMBER ||
+                lastTokenType == SeedBlockParser.CLOSE_PAREN) {
               listener.VisitArithmeticOperator(token.Text);
+            } else {
+              negative = true;
             }
             break;
           case SeedBlockLexer.IDENTIFIER:
             listener.VisitIdentifier(token.Text);
             break;
           case SeedBlockLexer.NUMBER:
+            // TODO: define a const string for the negative sign?
             listener.VisitNumber((negative ? "-" : "") + token.Text);
             negative = false;
             break;

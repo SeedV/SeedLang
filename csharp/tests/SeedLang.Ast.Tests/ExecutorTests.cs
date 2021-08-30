@@ -17,33 +17,33 @@ using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {
-  internal class MockupVisualizer : IVisualizer<AssignmentEvent>,
-                                    IVisualizer<BinaryEvent>,
-                                    IVisualizer<EvalEvent> {
-    public string Identifier { get; private set; }
-    public IValue Left { get; private set; }
-    public BinaryOperator Op { get; private set; }
-    public IValue Right { get; private set; }
-    public IValue Result { get; private set; }
-
-    public void On(AssignmentEvent e) {
-      Identifier = e.Identifier;
-      Result = e.Value;
-    }
-
-    public void On(BinaryEvent e) {
-      Left = e.Left;
-      Op = e.Op;
-      Right = e.Right;
-      Result = e.Result;
-    }
-
-    public void On(EvalEvent e) {
-      Result = e.Value;
-    }
-  }
-
   public class ExecutorTests : IDisposable {
+    private class MockupVisualizer : IVisualizer<AssignmentEvent>,
+                                     IVisualizer<BinaryEvent>,
+                                     IVisualizer<EvalEvent> {
+      public string Identifier { get; private set; }
+      public IValue Left { get; private set; }
+      public BinaryOperator Op { get; private set; }
+      public IValue Right { get; private set; }
+      public IValue Result { get; private set; }
+
+      public void On(AssignmentEvent e) {
+        Identifier = e.Identifier;
+        Result = e.Value;
+      }
+
+      public void On(BinaryEvent e) {
+        Left = e.Left;
+        Op = e.Op;
+        Right = e.Right;
+        Result = e.Result;
+      }
+
+      public void On(EvalEvent e) {
+        Result = e.Value;
+      }
+    }
+
     private readonly MockupVisualizer _visualizer = new MockupVisualizer();
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
     private readonly Executor _executor;
@@ -69,6 +69,16 @@ namespace SeedLang.Ast.Tests {
       Assert.Equal(BinaryOperator.Add, _visualizer.Op);
       Assert.Equal(2, _visualizer.Right.ToNumber());
       Assert.Equal(3, _visualizer.Result.ToNumber());
+    }
+
+    [Fact]
+    public void TestExecuteUnaryExpression() {
+      string name = "id";
+      var unary = Expression.Unary(UnaryOperator.Negative, Expression.Number(1));
+      var assignment = Statement.Assignment(Expression.Identifier(name), unary);
+      _executor.Run(assignment);
+      Assert.Equal(name, _visualizer.Identifier);
+      Assert.Equal(-1, _visualizer.Result.ToNumber());
     }
 
     [Fact]

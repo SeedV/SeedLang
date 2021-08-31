@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SeedLang.Runtime\SeedLang.Runtime.csproj" />
+    <ProjectReference Include="..\..\src\SeedLang\SeedLang.csproj" />
   </ItemGroup>
 
 </Project>

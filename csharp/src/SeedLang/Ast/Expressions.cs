@@ -17,19 +17,19 @@ using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // The base class of all expression nodes.
-  public abstract class Expression : AstNode {
+  internal abstract class Expression : AstNode {
     // The factory method to create a binary expression.
-    public static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
+    internal static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
       return new BinaryExpression(left, op, right);
     }
 
     // The factory method to create an identifier expression.
-    public static IdentifierExpression Identifier(string name) {
+    internal static IdentifierExpression Identifier(string name) {
       return new IdentifierExpression(name);
     }
 
     // The factory method to create a number constant expression from a string.
-    public static NumberConstantExpression Number(string valueStr) {
+    internal static NumberConstantExpression Number(string valueStr) {
       try {
         return Number(double.Parse(valueStr));
       } catch (Exception) {
@@ -38,22 +38,22 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a number constant expression.
-    public static NumberConstantExpression Number(double value) {
+    internal static NumberConstantExpression Number(double value) {
       return new NumberConstantExpression(value);
     }
 
     // The factory method to create a string constant expression.
-    public static StringConstantExpression String(string value) {
+    internal static StringConstantExpression String(string value) {
       return new StringConstantExpression(value);
     }
 
     // The factory method to create a unary expression.
-    public static UnaryExpression Unary(UnaryOperator op, Expression expr) {
+    internal static UnaryExpression Unary(UnaryOperator op, Expression expr) {
       return new UnaryExpression(op, expr);
     }
   }
 
-  public class BinaryExpression : Expression {
+  internal class BinaryExpression : Expression {
     public Expression Left { get; set; }
     public BinaryOperator Op { get; set; }
     public Expression Right { get; set; }
@@ -65,7 +65,7 @@ namespace SeedLang.Ast {
     }
   }
 
-  public class IdentifierExpression : Expression {
+  internal class IdentifierExpression : Expression {
     public string Name { get; set; }
 
     internal IdentifierExpression(string name) {
@@ -73,7 +73,7 @@ namespace SeedLang.Ast {
     }
   }
 
-  public class NumberConstantExpression : Expression {
+  internal class NumberConstantExpression : Expression {
     public double Value { get; set; }
 
     internal NumberConstantExpression(double value) {
@@ -81,7 +81,7 @@ namespace SeedLang.Ast {
     }
   }
 
-  public class StringConstantExpression : Expression {
+  internal class StringConstantExpression : Expression {
     public string Value { get; set; }
 
     internal StringConstantExpression(string value) {
@@ -89,7 +89,7 @@ namespace SeedLang.Ast {
     }
   }
 
-  public class UnaryExpression : Expression {
+  internal class UnaryExpression : Expression {
     public UnaryOperator Op { get; set; }
     public Expression Expr { get; set; }
 

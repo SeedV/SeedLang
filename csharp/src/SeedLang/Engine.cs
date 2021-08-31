@@ -1,4 +1,4 @@
-﻿// Copyright 2021 The Aha001 Team.
+// Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ namespace SeedLang {
   //
   // This is a singleton class. The interfaces include validating and running a SeedBlock or SeedX
   // program, registering visualizers to visualize program execution, etc.
-  public sealed class Engine : IEngine {
-    private static readonly Lazy<IEngine> _lazyInstance = new Lazy<IEngine>(() => new Engine());
+  public sealed class Engine {
+    private static readonly Lazy<Engine> _lazyInstance = new Lazy<Engine>(() => new Engine());
 
-    public static IEngine Instance => _lazyInstance.Value;
+    public static Engine Instance => _lazyInstance.Value;
 
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
 

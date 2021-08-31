@@ -23,11 +23,11 @@ namespace SeedLang.X {
   //
   // It provides interfaces to validate the text source code, and parse it into an AST tree based on
   // the predefined rules.
-  public abstract class BaseParser {
+  internal abstract class BaseParser {
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.
-    public bool Validate(string source, string module, ParseRule rule,
-                         DiagnosticCollection collection) {
+    internal bool Validate(string source, string module, ParseRule rule,
+                           DiagnosticCollection collection) {
       if (string.IsNullOrEmpty(source) || module is null) {
         return false;
       }
@@ -41,8 +41,8 @@ namespace SeedLang.X {
     // Parses source code into an AST tree based on the parse rule. The concrete ANTLR4 lexer and
     // parser are created by the derived class. The out node is set to null if the given source code
     // is not valid.
-    public bool TryParse(string source, string module, ParseRule rule,
-                         DiagnosticCollection collection, out AstNode node) {
+    internal bool TryParse(string source, string module, ParseRule rule,
+                           DiagnosticCollection collection, out AstNode node) {
       if (string.IsNullOrEmpty(source) || module is null) {
         node = null;
         return false;

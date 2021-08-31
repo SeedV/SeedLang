@@ -16,9 +16,9 @@ using System.Diagnostics;
 
 namespace SeedLang.Ast {
   // A base class to traverse an AST tree.
-  public abstract class AstWalker {
+  internal abstract class AstWalker {
     // Dispatches to the expression or statement visit method based on the type of the AST node.
-    public void Visit(AstNode node) {
+    internal void Visit(AstNode node) {
       switch (node) {
         case Expression expression:
           Visit(expression);
@@ -33,7 +33,7 @@ namespace SeedLang.Ast {
     }
 
     // Dispatches to the correspoding visit method based on the type of the expression node.
-    public void Visit(Expression expression) {
+    internal void Visit(Expression expression) {
       switch (expression) {
         case BinaryExpression binary:
           Visit(binary);
@@ -57,7 +57,7 @@ namespace SeedLang.Ast {
     }
 
     // Dispatches to the correspoding visit method based on the type of the statement node.
-    public void Visit(Statement statement) {
+    internal void Visit(Statement statement) {
       switch (statement) {
         case AssignmentStatement assignment:
           Visit(assignment);

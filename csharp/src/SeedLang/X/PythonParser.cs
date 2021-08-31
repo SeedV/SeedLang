@@ -21,7 +21,7 @@ namespace SeedLang.X {
   // The parser of SeedPython language.
   //
   // The BlockParser inherits the interfaces of BaseParser.
-  public class PythonParser : BaseParser {
+  internal class PythonParser : BaseParser {
     protected override Lexer MakeLexer(ICharStream stream) {
       return new SeedPythonLexer(stream);
     }

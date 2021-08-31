@@ -18,7 +18,7 @@ using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // An executor class to execute a program represented by an AST tree.
-  public sealed class Executor : AstWalker {
+  internal sealed class Executor : AstWalker {
     // The visualizer center to observe AST execution events and dispatch them to the registered
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
@@ -30,12 +30,12 @@ namespace SeedLang.Ast {
     // The result of current executed expression.
     private BaseValue _expressionResult;
 
-    public Executor(VisualizerCenter visualizerCenter) {
+    internal Executor(VisualizerCenter visualizerCenter) {
       _visualizerCenter = visualizerCenter;
     }
 
     // Executes the given AST tree.
-    public void Run(AstNode node) {
+    internal void Run(AstNode node) {
       Visit(node);
     }
 

@@ -25,7 +25,7 @@ namespace SeedLang.Runtime {
   }
 
   // The publisher to notify all the registered visualizers when the event is triggered.
-  public class Publisher<Event> : IPublisher<IVisualizer<Event>> {
+  internal class Publisher<Event> : IPublisher<IVisualizer<Event>> {
     private readonly List<IVisualizer<Event>> _visualizers = new List<IVisualizer<Event>>();
 
     public void Register(IVisualizer<Event> visualizer) {
@@ -38,7 +38,7 @@ namespace SeedLang.Runtime {
       _visualizers.Remove(visualizer);
     }
 
-    public void Notify(Event e) {
+    internal void Notify(Event e) {
       foreach (var visualizer in _visualizers) {
         visualizer.On(e);
       }

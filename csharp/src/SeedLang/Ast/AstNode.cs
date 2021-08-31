@@ -12,21 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-
-namespace SeedLang.Common {
-  // Static common utilities.
-  public static class Utils {
-    // Generates a timestamp string based on the current time.
-    public static string Timestamp() {
-      return Timestamp(DateTime.Now);
-    }
-
-    // Generates a timestamp string based on the specified time.
-    public static string Timestamp(DateTime time) {
-      string dateString = $"{time.Year:D4}{time.Month:D2}{time.Day:D2}";
-      string timeString = $"{time.Hour:D2}{time.Minute:D2}{time.Second:D2}{time.Millisecond:D3}";
-      return dateString + timeString;
+namespace SeedLang.Ast {
+  // The base class of all AST nodes.
+  internal abstract class AstNode {
+    // Creates the string representation of the AST node.
+    public override string ToString() {
+      return AstStringBuilder.AstToString(this);
     }
   }
 }

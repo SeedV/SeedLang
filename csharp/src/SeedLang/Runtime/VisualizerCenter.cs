@@ -18,7 +18,7 @@ using System.Collections.Generic;
 namespace SeedLang.Runtime {
   // The visualizer center to observe execution events and dispatch them to the subscribed
   // visualizers.
-  public class VisualizerCenter {
+  internal class VisualizerCenter {
     public Publisher<BinaryEvent> BinaryPublisher { get; } = new Publisher<BinaryEvent>();
     public Publisher<AssignmentEvent> AssignmentPublisher { get; } =
         new Publisher<AssignmentEvent>();
@@ -26,7 +26,7 @@ namespace SeedLang.Runtime {
 
     private readonly List<object> _publishers = new List<object>();
 
-    public VisualizerCenter() {
+    internal VisualizerCenter() {
       // Collects all the event handlers into a list.
       foreach (var property in GetType().GetProperties()) {
         if (property.PropertyType.IsGenericType &&
@@ -42,7 +42,7 @@ namespace SeedLang.Runtime {
     // IVisualizer interface of this event.
     // The parameter of IPublisher<in Visualizer> must be contravariance with a "in" modifier, so
     // that the Visualizer can be cast to IVisualizer<Event> interface to make the check work.
-    public void Register<Visualizer>(Visualizer visualizer) {
+    internal void Register<Visualizer>(Visualizer visualizer) {
       foreach (var p in _publishers) {
         if (p is IPublisher<Visualizer> publisher) {
           publisher.Register(visualizer);
@@ -54,7 +54,7 @@ namespace SeedLang.Runtime {
     //
     // Loops each event publisher, and unregisters from it if the visualizer implements the
     // IVisualizer interface of this event.
-    public void Unregister<Visualizer>(Visualizer visualizer) {
+    internal void Unregister<Visualizer>(Visualizer visualizer) {
       foreach (var p in _publishers) {
         if (p is IPublisher<Visualizer> publisher) {
           publisher.Unregister(visualizer);

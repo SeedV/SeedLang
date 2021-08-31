@@ -23,9 +23,9 @@ namespace SeedLang.X {
   //
   // The BlockParser inherits the interfaces of BaseParser and provides an additional interface to
   // visit expression source code of block programs.
-  public class BlockParser : BaseParser {
+  internal class BlockParser : BaseParser {
     // The listener interface to be notified when the tokens of expression source code are visited.
-    public interface IExpressionListener {
+    internal interface IExpressionListener {
       void VisitArithmeticOperator(string op);
       void VisitIdentifier(string name);
       void VisitNumber(string number);
@@ -37,7 +37,7 @@ namespace SeedLang.X {
     // Visits expression source code of block programs. The given listener is notified when each
     // token of the expression is visited. The negative sign token will be combined with the
     // following number to form a negative number.
-    public void VisitExpression(string source, IExpressionListener listener) {
+    internal void VisitExpression(string source, IExpressionListener listener) {
       if (!Validate(source, "", ParseRule.Expression, null)) {
         return;
       }

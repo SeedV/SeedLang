@@ -21,27 +21,27 @@ namespace SeedLang.Common {
   // example, a block program can have more than one AutoIncrementId instances, each associated with
   // a module scope - in this case, different modules may have conflicting IDs, but each module
   // maintains a unique ID set separately.
-  public class AutoIncrementId {
+  internal class AutoIncrementId {
     private int _lastId;
 
-    public AutoIncrementId(int lastId = -1) {
+    internal AutoIncrementId(int lastId = -1) {
       _lastId = lastId;
     }
 
     // Gets the next ID.
-    public int NextInt() {
+    internal int NextInt() {
       // Atomic increment operation.
       return Interlocked.Increment(ref _lastId);
     }
 
     // Gets the string representation of the next ID. If the string length is less than minLength,
     // the result will be padded with leading zeros.
-    public string NextString(int minLength = 0) {
+    internal string NextString(int minLength = 0) {
       return NextInt().ToString($"D{minLength}");
     }
 
     // Resets the auto-increment ID.
-    public void Reset(int lastId = -1) {
+    internal void Reset(int lastId = -1) {
       // C# spec: Reads and writes of the following data types are atomic: bool, char, byte, sbyte,
       // short, ushort, uint, int, float, and reference types.
       _lastId = lastId;

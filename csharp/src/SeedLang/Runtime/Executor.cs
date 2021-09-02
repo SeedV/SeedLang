@@ -12,32 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
-using SeedLang.Runtime;
 using SeedLang.X;
 
-namespace SeedLang {
-  // A facade class to implement the SeedLang engine interface.
-  //
-  // This is a singleton class. The interfaces include validating and running a SeedBlock or SeedX
-  // program, registering visualizers to visualize program execution, etc.
-  public sealed class Engine {
-    private static readonly Lazy<Engine> _lazyInstance = new Lazy<Engine>(() => new Engine());
-
-    public static Engine Instance => _lazyInstance.Value;
-
+namespace SeedLang.Runtime {
+  // An executor class to execute block programs or SeedX source code. The information during
+  // execution can be visualized by registered visualizers.
+  public class Executor {
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
-
-    // TODO: check the lifetime of the executor. It shall not be as long as the engine, but need be
-    // longer than a run method.
-    private readonly Executor _executor;
-
-    private Engine() {
-      _executor = new Executor(_visualizerCenter);
-    }
 
     public void Register<Visualizer>(Visualizer visualizer) {
       _visualizerCenter.Register(visualizer);
@@ -47,15 +31,19 @@ namespace SeedLang {
       _visualizerCenter.Unregister(visualizer);
     }
 
+    // TODO: Add interfaces to run block programs.
+
+    // Runs SeedX source code based on the given programming language and parse rule.
     public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
                     RunType runType, DiagnosticCollection collection = null) {
       BaseParser parser = MakeParser(language);
-      if (runType == RunType.DryRun) {
-        return parser.Validate(source, module, rule, collection);
-      }
       if (parser.TryParse(source, module, rule, collection, out AstNode node)) {
-        _executor.Run(node);
-        return true;
+        switch (runType) {
+          case RunType.Ast:
+            var executor = new Ast.Executor(_visualizerCenter);
+            executor.Run(node);
+            return true;
+        }
       }
       return false;
     }

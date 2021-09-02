@@ -12,14 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Common {
-  // The running type of SeedBlock and SeedX source code.
-  public enum RunType {
-    // Parses and validates the source code without runing.
-    DryRun,
-    // Parses the source code into an AST tree, and runs it by traversing the AST tree.
-    Ast,
-    // Parses and compiles the source code into bytecode, and runs it in a VM.
-    Bytecode,
+namespace SeedLang.Runtime {
+  // All languages that the SeedLang system supports.
+  public enum ProgrammingLanguage {
+    Block,
+    Python,
   }
 }

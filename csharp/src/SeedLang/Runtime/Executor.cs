@@ -23,6 +23,12 @@ namespace SeedLang.Runtime {
   public class Executor {
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
 
+    private readonly Ast.Executor _executor;
+
+    public Executor() {
+      _executor = new Ast.Executor(_visualizerCenter);
+    }
+
     public void Register<Visualizer>(Visualizer visualizer) {
       _visualizerCenter.Register(visualizer);
     }
@@ -40,8 +46,7 @@ namespace SeedLang.Runtime {
       if (parser.TryParse(source, module, rule, collection, out AstNode node)) {
         switch (runType) {
           case RunType.Ast:
-            var executor = new Ast.Executor(_visualizerCenter);
-            executor.Run(node);
+            _executor.Run(node);
             return true;
         }
       }

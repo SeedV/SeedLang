@@ -16,6 +16,7 @@ using System;
 using CommandLine;
 using CommandLine.Text;
 using SeedLang.Common;
+using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
   internal class Program {

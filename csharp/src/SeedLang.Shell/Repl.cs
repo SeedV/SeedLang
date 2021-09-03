@@ -50,7 +50,6 @@ namespace SeedLang.Shell {
     private readonly ProgrammingLanguage _language;
     private readonly ParseRule _rule;
     private readonly RunType _runType;
-    private readonly Visualizer _visualizer = new Visualizer();
 
     internal Repl(ProgrammingLanguage language, ParseRule rule, RunType runType) {
       _language = language;
@@ -59,7 +58,9 @@ namespace SeedLang.Shell {
     }
 
     internal void Execute() {
-      Engine.Instance.Register(_visualizer);
+      var visualizer = new Visualizer();
+      var executor = new Executor();
+      executor.Register(visualizer);
       while (true) {
         Console.Write("> ");
         string line = Console.ReadLine();
@@ -67,13 +68,13 @@ namespace SeedLang.Shell {
           break;
         }
         var collection = new DiagnosticCollection();
-        if (!Engine.Instance.Run(line, "", _language, _rule, _runType, collection)) {
+        if (!executor.Run(line, "", _language, _rule, _runType, collection)) {
           foreach (var diagnostic in collection.Diagnostics) {
             Console.WriteLine(diagnostic);
           }
         }
       }
-      Engine.Instance.Unregister(_visualizer);
+      executor.Unregister(visualizer);
     }
   }
 }

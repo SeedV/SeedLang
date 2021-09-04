@@ -13,6 +13,9 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using SeedLang.Ast;
+using SeedLang.Common;
 using SeedLang.X;
 
 namespace SeedLang.Block {
@@ -53,13 +56,30 @@ namespace SeedLang.Block {
 
     // Converts an expression text to a list of blocks.
     public static IEnumerable<BaseBlock> ExpressionTextToBlocks(string text) {
+      Debug.Assert(!string.IsNullOrEmpty(text), "Expression text shall not be null or empty.");
       var blockParser = new BlockParser();
       var listener = new ExressionListener();
       blockParser.VisitExpression(text, listener);
       return listener.Blocks;
     }
 
-    // TODO: implement parsing a block program to an AST tree, and an inline expression text to an
-    // AST tree.
+    // Parses a block program to an list of AST trees.
+    internal static IEnumerable<AstNode> TryParse(Program program,
+                                                  DiagnosticCollection collection) {
+      var nodes = new List<AstNode>();
+      foreach (var module in program.Modules) {
+        foreach (var rootBlock in module.RootBlockIterator) {
+          // TODO: implement a visitor to parse other kinds of blocks.
+          if (rootBlock is ExpressionBlock expressionBlock) {
+            var blockParser = new BlockParser();
+            if (blockParser.TryParse(expressionBlock.GetEditableText(), module.Name,
+                                     ParseRule.Expression, collection, out var node)) {
+              nodes.Add(node);
+            }
+          }
+        }
+      }
+      return nodes;
+    }
   }
 }

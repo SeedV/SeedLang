@@ -22,20 +22,11 @@ namespace SeedLang.Block {
   // A program is a set of SeedBlock modules. Each module can be serialized to a JSON string/file in
   // the Block Exchange Format (BXF). All the modules of a program can be serialized to a set of BXF
   // JSON files then wrapped into a ZIP package.
-  //
-  // This is a singleton class. There can be only one program instance in the memory.
   public sealed class Program {
-    private static readonly Lazy<Program> _lazyInstance = new Lazy<Program>(() => new Program());
-
     private readonly List<Module> _modules = new List<Module>();
 
     // A readonly interface for the client to access the contents of the program.
     public IReadOnlyList<Module> Modules => _modules;
-
-    public static Program Instance => _lazyInstance.Value;
-
-    private Program() {
-    }
 
     // Adds a new module.
     public void Add(Module module) {

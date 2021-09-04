@@ -14,6 +14,7 @@
 
 using System.Diagnostics;
 using SeedLang.Ast;
+using SeedLang.Block;
 using SeedLang.Common;
 using SeedLang.X;
 
@@ -37,13 +38,27 @@ namespace SeedLang.Runtime {
       _visualizerCenter.Unregister(visualizer);
     }
 
-    // TODO: Add interfaces to run block programs.
+    // Runs a block program.
+    public bool Run(Program program, DiagnosticCollection collection = null) {
+      if (program is null) {
+        return false;
+      }
+      DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
+      foreach (var node in Parser.TryParse(program, localCollection)) {
+        _executor.Run(node);
+      }
+      return true;
+    }
 
     // Runs SeedX source code based on the given programming language and parse rule.
     public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
                     RunType runType, DiagnosticCollection collection = null) {
-      BaseParser parser = MakeParser(language);
-      if (parser.TryParse(source, module, rule, collection, out AstNode node)) {
+      if (string.IsNullOrEmpty(source) || module is null) {
+        return false;
+      }
+      DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
+      BaseParser parser = MakeXParser(language);
+      if (parser.TryParse(source, module, rule, localCollection, out AstNode node)) {
         switch (runType) {
           case RunType.Ast:
             _executor.Run(node);
@@ -53,7 +68,7 @@ namespace SeedLang.Runtime {
       return false;
     }
 
-    private static BaseParser MakeParser(ProgrammingLanguage language) {
+    private static BaseParser MakeXParser(ProgrammingLanguage language) {
       switch (language) {
         case ProgrammingLanguage.Block:
           return new BlockParser();

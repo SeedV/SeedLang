@@ -28,9 +28,6 @@ namespace SeedLang.X {
     // created by the derived class.
     internal bool Validate(string source, string module, ParseRule rule,
                            DiagnosticCollection collection) {
-      if (string.IsNullOrEmpty(source) || module is null) {
-        return false;
-      }
       var localCollection = collection ?? new DiagnosticCollection();
       int diagnosticCount = localCollection.Diagnostics.Count;
       Parser parser = SetupParser(source, module, localCollection);
@@ -43,20 +40,16 @@ namespace SeedLang.X {
     // is not valid.
     internal bool TryParse(string source, string module, ParseRule rule,
                            DiagnosticCollection collection, out AstNode node) {
-      if (string.IsNullOrEmpty(source) || module is null) {
-        node = null;
-        return false;
-      }
-      DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
-      int diagnosticCount = localCollection.Diagnostics.Count;
-      Parser parser = SetupParser(source, module, localCollection);
+      int diagnosticCount = collection.Diagnostics.Count;
+      Parser parser = SetupParser(source, module, collection);
       ParserRuleContext context = GetContext(parser, rule);
       var visitor = MakeVisitor();
       node = visitor.Visit(context);
-      if (localCollection.Diagnostics.Count > diagnosticCount) {
+      if (collection.Diagnostics.Count > diagnosticCount) {
         node = null;
+        return false;
       }
-      return localCollection.Diagnostics.Count == diagnosticCount;
+      return true;
     }
 
     protected abstract Lexer MakeLexer(ICharStream stream);

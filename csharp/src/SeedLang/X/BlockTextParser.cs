@@ -97,7 +97,7 @@ namespace SeedLang.X {
     }
 
     protected override AbstractParseTreeVisitor<AstNode> MakeVisitor() {
-      return new BlockVisitor();
+      return new BlockTextVisitor();
     }
 
     protected override ParserRuleContext SingleExpr(Parser parser) {

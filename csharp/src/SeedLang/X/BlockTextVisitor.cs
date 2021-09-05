@@ -19,13 +19,13 @@ using SeedLang.Ast;
 using SeedLang.Runtime;
 
 namespace SeedLang.X {
-  // The visitor class to visit text source code of a block program and generate the corresponding
-  // AST tree.
+  // The visitor class to visit text source code of SeedBlock programs and generate the
+  // corresponding AST tree.
   //
   // The default implement of SeedBlockBaseVisitor is to visit all the children and return the
   // result of the last one. BlockVisitor overrides the method if the default implement is not
   // correct.
-  internal class BlockVisitor : SeedBlockBaseVisitor<AstNode> {
+  internal class BlockTextVisitor : SeedBlockBaseVisitor<AstNode> {
     // Visits a single identifier.
     public override AstNode VisitSingle_identifier(
         [NotNull] SeedBlockParser.Single_identifierContext context) {

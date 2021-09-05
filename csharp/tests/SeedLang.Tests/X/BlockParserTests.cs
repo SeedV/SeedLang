@@ -19,7 +19,7 @@ using Xunit;
 
 namespace SeedLang.X.Tests {
   public class BlockParserTests {
-    private class MockupExpressionListener : BlockParser.IExpressionListener {
+    private class MockupExpressionListener : BlockTextParser.IExpressionListener {
       private readonly List<string> _texts = new List<string>();
 
       public override string ToString() {
@@ -52,7 +52,7 @@ namespace SeedLang.X.Tests {
     }
 
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
-    private readonly BlockParser _parser = new BlockParser();
+    private readonly BlockTextParser _parser = new BlockTextParser();
 
     [Theory]
     [InlineData("0", true)]

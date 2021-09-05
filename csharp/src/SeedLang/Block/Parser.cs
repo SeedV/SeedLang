@@ -26,7 +26,7 @@ namespace SeedLang.Block {
   // source code of block programs. This class invokes the interfaces of SeedLang.X.BlockParser to
   // convert from an inline expression text to a list of blocks or an AST tree.
   public class Parser {
-    private class ExressionListener : BlockParser.IExpressionListener {
+    private class ExressionListener : BlockTextParser.IExpressionListener {
       public readonly List<BaseBlock> Blocks = new List<BaseBlock>();
 
       public void VisitArithmeticOperator(string op) {
@@ -57,9 +57,9 @@ namespace SeedLang.Block {
     // Converts an expression text to a list of blocks.
     public static IEnumerable<BaseBlock> ExpressionTextToBlocks(string text) {
       Debug.Assert(!string.IsNullOrEmpty(text), "Expression text shall not be null or empty.");
-      var blockParser = new BlockParser();
+      var blockTextParser = new BlockTextParser();
       var listener = new ExressionListener();
-      blockParser.VisitExpression(text, listener);
+      blockTextParser.VisitExpression(text, listener);
       return listener.Blocks;
     }
 
@@ -71,9 +71,9 @@ namespace SeedLang.Block {
         foreach (var rootBlock in module.RootBlockIterator) {
           // TODO: implement a visitor to parse other kinds of blocks.
           if (rootBlock is ExpressionBlock expressionBlock) {
-            var blockParser = new BlockParser();
-            if (blockParser.TryParse(expressionBlock.GetEditableText(), module.Name,
-                                     ParseRule.Expression, collection, out var node)) {
+            var blockTextParser = new BlockTextParser();
+            if (blockTextParser.TryParse(expressionBlock.GetEditableText(), module.Name,
+                                         ParseRule.Expression, collection, out var node)) {
               nodes.Add(node);
             }
           }

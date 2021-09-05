@@ -50,14 +50,15 @@ namespace SeedLang.Runtime {
       return true;
     }
 
-    // Runs SeedX source code based on the given programming language and parse rule.
+    // Runs text-based SeedBlock or SeedX source code based on the given programming language and
+    // parse rule.
     public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
                     RunType runType, DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
         return false;
       }
       DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
-      BaseParser parser = MakeXParser(language);
+      BaseParser parser = MakeParser(language);
       if (parser.TryParse(source, module, rule, localCollection, out AstNode node)) {
         switch (runType) {
           case RunType.Ast:
@@ -68,10 +69,10 @@ namespace SeedLang.Runtime {
       return false;
     }
 
-    private static BaseParser MakeXParser(ProgrammingLanguage language) {
+    private static BaseParser MakeParser(ProgrammingLanguage language) {
       switch (language) {
-        case ProgrammingLanguage.Block:
-          return new BlockParser();
+        case ProgrammingLanguage.TextBlock:
+          return new BlockTextParser();
         case ProgrammingLanguage.Python:
           return new PythonParser();
         default:

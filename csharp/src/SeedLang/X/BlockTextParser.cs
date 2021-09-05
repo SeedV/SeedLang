@@ -19,11 +19,11 @@ using SeedLang.Ast;
 using SeedLang.Common;
 
 namespace SeedLang.X {
-  // The text parser of SeedBlock language.
+  // The parser to parse inline text source code of the SeedBlock language.
   //
-  // The BlockParser inherits the interfaces of BaseParser and provides an additional interface to
-  // visit expression source code of block programs.
-  internal class BlockParser : BaseParser {
+  // The BlockTextParser implements the interfaces of BaseParser and provides an additional
+  // interface to visit inline expression source code of block programs.
+  internal class BlockTextParser : BaseParser {
     // The listener interface to be notified when the tokens of expression source code are visited.
     internal interface IExpressionListener {
       void VisitArithmeticOperator(string op);
@@ -34,8 +34,8 @@ namespace SeedLang.X {
       void VisitCloseParen();
     }
 
-    // Visits expression source code of block programs. The given listener is notified when each
-    // token of the expression is visited. The negative sign token will be combined with the
+    // Visits inline expression source code of block programs. The given listener is notified when
+    // each token of the expression is visited. The negative sign token will be combined with the
     // following number to form a negative number.
     internal void VisitExpression(string source, IExpressionListener listener) {
       if (!Validate(source, "", ParseRule.Expression, null)) {

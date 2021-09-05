@@ -71,9 +71,12 @@ namespace SeedLang.Runtime.Tests {
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
 
-      executor.Run("set a to 1", "", ProgrammingLanguage.Block, ParseRule.Statement, RunType.Ast);
-      executor.Run("set b to 2", "", ProgrammingLanguage.Block, ParseRule.Statement, RunType.Ast);
-      executor.Run("eval a + b", "", ProgrammingLanguage.Block, ParseRule.Statement, RunType.Ast);
+      executor.Run("set a to 1", "", ProgrammingLanguage.TextBlock,
+                   ParseRule.Statement, RunType.Ast);
+      executor.Run("set b to 2", "", ProgrammingLanguage.TextBlock,
+                   ParseRule.Statement, RunType.Ast);
+      executor.Run("eval a + b", "", ProgrammingLanguage.TextBlock,
+                   ParseRule.Statement, RunType.Ast);
 
       Assert.Equal(1, visualizer.Left.ToNumber());
       Assert.Equal(BinaryOperator.Add, visualizer.Op);

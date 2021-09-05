@@ -15,7 +15,7 @@
 namespace SeedLang.Runtime {
   // All languages that the SeedLang system supports.
   public enum ProgrammingLanguage {
-    Block,
+    TextBlock,
     Python,
   }
 }

@@ -18,11 +18,7 @@ grammar SeedBlock;
 
 import Common;
 
-single_stmt: stmt EOF;
-
-prog: stmt+;
-
-stmt: assign_stmt | eval_stmt;
-
-assign_stmt: 'set' IDENTIFIER 'to' expr;
-eval_stmt: 'eval' expr;
+single_identifier: IDENTIFIER EOF;
+single_number: NUMBER EOF;
+single_string: STRING EOF;
+single_expr: expr EOF;

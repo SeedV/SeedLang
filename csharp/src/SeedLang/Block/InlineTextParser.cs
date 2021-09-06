@@ -17,15 +17,17 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
 using SeedLang.Common;
+using SeedLang.X;
 
-namespace SeedLang.X {
-  // The parser to parse inline text source code of the SeedBlock language.
+namespace SeedLang.Block {
+  // The parser to parse an inline text of SeedBlock programs.
   //
-  // The BlockTextParser implements the interfaces of BaseParser and provides an additional
-  // interface to visit inline expression source code of block programs.
-  internal class BlockTextParser : BaseParser {
-    // The listener interface to be notified when the tokens of expression source code are visited.
-    internal interface IExpressionListener {
+  // The InlineTextParser used generated ANTLR4 SeedBlockParser to parse the inline text of block
+  // programs.
+  internal class InlineTextParser : BaseParser {
+    // The listener interface to be notified when the tokens of an expression inline text are
+    // visited.
+    internal interface IInlineTextListener {
       void VisitArithmeticOperator(string op);
       void VisitIdentifier(string name);
       void VisitNumber(string number);
@@ -34,14 +36,14 @@ namespace SeedLang.X {
       void VisitCloseParen();
     }
 
-    // Visits inline expression source code of block programs. The given listener is notified when
-    // each token of the expression is visited. The negative sign token will be combined with the
-    // following number to form a negative number.
-    internal void VisitExpression(string source, IExpressionListener listener) {
-      if (!Validate(source, "", ParseRule.Expression, null)) {
+    // Visits an inline text of block programs. The given listener is notified when each token of
+    // the inline text is visited. The negative sign token will be combined with the following
+    // number to form a negative number.
+    internal void VisitInlineText(string text, IInlineTextListener listener) {
+      if (!Validate(text, "", ParseRule.Expression, null)) {
         return;
       }
-      Lexer lexer = SetupLexer(source);
+      Lexer lexer = SetupLexer(text);
       int lastTokenType = SeedBlockParser.UNKNOWN_CHAR;
       bool negative = false;
       foreach (var token in lexer.GetAllTokens()) {
@@ -97,7 +99,7 @@ namespace SeedLang.X {
     }
 
     protected override AbstractParseTreeVisitor<AstNode> MakeVisitor() {
-      return new BlockTextVisitor();
+      return new InlineTextVisitor();
     }
 
     protected override ParserRuleContext SingleExpr(Parser parser) {
@@ -113,11 +115,6 @@ namespace SeedLang.X {
     protected override ParserRuleContext SingleNumber(Parser parser) {
       Debug.Assert(parser is SeedBlockParser, $"Incorrect parser type: {parser}");
       return (parser as SeedBlockParser).single_number();
-    }
-
-    protected override ParserRuleContext SingleStmt(Parser parser) {
-      Debug.Assert(parser is SeedBlockParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedBlockParser).single_stmt();
     }
 
     protected override ParserRuleContext SingleString(Parser parser) {

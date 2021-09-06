@@ -15,13 +15,13 @@
 using Xunit;
 
 namespace SeedLang.Block.Tests {
-  public class ParserTests {
+  public class ConverterTests {
     [Fact]
-    public void TestExpressionTextToBlocks() {
+    public void TestInlineTextToBlocks() {
       var module = new Module { Name = "Main" };
       var expressionBlock = new ExpressionBlock();
       module.AddStandaloneBlock(expressionBlock);
-      var blocks = Parser.ExpressionTextToBlocks("(1 + 2) * 3 / -4 + 3.14");
+      var blocks = Converter.InlineTextToBlocks("(1 + 2) * 3 / -4 + 3.14");
       int index = 0;
       foreach (var block in blocks) {
         module.AddStandaloneBlock(block);

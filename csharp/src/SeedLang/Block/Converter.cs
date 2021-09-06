@@ -16,17 +16,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
-using SeedLang.X;
 
 namespace SeedLang.Block {
-  // The parser that converts a block program to an AST tree, an inline expression text to a list of
-  // blocks, or an inline expression text to an AST tree.
-  //
-  // This class is different from SeedLang.X.BlockParser, which is only responsible for parsing text
-  // source code of block programs. This class invokes the interfaces of SeedLang.X.BlockParser to
-  // convert from an inline expression text to a list of blocks or an AST tree.
-  public class Parser {
-    private class ExressionListener : BlockTextParser.IExpressionListener {
+  // The converter that converts a block program to an AST tree, an expression inline text to a list
+  // of blocks, or an expression inline text to an AST tree.
+  public class Converter {
+    private class InlineTextListener : InlineTextParser.IInlineTextListener {
       public readonly List<BaseBlock> Blocks = new List<BaseBlock>();
 
       public void VisitArithmeticOperator(string op) {
@@ -54,26 +49,26 @@ namespace SeedLang.Block {
       }
     }
 
-    // Converts an expression text to a list of blocks.
-    public static IEnumerable<BaseBlock> ExpressionTextToBlocks(string text) {
-      Debug.Assert(!string.IsNullOrEmpty(text), "Expression text shall not be null or empty.");
-      var blockTextParser = new BlockTextParser();
-      var listener = new ExressionListener();
-      blockTextParser.VisitExpression(text, listener);
+    // Converts an expression inline text to a list of blocks.
+    public static IEnumerable<BaseBlock> InlineTextToBlocks(string text) {
+      Debug.Assert(!string.IsNullOrEmpty(text), "Inline text shall not be null or empty.");
+      var parser = new InlineTextParser();
+      var listener = new InlineTextListener();
+      parser.VisitInlineText(text, listener);
       return listener.Blocks;
     }
 
-    // Parses a block program to an list of AST trees.
-    internal static IEnumerable<AstNode> TryParse(Program program,
-                                                  DiagnosticCollection collection) {
+    // Converts a block program to a list of AST trees.
+    internal static IEnumerable<AstNode> TryConvert(Program program,
+                                                    DiagnosticCollection collection) {
       var nodes = new List<AstNode>();
       foreach (var module in program.Modules) {
         foreach (var rootBlock in module.RootBlockIterator) {
           // TODO: implement a visitor to parse other kinds of blocks.
           if (rootBlock is ExpressionBlock expressionBlock) {
-            var blockTextParser = new BlockTextParser();
-            if (blockTextParser.TryParse(expressionBlock.GetEditableText(), module.Name,
-                                         ParseRule.Expression, collection, out var node)) {
+            var parser = new InlineTextParser();
+            if (parser.TryParse(expressionBlock.GetEditableText(), module.Name,
+                                ParseRule.Expression, collection, out var node)) {
               nodes.Add(node);
             }
           }

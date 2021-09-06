@@ -17,9 +17,9 @@ using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;
 
-namespace SeedLang.X.Tests {
-  public class BlockParserTests {
-    private class MockupExpressionListener : BlockTextParser.IExpressionListener {
+namespace SeedLang.Block.Tests {
+  public class InlineTextParserTests {
+    private class MockupInlineTextListener : InlineTextParser.IInlineTextListener {
       private readonly List<string> _texts = new List<string>();
 
       public override string ToString() {
@@ -52,7 +52,7 @@ namespace SeedLang.X.Tests {
     }
 
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
-    private readonly BlockTextParser _parser = new BlockTextParser();
+    private readonly InlineTextParser _parser = new InlineTextParser();
 
     [Theory]
     [InlineData("0", true)]
@@ -98,15 +98,14 @@ namespace SeedLang.X.Tests {
     }
 
     [Theory]
-    [InlineData("1.5 + 210 - 3 * 4 / 5", "1.5,+,210,-,3,*,4,/,5")]
-    [InlineData("(1 + 2) / 3", "(,1,+,2,),/,3")]
-    [InlineData("(1 + 2) / -3", "(,1,+,2,),/,-3")]
-    [InlineData("-(1 + -2) - 3", "-,(,1,+,-2,),-,3")]
-    [InlineData("-(1 - -2)", "-,(,1,-,-2,)")]
-    public void TestVisitExpression(string input, string expected) {
-      var listener = new MockupExpressionListener();
-      _parser.VisitExpression(input, listener);
-      Assert.Equal(expected, listener.ToString());
+    [InlineData("-1 + 2", "((- 1) + 2)")]
+    [InlineData("-(1 + 2)", "(- (1 + 2))")]
+    [InlineData("2 - - 1", "(2 - (- 1))")]
+    public void TestParseUnaryExpression(string input, string expected) {
+      Assert.True(_parser.TryParse(input, "", ParseRule.Expression, _collection, out AstNode node));
+      Assert.NotNull(node);
+      Assert.Empty(_collection.Diagnostics);
+      Assert.Equal(expected, node.ToString());
     }
   }
 }

@@ -47,13 +47,11 @@ namespace SeedLang.Shell {
       }
     }
 
-    private readonly ProgrammingLanguage _language;
-    private readonly ParseRule _rule;
+    private readonly SeedXLanguage _language;
     private readonly RunType _runType;
 
-    internal Repl(ProgrammingLanguage language, ParseRule rule, RunType runType) {
+    internal Repl(SeedXLanguage language, RunType runType) {
       _language = language;
-      _rule = rule;
       _runType = runType;
     }
 
@@ -68,7 +66,7 @@ namespace SeedLang.Shell {
           break;
         }
         var collection = new DiagnosticCollection();
-        if (!executor.Run(line, "", _language, _rule, _runType, collection)) {
+        if (!executor.Run(line, "", _language, _runType, collection)) {
           foreach (var diagnostic in collection.Diagnostics) {
             Console.WriteLine(diagnostic);
           }

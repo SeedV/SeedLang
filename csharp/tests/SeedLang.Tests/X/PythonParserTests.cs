@@ -22,60 +22,6 @@ namespace SeedLang.X.Tests {
     private readonly PythonParser _parser = new PythonParser();
 
     [Theory]
-    [InlineData("0", true)]
-    [InlineData("0.", true)]
-    [InlineData(".0", true)]
-    [InlineData(".5", true)]
-    [InlineData("1.5", true)]
-    [InlineData("1e3", true)]
-    [InlineData("1e+20", true)]
-    [InlineData("1e-5", true)]
-    [InlineData("..1", false)]
-    [InlineData("1.2.3", false)]
-    [InlineData("1a", false)]
-    public void TestValidateNumber(string input, bool result) {
-      Assert.Equal(result, _parser.Validate(input, "", ParseRule.Number, _collection));
-    }
-
-    [Theory]
-    [InlineData("0", "0")]
-    [InlineData("0.", "0")]
-    [InlineData(".0", "0")]
-    [InlineData(".5", "0.5")]
-    [InlineData("1.5", "1.5")]
-    [InlineData("1e3", "1000")]
-    [InlineData("1e+20", "1E+20")]
-    [InlineData("1e-5", "1E-05")]
-    public void TestParseNumber(string input, string expected) {
-      Assert.True(_parser.TryParse(input, "", ParseRule.Number, _collection, out AstNode node));
-      Assert.NotNull(node);
-      Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
-    }
-
-    [Theory]
-    [InlineData("1 + 2", "(1 + 2)")]
-    [InlineData("1 - 2 * 3", "(1 - (2 * 3))")]
-    [InlineData("(1 + 2) / 3", "((1 + 2) / 3)")]
-    public void TestParseBinaryExpression(string input, string expected) {
-      Assert.True(_parser.TryParse(input, "", ParseRule.Expression, _collection, out AstNode node));
-      Assert.NotNull(node);
-      Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
-    }
-
-    [Theory]
-    [InlineData("-1 + 2", "((- 1) + 2)")]
-    [InlineData("-(1 + 2)", "(- (1 + 2))")]
-    [InlineData("2 - - 1", "(2 - (- 1))")]
-    public void TestParseUnaryExpression(string input, string expected) {
-      Assert.True(_parser.TryParse(input, "", ParseRule.Expression, _collection, out AstNode node));
-      Assert.NotNull(node);
-      Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
-    }
-
-    [Theory]
     [InlineData("eval 1 + 2 * 3 - 4", true)]
     [InlineData("eval 1 +", false)]
     public void TestValidateEvalStatement(string input, bool result) {

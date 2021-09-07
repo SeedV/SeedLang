@@ -18,7 +18,7 @@ namespace SeedLang.Block.Tests {
   public class ProgramTests {
     [Fact]
     public void TestBlockProgram() {
-      var program = Program.Instance;
+      var program = new Program();
       Assert.Empty(program.Modules);
       const string minimalBxf = @"
 {

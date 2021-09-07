@@ -24,11 +24,6 @@ grammar Common;
  * Parser rules
  */
 
-single_identifier: IDENTIFIER EOF;
-single_number: NUMBER EOF;
-single_string: STRING EOF;
-single_expr: expr EOF;
-
 expr:
   op = SUB expr                # unary
   | expr op = (MUL | DIV) expr # mul_div

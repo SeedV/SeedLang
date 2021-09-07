@@ -15,22 +15,16 @@
 using System;
 using CommandLine;
 using CommandLine.Text;
-using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
   internal class Program {
     internal class Options {
-      [Option('l', "language", Required = false, Default = ProgrammingLanguage.Python,
+      [Option('l', "language", Required = false, Default = SeedXLanguage.Python,
         HelpText = "The programming language of the source code.")]
-      public ProgrammingLanguage Language { get; set; }
+      public SeedXLanguage Language { get; set; }
 
-      [Option('r', "rule", Required = false, Default = ParseRule.Statement,
-        HelpText = "The parse rule of the source code.")]
-      public ParseRule ParseRule { get; set; }
-
-      [Option('t', "type", Required = false, Default = RunType.Ast,
-        HelpText = "Run type.")]
+      [Option('t', "type", Required = false, Default = RunType.Ast, HelpText = "Run type.")]
       public RunType RunType { get; set; }
     }
 
@@ -52,7 +46,7 @@ namespace SeedLang.Shell {
     }
 
     private static void Run(Options options) {
-      var repl = new Repl(options.Language, options.ParseRule, options.RunType);
+      var repl = new Repl(options.Language, options.RunType);
       repl.Execute();
     }
   }

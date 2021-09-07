@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -19,18 +20,15 @@ using SeedLang.Ast;
 using SeedLang.Common;
 
 namespace SeedLang.X {
-  // The abstract base class of the block parser and all SeedX language parsers.
+  // The abstract base class of all SeedX language parsers and the SeedBlock inline text parser.
   //
-  // It provides interfaces to validate the text source code, and parse it into an AST tree based on
-  // the predefined rules.
+  // It provides interfaces to validate the source code, and parse it into an AST tree based on the
+  // predefined rules.
   internal abstract class BaseParser {
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.
     internal bool Validate(string source, string module, ParseRule rule,
                            DiagnosticCollection collection) {
-      if (string.IsNullOrEmpty(source) || module is null) {
-        return false;
-      }
       var localCollection = collection ?? new DiagnosticCollection();
       int diagnosticCount = localCollection.Diagnostics.Count;
       Parser parser = SetupParser(source, module, localCollection);
@@ -43,20 +41,16 @@ namespace SeedLang.X {
     // is not valid.
     internal bool TryParse(string source, string module, ParseRule rule,
                            DiagnosticCollection collection, out AstNode node) {
-      if (string.IsNullOrEmpty(source) || module is null) {
-        node = null;
-        return false;
-      }
-      DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
-      int diagnosticCount = localCollection.Diagnostics.Count;
-      Parser parser = SetupParser(source, module, localCollection);
+      int diagnosticCount = collection.Diagnostics.Count;
+      Parser parser = SetupParser(source, module, collection);
       ParserRuleContext context = GetContext(parser, rule);
       var visitor = MakeVisitor();
       node = visitor.Visit(context);
-      if (localCollection.Diagnostics.Count > diagnosticCount) {
+      if (collection.Diagnostics.Count > diagnosticCount) {
         node = null;
+        return false;
       }
-      return localCollection.Diagnostics.Count == diagnosticCount;
+      return true;
     }
 
     protected abstract Lexer MakeLexer(ICharStream stream);
@@ -65,15 +59,25 @@ namespace SeedLang.X {
 
     protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor();
 
-    protected abstract ParserRuleContext SingleIdentifier(Parser parser);
+    protected virtual ParserRuleContext SingleIdentifier(Parser parser) {
+      throw new NotImplementedException();
+    }
 
-    protected abstract ParserRuleContext SingleNumber(Parser parser);
+    protected virtual ParserRuleContext SingleNumber(Parser parser) {
+      throw new NotImplementedException();
+    }
 
-    protected abstract ParserRuleContext SingleString(Parser parser);
+    protected virtual ParserRuleContext SingleString(Parser parser) {
+      throw new NotImplementedException();
+    }
 
-    protected abstract ParserRuleContext SingleExpr(Parser parser);
+    protected virtual ParserRuleContext SingleExpr(Parser parser) {
+      throw new NotImplementedException();
+    }
 
-    protected abstract ParserRuleContext SingleStmt(Parser parser);
+    protected virtual ParserRuleContext SingleStmt(Parser parser) {
+      throw new NotImplementedException();
+    }
 
     protected Lexer SetupLexer(string source) {
       var inputStream = new AntlrInputStream(source);
@@ -94,7 +98,7 @@ namespace SeedLang.X {
       return parser;
     }
 
-    protected ParserRuleContext GetContext(Parser parser, ParseRule rule) {
+    private ParserRuleContext GetContext(Parser parser, ParseRule rule) {
       switch (rule) {
         case ParseRule.Identifier:
           return SingleIdentifier(parser);

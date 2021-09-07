@@ -19,8 +19,6 @@ using SeedLang.Ast;
 
 namespace SeedLang.X {
   // The parser of SeedPython language.
-  //
-  // The BlockParser inherits the interfaces of BaseParser.
   internal class PythonParser : BaseParser {
     protected override Lexer MakeLexer(ICharStream stream) {
       return new SeedPythonLexer(stream);
@@ -34,29 +32,9 @@ namespace SeedLang.X {
       return new PythonVisitor();
     }
 
-    protected override ParserRuleContext SingleExpr(Parser parser) {
-      Debug.Assert(parser is SeedPythonParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedPythonParser).single_expr();
-    }
-
-    protected override ParserRuleContext SingleIdentifier(Parser parser) {
-      Debug.Assert(parser is SeedPythonParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedPythonParser).single_identifier();
-    }
-
-    protected override ParserRuleContext SingleNumber(Parser parser) {
-      Debug.Assert(parser is SeedPythonParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedPythonParser).single_number();
-    }
-
     protected override ParserRuleContext SingleStmt(Parser parser) {
       Debug.Assert(parser is SeedPythonParser, $"Incorrect parser type: {parser}");
       return (parser as SeedPythonParser).single_stmt();
-    }
-
-    protected override ParserRuleContext SingleString(Parser parser) {
-      Debug.Assert(parser is SeedPythonParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedPythonParser).single_string();
     }
   }
 }

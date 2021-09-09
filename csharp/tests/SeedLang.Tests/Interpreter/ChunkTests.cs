@@ -20,12 +20,13 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestEmit() {
       var chunk = new Chunk();
+      chunk.AddConstant(1);
       chunk.Emit(Opcode.RETURN, 0);
       chunk.Emit(Opcode.ADD, 1, 2, 3);
-      chunk.Emit(Opcode.LOADK, 1, 2);
+      chunk.Emit(Opcode.LOADK, 1, 0);
       string expected = @"RETURN 0
 ADD 1 2 3
-LOADK 1 2
+LOADK 1 0        ; 1
 ".Replace("\r\n", Environment.NewLine);
       Assert.Equal(expected, chunk.ToString());
     }

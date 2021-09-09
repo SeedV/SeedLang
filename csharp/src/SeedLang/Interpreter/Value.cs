@@ -15,6 +15,7 @@
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
+  // The value type used in Seed Virtual Machine.
   internal struct Value : IValue {
     public ValueType Type { get; }
 
@@ -27,6 +28,10 @@ namespace SeedLang.Interpreter {
 
     public double ToNumber() {
       return _number;
+    }
+
+    public override string ToString() {
+      return $"{_number}";
     }
   }
 }

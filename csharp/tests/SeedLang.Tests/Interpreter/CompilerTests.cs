@@ -23,7 +23,7 @@ namespace SeedLang.Interpreter.Tests {
       var eval = Statement.Eval(Expression.Number(1));
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
-      string expected = @"LOADK 0 0
+      string expected = @"LOADK 0 0        ; 1
 EVAL 0
 RETURN 0
 ".Replace("\r\n", Environment.NewLine);

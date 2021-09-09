@@ -16,6 +16,9 @@ using System;
 using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
+  // The instruction data structure that includes the opcode and operands.
+  //
+  // See design/seed_vm.md for the layout of instructions.
   internal struct Instruction {
     private const int _lengthOpcode = 6;
     private const int _lengthA = 8;
@@ -43,27 +46,27 @@ namespace SeedLang.Interpreter {
     private readonly uint _code;
 
     internal Instruction(Opcode opcode, uint a) {
-      Debug.Assert(opcode.Type() == OpCodeType.A, $"{opcode} is not type A opcode.");
+      Debug.Assert(opcode.Type() == OpcodeType.A, $"{opcode} shall be type A opcode.");
       _code = (uint)opcode | a << _posA;
     }
 
     internal Instruction(Opcode opcode, uint a, uint b, uint c) {
-      Debug.Assert(opcode.Type() == OpCodeType.ABC, $"{opcode} is not type ABC opcode.");
+      Debug.Assert(opcode.Type() == OpcodeType.ABC, $"{opcode} shall be type ABC opcode.");
       _code = (uint)opcode | a << _posA | b << _posB | c << _posC;
     }
 
     internal Instruction(Opcode opcode, uint a, uint bx) {
-      Debug.Assert(opcode.Type() == OpCodeType.ABx, $"{opcode} is not type ABx opcode.");
+      Debug.Assert(opcode.Type() == OpcodeType.ABx, $"{opcode} shall be type ABx opcode.");
       _code = (uint)opcode | a << _posA | bx << _posBx;
     }
 
     public override string ToString() {
       switch (Opcode.Type()) {
-        case OpCodeType.A:
+        case OpcodeType.A:
           return $"{Opcode} {A}";
-        case OpCodeType.ABC:
+        case OpcodeType.ABC:
           return $"{Opcode} {A} {B} {C}";
-        case OpCodeType.ABx:
+        case OpcodeType.ABx:
           return $"{Opcode} {A} {Bx}";
         default:
           throw new NotImplementedException();

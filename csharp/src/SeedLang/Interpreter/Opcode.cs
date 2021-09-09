@@ -15,6 +15,7 @@
 using System;
 
 namespace SeedLang.Interpreter {
+  // All the opcodes of Seed Virtual Machine.
   internal enum Opcode {
     LOADK,        // R(A) := Kst(Bx)
     ADD,          // R(A) := RK(B)  RK(C)
@@ -25,25 +26,27 @@ namespace SeedLang.Interpreter {
     RETURN,       // Return R(A)
   }
 
-  internal enum OpCodeType {
+  // The type of opcodes.
+  internal enum OpcodeType {
     A,
     ABC,
     ABx,
   }
 
   internal static class OpcodeExtension {
-    internal static OpCodeType Type(this Opcode op) {
+    // Returns the type of this opcode.
+    internal static OpcodeType Type(this Opcode op) {
       switch (op) {
         case Opcode.LOADK:
-          return OpCodeType.ABx;
+          return OpcodeType.ABx;
         case Opcode.ADD:
         case Opcode.SUB:
         case Opcode.MUL:
         case Opcode.DIV:
-          return OpCodeType.ABC;
+          return OpcodeType.ABC;
         case Opcode.EVAL:
         case Opcode.RETURN:
-          return OpCodeType.A;
+          return OpcodeType.A;
         default:
           throw new NotImplementedException();
       }

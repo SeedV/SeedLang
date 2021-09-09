@@ -16,6 +16,7 @@ using System;
 using SeedLang.Ast;
 
 namespace SeedLang.Interpreter {
+  // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
     private Chunk _chunk;
 
@@ -53,8 +54,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(EvalStatement eval) {
-      // TODO: implement registers allocation, and load the expression result into an allocated
-      // register.
+      // TODO: implement registers allocation, and evaluate the result register.
       Visit(eval.Expr);
       _chunk.Emit(Opcode.EVAL, 0);
     }

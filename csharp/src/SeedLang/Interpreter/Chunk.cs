@@ -13,9 +13,11 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace SeedLang.Interpreter {
+  // A data structure to hold bytecode and constants generated from the AST tree by the compiler.
   internal class Chunk {
     private readonly List<Instruction> _bytecode = new List<Instruction>();
     private readonly List<Value> _constants = new List<Value>();
@@ -23,7 +25,7 @@ namespace SeedLang.Interpreter {
     public override string ToString() {
       var sb = new StringBuilder();
       foreach (var instr in _bytecode) {
-        sb.AppendLine($"{instr}");
+        sb.AppendLine($"{instr}{ConstantOperand(instr)}");
       }
       return sb.ToString();
     }
@@ -43,6 +45,15 @@ namespace SeedLang.Interpreter {
     internal uint AddConstant(double number) {
       _constants.Add(new Value(number));
       return (uint)_constants.Count - 1;
+    }
+
+    private string ConstantOperand(Instruction instr) {
+      if (instr.Opcode == Opcode.LOADK) {
+        Debug.Assert(instr.Bx >= 0 && instr.Bx < _bytecode.Count,
+                     "Bx shall be in the range of the constants");
+        return $"        ; {_constants[(int)instr.Bx]}";
+      }
+      return "";
     }
   }
 }

@@ -26,8 +26,9 @@ if not exist %ANTLR4_JAR_DIR%\%ANTLR4_JAR% (
 )
 
 set ANTLR4=java -jar "%ANTLR4_JAR_DIR%\%ANTLR4_JAR%"
+set SEEDBLOCK_DIR=..\csharp\src\SeedLang\Block\antlr
 set SEEDX_DIR=..\csharp\src\SeedLang\X\antlr
 set FLAGS=-Dlanguage=CSharp -no-listener -visitor
 
-%ANTLR4% %FLAGS% -o "%SEEDX_DIR%" SeedBlock.g4
+%ANTLR4% %FLAGS% -o "%SEEDBLOCK_DIR%" SeedBlock.g4
 %ANTLR4% %FLAGS% -o "%SEEDX_DIR%" SeedPython.g4

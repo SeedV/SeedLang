@@ -18,14 +18,14 @@ using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
 using SeedLang.Runtime;
 
-namespace SeedLang.X {
-  // The visitor class to visit text source code of a block program and generate the corresponding
+namespace SeedLang.Block {
+  // The visitor class to visit an inline text of SeedBlock programs and generate the corresponding
   // AST tree.
   //
   // The default implement of SeedBlockBaseVisitor is to visit all the children and return the
-  // result of the last one. BlockVisitor overrides the method if the default implement is not
+  // result of the last one. InlineTextVisitor overrides the method if the default implement is not
   // correct.
-  internal class BlockVisitor : SeedBlockBaseVisitor<AstNode> {
+  internal class InlineTextVisitor : SeedBlockBaseVisitor<AstNode> {
     // Visits a single identifier.
     public override AstNode VisitSingle_identifier(
         [NotNull] SeedBlockParser.Single_identifierContext context) {
@@ -50,10 +50,11 @@ namespace SeedLang.X {
       return Visit(context.expr());
     }
 
-    // Visits a single statement.
-    public override AstNode VisitSingle_stmt(
-        [NotNull] SeedBlockParser.Single_stmtContext context) {
-      return Visit(context.stmt());
+    // Visits an unary expression.
+    public override AstNode VisitUnary([NotNull] SeedBlockParser.UnaryContext context) {
+      var expr = Visit(context.expr()) as Expression;
+      // TODO: handle other unary operators.
+      return Expression.Unary(UnaryOperator.Negative, expr);
     }
 
     // Visits an add or subtract binary expression.
@@ -88,24 +89,6 @@ namespace SeedLang.X {
     // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedBlockParser.GroupingContext context) {
       return Visit(context.expr());
-    }
-
-    // Visits an assign statement.
-    public override AstNode VisitAssign_stmt([NotNull] SeedBlockParser.Assign_stmtContext context) {
-      var identifier = Expression.Identifier(context.IDENTIFIER().GetText());
-      // TODO: check if null check is needed in other visit mothods.
-      var exprContext = context.expr();
-      if (!(exprContext is null)) {
-        var expr = Visit(exprContext) as Expression;
-        return Statement.Assignment(identifier, expr);
-      }
-      return null;
-    }
-
-    // Visits an eval statement.
-    public override AstNode VisitEval_stmt([NotNull] SeedBlockParser.Eval_stmtContext context) {
-      var expr = Visit(context.expr()) as Expression;
-      return Statement.Eval(expr);
     }
 
     // Builds a binary expression node from the opToken and exprs.

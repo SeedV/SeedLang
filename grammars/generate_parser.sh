@@ -26,8 +26,9 @@ if [[ ! -f "${ANTLR4_JAR_DIR}/${ANTLR4_JAR}" ]]; then
 fi
 
 readonly ANTLR4="java -jar ${ANTLR4_JAR_DIR}/${ANTLR4_JAR}"
+readonly SEEDBLOCK_DIR="../csharp/src/SeedLang/Block/antlr"
 readonly SEEDX_DIR="../csharp/src/SeedLang/X/antlr"
 readonly FLAGS=(-Dlanguage=CSharp -no-listener -visitor)
 
-${ANTLR4} "${FLAGS[@]}" -o "${SEEDX_DIR}" SeedBlock.g4
+${ANTLR4} "${FLAGS[@]}" -o "${SEEDBLOCK_DIR}" SeedBlock.g4
 ${ANTLR4} "${FLAGS[@]}" -o "${SEEDX_DIR}" SeedPython.g4

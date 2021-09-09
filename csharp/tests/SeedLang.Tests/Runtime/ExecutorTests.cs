@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using SeedLang.Block;
-using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -66,30 +65,14 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestRunBlockStatement() {
-      var executor = new Executor();
-      var visualizer = new MockupVisualizer();
-      executor.Register(visualizer);
-
-      executor.Run("set a to 1", "", ProgrammingLanguage.Block, ParseRule.Statement, RunType.Ast);
-      executor.Run("set b to 2", "", ProgrammingLanguage.Block, ParseRule.Statement, RunType.Ast);
-      executor.Run("eval a + b", "", ProgrammingLanguage.Block, ParseRule.Statement, RunType.Ast);
-
-      Assert.Equal(1, visualizer.Left.ToNumber());
-      Assert.Equal(BinaryOperator.Add, visualizer.Op);
-      Assert.Equal(2, visualizer.Right.ToNumber());
-      Assert.Equal(3, visualizer.Result.ToNumber());
-    }
-
-    [Fact]
     public void TestRunPythonStatement() {
       var executor = new Executor();
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
 
-      executor.Run("a = 1", "", ProgrammingLanguage.Python, ParseRule.Statement, RunType.Ast);
-      executor.Run("b = 2", "", ProgrammingLanguage.Python, ParseRule.Statement, RunType.Ast);
-      executor.Run("eval a + -b", "", ProgrammingLanguage.Python, ParseRule.Statement, RunType.Ast);
+      executor.Run("a = 1", "", SeedXLanguage.Python, RunType.Ast);
+      executor.Run("b = 2", "", SeedXLanguage.Python, RunType.Ast);
+      executor.Run("eval a + -b", "", SeedXLanguage.Python, RunType.Ast);
 
       Assert.Equal(1, visualizer.Left.ToNumber());
       Assert.Equal(BinaryOperator.Add, visualizer.Op);

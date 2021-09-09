@@ -13,9 +13,8 @@
 // limitations under the License.
 
 namespace SeedLang.Runtime {
-  // All languages that the SeedLang system supports.
-  public enum ProgrammingLanguage {
-    Block,
+  // All SeedX languages.
+  public enum SeedXLanguage {
     Python,
   }
 }

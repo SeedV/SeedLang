@@ -19,7 +19,7 @@ using SeedLang.Common;
 using SeedLang.X;
 
 namespace SeedLang.Runtime {
-  // An executor class to execute block programs or SeedX source code. The information during
+  // An executor class to execute SeedBlock programs or SeedX source code. The information during
   // execution can be visualized by registered visualizers.
   public class Executor {
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
@@ -38,27 +38,27 @@ namespace SeedLang.Runtime {
       _visualizerCenter.Unregister(visualizer);
     }
 
-    // Runs a block program.
+    // Runs a SeedBlock program.
     public bool Run(Program program, DiagnosticCollection collection = null) {
       if (program is null) {
         return false;
       }
       DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
-      foreach (var node in Parser.TryParse(program, localCollection)) {
+      foreach (var node in Converter.TryConvert(program, localCollection)) {
         _executor.Run(node);
       }
       return true;
     }
 
-    // Runs SeedX source code based on the given programming language and parse rule.
-    public bool Run(string source, string module, ProgrammingLanguage language, ParseRule rule,
-                    RunType runType, DiagnosticCollection collection = null) {
+    // Runs SeedX source code based on the given SeedX language and run type.
+    public bool Run(string source, string module, SeedXLanguage language, RunType runType,
+                    DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
         return false;
       }
       DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
-      BaseParser parser = MakeXParser(language);
-      if (parser.TryParse(source, module, rule, localCollection, out AstNode node)) {
+      BaseParser parser = MakeParser(language);
+      if (parser.TryParse(source, module, ParseRule.Statement, localCollection, out AstNode node)) {
         switch (runType) {
           case RunType.Ast:
             _executor.Run(node);
@@ -68,11 +68,9 @@ namespace SeedLang.Runtime {
       return false;
     }
 
-    private static BaseParser MakeXParser(ProgrammingLanguage language) {
+    private static BaseParser MakeParser(SeedXLanguage language) {
       switch (language) {
-        case ProgrammingLanguage.Block:
-          return new BlockParser();
-        case ProgrammingLanguage.Python:
+        case SeedXLanguage.Python:
           return new PythonParser();
         default:
           Debug.Assert(false, $"Not implemented SeedX language: {language}");

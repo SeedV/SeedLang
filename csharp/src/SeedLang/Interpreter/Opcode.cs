@@ -15,7 +15,7 @@
 using System;
 
 namespace SeedLang.Interpreter {
-  // All the opcodes of Seed Virtual Machine.
+  // All the opcodes of SeedLang virtual machine.
   internal enum Opcode {
     LOADK,        // R(A) := Kst(Bx)
     ADD,          // R(A) := RK(B)  RK(C)
@@ -26,7 +26,7 @@ namespace SeedLang.Interpreter {
     RETURN,       // Return R(A)
   }
 
-  // The type of opcodes.
+  // The types of opcodes.
   internal enum OpcodeType {
     A,
     ABC,

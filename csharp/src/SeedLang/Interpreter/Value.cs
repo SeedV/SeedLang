@@ -15,7 +15,7 @@
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  // The value type used in Seed Virtual Machine.
+  // The value type used in SeedLang virtual machine.
   internal struct Value : IValue {
     public ValueType Type { get; }
 

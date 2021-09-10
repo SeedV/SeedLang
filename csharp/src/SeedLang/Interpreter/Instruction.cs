@@ -16,7 +16,8 @@ using System;
 using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
-  // The instruction data structure that includes the opcode and operands.
+  // The instruction data structure. An instruction is composed of one opcode and one to three
+  // operands.
   //
   // See design/seed_vm.md for the layout of instructions.
   internal struct Instruction {

@@ -25,7 +25,7 @@ namespace SeedLang.Interpreter {
     public override string ToString() {
       var sb = new StringBuilder();
       foreach (var instr in _bytecode) {
-        sb.AppendLine($"{instr}{ConstantOperand(instr)}");
+        sb.AppendLine($"{instr,-20}{ConstantOperandToString(instr)}");
       }
       return sb.ToString();
     }
@@ -47,11 +47,11 @@ namespace SeedLang.Interpreter {
       return (uint)_constants.Count - 1;
     }
 
-    private string ConstantOperand(Instruction instr) {
+    private string ConstantOperandToString(Instruction instr) {
       if (instr.Opcode == Opcode.LOADK) {
         Debug.Assert(instr.Bx >= 0 && instr.Bx < _bytecode.Count,
                      "Bx shall be in the range of the constants");
-        return $"        ; {_constants[(int)instr.Bx]}";
+        return $"; {_constants[(int)instr.Bx]}";
       }
       return "";
     }

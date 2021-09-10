@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
@@ -24,10 +23,9 @@ namespace SeedLang.Interpreter.Tests {
       chunk.Emit(Opcode.RETURN, 0);
       chunk.Emit(Opcode.ADD, 1, 2, 3);
       chunk.Emit(Opcode.LOADK, 1, 0);
-      string expected = @"RETURN 0
-ADD 1 2 3
-LOADK 1 0        ; 1
-".Replace("\r\n", Environment.NewLine);
+      string expected = "RETURN 0            \n" +
+                        "ADD 1 2 3           \n" +
+                        "LOADK 1 0           ; 1\n";
       Assert.Equal(expected, chunk.ToString());
     }
   }

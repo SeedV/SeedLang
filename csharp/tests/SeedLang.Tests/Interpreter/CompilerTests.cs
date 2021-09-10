@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Ast;
 using Xunit;
 
@@ -22,9 +23,9 @@ namespace SeedLang.Interpreter.Tests {
       var eval = Statement.Eval(Expression.Number(1));
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
-      string expected = "LOADK 0 0           ; 1\n" +
-                        "EVAL 0              \n" +
-                        "RETURN 0            \n";
+      string expected = "LOADK 0 0           ; 1" + Environment.NewLine +
+                        "EVAL 0              " + Environment.NewLine +
+                        "RETURN 0            " + Environment.NewLine;
       Assert.Equal(expected, chunk.ToString());
     }
   }

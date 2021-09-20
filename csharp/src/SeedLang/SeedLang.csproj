@@ -6,6 +6,28 @@
 
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2" />
+    <PackageReference Include="Antlr4BuildTasks" Version="8.15">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Antlr4 Include="../../../grammars/SeedPython.g4">
+        <Listener>false</Listener>
+        <Visitor>true</Visitor>
+        <GAtn>false</GAtn>
+        <Package>SeedLang.X</Package>
+        <Error>true</Error>
+        <LibPath>../../../grammars</LibPath>
+    </Antlr4>
+    <Antlr4 Include="../../../grammars/SeedBlock.g4">
+        <Listener>false</Listener>
+        <Visitor>true</Visitor>
+        <GAtn>false</GAtn>
+        <Package>SeedLang.Block</Package>
+        <Error>true</Error>
+        <LibPath>../../../grammars</LibPath>
+    </Antlr4>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

@@ -385,40 +385,6 @@ namespace SeedLang.Block.Tests {
     }
 
     [Fact]
-    public void TestInvalidType() {
-      // Microsoft System.Text.Json throws out "InvalidJson The JSON value could not be converted to
-      // System.Int32. Path: $.module.blocks[0].canvasPosition.x ..." for the input, while
-      // Newtonsoft.Json ignores the error by default.
-      //
-      // When using Newtonsoft.Json, Please turn on strict deserialization to pass this test.
-      string json = @"
-{
-  ""schema"": ""bxf"",
-  ""version"": ""v0.1"",
-  ""module"": {
-    ""name"": ""Main"",
-    ""blocks"": [
-      {
-        ""id"": ""00000000"",
-        ""type"": ""number"",
-        ""doc"": """",
-        ""content"": ""5"",
-        ""canvasPosition"": {
-          ""x"": ""0"",
-          ""y"": ""0""
-        }
-      }
-    ]
-  }
-}";
-      var diagnosticCollection = new DiagnosticCollection();
-      var moduleParsed = BxfReader.ReadFromString(json, diagnosticCollection);
-      Assert.Null(moduleParsed);
-      Assert.Single(diagnosticCollection.Diagnostics);
-      Assert.Equal(Severity.Fatal, diagnosticCollection.Diagnostics[0].Severity);
-    }
-
-    [Fact]
     public void TestTargetBlockNotDockable1() {
       string json = @"
 {

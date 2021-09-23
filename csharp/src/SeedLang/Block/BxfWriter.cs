@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 
 namespace SeedLang.Block {
   // The utility to generate Bxf JSON strings or files.
@@ -69,7 +69,7 @@ namespace SeedLang.Block {
         rootBlock.Accept(blockCollector);
       }
       try {
-        return JsonSerializer.Serialize(obj, BxfConstants.JsonOptions);
+        return JsonConvert.SerializeObject(obj, Formatting.Indented);
       } catch (JsonException e) {
         // Must not run into this since WriteToString is a pure internal data serialization.
         Debug.Fail($"Serialization failed: {e}");

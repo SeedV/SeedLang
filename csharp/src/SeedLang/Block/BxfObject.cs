@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 using System.Collections.Generic;
 
 namespace SeedLang.Block {
@@ -23,6 +26,9 @@ namespace SeedLang.Block {
   //
   // TODO: It's possible to build an auto-generator to create the following C# code based on
   // /schemas/bxf.schema.json. Consider this possibility in the future.
+  [JsonObject(
+      ItemNullValueHandling = NullValueHandling.Ignore,
+      NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfObject {
     public string Schema { get; set; } = BxfConstants.Schema;
     public string Version { get; set; } = BxfConstants.Version;
@@ -32,12 +38,18 @@ namespace SeedLang.Block {
     public BxfModule Module { get; set; } = new BxfModule();
   }
 
+  [JsonObject(
+      ItemNullValueHandling = NullValueHandling.Ignore,
+      NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfModule {
     public string Name { get; set; } = null;
     public string Doc { get; set; } = null;
     public List<BxfBlock> Blocks { get; set; } = new List<BxfBlock>();
   }
 
+  [JsonObject(
+      ItemNullValueHandling = NullValueHandling.Ignore,
+      NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfBlock {
     public string Id { get; set; } = null;
     public string Type { get; set; } = null;
@@ -87,13 +99,20 @@ namespace SeedLang.Block {
     }
   }
 
+  [JsonObject(
+      ItemNullValueHandling = NullValueHandling.Ignore,
+      NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfCanvasPosition {
     public int X { get; set; } = 0;
     public int Y { get; set; } = 0;
   }
 
+  [JsonObject(
+      ItemNullValueHandling = NullValueHandling.Ignore,
+      NamingStrategyType = typeof(CamelCaseNamingStrategy))]
   internal class BxfDockPosition {
     public string TargetBlockId { get; set; } = null;
+    [JsonConverter(typeof(StringEnumConverter), true)]
     public Position.DockType DockType { get; set; }
     public int DockSlotIndex { get; set; } = 0;
   }

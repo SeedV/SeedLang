@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+    <PackageId>SeedLang</PackageId>
+    <Version>0.1.1</Version>
+    <Authors>The Aha001 Team</Authors>
+    <Company>SeedV.com</Company>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/aha-001/SeedLang</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Description>SeedLang is a visualizable low-code programming environment that focuses on educational purposes.</Description>
   </PropertyGroup>
 
   <ItemGroup>

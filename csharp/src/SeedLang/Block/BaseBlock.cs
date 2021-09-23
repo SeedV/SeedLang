@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using SeedLang.Common;
 
 namespace SeedLang.Block {
   // The base class of all the in-memory block classes.
@@ -20,6 +21,11 @@ namespace SeedLang.Block {
     public string Id { get; set; } = "";
     public string Doc { get; set; } = "";
     public Position Pos { get; set; } = new Position(0, 0);
+
+    // Once a block is parsed from an inline text (got from the user input in the inline editing
+    // mode), it records a reference to the position of the inline text. This info is only used by
+    // the editor for display purposes. It won't be serialized to persistent storages.
+    public TextRange InlineTextReference { get; set; } = null;
 
     public override int GetHashCode() {
       return Id.GetHashCode();

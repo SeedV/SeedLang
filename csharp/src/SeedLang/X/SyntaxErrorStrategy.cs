@@ -41,8 +41,9 @@ namespace SeedLang.X {
                 tokens = tokenStream.GetText(exception.StartToken, exception.OffendingToken);
               }
               tokens = EscapeWSAndQuote(tokens);
-              ReportDiagnostic(RangeOf(exception.StartToken, exception.OffendingToken),
-                               Message.SyntaxErrorNoViableAlternative1.Format(tokens));
+              ReportDiagnostic(
+                  TextRange.RangeOfTokens(exception.StartToken, exception.OffendingToken),
+                  Message.SyntaxErrorNoViableAlternative1.Format(tokens));
             }
             break;
           case InputMismatchException ime:
@@ -50,7 +51,7 @@ namespace SeedLang.X {
             break;
           case FailedPredicateException fpe:
             string ruleName = parser.RuleNames[parser.RuleContext.RuleIndex];
-            ReportDiagnostic(RangeOf(fpe.OffendingToken, fpe.OffendingToken),
+            ReportDiagnostic(TextRange.RangeOfTokens(fpe.OffendingToken, fpe.OffendingToken),
                              Message.SyntaxErrorFailedPredicate1.Format(ruleName));
             break;
           default:
@@ -89,15 +90,8 @@ namespace SeedLang.X {
 
     private void ReportDiagnosticForToken(Parser parser, IToken token, Message message) {
       string expectedTokens = GetExpectedTokens(parser).ToString(parser.Vocabulary);
-      ReportDiagnostic(RangeOf(token, token),
+      ReportDiagnostic(TextRange.RangeOfTokens(token, token),
                        message.Format(GetTokenErrorDisplay(token), expectedTokens));
-    }
-
-    private static Range RangeOf(IToken start, IToken end) {
-      // TODO: need scan the source string to calculate the end column if the end token is in
-      // multiple lines.
-      return new TextRange(start.Line, start.Column,
-                           end.Line, end.Column + end.StopIndex - end.StartIndex);
     }
   }
 }

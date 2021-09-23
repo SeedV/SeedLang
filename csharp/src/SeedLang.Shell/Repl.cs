@@ -56,12 +56,12 @@ namespace SeedLang.Shell {
     }
 
     internal void Execute() {
+      ReadLine.HistoryEnabled = true;
       var visualizer = new Visualizer();
       var executor = new Executor();
       executor.Register(visualizer);
       while (true) {
-        Console.Write("> ");
-        string line = Console.ReadLine();
+        string line = ReadLine.Read("> ");
         if (line == "quit") {
           break;
         }

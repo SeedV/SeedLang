@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Antlr4.Runtime;
 using System;
 
 namespace SeedLang.Common {
@@ -50,17 +49,6 @@ namespace SeedLang.Common {
         return false;
       }
       return Start == (range as TextRange).Start && End == (range as TextRange).End;
-    }
-
-    public static TextRange RangeOfToken(IToken token) {
-      return RangeOfTokens(token, token);
-    }
-
-    public static TextRange RangeOfTokens(IToken start, IToken end) {
-      // TODO: need scan the source string to calculate the end column if the end token is in
-      // multiple lines.
-      return new TextRange(start.Line, start.Column,
-                           end.Line, end.Column + end.StopIndex - end.StartIndex);
     }
   }
 }

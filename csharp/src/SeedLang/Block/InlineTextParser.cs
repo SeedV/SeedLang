@@ -48,53 +48,51 @@ namespace SeedLang.Block {
     internal void VisitInlineText(string text, IInlineTextListener listener) {
       Lexer lexer = SetupLexer(text);
       int lastTokenType = SeedBlockParser.UNKNOWN_CHAR;
-      bool negative = false;
       IToken negativeToken = null;
       foreach (var token in lexer.GetAllTokens()) {
-        if (negative && token.Type != SeedBlockLexer.NUMBER) {
+        if (!(negativeToken is null) && token.Type != SeedBlockLexer.NUMBER) {
           // TODO: define a const string for the negative sign?
-          listener.VisitArithmeticOperator("-", TextRange.RangeOfToken(negativeToken));
-          negative = false;
+          listener.VisitArithmeticOperator("-", CodeReferenceUtils.RangeOfToken(negativeToken));
+          negativeToken = null;
         }
         switch (token.Type) {
           case SeedBlockLexer.ADD:
           case SeedBlockLexer.MUL:
           case SeedBlockLexer.DIV:
-            listener.VisitArithmeticOperator(token.Text, TextRange.RangeOfToken(token));
+            listener.VisitArithmeticOperator(token.Text, CodeReferenceUtils.RangeOfToken(token));
             break;
           case SeedBlockLexer.SUB:
             if (lastTokenType == SeedBlockParser.NUMBER ||
                 lastTokenType == SeedBlockParser.CLOSE_PAREN) {
-              listener.VisitArithmeticOperator(token.Text, TextRange.RangeOfToken(token));
+              listener.VisitArithmeticOperator(token.Text, CodeReferenceUtils.RangeOfToken(token));
             } else {
-              negative = true;
               negativeToken = token;
             }
             break;
           case SeedBlockLexer.IDENTIFIER:
-            listener.VisitIdentifier(token.Text, TextRange.RangeOfToken(token));
+            listener.VisitIdentifier(token.Text, CodeReferenceUtils.RangeOfToken(token));
             break;
           case SeedBlockLexer.NUMBER:
             TextRange combinedRange =
-                negative ?
-                TextRange.RangeOfTokens(negativeToken, token) :
-                TextRange.RangeOfToken(token);
+                negativeToken is null ?
+                CodeReferenceUtils.RangeOfToken(token) :
+                CodeReferenceUtils.RangeOfTokens(negativeToken, token);
             // TODO: define a const string for the negative sign?
-            listener.VisitNumber((negative ? "-" : "") + token.Text, combinedRange);
-            negative = false;
+            listener.VisitNumber((negativeToken is null ? "" : "-") + token.Text, combinedRange);
+            negativeToken = null;
             break;
           case SeedBlockLexer.STRING:
-            listener.VisitString(token.Text, TextRange.RangeOfToken(token));
+            listener.VisitString(token.Text, CodeReferenceUtils.RangeOfToken(token));
             break;
           case SeedBlockLexer.OPEN_PAREN:
-            listener.VisitOpenParen(TextRange.RangeOfToken(token));
+            listener.VisitOpenParen(CodeReferenceUtils.RangeOfToken(token));
             break;
           case SeedBlockLexer.CLOSE_PAREN:
-            listener.VisitCloseParen(TextRange.RangeOfToken(token));
+            listener.VisitCloseParen(CodeReferenceUtils.RangeOfToken(token));
             break;
           default:
             // Invlid tokens.
-            listener.VisitInvalidToken(TextRange.RangeOfToken(token));
+            listener.VisitInvalidToken(CodeReferenceUtils.RangeOfToken(token));
             break;
         }
         lastTokenType = token.Type;

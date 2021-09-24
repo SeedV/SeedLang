@@ -42,7 +42,7 @@ namespace SeedLang.X {
               }
               tokens = EscapeWSAndQuote(tokens);
               ReportDiagnostic(
-                  TextRange.RangeOfTokens(exception.StartToken, exception.OffendingToken),
+                  CodeReferenceUtils.RangeOfTokens(exception.StartToken, exception.OffendingToken),
                   Message.SyntaxErrorNoViableAlternative1.Format(tokens));
             }
             break;
@@ -51,8 +51,9 @@ namespace SeedLang.X {
             break;
           case FailedPredicateException fpe:
             string ruleName = parser.RuleNames[parser.RuleContext.RuleIndex];
-            ReportDiagnostic(TextRange.RangeOfTokens(fpe.OffendingToken, fpe.OffendingToken),
-                             Message.SyntaxErrorFailedPredicate1.Format(ruleName));
+            ReportDiagnostic(
+                CodeReferenceUtils.RangeOfTokens(fpe.OffendingToken, fpe.OffendingToken),
+                Message.SyntaxErrorFailedPredicate1.Format(ruleName));
             break;
           default:
             Debug.Fail("Unsupported recognition exception.");
@@ -90,7 +91,7 @@ namespace SeedLang.X {
 
     private void ReportDiagnosticForToken(Parser parser, IToken token, Message message) {
       string expectedTokens = GetExpectedTokens(parser).ToString(parser.Vocabulary);
-      ReportDiagnostic(TextRange.RangeOfTokens(token, token),
+      ReportDiagnostic(CodeReferenceUtils.RangeOfTokens(token, token),
                        message.Format(GetTokenErrorDisplay(token), expectedTokens));
     }
   }

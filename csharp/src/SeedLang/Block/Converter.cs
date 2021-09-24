@@ -62,8 +62,8 @@ namespace SeedLang.Block {
       }
     }
 
-    // Checks if an inline text is a valid expression. Detailed info will be stored in collection if
-    // the text is invalid.
+    // Checks if an inline text is a valid expression. Detailed diagnostic info will be stored in
+    // collection if the text is invalid.
     public static bool IsValidInlineTextExpression(string text, DiagnosticCollection collection) {
       if (string.IsNullOrEmpty(text)) {
         collection.Report(new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,

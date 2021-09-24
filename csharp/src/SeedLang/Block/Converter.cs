@@ -23,44 +23,75 @@ namespace SeedLang.Block {
   public class Converter {
     private class InlineTextListener : InlineTextParser.IInlineTextListener {
       public readonly List<BaseBlock> Blocks = new List<BaseBlock>();
+      public IList<TextRange> InvalidTokenRanges { get; private set; }
 
-      public void VisitArithmeticOperator(string op) {
-        Blocks.Add(new ArithmeticOperatorBlock { Name = op });
+      public InlineTextListener(IList<TextRange> invalidTokenRanges) {
+        InvalidTokenRanges = invalidTokenRanges;
       }
 
-      public void VisitCloseParen() {
-        Blocks.Add(new ParenthesisBlock(ParenthesisBlock.Type.Right));
+      public void VisitArithmeticOperator(string op, TextRange range) {
+        Blocks.Add(new ArithmeticOperatorBlock { Name = op, InlineTextReference = range });
       }
 
-      public void VisitIdentifier(string name) {
+      public void VisitCloseParen(TextRange range) {
+        Blocks.Add(new ParenthesisBlock(ParenthesisBlock.Type.Right) {
+          InlineTextReference = range
+        });
+      }
+
+      public void VisitIdentifier(string name, TextRange range) {
         throw new System.NotImplementedException();
       }
 
-      public void VisitNumber(string number) {
-        Blocks.Add(new NumberBlock { Value = number });
+      public void VisitNumber(string number, TextRange range) {
+        Blocks.Add(new NumberBlock { Value = number, InlineTextReference = range });
       }
 
-      public void VisitOpenParen() {
-        Blocks.Add(new ParenthesisBlock(ParenthesisBlock.Type.Left));
+      public void VisitOpenParen(TextRange range) {
+        Blocks.Add(new ParenthesisBlock(ParenthesisBlock.Type.Left) {
+          InlineTextReference = range
+        });
       }
 
-      public void VisitString(string str) {
+      public void VisitString(string str, TextRange range) {
         throw new System.NotImplementedException();
+      }
+
+      public void VisitInvalidToken(TextRange range) {
+        InvalidTokenRanges?.Add(range);
       }
     }
 
-    // Converts an expression inline text to a list of blocks.
-    public static IEnumerable<BaseBlock> InlineTextToBlocks(string text) {
-      Debug.Assert(!string.IsNullOrEmpty(text), "Inline text shall not be null or empty.");
+    // Checks if an inline text is a valid expression. Detailed diagnostic info will be stored in
+    // collection if the text is invalid.
+    public static bool IsValidInlineTextExpression(string text, DiagnosticCollection collection) {
+      if (string.IsNullOrEmpty(text)) {
+        collection.Report(new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+                                         Message.EmptyInlineText.ToString()));
+        return false;
+      }
       var parser = new InlineTextParser();
-      var listener = new InlineTextListener();
+      return parser.Validate(text, "", ParseRule.Expression, collection);
+    }
+
+    // Converts an expression inline text to a list of blocks. A list of invalidTokenRanges can be
+    // passed in, to collect the text ranges of invalid tokens.
+    public static IReadOnlyList<BaseBlock> InlineTextToBlocks(
+        string text, IList<TextRange> invalidTokenRanges, DiagnosticCollection collection) {
+      if (string.IsNullOrEmpty(text)) {
+        collection.Report(new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
+                                         Message.EmptyInlineText.ToString()));
+        return null;
+      }
+      var parser = new InlineTextParser();
+      var listener = new InlineTextListener(invalidTokenRanges);
       parser.VisitInlineText(text, listener);
       return listener.Blocks;
     }
 
     // Converts a block program to a list of AST trees.
-    internal static IEnumerable<AstNode> TryConvert(Program program,
-                                                    DiagnosticCollection collection) {
+    internal static IReadOnlyList<AstNode> TryConvert(Program program,
+                                                      DiagnosticCollection collection) {
       var nodes = new List<AstNode>();
       foreach (var module in program.Modules) {
         foreach (var rootBlock in module.RootBlockIterator) {

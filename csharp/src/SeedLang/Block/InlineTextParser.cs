@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -28,62 +29,70 @@ namespace SeedLang.Block {
     // The listener interface to be notified when the tokens of an expression inline text are
     // visited.
     internal interface IInlineTextListener {
-      void VisitArithmeticOperator(string op);
-      void VisitIdentifier(string name);
-      void VisitNumber(string number);
-      void VisitString(string str);
-      void VisitOpenParen();
-      void VisitCloseParen();
+      void VisitArithmeticOperator(string op, TextRange range);
+      void VisitIdentifier(string name, TextRange range);
+      void VisitNumber(string number, TextRange range);
+      void VisitString(string str, TextRange range);
+      void VisitOpenParen(TextRange range);
+      void VisitCloseParen(TextRange range);
+      void VisitInvalidToken(TextRange range);
     }
 
     // Visits an inline text of block programs. The given listener is notified when each token of
     // the inline text is visited. The negative sign token will be combined with the following
     // number to form a negative number.
+    //
+    // The input can be either a valid inline text or an invalid inline text. If the text is
+    // invalid, this method will still try to parse it and notify the listener about both valid and
+    // invalid tokens.
     internal void VisitInlineText(string text, IInlineTextListener listener) {
-      if (!Validate(text, "", ParseRule.Expression, null)) {
-        return;
-      }
       Lexer lexer = SetupLexer(text);
       int lastTokenType = SeedBlockParser.UNKNOWN_CHAR;
-      bool negative = false;
+      IToken negativeToken = null;
       foreach (var token in lexer.GetAllTokens()) {
-        if (negative && token.Type != SeedBlockLexer.NUMBER) {
+        if (!(negativeToken is null) && token.Type != SeedBlockLexer.NUMBER) {
           // TODO: define a const string for the negative sign?
-          listener.VisitArithmeticOperator("-");
-          negative = false;
+          listener.VisitArithmeticOperator("-", CodeReferenceUtils.RangeOfToken(negativeToken));
+          negativeToken = null;
         }
         switch (token.Type) {
           case SeedBlockLexer.ADD:
           case SeedBlockLexer.MUL:
           case SeedBlockLexer.DIV:
-            listener.VisitArithmeticOperator(token.Text);
+            listener.VisitArithmeticOperator(token.Text, CodeReferenceUtils.RangeOfToken(token));
             break;
           case SeedBlockLexer.SUB:
             if (lastTokenType == SeedBlockParser.NUMBER ||
                 lastTokenType == SeedBlockParser.CLOSE_PAREN) {
-              listener.VisitArithmeticOperator(token.Text);
+              listener.VisitArithmeticOperator(token.Text, CodeReferenceUtils.RangeOfToken(token));
             } else {
-              negative = true;
+              negativeToken = token;
             }
             break;
           case SeedBlockLexer.IDENTIFIER:
-            listener.VisitIdentifier(token.Text);
+            listener.VisitIdentifier(token.Text, CodeReferenceUtils.RangeOfToken(token));
             break;
           case SeedBlockLexer.NUMBER:
+            TextRange combinedRange =
+                negativeToken is null ?
+                CodeReferenceUtils.RangeOfToken(token) :
+                CodeReferenceUtils.RangeOfTokens(negativeToken, token);
             // TODO: define a const string for the negative sign?
-            listener.VisitNumber((negative ? "-" : "") + token.Text);
-            negative = false;
+            listener.VisitNumber((negativeToken is null ? "" : "-") + token.Text, combinedRange);
+            negativeToken = null;
             break;
           case SeedBlockLexer.STRING:
-            listener.VisitString(token.Text);
+            listener.VisitString(token.Text, CodeReferenceUtils.RangeOfToken(token));
             break;
           case SeedBlockLexer.OPEN_PAREN:
-            listener.VisitOpenParen();
+            listener.VisitOpenParen(CodeReferenceUtils.RangeOfToken(token));
             break;
           case SeedBlockLexer.CLOSE_PAREN:
-            listener.VisitCloseParen();
+            listener.VisitCloseParen(CodeReferenceUtils.RangeOfToken(token));
             break;
           default:
+            // Invlid tokens.
+            listener.VisitInvalidToken(CodeReferenceUtils.RangeOfToken(token));
             break;
         }
         lastTokenType = token.Type;

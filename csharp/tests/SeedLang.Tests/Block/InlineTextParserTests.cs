@@ -19,38 +19,6 @@ using Xunit;
 
 namespace SeedLang.Block.Tests {
   public class InlineTextParserTests {
-    private class MockupInlineTextListener : InlineTextParser.IInlineTextListener {
-      private readonly List<string> _texts = new List<string>();
-
-      public override string ToString() {
-        return string.Join(',', _texts);
-      }
-
-      public void VisitArithmeticOperator(string op) {
-        _texts.Add(op);
-      }
-
-      public void VisitCloseParen() {
-        _texts.Add(")");
-      }
-
-      public void VisitIdentifier(string name) {
-        _texts.Add(name);
-      }
-
-      public void VisitNumber(string number) {
-        _texts.Add(number);
-      }
-
-      public void VisitOpenParen() {
-        _texts.Add("(");
-      }
-
-      public void VisitString(string str) {
-        _texts.Add(str);
-      }
-    }
-
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
     private readonly InlineTextParser _parser = new InlineTextParser();
 

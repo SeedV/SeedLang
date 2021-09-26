@@ -38,9 +38,8 @@ namespace SeedLang.Block {
       try {
         bxfObject = JsonConvert.DeserializeObject<BxfObject>(json);
       } catch (JsonException e) {
-        diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, null, null,
-            Message.InvalidJson1.Format(e.Message)));
+        diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Fatal, null, null,
+                                    Message.InvalidJson1, e.Message);
         return null;
       }
       Module module = ConvertBxfToModule(bxfObject, diagnosticCollection);
@@ -64,9 +63,8 @@ namespace SeedLang.Block {
       try {
         json = File.ReadAllText(path);
       } catch (Exception e) {
-        diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, null, null,
-            Message.FailedToReadFile2.Format(path, e.Message)));
+        diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Fatal, null, null,
+                                    Message.FailedToReadFile2, path, e.Message);
         return null;
       }
       return ReadFromString(json, diagnosticCollection);
@@ -75,25 +73,22 @@ namespace SeedLang.Block {
     private static Module ConvertBxfToModule(BxfObject bxfObject,
                                              DiagnosticCollection diagnosticCollection) {
       if (bxfObject.Schema != BxfConstants.Schema) {
-        diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, null, null,
-            Message.InvalidBxfSchema1.Format(bxfObject.Schema)));
+        diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Fatal, null, null,
+                                    Message.InvalidBxfSchema1, bxfObject.Schema);
         return null;
       }
       // TODO: Here is an exact version matching. Change it to a version compatibility check when
       // new version numbers are supported.
       if (bxfObject.Version != BxfConstants.Version) {
-        diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, null, null,
-            Message.InvalidBxfVersion1.Format(bxfObject.Version)));
+        diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Fatal, null, null,
+                                    Message.InvalidBxfVersion1, bxfObject.Version);
         return null;
       }
 
       var module = new Module();
       if (string.IsNullOrEmpty(bxfObject.Module.Name)) {
-        diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
-            Message.EmptyModuleName.ToString()));
+        diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Error, null, null,
+                                    Message.EmptyModuleName);
       }
 
       module.Name = bxfObject.Module.Name;
@@ -115,9 +110,8 @@ namespace SeedLang.Block {
           maxIdNumber = idNumber;
         }
         if (idSet.Contains(block.Id)) {
-          diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
-                           Message.DuplicateBlockId1.Format(block.Id)));
+          diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
+                                      Message.DuplicateBlockId1, block.Id);
           continue;
         }
         idSet.Add(block.Id);
@@ -126,10 +120,8 @@ namespace SeedLang.Block {
 
       try {
         module.BatchLoadBlocks(cachedBlocks, maxIdNumber);
-      } catch (ArgumentException e) {
-        diagnosticCollection.Report(
-            new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal, module.Name, null,
-                           e.Message));
+      } catch (DiagnosticException e) {
+        diagnosticCollection.Report(e.Diagnostic);
         return null;
       }
       return module;
@@ -153,33 +145,31 @@ namespace SeedLang.Block {
           block = new ParenthesisBlock();
           break;
         default:
-          diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
-                             Message.InvalidBlockType1.Format(bxfBlock.Type)));
+          diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
+                                      Message.InvalidBlockType1, bxfBlock.Type);
           return null;
       }
       if (string.IsNullOrEmpty(bxfBlock.Id)) {
-        diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
-                             Message.EmptyBlockId.ToString()));
+        diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
+                                    Message.EmptyBlockId);
         return null;
       }
       block.Id = bxfBlock.Id;
       block.Doc = bxfBlock.Doc ?? "";
       block.Pos = bxfBlock.ToBlockPosition();
       if (block.Pos is null) {
-        diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
-                             Message.BlockHasNoPosition.ToString()));
+        diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
+                                    Message.BlockHasNoPosition);
         return null;
       }
       if (block is IEditable) {
         try {
           (block as IEditable).UpdateText(bxfBlock.Content ?? "");
-        } catch (ArgumentException e) {
-          diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
-                             e.Message));
+        } catch (DiagnosticException e) {
+          if (e.Diagnostic.Module is null) {
+            e.Diagnostic.Module = module.Name;
+          }
+          diagnosticCollection.Report(e.Diagnostic);
         }
       }
       return block;
@@ -191,9 +181,8 @@ namespace SeedLang.Block {
       try {
         return int.Parse(id);
       } catch (Exception) {
-        diagnosticCollection.Report(
-              new Diagnostic(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
-                             Message.InvalidBlockId1.Format(id)));
+        diagnosticCollection.Report(SystemReporters.SeedBlock, Severity.Error, module.Name, null,
+                                    Message.InvalidBlockId1, id);
         return -1;
       }
     }

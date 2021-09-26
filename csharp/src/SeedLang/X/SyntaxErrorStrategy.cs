@@ -43,7 +43,7 @@ namespace SeedLang.X {
               tokens = EscapeWSAndQuote(tokens);
               ReportDiagnostic(
                   CodeReferenceUtils.RangeOfTokens(exception.StartToken, exception.OffendingToken),
-                  Message.SyntaxErrorNoViableAlternative1.Format(tokens));
+                  Message.SyntaxErrorNoViableAlternative1, tokens);
             }
             break;
           case InputMismatchException ime:
@@ -53,7 +53,7 @@ namespace SeedLang.X {
             string ruleName = parser.RuleNames[parser.RuleContext.RuleIndex];
             ReportDiagnostic(
                 CodeReferenceUtils.RangeOfTokens(fpe.OffendingToken, fpe.OffendingToken),
-                Message.SyntaxErrorFailedPredicate1.Format(ruleName));
+                Message.SyntaxErrorFailedPredicate1, ruleName);
             break;
           default:
             Debug.Fail("Unsupported recognition exception.");
@@ -84,15 +84,15 @@ namespace SeedLang.X {
       return false;
     }
 
-    private void ReportDiagnostic(Range range, string message) {
-      _collection.Report(
-        new Diagnostic(SystemReporters.SeedX, Severity.Fatal, _module, range, message));
+    private void ReportDiagnostic(Range range, Message messageId, params string[] arguments) {
+      _collection.Report(SystemReporters.SeedX, Severity.Fatal, _module, range, messageId,
+                         arguments);
     }
 
-    private void ReportDiagnosticForToken(Parser parser, IToken token, Message message) {
+    private void ReportDiagnosticForToken(Parser parser, IToken token, Message messageId) {
       string expectedTokens = GetExpectedTokens(parser).ToString(parser.Vocabulary);
       ReportDiagnostic(CodeReferenceUtils.RangeOfTokens(token, token),
-                       message.Format(GetTokenErrorDisplay(token), expectedTokens));
+                       messageId, GetTokenErrorDisplay(token), expectedTokens);
     }
   }
 }

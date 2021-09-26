@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using SeedLang.Common;
 
 namespace SeedLang.Block {
@@ -37,7 +36,14 @@ namespace SeedLang.Block {
       if (ValidateText(text)) {
         _name = text;
       } else {
-        throw new ArgumentException(Message.InvalidOperatorName1.Format(text));
+        // The thrown exception has no module name associated, since there is no block-to-module
+        // mapping for now. It depends on the outside logic to fill the info in.
+        //
+        // TODO: a better solution to fill the module name in.
+        throw new DiagnosticException(SystemReporters.SeedBlock, Severity.Error,
+                                      null,
+                                      new BlockRange(Id),
+                                      Message.InvalidOperatorName1, text);
       }
     }
 

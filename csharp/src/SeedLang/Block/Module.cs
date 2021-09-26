@@ -138,9 +138,15 @@ namespace SeedLang.Block {
           (targetBlock as IDockable).CanDock(block, type, dockSlotIndex)) {
         (targetBlock as IDockable).Dock(block, type, dockSlotIndex);
       } else {
-        throw new ArgumentException(Message.TargetBlockNotDockable4.Format(
-            blockId, targetBlockId, Enum.GetName(typeof(Position.DockType), type),
-            dockSlotIndex.ToString()));
+        throw new DiagnosticException(SystemReporters.SeedBlock,
+                                      Severity.Fatal,
+                                      Name,
+                                      new BlockRange(blockId),
+                                      Message.TargetBlockNotDockable4,
+                                      blockId,
+                                      targetBlockId,
+                                      Enum.GetName(typeof(Position.DockType), type),
+                                      dockSlotIndex.ToString());
       }
     }
 
@@ -201,8 +207,12 @@ namespace SeedLang.Block {
       foreach (var block in blocks) {
         if (block.Pos.IsDocked) {
           if (!_blocks.ContainsKey(block.Pos.TargetBlockId)) {
-            throw new ArgumentException(
-                Message.TargetBlockIdNotExist1.Format(block.Pos.TargetBlockId));
+            throw new DiagnosticException(SystemReporters.SeedBlock,
+                                          Severity.Fatal,
+                                          Name,
+                                          new BlockRange(new BlockPosition(block.Id)),
+                                          Message.TargetBlockIdNotExist1,
+                                          block.Pos.TargetBlockId);
           } else {
             var idGroups = dockingGraph[block.Pos.TargetBlockId];
             switch (block.Pos.Type) {

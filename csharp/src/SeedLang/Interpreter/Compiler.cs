@@ -41,6 +41,7 @@ namespace SeedLang.Interpreter {
       _constantCache = new ConstantCache(_chunk);
       Visit(node);
       _chunk.Emit(Opcode.RETURN, 0);
+      _chunk.RegisterCount = _registerAllocator.MaxRegisterCount;
       return _chunk;
     }
 

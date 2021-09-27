@@ -17,7 +17,7 @@ using System.Collections.Generic;
 
 namespace SeedLang.Interpreter {
   // A cache class to cache the constant id of constants. It only adds the unique constant into the
-  // constants list of the chunk.
+  // constant list of the chunk.
   internal class ConstantCache {
     private readonly Chunk _chunk;
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
@@ -26,7 +26,7 @@ namespace SeedLang.Interpreter {
       _chunk = chunk;
     }
 
-    // Returns the id of the given number constant and adds the constant into the constants list of
+    // Returns the id of the given number constant and adds the constant into the constant list of
     // the chunk if it is not in the constants list.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {

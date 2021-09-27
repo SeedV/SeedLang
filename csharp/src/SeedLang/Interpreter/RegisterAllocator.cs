@@ -15,8 +15,8 @@
 namespace SeedLang.Interpreter {
   // The allocator class to allocate register slots for local and temporary variables.
   internal class RegisterAllocator {
-    // The maximum allocated registers count. This number is never decreased even when a register is
-    // deallocated.
+    // The maximum count of the allocated registers. This number is never decreased even when a
+    // register is deallocated.
     public uint MaxRegisterCount = 0;
     // Current allocated registers count. This number is decreased if a register is deallocated.
     private uint _registerCount = 0;
@@ -26,6 +26,10 @@ namespace SeedLang.Interpreter {
       _registerCount++;
       if (_registerCount > MaxRegisterCount) {
         MaxRegisterCount = _registerCount;
+        if (MaxRegisterCount > Chunk.MaxRegisterCount) {
+          // TODO: throw a compile error exception and handle it in the executor to generate the
+          // corresponding diagnostic information.
+        }
       }
       return _registerCount - 1;
     }

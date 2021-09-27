@@ -19,7 +19,14 @@ using System.Text;
 namespace SeedLang.Interpreter {
   // A data structure to hold bytecode and constants generated from the AST tree by the compiler.
   internal class Chunk {
+    // The maximum number of registers that can be allocated in the stack of a chunk.
+    public const uint MaxRegisterCount = 250;
+
+    // The actual count of the registers that is needed for this chunk.
+    public uint RegisterCount = 0;
+
     private readonly List<Instruction> _bytecode = new List<Instruction>();
+    // The constant list to hold all the constants used in this chunk.
     private readonly List<Value> _constants = new List<Value>();
 
     public override string ToString() {
@@ -42,16 +49,24 @@ namespace SeedLang.Interpreter {
       _bytecode.Add(new Instruction(opcode, a, bx));
     }
 
+    // Adds a number constant into the constant list and returns the id of the input constant.
+    //
+    // The returned constant id is the index in the constant list plus the maximum register count.
     internal uint AddConstant(double number) {
       _constants.Add(new Value(number));
-      return (uint)_constants.Count - 1;
+      return (uint)_constants.Count - 1 + MaxRegisterCount;
+    }
+
+    // Converts the constant id to the index in the constant list.
+    private int IndexOfConstId(uint constId) {
+      Debug.Assert(constId >= MaxRegisterCount && constId - MaxRegisterCount < _constants.Count,
+                   "Constant id is not in the range of the constant list.");
+      return (int)(constId - MaxRegisterCount);
     }
 
     private string ConstantOperandToString(Instruction instr) {
       if (instr.Opcode == Opcode.LOADK) {
-        Debug.Assert(instr.Bx >= 0 && instr.Bx < _bytecode.Count,
-                     "Bx shall be in the range of the constants");
-        return $"; {_constants[(int)instr.Bx]}";
+        return $"; {_constants[IndexOfConstId(instr.Bx)]}";
       }
       return "";
     }

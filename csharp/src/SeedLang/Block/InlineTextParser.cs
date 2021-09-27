@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -96,6 +95,10 @@ namespace SeedLang.Block {
             break;
         }
         lastTokenType = token.Type;
+      }
+      if (!(negativeToken is null)) {
+        // TODO: define a const string for the negative sign?
+        listener.VisitArithmeticOperator("-", CodeReferenceUtils.RangeOfToken(negativeToken));
       }
     }
 

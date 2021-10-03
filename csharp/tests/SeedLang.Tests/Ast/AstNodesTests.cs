@@ -12,65 +12,73 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Common;
 using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {
   public class AstNodesTests {
+    private static TextRange _testTextRange => new TextRange(0, 1, 2, 3);
+    private static BlockRange _testBlockRange => new BlockRange(new BlockPosition("Test Id"));
+
     [Fact]
     public void TestIdentifier() {
       string name = "test name";
-      var identifier = Expression.Identifier(name);
+      var identifier = Expression.Identifier(name, _testTextRange);
       Assert.Equal(name, identifier.Name);
+      Assert.Equal(_testTextRange, identifier.Range);
       Assert.Equal(name, identifier.ToString());
     }
 
     [Fact]
     public void TestNumberConstant() {
       double value = 1.5;
-      var number = Expression.Number(value);
+      var number = Expression.Number(value, _testBlockRange);
       Assert.Equal(value, number.Value);
+      Assert.Equal(_testBlockRange, number.Range);
       Assert.Equal(value.ToString(), number.ToString());
     }
 
     [Fact]
     public void TestStringConstant() {
       string strValue = "test string";
-      var str = Expression.String(strValue);
+      var str = Expression.String(strValue, _testTextRange);
       Assert.Equal(strValue, str.Value);
+      Assert.Equal(_testTextRange, str.Range);
       Assert.Equal(strValue, str.ToString());
     }
 
     [Fact]
     public void TestBinaryExpression() {
-      var left = Expression.Number(1);
-      var right = Expression.Number(2);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right);
+      var left = Expression.Number(1, _testTextRange);
+      var right = Expression.Number(2, _testTextRange);
+      var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
       Assert.Equal("(1 + 2)", binary.ToString());
     }
 
     [Fact]
     public void TestUnaryExpression() {
-      var unary = Expression.Unary(UnaryOperator.Negative, Expression.Number(1));
+      var number = Expression.Number(1, _testTextRange);
+      var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
       Assert.Equal("(- 1)", unary.ToString());
     }
 
     [Fact]
     public void TestAssignmentStatement() {
-      var identifier = Expression.Identifier("id");
-      var expr = Expression.Number(1);
-      var assignment = Statement.Assignment(identifier, expr);
+      var identifier = Expression.Identifier("id", null);
+      var expr = Expression.Number(1, _testTextRange);
+      var assignment = Statement.Assignment(identifier, expr, _testTextRange);
       Assert.Equal("id = 1\n", assignment.ToString());
     }
 
     [Fact]
     public void TestEvalStatement() {
-      var one = Expression.Number(1);
-      var two = Expression.Number(2);
-      var three = Expression.Number(3);
-      var left = Expression.Binary(one, BinaryOperator.Add, two);
-      var binary = Expression.Binary(left, BinaryOperator.Multiply, three);
-      var eval = Statement.Eval(binary);
+      var one = Expression.Number(1, _testTextRange);
+      var two = Expression.Number(2, _testTextRange);
+      var three = Expression.Number(3, _testTextRange);
+      var left = Expression.Binary(one, BinaryOperator.Add, two, _testTextRange);
+      var binary = Expression.Binary(left, BinaryOperator.Multiply, three, _testTextRange);
+      var eval = Statement.Eval(binary, _testTextRange);
       Assert.Equal("eval ((1 + 2) * 3)\n", eval.ToString());
     }
   }

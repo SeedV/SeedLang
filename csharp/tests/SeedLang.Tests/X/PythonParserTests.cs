@@ -48,7 +48,7 @@ namespace SeedLang.X.Tests {
 
     // TODO: add test cases for other syntax errors after grammar is more complex.
     [Theory]
-    [InlineData("1", "SyntaxErrorInputMismatch '1' {'eval', 'break', 'continue', IDENTIFIER}")]
+    [InlineData("1", "SyntaxErrorInputMismatch '1' {'break', 'continue', 'eval', IDENTIFIER}")]
     [InlineData("eval1", @"SyntaxErrorInputMismatch '<EOF>' '='")]
     [InlineData("eval 1.2 =", @"SyntaxErrorUnwantedToken '=' <EOF>")]
     public void TestParseSingleSyntaxError(string input, string localizedMessage) {

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Diagnostics;
 using System.Text;
 using SeedLang.Runtime;
 
@@ -64,7 +63,6 @@ namespace SeedLang.Ast {
 
     // Outputs a given AST tree to a string.
     internal static string AstToString(AstNode node) {
-      Debug.Assert(node != null);
       var asb = new AstStringBuilder();
       asb.Visit(node);
       return asb.ToString();

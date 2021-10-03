@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics;
+using System;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
 using SeedLang.Runtime;
+using SeedLang.X;
 
 namespace SeedLang.Block {
   // The visitor class to visit an inline text of SeedBlock programs and generate the corresponding
@@ -29,19 +30,19 @@ namespace SeedLang.Block {
     // Visits a single identifier.
     public override AstNode VisitSingle_identifier(
         [NotNull] SeedBlockParser.Single_identifierContext context) {
-      return Expression.Identifier(context.IDENTIFIER().GetText());
+      return VisitorHelper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a single number.
     public override AstNode VisitSingle_number(
         [NotNull] SeedBlockParser.Single_numberContext context) {
-      return Expression.Number(context.NUMBER().GetText());
+      return VisitorHelper.BuildNumber(context.NUMBER().Symbol);
     }
 
     // Visits a single string.
     public override AstNode VisitSingle_string(
         [NotNull] SeedBlockParser.Single_stringContext context) {
-      return Expression.String(context.STRING().GetText());
+      return VisitorHelper.BuildString(context.STRING().Symbol);
     }
 
     // Visits a single expression.
@@ -52,9 +53,7 @@ namespace SeedLang.Block {
 
     // Visits an unary expression.
     public override AstNode VisitUnary([NotNull] SeedBlockParser.UnaryContext context) {
-      var expr = Visit(context.expr()) as Expression;
-      // TODO: handle other unary operators.
-      return Expression.Unary(UnaryOperator.Negative, expr);
+      return VisitorHelper.BuildUnary(context.op, context.expr(), this);
     }
 
     // Visits an add or subtract binary expression.
@@ -62,7 +61,7 @@ namespace SeedLang.Block {
     // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
     // items: the left and right ExprContexts.
     public override AstNode VisitAdd_sub([NotNull] SeedBlockParser.Add_subContext context) {
-      return BuildBinary(context.op, context.expr());
+      return VisitorHelper.BuildBinary(TokenToOperator(context.op), context.expr(), this);
     }
 
     // Visits a multiply or divide binary expression.
@@ -70,17 +69,17 @@ namespace SeedLang.Block {
     // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
     // items: the left and right ExprContexts.
     public override AstNode VisitMul_div([NotNull] SeedBlockParser.Mul_divContext context) {
-      return BuildBinary(context.op, context.expr());
+      return VisitorHelper.BuildBinary(TokenToOperator(context.op), context.expr(), this);
     }
 
     // Visits an identifier.
     public override AstNode VisitIdentifier([NotNull] SeedBlockParser.IdentifierContext context) {
-      return Expression.Identifier(context.GetText());
+      return VisitorHelper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a number expression.
     public override AstNode VisitNumber([NotNull] SeedBlockParser.NumberContext context) {
-      return Expression.Number(context.GetText());
+      return VisitorHelper.BuildNumber(context.NUMBER().Symbol);
     }
 
     // Visits a grouping expression.
@@ -89,17 +88,6 @@ namespace SeedLang.Block {
     // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedBlockParser.GroupingContext context) {
       return Visit(context.expr());
-    }
-
-    // Builds a binary expression node from the opToken and exprs.
-    //
-    // The exprContexts parameter must contain exact 2 items: the left and right ExprContext.
-    private BinaryExpression BuildBinary(IToken opToken,
-                                         SeedBlockParser.ExprContext[] exprContexts) {
-      Debug.Assert(exprContexts.Length == 2);
-      var left = Visit(exprContexts[0]) as Expression;
-      var right = Visit(exprContexts[1]) as Expression;
-      return Expression.Binary(left, TokenToOperator(opToken), right);
     }
 
     private static BinaryOperator TokenToOperator(IToken token) {
@@ -113,8 +101,7 @@ namespace SeedLang.Block {
         case SeedBlockParser.DIV:
           return BinaryOperator.Divide;
         default:
-          Debug.Fail($"Unknown operator: {token}");
-          return default;
+          throw new ArgumentException("Unsupported binary operator token.");
       }
     }
   }

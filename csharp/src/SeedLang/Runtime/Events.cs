@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Common;
+
 namespace SeedLang.Runtime {
   // An event which is triggered when a binary expression is evaluated.
   public class BinaryEvent {
@@ -19,12 +21,14 @@ namespace SeedLang.Runtime {
     public BinaryOperator Op { get; }
     public IValue Right { get; }
     public IValue Result { get; }
+    public Range Range { get; }
 
-    public BinaryEvent(IValue left, BinaryOperator op, IValue right, IValue result) {
+    public BinaryEvent(IValue left, BinaryOperator op, IValue right, IValue result, Range range) {
       Left = left;
       Op = op;
       Right = right;
       Result = result;
+      Range = range;
     }
   }
 
@@ -32,19 +36,23 @@ namespace SeedLang.Runtime {
   public class AssignmentEvent {
     public string Identifier { get; }
     public IValue Value { get; }
+    public Range Range { get; }
 
-    public AssignmentEvent(string identifier, IValue value) {
+    public AssignmentEvent(string identifier, IValue value, Range range) {
       Identifier = identifier;
       Value = value;
+      Range = range;
     }
   }
 
   // An event which is triggered when an eval statement is executed.
   public class EvalEvent {
     public IValue Value { get; }
+    public Range Range { get; }
 
-    public EvalEvent(IValue value) {
+    public EvalEvent(IValue value, Range range) {
       Value = value;
+      Range = range;
     }
   }
 }

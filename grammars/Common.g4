@@ -36,6 +36,8 @@ expr:
  * Lexer rules
  */
 
+EVAL: 'eval';
+
 ADD: '+';
 SUB: '-';
 MUL: '*';

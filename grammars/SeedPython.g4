@@ -66,7 +66,7 @@ simple_stmt: small_stmt (';' small_stmt)* (';')?;
 small_stmt: assign_stmt | eval_stmt | flow_stmt;
 
 assign_stmt: IDENTIFIER '=' expr;
-eval_stmt: 'eval' expr;
+eval_stmt: EVAL expr;
 flow_stmt: break_stmt | continue_stmt;
 break_stmt: 'break';
 continue_stmt: 'continue';

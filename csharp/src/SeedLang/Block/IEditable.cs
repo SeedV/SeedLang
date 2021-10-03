@@ -20,7 +20,7 @@ namespace SeedLang.Block {
 
     // Updates the block content with a new plain text code.
     //
-    // Throws a new ArgumentException if the input is not a valid text.
+    // Throws a new DiagnosticException if the input is not a valid text.
     void UpdateText(string text);
   }
 }

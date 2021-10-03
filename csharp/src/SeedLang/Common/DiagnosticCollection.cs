@@ -47,5 +47,26 @@ namespace SeedLang.Common {
     public void Report(Diagnostic diagnostic) {
       _diagnostics.Add(diagnostic);
     }
+
+    // Reports a new diagnostic, with a message that requires no arguments.
+    public void Report(string reporter,
+                       Severity severity,
+                       string module,
+                       Range range,
+                       Message messageId) {
+      _diagnostics.Add(
+        new Diagnostic(reporter, severity, module, range, messageId, messageId.Format()));
+    }
+
+    // Reports a new diagnostic, with a message that requires one or more arguments to be formatted.
+    public void Report(string reporter,
+                       Severity severity,
+                       string module,
+                       Range range,
+                       Message messageId,
+                       params string[] arguments) {
+      _diagnostics.Add(
+        new Diagnostic(reporter, severity, module, range, messageId, messageId.Format(arguments)));
+    }
   }
 }

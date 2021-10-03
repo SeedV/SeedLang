@@ -66,8 +66,8 @@ namespace SeedLang.Block {
     // collection if the text is invalid.
     public static bool IsValidInlineTextExpression(string text, DiagnosticCollection collection) {
       if (string.IsNullOrEmpty(text)) {
-        collection.Report(new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
-                                         Message.EmptyInlineText.ToString()));
+        collection.Report(SystemReporters.SeedBlock, Severity.Error, null, null,
+                          Message.EmptyInlineText);
         return false;
       }
       var parser = new InlineTextParser();
@@ -79,8 +79,8 @@ namespace SeedLang.Block {
     public static IReadOnlyList<BaseBlock> InlineTextToBlocks(
         string text, IList<TextRange> invalidTokenRanges, DiagnosticCollection collection) {
       if (string.IsNullOrEmpty(text)) {
-        collection.Report(new Diagnostic(SystemReporters.SeedBlock, Severity.Error, null, null,
-                                         Message.EmptyInlineText.ToString()));
+        collection.Report(SystemReporters.SeedBlock, Severity.Error, null, null,
+                          Message.EmptyInlineText);
         return null;
       }
       var parser = new InlineTextParser();

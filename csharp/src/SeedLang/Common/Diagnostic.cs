@@ -24,7 +24,7 @@ namespace SeedLang.Common {
     public const string SeedVM = "SeedLang.VM";
   }
 
-  // An immutable dignostic info, such as a compiler error or warning.
+  // A dignostic info, such as a compiler error or warning.
   public sealed class Diagnostic {
     // The name of the reporter.
     //
@@ -33,29 +33,37 @@ namespace SeedLang.Common {
     //
     // Third-party extensions that report diagnostics will be named as "Contributor.ExtensionName".
     // There will be an ExtensionHelper to help format reporter names.
-    public string Reporter { get; }
+    public string Reporter { get; set; }
     // The time that the diagnostic is reported.
-    public string Timestamp { get; }
+    public string Timestamp { get; set; }
     // The severity of the diagnostic.
-    public Severity Severity { get; }
+    public Severity Severity { get; set; }
     // The name of the source code module.
-    public string Module { get; }
+    public string Module { get; set; }
     // The corresponding code range of the diagnostic.
-    public Range Range { get; }
+    public Range Range { get; set; }
+    // The ID of the message. For now, message IDs are the values of the enum type Message. The ID
+    // of a message is unique but not stable, since the messages in the enum is arranged in
+    // alphabetical order.
+    //
+    // TODO: Do we need stable message IDs?
+    public Message MessageId { get; set; }
     // The string message. This message should be localized and formatted by the
     // SeedLang.Common.Message type.
-    public string LocalizedMessage { get; }
+    public string LocalizedMessage { get; set; }
 
     public Diagnostic(string reporter,
                       Severity severity,
                       string module,
                       Range range,
+                      Message messageId,
                       string localizedMessage) {
       Reporter = reporter;
       Timestamp = Utils.Timestamp();
       Severity = severity;
       Module = module;
       Range = range;
+      MessageId = messageId;
       LocalizedMessage = localizedMessage;
     }
 
@@ -65,7 +73,7 @@ namespace SeedLang.Common {
       sb.AppendFormat(" {0}", Enum.GetName(typeof(Severity), Severity));
       sb.AppendFormat(" ({0}) <{1}> ", Reporter, Module);
       sb.Append(Range is null ? "[]" : Range.ToString());
-      sb.AppendFormat(": {0}", LocalizedMessage);
+      sb.AppendFormat(" {0}: {1}", (int)MessageId, LocalizedMessage);
       return sb.ToString();
     }
   }

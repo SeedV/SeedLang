@@ -22,36 +22,54 @@ namespace SeedLang.Common.Tests {
       var collection = new DiagnosticCollection();
       Assert.Empty(collection.Diagnostics);
       collection.Report(
-          new Diagnostic(SystemReporters.SeedAst, Severity.Error,
-                         "module1", null,
+          new Diagnostic(SystemReporters.SeedAst,
+                         Severity.Error,
+                         "module1",
+                         null,
+                         Message.Okay,
                          Message.Okay.Get()));
       Assert.Single(collection.Diagnostics);
-      collection.Report(
-          new Diagnostic(SystemReporters.SeedBlock, Severity.Warning,
-                         "module2", null,
-                         Message.Okay.Get()));
+      collection.Report(SystemReporters.SeedBlock,
+                        Severity.Warning,
+                        "module2",
+                        null,
+                        Message.Okay);
       Assert.Equal(2, collection.Diagnostics.Count);
+      collection.Report(SystemReporters.SeedBlock,
+                        Severity.Warning,
+                        "module3",
+                        null,
+                        Message.ExampleMessageWithOneArgument1,
+                        "arg1");
+      Assert.Equal(3, collection.Diagnostics.Count);
+      Assert.Contains("arg1", collection.Diagnostics[2].LocalizedMessage);
+      collection.Report(SystemReporters.SeedBlock,
+                        Severity.Warning,
+                        "module4",
+                        null,
+                        Message.ExampleMessageWithTwoArguments2,
+                        "arg1",
+                        "arg2");
+      Assert.Equal(4, collection.Diagnostics.Count);
+      Assert.Contains("arg1", collection.Diagnostics[3].LocalizedMessage);
+      Assert.Contains("arg2", collection.Diagnostics[3].LocalizedMessage);
     }
 
     [Fact]
     public void TestLinqQueries() {
       var collection = new DiagnosticCollection();
-      collection.Report(
-          new Diagnostic(SystemReporters.SeedAst, Severity.Error,
-                         "module1", null,
-                         Message.Okay.Get()));
-      collection.Report(
-          new Diagnostic(SystemReporters.SeedAst, Severity.Info,
-                         "module2", null,
-                         Message.Okay.Get()));
-      collection.Report(
-          new Diagnostic(SystemReporters.SeedBlock, Severity.Fatal,
-                         "module3", null,
-                         Message.Okay.Get()));
-      collection.Report(
-          new Diagnostic(SystemReporters.SeedBlock, Severity.Warning,
-                         "module4", null,
-                         Message.Okay.Get()));
+      collection.Report(SystemReporters.SeedAst, Severity.Error,
+                        "module1", null,
+                        Message.Okay);
+      collection.Report(SystemReporters.SeedAst, Severity.Info,
+                        "module2", null,
+                        Message.Okay);
+      collection.Report(SystemReporters.SeedBlock, Severity.Fatal,
+                        "module3", null,
+                        Message.Okay);
+      collection.Report(SystemReporters.SeedBlock, Severity.Warning,
+                        "module4", null,
+                        Message.Okay);
       var query1 = from diagnostic in collection.Diagnostics
                    where diagnostic.Reporter == SystemReporters.SeedAst &&
                          diagnostic.Severity == Severity.Error

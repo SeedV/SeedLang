@@ -12,12 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
+using System.Text;
 using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Block.Tests {
+  class PartialParseListener : InlineTextParser.IInlineTextListener {
+    public readonly StringBuilder Buffer = new StringBuilder();
+    public readonly string Text;
+
+    public PartialParseListener(string text) {
+      Text = text;
+    }
+
+    public void VisitArithmeticOperator(string op, TextRange range) {
+      Buffer.Append(op);
+    }
+
+    public void VisitIdentifier(string name, TextRange range) {
+      Buffer.Append(name);
+    }
+
+    public void VisitNumber(string number, TextRange range) {
+      Buffer.Append(number);
+    }
+
+    public void VisitString(string str, TextRange range) {
+      Buffer.Append(str);
+    }
+
+    public void VisitOpenParen(TextRange range) {
+      Buffer.Append('(');
+    }
+
+    public void VisitCloseParen(TextRange range) {
+      Buffer.Append(')');
+    }
+
+    public void VisitInvalidToken(TextRange range) {
+      string token = Text.Substring(range.Start.Column, range.End.Column - range.Start.Column + 1);
+      Buffer.Append($"#{token}#");
+    }
+  }
+
   public class InlineTextParserTests {
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
     private readonly InlineTextParser _parser = new InlineTextParser();
@@ -74,6 +112,22 @@ namespace SeedLang.Block.Tests {
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
+    }
+
+    [Theory]
+    [InlineData("-", "-")]
+    [InlineData("3-", "3-")]
+    [InlineData("3+4-", "3+4-")]
+    [InlineData("3+--4-", "3+--4-")]
+    [InlineData("3++--4-", "3++--4-")]
+    [InlineData(".", "#.#")]
+    [InlineData(".3.", ".3#.#")]
+    [InlineData(".3@", ".3#@#")]
+    public void TestParsePartialOrInvalidExpressions(string input, string expected) {
+      var parser = new InlineTextParser();
+      var listener = new PartialParseListener(input);
+      parser.VisitInlineText(input, listener);
+      Assert.Equal(expected, listener.Buffer.ToString());
     }
   }
 }

@@ -17,7 +17,7 @@ using SeedLang.Common;
 namespace SeedLang.Ast {
   // The base class of all AST nodes.
   internal abstract class AstNode {
-    // The source range of this AST node.
+    // The source code range of this AST node. It could be BlockRange or TextRange.
     public Range Range { get; }
 
     internal AstNode(Range range) {

@@ -37,6 +37,17 @@ namespace SeedLang.X.Tests {
       Assert.Equal(expected, node.ToString());
     }
 
+    [Fact]
+    public void TestParseEvalStatementWithRange() {
+      Assert.True(_parser.TryParse("eval 1 + 2", "", ParseRule.Statement, _collection,
+                  out AstNode node));
+      Assert.NotNull(node);
+      Assert.Equal(new TextRange(1, 5, 1, 9), (node as EvalStatement).Expr.Range);
+      Assert.Equal(new TextRange(1, 0, 1, 9), node.Range);
+      Assert.Empty(_collection.Diagnostics);
+      Assert.Equal("eval (1 + 2)\n", node.ToString());
+    }
+
     [Theory]
     [InlineData("eval 1 + 2 * 3 - 4", "eval ((1 + (2 * 3)) - 4)\n")]
     public void TestParseEvalStatement(string input, string expected) {

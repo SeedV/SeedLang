@@ -1,4 +1,3 @@
-using System.Net.Mime;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +12,6 @@ using System.Net.Mime;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -22,8 +20,9 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.X {
+  // A helper class to build AST nodes from parser tree contexts.
   internal static class VisitorHelper {
-    // Builds a binary expression node from the opToken and exprs.
+    // Builds a binary expression from the binary operator and expression contexts.
     //
     // The exprContexts parameter must contain exact 2 items: the left and right ExprContext.
     internal static BinaryExpression BuildBinary(BinaryOperator op,
@@ -41,21 +40,25 @@ namespace SeedLang.X {
       return Expression.Binary(left, op, right, range);
     }
 
+    // Builds an identifier expresssion from the identifier token.
     internal static IdentifierExpression BuildIdentifier(IToken token) {
       var range = RangeOfToken(token);
       return Expression.Identifier(token.Text, range);
     }
 
+    // Builds a number constant expresssion from the number token.
     internal static NumberConstantExpression BuildNumber(IToken token) {
       var range = RangeOfToken(token);
       return Expression.Number(token.Text, range);
     }
 
+    // Builds a string constant expresssion from the string token.
     internal static StringConstantExpression BuildString(IToken token) {
       var range = RangeOfToken(token);
       return Expression.String(token.Text, range);
     }
 
+    // Builds an unary expresssion from the unary operator token and the expression context.
     internal static UnaryExpression BuildUnary(IToken op, ParserRuleContext exprContext,
                                                AbstractParseTreeVisitor<AstNode> visitor) {
       var expr = visitor.Visit(exprContext) as Expression;
@@ -66,6 +69,7 @@ namespace SeedLang.X {
       return Expression.Unary(UnaryOperator.Negative, expr, CombineRanges(opRange, exprRange));
     }
 
+    // Builds an assignment statement from the identifier token and the expression context.
     internal static AssignmentStatement BuildAssign(IToken idToken, ParserRuleContext exprContext,
                                                     AbstractParseTreeVisitor<AstNode> visitor) {
       var idRange = RangeOfToken(idToken);
@@ -80,6 +84,7 @@ namespace SeedLang.X {
       return null;
     }
 
+    // Builds an eval statement from the eval token and the expression context.
     internal static EvalStatement BuildEval(IToken evalToken, ParserRuleContext exprContext,
                                             AbstractParseTreeVisitor<AstNode> visitor) {
       var evalRange = RangeOfToken(evalToken);
@@ -89,7 +94,7 @@ namespace SeedLang.X {
     }
 
     private static TextRange RangeOfToken(IToken t) {
-      return new TextRange(t.Line, t.Column, t.Line, t.StopIndex - t.StartIndex);
+      return new TextRange(t.Line, t.Column, t.Line, t.Column + t.Text.Length - 1);
     }
 
     private static TextRange CombineRanges(TextRange begin, TextRange end) {

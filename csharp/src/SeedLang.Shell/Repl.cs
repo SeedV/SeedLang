@@ -1,3 +1,4 @@
+using System.Diagnostics;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,9 @@ namespace SeedLang.Shell {
     private class Visualizer : IVisualizer<AssignmentEvent>,
                                IVisualizer<BinaryEvent>,
                                IVisualizer<EvalEvent> {
+      // Current executed source code.
+      public string Source { get; set; }
+
       private readonly Dictionary<BinaryOperator, string> _operatorStrings =
         new Dictionary<BinaryOperator, string>() {
           {BinaryOperator.Add, "+"},
@@ -34,16 +38,39 @@ namespace SeedLang.Shell {
           {BinaryOperator.Modulus, "%"},
         };
 
-      public void On(AssignmentEvent e) {
-        Console.WriteLine($"{e.Identifier} = {e.Value}");
+      public void On(AssignmentEvent ae) {
+        if (ae.Range is TextRange range) {
+          WriteSource(range);
+        }
+        Console.WriteLine($"{ae.Identifier} = {ae.Value}");
       }
 
-      public void On(BinaryEvent e) {
-        Console.WriteLine($"{e.Left} {_operatorStrings[e.Op]} {e.Right} = {e.Result}");
+      public void On(BinaryEvent be) {
+        if (be.Range is TextRange range) {
+          WriteSource(range);
+        }
+        Console.WriteLine($"{be.Left} {_operatorStrings[be.Op]} {be.Right} = {be.Result}");
       }
 
-      public void On(EvalEvent e) {
-        Console.WriteLine($"eval {e.Value}");
+      public void On(EvalEvent ee) {
+        if (ee.Range is TextRange range) {
+          WriteSource(range);
+        }
+        Console.WriteLine($"eval {ee.Value}");
+      }
+
+      private void WriteSource(TextRange range) {
+        if (range.Start.Column >= 0 && range.Start.Column <= range.End.Column &&
+            range.End.Column < Source.Length) {
+          Console.Write(Source.Substring(0, range.Start.Column));
+          Console.BackgroundColor = ConsoleColor.DarkCyan;
+          Console.ForegroundColor = ConsoleColor.Black;
+          int length = range.End.Column - range.Start.Column + 1;
+          Console.Write(Source.Substring(range.Start.Column, length));
+          Console.ResetColor();
+          Console.Write(Source.Substring(range.End.Column + 1));
+          Console.Write(": ");
+        }
       }
     }
 
@@ -61,12 +88,12 @@ namespace SeedLang.Shell {
       var executor = new Executor();
       executor.Register(visualizer);
       while (true) {
-        string line = ReadLine.Read("> ");
-        if (line == "quit") {
+        visualizer.Source = ReadLine.Read("> ");
+        if (visualizer.Source == "quit") {
           break;
         }
         var collection = new DiagnosticCollection();
-        if (!executor.Run(line, "", _language, _runType, collection)) {
+        if (!executor.Run(visualizer.Source, "", _language, _runType, collection)) {
           foreach (var diagnostic in collection.Diagnostics) {
             Console.WriteLine(diagnostic);
           }

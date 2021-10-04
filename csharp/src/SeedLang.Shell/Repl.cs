@@ -60,17 +60,16 @@ namespace SeedLang.Shell {
       }
 
       private void WriteSource(TextRange range) {
-        if (range.Start.Column >= 0 && range.Start.Column <= range.End.Column &&
-            range.End.Column < Source.Length) {
-          Console.Write(Source.Substring(0, range.Start.Column));
-          Console.BackgroundColor = ConsoleColor.DarkCyan;
-          Console.ForegroundColor = ConsoleColor.Black;
-          int length = range.End.Column - range.Start.Column + 1;
-          Console.Write(Source.Substring(range.Start.Column, length));
-          Console.ResetColor();
-          Console.Write(Source.Substring(range.End.Column + 1));
-          Console.Write(": ");
-        }
+        Debug.Assert(range.Start.Column >= 0 && range.Start.Column <= range.End.Column &&
+                     range.End.Column < Source.Length);
+        Console.Write(Source.Substring(0, range.Start.Column));
+        Console.BackgroundColor = ConsoleColor.DarkCyan;
+        Console.ForegroundColor = ConsoleColor.Black;
+        int length = range.End.Column - range.Start.Column + 1;
+        Console.Write(Source.Substring(range.Start.Column, length));
+        Console.ResetColor();
+        Console.Write(Source.Substring(range.End.Column + 1));
+        Console.Write(": ");
       }
     }
 

@@ -39,13 +39,24 @@ namespace SeedLang.X.Tests {
 
     [Fact]
     public void TestParseEvalStatementWithRange() {
-      Assert.True(_parser.TryParse("eval 1 + 2", "", ParseRule.Statement, _collection,
-                  out AstNode node));
-      Assert.NotNull(node);
-      Assert.Equal(new TextRange(1, 5, 1, 9), (node as EvalStatement).Expr.Range);
-      Assert.Equal(new TextRange(1, 0, 1, 9), node.Range);
+      Assert.True(_parser.TryParse("eval (1 + 2) * (( 3 - -4 ))", "", ParseRule.Statement,
+                  _collection, out AstNode node));
       Assert.Empty(_collection.Diagnostics);
-      Assert.Equal("eval (1 + 2)\n", node.ToString());
+      Assert.NotNull(node);
+      Assert.Equal(new TextRange(1, 0, 1, 26), node.Range);
+      var expr = (node as EvalStatement).Expr as BinaryExpression;
+      Assert.Equal(new TextRange(1, 5, 1, 26), expr.Range);
+      var left = expr.Left as BinaryExpression;
+      Assert.Equal(new TextRange(1, 5, 1, 11), left.Range);
+      var right = expr.Right as BinaryExpression;
+      Assert.Equal(new TextRange(1, 15, 1, 26), right.Range);
+      var leftNumber = right.Left as NumberConstantExpression;
+      Assert.Equal(new TextRange(1, 18, 1, 18), leftNumber.Range);
+      var unary = right.Right as UnaryExpression;
+      Assert.Equal(new TextRange(1, 22, 1, 23), unary.Range);
+      var rightNumber = unary.Expr as NumberConstantExpression;
+      Assert.Equal(new TextRange(1, 23, 1, 23), rightNumber.Range);
+      Assert.Equal("eval ((1 + 2) * (3 - (- 4)))\n", node.ToString());
     }
 
     [Theory]

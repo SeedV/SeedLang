@@ -51,9 +51,9 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteBinaryExpression() {
-      var left = Expression.Number(1, NewTextRage());
-      var right = Expression.Number(2, NewTextRage());
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRage());
+      var left = Expression.Number(1, NewTextRange());
+      var right = Expression.Number(2, NewTextRange());
+      var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(binary);
@@ -61,71 +61,71 @@ namespace SeedLang.Ast.Tests {
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.ToNumber());
       Assert.Equal(3, visualizer.Result.ToNumber());
-      Assert.Equal(NewTextRage(), visualizer.Range);
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
     public void TestExecuteUnaryExpression() {
       string name = "id";
-      var number = Expression.Number(1, NewTextRage());
-      var unary = Expression.Unary(UnaryOperator.Negative, number, NewTextRage());
-      var identifier = Expression.Identifier(name, NewTextRage());
-      var assignment = Statement.Assignment(identifier, unary, NewTextRage());
+      var number = Expression.Number(1, NewTextRange());
+      var unary = Expression.Unary(UnaryOperator.Negative, number, NewTextRange());
+      var identifier = Expression.Identifier(name, NewTextRange());
+      var assignment = Statement.Assignment(identifier, unary, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(assignment);
       Assert.Equal(name, visualizer.Identifier);
       Assert.Equal(-1, visualizer.Result.ToNumber());
-      Assert.Equal(NewTextRage(), visualizer.Range);
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
     public void TestExecuteAssignmentStatement() {
       string name = "id";
-      var identifier = Expression.Identifier(name, NewTextRage());
-      var number = Expression.Number(1, NewTextRage());
-      var assignment = Statement.Assignment(identifier, number, NewTextRage());
+      var identifier = Expression.Identifier(name, NewTextRange());
+      var number = Expression.Number(1, NewTextRange());
+      var assignment = Statement.Assignment(identifier, number, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(assignment);
       Assert.Equal(name, visualizer.Identifier);
       Assert.Equal(1, visualizer.Result.ToNumber());
-      Assert.Equal(NewTextRage(), visualizer.Range);
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
     public void TestExecuteEvalStatement() {
-      var number1 = Expression.Number(1, NewTextRage());
-      var number2 = Expression.Number(2, NewTextRage());
-      var number3 = Expression.Number(3, NewTextRage());
-      var left = Expression.Binary(number1, BinaryOperator.Add, number2, NewTextRage());
-      var binary = Expression.Binary(left, BinaryOperator.Multiply, number3, NewTextRage());
-      var eval = Statement.Eval(binary, NewTextRage());
+      var number1 = Expression.Number(1, NewTextRange());
+      var number2 = Expression.Number(2, NewTextRange());
+      var number3 = Expression.Number(3, NewTextRange());
+      var left = Expression.Binary(number1, BinaryOperator.Add, number2, NewTextRange());
+      var binary = Expression.Binary(left, BinaryOperator.Multiply, number3, NewTextRange());
+      var eval = Statement.Eval(binary, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(eval);
       Assert.Equal(9, visualizer.Result.ToNumber());
-      Assert.Equal(NewTextRage(), visualizer.Range);
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
     public void TestExecuteEvalWithVariable() {
       (var executor, var visualizer) = NewExecutorWithVisualizer();
 
-      var identifier = Expression.Identifier("a", NewTextRage());
-      var number = Expression.Number(2, NewTextRage());
-      var assignment = Statement.Assignment(identifier, number, NewTextRage());
+      var identifier = Expression.Identifier("a", NewTextRange());
+      var number = Expression.Number(2, NewTextRange());
+      var assignment = Statement.Assignment(identifier, number, NewTextRange());
       executor.Run(assignment);
 
-      var right = Expression.Number(3, NewTextRage());
-      var binary = Expression.Binary(identifier, BinaryOperator.Multiply, right, NewTextRage());
-      var eval = Statement.Eval(binary, NewTextRage());
+      var right = Expression.Number(3, NewTextRange());
+      var binary = Expression.Binary(identifier, BinaryOperator.Multiply, right, NewTextRange());
+      var eval = Statement.Eval(binary, NewTextRange());
       executor.Run(eval);
       Assert.Equal(6, visualizer.Result.ToNumber());
-      Assert.Equal(NewTextRage(), visualizer.Range);
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
-    private static TextRange NewTextRage() {
+    private static TextRange NewTextRange() {
       return new TextRange(0, 1, 2, 3);
     }
 

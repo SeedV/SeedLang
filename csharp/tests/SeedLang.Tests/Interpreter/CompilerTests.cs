@@ -14,14 +14,18 @@
 
 using System;
 using SeedLang.Ast;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
+    private static TextRange _testTextRange => new TextRange(0, 1, 2, 3);
+
     [Fact]
     public void TestCompileEvalNumber() {
-      var eval = Statement.Eval(Expression.Number(1));
+      var number = Expression.Number(1, _testTextRange);
+      var eval = Statement.Eval(number, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
@@ -34,9 +38,10 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileEvalBinary() {
-      var left = Expression.Number(1);
-      var right = Expression.Number(2);
-      var eval = Statement.Eval(Expression.Binary(left, BinaryOperator.Add, right));
+      var left = Expression.Number(1, _testTextRange);
+      var right = Expression.Number(2, _testTextRange);
+      var expr = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
+      var eval = Statement.Eval(expr, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
@@ -49,9 +54,12 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileEvalComplexBinary() {
-      var left = Expression.Number(1);
-      var right = Expression.Binary(Expression.Number(2), BinaryOperator.Add, Expression.Number(3));
-      var eval = Statement.Eval(Expression.Binary(left, BinaryOperator.Subtract, right));
+      var left = Expression.Number(1, _testTextRange);
+      var number2 = Expression.Number(2, _testTextRange);
+      var number3 = Expression.Number(3, _testTextRange);
+      var right = Expression.Binary(number2, BinaryOperator.Add, number3, _testTextRange);
+      var expr = Expression.Binary(left, BinaryOperator.Subtract, right, _testTextRange);
+      var eval = Statement.Eval(expr, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
@@ -65,13 +73,16 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileinaryWithSameConstants() {
-      var left = Expression.Number(1);
-      var right = Expression.Binary(Expression.Number(2), BinaryOperator.Add, Expression.Number(1));
-      var eval = Statement.Eval(Expression.Binary(left, BinaryOperator.Subtract, right));
+      var left = Expression.Number(1, _testTextRange);
+      var number1 = Expression.Number(1, _testTextRange);
+      var number2 = Expression.Number(2, _testTextRange);
+      var right = Expression.Binary(number1, BinaryOperator.Add, number2, _testTextRange);
+      var expr = Expression.Binary(left, BinaryOperator.Subtract, right, _testTextRange);
+      var eval = Statement.Eval(expr, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "ADD 1 251 250       \n" +
+          "ADD 1 250 251       \n" +
           "SUB 0 250 1         \n" +
           "EVAL 0              \n" +
           "RETURN 0            \n"

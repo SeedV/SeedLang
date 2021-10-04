@@ -12,9 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Common;
+
 namespace SeedLang.Ast {
   // The base class of all AST nodes.
   internal abstract class AstNode {
+    // The source code range of this AST node. It could be BlockRange or TextRange.
+    public Range Range { get; }
+
+    internal AstNode(Range range) {
+      Range = range;
+    }
+
     // Creates the string representation of the AST node.
     public override string ToString() {
       return AstStringBuilder.AstToString(this);

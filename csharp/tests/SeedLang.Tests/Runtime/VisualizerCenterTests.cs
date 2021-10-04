@@ -12,81 +12,101 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
+  using BinaryVisualizerCenter = Tuple<VisualizerCenter, MockupBinaryVisualizer>;
+  using MultipleVisualizerCenter = Tuple<VisualizerCenter,
+                                         MockupBinaryVisualizer,
+                                         MockupMultipleVisualizer>;
+
+  internal class MockupValue : IValue {
+    public ValueType Type => ValueType.Number;
+
+    public double ToNumber() {
+      return 0;
+    }
+  }
+
+  internal class MockupBinaryVisualizer : IVisualizer<BinaryEvent> {
+    public BinaryEvent BinaryEvent { get; private set; }
+
+    public void On(BinaryEvent be) {
+      BinaryEvent = be;
+    }
+  }
+
+  internal class MockupMultipleVisualizer : IVisualizer<BinaryEvent>, IVisualizer<EvalEvent> {
+    public BinaryEvent BinaryEvent { get; private set; }
+    public EvalEvent EvalEvent { get; private set; }
+
+    public void On(BinaryEvent be) {
+      BinaryEvent = be;
+    }
+
+    public void On(EvalEvent ee) {
+      EvalEvent = ee;
+    }
+  }
+
+
   public class VisualizerCenterTests {
-    internal class MockupValue : IValue {
-      public ValueType Type => ValueType.Number;
-
-      public double ToNumber() {
-        return 0;
-      }
-    }
-
-    internal class MockupBinaryVisualizer : IVisualizer<BinaryEvent> {
-      public bool Notified { get; private set; } = false;
-
-      public void On(BinaryEvent e) {
-        Notified = true;
-      }
-    }
-
-    internal class MockupMultipleVisualizer : IVisualizer<BinaryEvent>, IVisualizer<EvalEvent> {
-      public bool BinaryEventNotified { get; private set; } = false;
-      public bool EvalEventNotified { get; private set; } = false;
-
-      public void On(BinaryEvent e) {
-        BinaryEventNotified = true;
-      }
-
-      public void On(EvalEvent e) {
-        EvalEventNotified = true;
-      }
-    }
-
     [Fact]
     public void TestRegisterVisualizer() {
-      var binaryVisualizer = new MockupBinaryVisualizer();
-      var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Register(binaryVisualizer);
-      visualizerCenter.EvalPublisher.Notify(new EvalEvent(new MockupValue()));
-      Assert.False(binaryVisualizer.Notified);
-      var binaryEvent = new BinaryEvent(new MockupValue(), BinaryOperator.Add,
-                                        new MockupValue(), new MockupValue());
-      visualizerCenter.BinaryPublisher.Notify(binaryEvent);
-      Assert.True(binaryVisualizer.Notified);
+      (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
+      visualizerCenter.EvalPublisher.Notify(NewEvalEvent());
+      Assert.Null(binaryVisualizer.BinaryEvent);
+      visualizerCenter.BinaryPublisher.Notify(NewBinaryEvent());
+      Assert.NotNull(binaryVisualizer.BinaryEvent);
     }
 
     [Fact]
     public void TestRegisterMultipleVisualizers() {
+      (var visualizerCenter, var binaryVisualizer, var multipleVisualizer) =
+          NewMultipleVisualizerCenter();
+      Assert.Null(binaryVisualizer.BinaryEvent);
+      Assert.Null(multipleVisualizer.BinaryEvent);
+      Assert.Null(multipleVisualizer.EvalEvent);
+      visualizerCenter.BinaryPublisher.Notify(NewBinaryEvent());
+      visualizerCenter.EvalPublisher.Notify(NewEvalEvent());
+      Assert.NotNull(binaryVisualizer.BinaryEvent);
+      Assert.NotNull(multipleVisualizer.BinaryEvent);
+      Assert.NotNull(multipleVisualizer.EvalEvent);
+    }
+
+    [Fact]
+    public void TestUnregisterVisualizer() {
+      (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
+      visualizerCenter.Unregister(binaryVisualizer);
+      visualizerCenter.BinaryPublisher.Notify(NewBinaryEvent());
+      Assert.Null(binaryVisualizer.BinaryEvent);
+    }
+
+    private static BinaryVisualizerCenter NewBinaryVisualizerCenter() {
+      var binaryVisualizer = new MockupBinaryVisualizer();
+      var visualizerCenter = new VisualizerCenter();
+      visualizerCenter.Register(binaryVisualizer);
+      return new BinaryVisualizerCenter(visualizerCenter, binaryVisualizer);
+    }
+
+    private static MultipleVisualizerCenter NewMultipleVisualizerCenter() {
       var binaryVisualizer = new MockupBinaryVisualizer();
       var multipleVisualizer = new MockupMultipleVisualizer();
       var visualizerCenter = new VisualizerCenter();
       visualizerCenter.Register(binaryVisualizer);
       visualizerCenter.Register(multipleVisualizer);
-      Assert.False(binaryVisualizer.Notified);
-      Assert.False(multipleVisualizer.BinaryEventNotified);
-      Assert.False(multipleVisualizer.EvalEventNotified);
-      var binaryEvent = new BinaryEvent(new MockupValue(), BinaryOperator.Add,
-                                        new MockupValue(), new MockupValue());
-      visualizerCenter.BinaryPublisher.Notify(binaryEvent);
-      visualizerCenter.EvalPublisher.Notify(new EvalEvent(new MockupValue()));
-      Assert.True(binaryVisualizer.Notified);
-      Assert.True(multipleVisualizer.BinaryEventNotified);
-      Assert.True(multipleVisualizer.EvalEventNotified);
+      return new MultipleVisualizerCenter(visualizerCenter, binaryVisualizer, multipleVisualizer);
     }
 
-    [Fact]
-    public void TestUnregisterVisualizer() {
-      var binaryVisualizer = new MockupBinaryVisualizer();
-      var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Register(binaryVisualizer);
-      visualizerCenter.Unregister(binaryVisualizer);
-      var binaryEvent = new BinaryEvent(new MockupValue(), BinaryOperator.Add,
-                                        new MockupValue(), new MockupValue());
-      visualizerCenter.BinaryPublisher.Notify(binaryEvent);
-      Assert.False(binaryVisualizer.Notified);
+    private static BinaryEvent NewBinaryEvent() {
+      return new BinaryEvent(new MockupValue(), BinaryOperator.Add, new MockupValue(),
+                             new MockupValue(), new TextRange(0, 1, 2, 3));
+    }
+
+    private static EvalEvent NewEvalEvent() {
+      return new EvalEvent(new MockupValue(), new TextRange(0, 1, 2, 3));
     }
   }
 }

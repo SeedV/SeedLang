@@ -25,16 +25,18 @@ grammar Common;
  */
 
 expr:
-  op = SUB expr                # unary
-  | expr op = (MUL | DIV) expr # mul_div
-  | expr op = (ADD | SUB) expr # add_sub
-  | IDENTIFIER                 # identifier
-  | NUMBER                     # number
-  | '(' expr ')'               # grouping;
+  op = SUB expr                 # unary
+  | expr op = (MUL | DIV) expr  # mul_div
+  | expr op = (ADD | SUB) expr  # add_sub
+  | IDENTIFIER                  # identifier
+  | NUMBER                      # number
+  | OPEN_PAREN expr CLOSE_PAREN # grouping;
 
 /*
  * Lexer rules
  */
+
+EVAL: 'eval';
 
 ADD: '+';
 SUB: '-';

@@ -26,6 +26,8 @@ namespace SeedLang.X {
   // result of the last one. PythonVisitor overrides the method if the default implement is not
   // correct.
   internal class PythonVisitor : SeedPythonBaseVisitor<AstNode> {
+    private readonly VisitorHelper _helper = new VisitorHelper();
+
     // Visits a single statement.
     public override AstNode VisitSingle_stmt(
         [NotNull] SeedPythonParser.Single_stmtContext context) {
@@ -37,7 +39,7 @@ namespace SeedLang.X {
     // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
     // items: the left and right ExprContexts.
     public override AstNode VisitAdd_sub([NotNull] SeedPythonParser.Add_subContext context) {
-      return BuildBinary(context.op, context.expr());
+      return _helper.BuildBinary(TokenToOperator(context.op), context.expr(), this);
     }
 
     // Visits a multiply and divide binary expression.
@@ -45,24 +47,22 @@ namespace SeedLang.X {
     // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
     // items: the left and right ExprContexts.
     public override AstNode VisitMul_div([NotNull] SeedPythonParser.Mul_divContext context) {
-      return BuildBinary(context.op, context.expr());
+      return _helper.BuildBinary(TokenToOperator(context.op), context.expr(), this);
     }
 
     // Visits an unary expression.
     public override AstNode VisitUnary([NotNull] SeedPythonParser.UnaryContext context) {
-      var expr = Visit(context.expr()) as Expression;
-      // TODO: handle other unary operators.
-      return Expression.Unary(UnaryOperator.Negative, expr);
+      return _helper.BuildUnary(context.op, context.expr(), this);
     }
 
     // Visits an identifier.
     public override AstNode VisitIdentifier([NotNull] SeedPythonParser.IdentifierContext context) {
-      return Expression.Identifier(context.GetText());
+      return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a number expression.
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {
-      return Expression.Number(context.GetText());
+      return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
     // Visits a grouping expression.
@@ -70,6 +70,7 @@ namespace SeedLang.X {
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedPythonParser.GroupingContext context) {
+      _helper.SetGroupingRange(context.OPEN_PAREN().Symbol, context.CLOSE_PAREN().Symbol);
       return Visit(context.expr());
     }
 
@@ -88,34 +89,15 @@ namespace SeedLang.X {
     // Visits an assignment statement.
     public override AstNode VisitAssign_stmt(
         [NotNull] SeedPythonParser.Assign_stmtContext context) {
-      var identifier = Expression.Identifier(context.IDENTIFIER().GetText());
-      // TODO: if null check is needed in other visit mothods.
-      var exprContext = context.expr();
-      if (!(exprContext is null)) {
-        var expr = Visit(exprContext) as Expression;
-        return Statement.Assignment(identifier, expr);
-      }
-      return null;
+      return VisitorHelper.BuildAssign(context.IDENTIFIER().Symbol, context.expr(), this);
     }
 
     // Visits an eval statement.
     public override AstNode VisitEval_stmt([NotNull] SeedPythonParser.Eval_stmtContext context) {
-      var expr = Visit(context.expr()) as Expression;
-      return Statement.Eval(expr);
+      return VisitorHelper.BuildEval(context.EVAL().Symbol, context.expr(), this);
     }
 
-    // Builds a binary expression node from the opToken and exprs.
-    //
-    // The exprContexts parameter must contain exact 2 items: the left and right ExprContext.
-    private BinaryExpression BuildBinary(IToken opToken,
-                                         SeedPythonParser.ExprContext[] exprContexts) {
-      Debug.Assert(exprContexts.Length == 2);
-      var left = Visit(exprContexts[0]) as Expression;
-      var right = Visit(exprContexts[1]) as Expression;
-      return Expression.Binary(left, TokenToOperator(opToken), right);
-    }
-
-    private static BinaryOperator TokenToOperator(IToken token) {
+    internal static BinaryOperator TokenToOperator(IToken token) {
       switch (token.Type) {
         case SeedPythonParser.ADD:
           return BinaryOperator.Add;
@@ -126,7 +108,7 @@ namespace SeedLang.X {
         case SeedPythonParser.DIV:
           return BinaryOperator.Divide;
         default:
-          throw new ArgumentException("Unknown operator.");
+          throw new ArgumentException("Unsupported binary operator token.");
       }
     }
   }

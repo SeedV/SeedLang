@@ -62,8 +62,8 @@ namespace SeedLang.Ast {
           Debug.Fail($"Unsupported binary operator: {binary.Op}");
           break;
       }
-      _visualizerCenter.BinaryPublisher.Notify(
-          new BinaryEvent(left, binary.Op, right, _expressionResult));
+      var be = new BinaryEvent(left, binary.Op, right, _expressionResult, binary.Range);
+      _visualizerCenter.BinaryPublisher.Notify(be);
     }
 
     protected override void Visit(IdentifierExpression identifier) {
@@ -93,13 +93,14 @@ namespace SeedLang.Ast {
     protected override void Visit(AssignmentStatement assignment) {
       Visit(assignment.Expr);
       _globals[assignment.Identifier.Name] = _expressionResult;
-      var e = new AssignmentEvent(assignment.Identifier.Name, _expressionResult);
-      _visualizerCenter.AssignmentPublisher.Notify(e);
+      var ae = new AssignmentEvent(assignment.Identifier.Name, _expressionResult, assignment.Range);
+      _visualizerCenter.AssignmentPublisher.Notify(ae);
     }
 
     protected override void Visit(EvalStatement eval) {
       Visit(eval.Expr);
-      _visualizerCenter.EvalPublisher.Notify(new EvalEvent(_expressionResult));
+      var ee = new EvalEvent(_expressionResult, eval.Range);
+      _visualizerCenter.EvalPublisher.Notify(ee);
     }
   }
 }

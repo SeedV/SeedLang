@@ -12,17 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Common;
+
 namespace SeedLang.Ast {
   // The base class of all statement nodes.
   internal abstract class Statement : AstNode {
     // The factory method to creates the assignment statement.
-    internal static AssignmentStatement Assignment(IdentifierExpression identifier, Expression expr) {
-      return new AssignmentStatement(identifier, expr);
+    internal static AssignmentStatement Assignment(IdentifierExpression identifier, Expression expr,
+                                                   Range range) {
+      return new AssignmentStatement(identifier, expr, range);
     }
 
     // The factory method to creates the eval statement.
-    internal static EvalStatement Eval(Expression expr) {
-      return new EvalStatement(expr);
+    internal static EvalStatement Eval(Expression expr, Range range) {
+      return new EvalStatement(expr, range);
+    }
+
+    internal Statement(Range range) : base(range) {
     }
   }
 
@@ -30,7 +36,8 @@ namespace SeedLang.Ast {
     public IdentifierExpression Identifier { get; }
     public Expression Expr { get; }
 
-    internal AssignmentStatement(IdentifierExpression identifier, Expression expr) {
+    internal AssignmentStatement(IdentifierExpression identifier, Expression expr,
+                                 Range range) : base(range) {
       Identifier = identifier;
       Expr = expr;
     }
@@ -39,7 +46,7 @@ namespace SeedLang.Ast {
   internal class EvalStatement : Statement {
     public Expression Expr { get; }
 
-    internal EvalStatement(Expression expr) {
+    internal EvalStatement(Expression expr, Range range) : base(range) {
       Expr = expr;
     }
   }

@@ -1,3 +1,4 @@
+using System.Security.Principal;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {
-  public class ExecutorTests : IDisposable {
+  public class ExecutorTests {
     private class MockupVisualizer : IVisualizer<AssignmentEvent>,
                                      IVisualizer<BinaryEvent>,
                                      IVisualizer<EvalEvent> {
@@ -26,89 +27,114 @@ namespace SeedLang.Ast.Tests {
       public BinaryOperator Op { get; private set; }
       public IValue Right { get; private set; }
       public IValue Result { get; private set; }
+      public Range Range { get; private set; }
 
-      public void On(AssignmentEvent e) {
-        Identifier = e.Identifier;
-        Result = e.Value;
+      public void On(AssignmentEvent ae) {
+        Identifier = ae.Identifier;
+        Result = ae.Value;
+        Range = ae.Range;
       }
 
-      public void On(BinaryEvent e) {
-        Left = e.Left;
-        Op = e.Op;
-        Right = e.Right;
-        Result = e.Result;
+      public void On(BinaryEvent be) {
+        Left = be.Left;
+        Op = be.Op;
+        Right = be.Right;
+        Result = be.Result;
+        Range = be.Range;
       }
 
-      public void On(EvalEvent e) {
-        Result = e.Value;
+      public void On(EvalEvent ee) {
+        Result = ee.Value;
+        Range = ee.Range;
       }
-    }
-
-    private readonly MockupVisualizer _visualizer = new MockupVisualizer();
-    private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
-    private readonly Executor _executor;
-
-    public ExecutorTests() {
-      _visualizerCenter.Register(_visualizer);
-      _executor = new Executor(_visualizerCenter);
-    }
-
-    public void Dispose() {
-      _visualizerCenter.Unregister(_visualizer);
-      GC.SuppressFinalize(this);
     }
 
     [Fact]
     public void TestExecuteBinaryExpression() {
-      var left = Expression.Number(1);
-      var right = Expression.Number(2);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right);
-      _executor.Run(binary);
+      var left = Expression.Number(1, NewTextRange());
+      var right = Expression.Number(2, NewTextRange());
+      var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRange());
 
-      Assert.Equal(1, _visualizer.Left.ToNumber());
-      Assert.Equal(BinaryOperator.Add, _visualizer.Op);
-      Assert.Equal(2, _visualizer.Right.ToNumber());
-      Assert.Equal(3, _visualizer.Result.ToNumber());
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      executor.Run(binary);
+      Assert.Equal(1, visualizer.Left.ToNumber());
+      Assert.Equal(BinaryOperator.Add, visualizer.Op);
+      Assert.Equal(2, visualizer.Right.ToNumber());
+      Assert.Equal(3, visualizer.Result.ToNumber());
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
     public void TestExecuteUnaryExpression() {
       string name = "id";
-      var unary = Expression.Unary(UnaryOperator.Negative, Expression.Number(1));
-      var assignment = Statement.Assignment(Expression.Identifier(name), unary);
-      _executor.Run(assignment);
-      Assert.Equal(name, _visualizer.Identifier);
-      Assert.Equal(-1, _visualizer.Result.ToNumber());
+      var number = Expression.Number(1, NewTextRange());
+      var unary = Expression.Unary(UnaryOperator.Negative, number, NewTextRange());
+      var identifier = Expression.Identifier(name, NewTextRange());
+      var assignment = Statement.Assignment(identifier, unary, NewTextRange());
+
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      executor.Run(assignment);
+      Assert.Equal(name, visualizer.Identifier);
+      Assert.Equal(-1, visualizer.Result.ToNumber());
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
     public void TestExecuteAssignmentStatement() {
       string name = "id";
-      var assignment = Statement.Assignment(Expression.Identifier(name), Expression.Number(1));
-      _executor.Run(assignment);
-      Assert.Equal(name, _visualizer.Identifier);
-      Assert.Equal(1, _visualizer.Result.ToNumber());
+      var identifier = Expression.Identifier(name, NewTextRange());
+      var number = Expression.Number(1, NewTextRange());
+      var assignment = Statement.Assignment(identifier, number, NewTextRange());
+
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      executor.Run(assignment);
+      Assert.Equal(name, visualizer.Identifier);
+      Assert.Equal(1, visualizer.Result.ToNumber());
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
     public void TestExecuteEvalStatement() {
-      var left = Expression.Binary(Expression.Number(1), BinaryOperator.Add, Expression.Number(2));
-      var binary = Expression.Binary(left, BinaryOperator.Multiply, Expression.Number(3));
-      var eval = Statement.Eval(binary);
-      _executor.Run(eval);
-      Assert.Equal(9, _visualizer.Result.ToNumber());
+      var number1 = Expression.Number(1, NewTextRange());
+      var number2 = Expression.Number(2, NewTextRange());
+      var number3 = Expression.Number(3, NewTextRange());
+      var left = Expression.Binary(number1, BinaryOperator.Add, number2, NewTextRange());
+      var binary = Expression.Binary(left, BinaryOperator.Multiply, number3, NewTextRange());
+      var eval = Statement.Eval(binary, NewTextRange());
+
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      executor.Run(eval);
+      Assert.Equal(9, visualizer.Result.ToNumber());
+      Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
     public void TestExecuteEvalWithVariable() {
-      var identifier = Expression.Identifier("a");
-      var assignment = Statement.Assignment(identifier, Expression.Number(2));
-      _executor.Run(assignment);
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
 
-      var binary = Expression.Binary(identifier, BinaryOperator.Multiply, Expression.Number(3));
-      var eval = Statement.Eval(binary);
-      _executor.Run(eval);
-      Assert.Equal(6, _visualizer.Result.ToNumber());
+      var identifier = Expression.Identifier("a", NewTextRange());
+      var number = Expression.Number(2, NewTextRange());
+      var assignment = Statement.Assignment(identifier, number, NewTextRange());
+      executor.Run(assignment);
+
+      var right = Expression.Number(3, NewTextRange());
+      var binary = Expression.Binary(identifier, BinaryOperator.Multiply, right, NewTextRange());
+      var eval = Statement.Eval(binary, NewTextRange());
+      executor.Run(eval);
+      Assert.Equal(6, visualizer.Result.ToNumber());
+      Assert.Equal(NewTextRange(), visualizer.Range);
+    }
+
+    private static TextRange NewTextRange() {
+      return new TextRange(0, 1, 2, 3);
+    }
+
+    private static (Executor, MockupVisualizer) NewExecutorWithVisualizer() {
+      var visualizer = new MockupVisualizer();
+      var visualizerCenter = new VisualizerCenter();
+      visualizerCenter.Register(visualizer);
+      var executor = new Executor(visualizerCenter);
+      return (executor, visualizer);
     }
   }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Block;
@@ -58,7 +59,8 @@ namespace SeedLang.Runtime {
       }
       DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
       BaseParser parser = MakeParser(language);
-      if (parser.TryParse(source, module, ParseRule.Statement, localCollection, out AstNode node)) {
+      if (parser.Parse(source, module, ParseRule.Statement, localCollection, out AstNode node,
+                       out IReadOnlyList<SyntaxToken> _)) {
         switch (runType) {
           case RunType.Ast:
             _executor.Run(node);

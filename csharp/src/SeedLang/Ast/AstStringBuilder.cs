@@ -56,6 +56,7 @@ namespace SeedLang.Ast {
   // A helper class to create the string representation of an AST tree.
   internal sealed class AstStringBuilder : AstWalker {
     private readonly StringBuilder _out = new StringBuilder();
+    private int _level = 0;
 
     public override string ToString() {
       return _out.ToString();
@@ -69,31 +70,61 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(BinaryExpression binary) {
-      _out.Append($"({binary.Left} {binary.Op.Symbol()} {binary.Right})");
+      Enter(binary);
+      _out.Append($" ({binary.Op.Symbol()})");
+      Visit(binary.Left);
+      Visit(binary.Right);
+      Exit();
     }
 
-    protected override void Visit(IdentifierExpression expression) {
-      _out.Append($"{expression.Name}");
+    protected override void Visit(IdentifierExpression identifier) {
+      Enter(identifier);
+      _out.Append($" ({identifier.Name})");
+      Exit();
     }
 
     protected override void Visit(NumberConstantExpression number) {
-      _out.Append(number.Value);
+      Enter(number);
+      _out.Append($" ({number.Value})");
+      Exit();
     }
 
     protected override void Visit(StringConstantExpression str) {
-      _out.Append(str.Value);
+      Enter(str);
+      _out.Append($" ({str.Value})");
+      Exit();
     }
 
     protected override void Visit(UnaryExpression unary) {
-      _out.Append($"({unary.Op.Symbol()} {unary.Expr})");
+      Enter(unary);
+      _out.Append($" ({unary.Op.Symbol()})");
+      Visit(unary.Expr);
+      Exit();
     }
 
     protected override void Visit(AssignmentStatement assignment) {
-      _out.Append($"{assignment.Identifier} = {assignment.Expr}\n");
+      Enter(assignment);
+      Visit(assignment.Identifier);
+      Visit(assignment.Expr);
+      Exit();
     }
 
     protected override void Visit(EvalStatement eval) {
-      _out.Append($"eval {eval.Expr}\n");
+      Enter(eval);
+      Visit(eval.Expr);
+      Exit();
+    }
+
+    private void Enter(AstNode node) {
+      if (_level > 0) {
+        _out.Append($"\n{new string(' ', _level * 2)}");
+      }
+      _out.Append($"{node.Range} {node.GetType().Name}");
+      _level++;
+    }
+
+    private void Exit() {
+      _level--;
     }
   }
 }

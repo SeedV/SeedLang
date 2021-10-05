@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
+using SeedLang.Common;
 
 namespace SeedLang.X {
   // The parser of SeedPython language.
@@ -28,8 +30,8 @@ namespace SeedLang.X {
       return new SeedPythonParser(stream);
     }
 
-    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor() {
-      return new PythonVisitor();
+    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens) {
+      return new PythonVisitor(tokens);
     }
 
     protected override ParserRuleContext SingleStmt(Parser parser) {

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -110,8 +111,8 @@ namespace SeedLang.Block {
       return new SeedBlockParser(stream);
     }
 
-    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor() {
-      return new InlineTextVisitor();
+    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens) {
+      return new InlineTextVisitor(tokens);
     }
 
     protected override ParserRuleContext SingleExpr(Parser parser) {

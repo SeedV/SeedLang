@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
 
@@ -98,8 +97,8 @@ namespace SeedLang.Block {
           // TODO: implement a visitor to parse other kinds of blocks.
           if (rootBlock is ExpressionBlock expressionBlock) {
             var parser = new InlineTextParser();
-            if (parser.TryParse(expressionBlock.GetEditableText(), module.Name,
-                                ParseRule.Expression, collection, out var node)) {
+            if (parser.Parse(expressionBlock.GetEditableText(), module.Name, ParseRule.Expression,
+                             collection, out AstNode node, out IReadOnlyList<SyntaxToken> _)) {
               nodes.Add(node);
             }
           }

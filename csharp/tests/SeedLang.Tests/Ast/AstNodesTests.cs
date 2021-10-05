@@ -18,65 +18,88 @@ using Xunit;
 
 namespace SeedLang.Ast.Tests {
   public class AstNodesTests {
-    [Fact]
-    public void TestIdentifier() {
-      string name = "test name";
-      var identifier = Expression.Identifier(name, NewTextRange());
-      Assert.Equal(name, identifier.Name);
-      Assert.Equal(NewTextRange(), identifier.Range);
-      Assert.Equal(name, identifier.ToString());
+    internal class TestData : TheoryData<AstNode, string> {
+      public TestData() {
+        AddBinaryExpression();
+        AddIdentifierExpression();
+        AddNumberConstantExpression();
+        AddStringConstantExpression();
+        AddUnaryExpression();
+
+        AddAssignmentStatement();
+        AddEvalStatement();
+      }
+
+      private void AddBinaryExpression() {
+        var left = Expression.Number(1, NewTextRange());
+        var right = Expression.Number(2, NewTextRange());
+        var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRange());
+        var expectedOutput = $"{NewTextRange()} BinaryExpression (+)\n" +
+                             $"  {NewTextRange()} NumberConstantExpression (1)\n" +
+                             $"  {NewTextRange()} NumberConstantExpression (2)";
+        Add(binary, expectedOutput);
+      }
+
+      private void AddIdentifierExpression() {
+        var name = "test name";
+        var identifier = Expression.Identifier(name, NewTextRange());
+        var expectedOutput = $"{NewTextRange()} IdentifierExpression ({name})";
+        Add(identifier, expectedOutput);
+      }
+
+      private void AddNumberConstantExpression() {
+        double value = 1.5;
+        var number = Expression.Number(value, NewBlockRange());
+        var expectedOutput = $"{NewBlockRange()} NumberConstantExpression ({value})";
+        Add(number, expectedOutput);
+      }
+
+      private void AddStringConstantExpression() {
+        string strValue = "test string";
+        var str = Expression.String(strValue, NewTextRange());
+        var expectedOutput = $"{NewTextRange()} StringConstantExpression ({strValue})";
+        Add(str, expectedOutput);
+      }
+
+      private void AddUnaryExpression() {
+        var number = Expression.Number(1, NewTextRange());
+        var unary = Expression.Unary(UnaryOperator.Negative, number, NewTextRange());
+        var expectedOutput = $"{NewTextRange()} UnaryExpression (-)\n" +
+                             $"  {NewTextRange()} NumberConstantExpression (1)";
+        Add(unary, expectedOutput);
+      }
+
+      private void AddAssignmentStatement() {
+        var identifier = Expression.Identifier("id", NewTextRange());
+        var expr = Expression.Number(1, NewTextRange());
+        var assignment = Statement.Assignment(identifier, expr, NewTextRange());
+        var expectedOutput = $"{NewTextRange()} AssignmentStatement\n" +
+                             $"  {NewTextRange()} IdentifierExpression (id)\n" +
+                             $"  {NewTextRange()} NumberConstantExpression (1)";
+        Add(assignment, expectedOutput);
+      }
+
+      private void AddEvalStatement() {
+        var one = Expression.Number(1, NewTextRange());
+        var two = Expression.Number(2, NewTextRange());
+        var three = Expression.Number(3, NewTextRange());
+        var left = Expression.Binary(one, BinaryOperator.Add, two, NewTextRange());
+        var binary = Expression.Binary(left, BinaryOperator.Multiply, three, NewTextRange());
+        var eval = Statement.Eval(binary, NewTextRange());
+        var expectedOutput = $"{NewTextRange()} EvalStatement\n" +
+                             $"  {NewTextRange()} BinaryExpression (*)\n" +
+                             $"    {NewTextRange()} BinaryExpression (+)\n" +
+                             $"      {NewTextRange()} NumberConstantExpression (1)\n" +
+                             $"      {NewTextRange()} NumberConstantExpression (2)\n" +
+                             $"    {NewTextRange()} NumberConstantExpression (3)";
+        Add(eval, expectedOutput);
+      }
     }
 
-    [Fact]
-    public void TestNumberConstant() {
-      double value = 1.5;
-      var number = Expression.Number(value, NewBlockRange());
-      Assert.Equal(value, number.Value);
-      Assert.Equal(NewBlockRange(), number.Range);
-      Assert.Equal(value.ToString(), number.ToString());
-    }
-
-    [Fact]
-    public void TestStringConstant() {
-      string strValue = "test string";
-      var str = Expression.String(strValue, NewTextRange());
-      Assert.Equal(strValue, str.Value);
-      Assert.Equal(NewTextRange(), str.Range);
-      Assert.Equal(strValue, str.ToString());
-    }
-
-    [Fact]
-    public void TestBinaryExpression() {
-      var left = Expression.Number(1, NewTextRange());
-      var right = Expression.Number(2, NewTextRange());
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRange());
-      Assert.Equal("(1 + 2)", binary.ToString());
-    }
-
-    [Fact]
-    public void TestUnaryExpression() {
-      var number = Expression.Number(1, NewTextRange());
-      var unary = Expression.Unary(UnaryOperator.Negative, number, NewTextRange());
-      Assert.Equal("(- 1)", unary.ToString());
-    }
-
-    [Fact]
-    public void TestAssignmentStatement() {
-      var identifier = Expression.Identifier("id", null);
-      var expr = Expression.Number(1, NewTextRange());
-      var assignment = Statement.Assignment(identifier, expr, NewTextRange());
-      Assert.Equal("id = 1\n", assignment.ToString());
-    }
-
-    [Fact]
-    public void TestEvalStatement() {
-      var one = Expression.Number(1, NewTextRange());
-      var two = Expression.Number(2, NewTextRange());
-      var three = Expression.Number(3, NewTextRange());
-      var left = Expression.Binary(one, BinaryOperator.Add, two, NewTextRange());
-      var binary = Expression.Binary(left, BinaryOperator.Multiply, three, NewTextRange());
-      var eval = Statement.Eval(binary, NewTextRange());
-      Assert.Equal("eval ((1 + 2) * 3)\n", eval.ToString());
+    [Theory]
+    [ClassData(typeof(TestData))]
+    internal void TestAstNodes(AstNode node, string expectedOutput) {
+      Assert.Equal(expectedOutput, node.ToString());
     }
 
     private static TextRange NewTextRange() {
@@ -84,7 +107,7 @@ namespace SeedLang.Ast.Tests {
     }
 
     private static BlockRange NewBlockRange() {
-      return new BlockRange(new BlockPosition("Test Id"));
+      return new BlockRange(new BlockPosition("id"));
     }
   }
 }

@@ -13,10 +13,12 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
+using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.X {
@@ -26,42 +28,64 @@ namespace SeedLang.X {
   // result of the last one. PythonVisitor overrides the method if the default implement is not
   // correct.
   internal class PythonVisitor : SeedPythonBaseVisitor<AstNode> {
-    private readonly VisitorHelper _helper = new VisitorHelper();
+    private readonly VisitorHelper _helper;
+
+    public PythonVisitor(IList<SyntaxToken> tokens) {
+      _helper = new VisitorHelper(tokens);
+    }
 
     // Visits a single statement.
     public override AstNode VisitSingle_stmt(
         [NotNull] SeedPythonParser.Single_stmtContext context) {
+      const int childContextCount = 2;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
       return Visit(context.small_stmt());
     }
 
     // Visits an add or subtract binary expression.
-    //
-    // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
-    // items: the left and right ExprContexts.
     public override AstNode VisitAdd_sub([NotNull] SeedPythonParser.Add_subContext context) {
-      return _helper.BuildBinary(TokenToOperator(context.op), context.expr(), this);
+      const int childContextCount = 3;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
+      return _helper.BuildBinary(context.op, TokenToOperator(context.op), context.expr(), this);
     }
 
     // Visits a multiply and divide binary expression.
-    //
-    // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
-    // items: the left and right ExprContexts.
     public override AstNode VisitMul_div([NotNull] SeedPythonParser.Mul_divContext context) {
-      return _helper.BuildBinary(TokenToOperator(context.op), context.expr(), this);
+      const int childContextCount = 3;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
+      return _helper.BuildBinary(context.op, TokenToOperator(context.op), context.expr(), this);
     }
 
     // Visits an unary expression.
     public override AstNode VisitUnary([NotNull] SeedPythonParser.UnaryContext context) {
+      const int childContextCount = 2;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
       return _helper.BuildUnary(context.op, context.expr(), this);
     }
 
     // Visits an identifier.
     public override AstNode VisitIdentifier([NotNull] SeedPythonParser.IdentifierContext context) {
+      const int childContextCount = 1;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
       return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a number expression.
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {
+      const int childContextCount = 1;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
       return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
@@ -70,8 +94,12 @@ namespace SeedLang.X {
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedPythonParser.GroupingContext context) {
-      _helper.SetGroupingRange(context.OPEN_PAREN().Symbol, context.CLOSE_PAREN().Symbol);
-      return Visit(context.expr());
+      const int childContextCount = 3;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
+      return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expr(),
+                                   context.CLOSE_PAREN().Symbol, this);
     }
 
     // Visits a simple statement.
@@ -89,12 +117,21 @@ namespace SeedLang.X {
     // Visits an assignment statement.
     public override AstNode VisitAssign_stmt(
         [NotNull] SeedPythonParser.Assign_stmtContext context) {
-      return VisitorHelper.BuildAssign(context.IDENTIFIER().Symbol, context.expr(), this);
+      const int childContextCount = 3;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
+      return _helper.BuildAssign(context.IDENTIFIER().Symbol, context.EQUAL().Symbol,
+                                 context.expr(), this);
     }
 
     // Visits an eval statement.
     public override AstNode VisitEval_stmt([NotNull] SeedPythonParser.Eval_stmtContext context) {
-      return VisitorHelper.BuildEval(context.EVAL().Symbol, context.expr(), this);
+      const int childContextCount = 2;
+      if (context.ChildCount != childContextCount) {
+        return null;
+      }
+      return _helper.BuildEval(context.EVAL().Symbol, context.expr(), this);
     }
 
     internal static BinaryOperator TokenToOperator(IToken token) {

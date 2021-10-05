@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,41 +79,116 @@ namespace SeedLang.Block.Tests {
     }
 
     [Theory]
-    [InlineData("0", "0")]
-    [InlineData("0.", "0")]
-    [InlineData(".0", "0")]
-    [InlineData(".5", "0.5")]
-    [InlineData("1.5", "1.5")]
-    [InlineData("1e3", "1000")]
-    [InlineData("1e+20", "1E+20")]
-    [InlineData("1e-5", "1E-05")]
-    public void TestParseNumber(string input, string expected) {
-      Assert.True(_parser.TryParse(input, "", ParseRule.Number, _collection, out AstNode node));
-      Assert.NotNull(node);
-      Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
-    }
+    [InlineData(ParseRule.Number, "0",
+                "[Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (0)",
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
+    [InlineData(ParseRule.Number, "0.",
+                "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
+                "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
+    [InlineData(ParseRule.Number, ".0",
+                "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
+                "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
+    [InlineData(ParseRule.Number, ".5",
+                "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0.5)",
+                "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
+    [InlineData(ParseRule.Number, "1.5",
+                "[Ln 1, Col 0 - Ln 1, Col 2] NumberConstantExpression (1.5)",
+                "Number [Ln 1, Col 0 - Ln 1, Col 2]")]
+    [InlineData(ParseRule.Number, "1e3",
+                "[Ln 1, Col 0 - Ln 1, Col 2] NumberConstantExpression (1000)",
+                "Number [Ln 1, Col 0 - Ln 1, Col 2]")]
+    [InlineData(ParseRule.Number, "1e+20",
+                "[Ln 1, Col 0 - Ln 1, Col 4] NumberConstantExpression (1E+20)",
+                "Number [Ln 1, Col 0 - Ln 1, Col 4]")]
+    [InlineData(ParseRule.Number, "1e-5",
+                "[Ln 1, Col 0 - Ln 1, Col 3] NumberConstantExpression (1E-05)",
+                "Number [Ln 1, Col 0 - Ln 1, Col 3]")]
 
-    [Theory]
-    [InlineData("1 + 2", "(1 + 2)")]
-    [InlineData("1 - 2 * 3", "(1 - (2 * 3))")]
-    [InlineData("(1 + 2) / 3", "((1 + 2) / 3)")]
-    public void TestParseBinaryExpression(string input, string expected) {
-      Assert.True(_parser.TryParse(input, "", ParseRule.Expression, _collection, out AstNode node));
-      Assert.NotNull(node);
-      Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
-    }
+    [InlineData(ParseRule.Expression, "1 + 2",
 
-    [Theory]
-    [InlineData("-1 + 2", "((- 1) + 2)")]
-    [InlineData("-(1 + 2)", "(- (1 + 2))")]
-    [InlineData("2 - - 1", "(2 - (- 1))")]
-    public void TestParseUnaryExpression(string input, string expected) {
-      Assert.True(_parser.TryParse(input, "", ParseRule.Expression, _collection, out AstNode node));
+                "[Ln 1, Col 0 - Ln 1, Col 4] BinaryExpression (+)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
+
+    [InlineData(ParseRule.Expression, "1 - 2 * 3",
+
+                "[Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (-)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 8] BinaryExpression (*)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 8 - Ln 1, Col 8] NumberConstantExpression (3)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Operator [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Number [Ln 1, Col 8 - Ln 1, Col 8]")]
+
+    [InlineData(ParseRule.Expression, "(1 + 2) / 3",
+
+                "[Ln 1, Col 0 - Ln 1, Col 10] BinaryExpression (/)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (+)\n" +
+                "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (2)\n" +
+                "  [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (3)",
+
+                "Symbol [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Symbol [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Number [Ln 1, Col 10 - Ln 1, Col 10]")]
+
+    [InlineData(ParseRule.Expression, "-1 + 2",
+
+                "[Ln 1, Col 0 - Ln 1, Col 5] BinaryExpression (+)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] UnaryExpression (-)\n" +
+                "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                "  [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (2)",
+
+                "Operator [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]")]
+
+    [InlineData(ParseRule.Expression, "-(1 + 2)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (-)\n" +
+                "  [Ln 1, Col 1 - Ln 1, Col 7] BinaryExpression (+)\n" +
+                "    [Ln 1, Col 2 - Ln 1, Col 2] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (2)",
+
+                "Operator [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Symbol [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Number [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Symbol [Ln 1, Col 7 - Ln 1, Col 7]")]
+
+    [InlineData(ParseRule.Expression, "2 - - 1",
+
+                "[Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (-)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (2)\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 6] UnaryExpression (-)\n" +
+                "    [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]")]
+    public void TestInlineTextParser(ParseRule rule, string input, string expected,
+                                     string expectedTokens) {
+      Assert.True(_parser.Parse(input, "", rule, _collection, out AstNode node,
+                                out IReadOnlyList<SyntaxToken> tokens));
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
       Assert.Equal(expected, node.ToString());
+      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
 
     [Theory]

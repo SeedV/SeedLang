@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -39,25 +40,24 @@ namespace SeedLang.X {
     // Parses source code into an AST tree based on the parse rule. The concrete ANTLR4 lexer and
     // parser are created by the derived class. The out node is set to null if the given source code
     // is not valid.
-    internal bool TryParse(string source, string module, ParseRule rule,
-                           DiagnosticCollection collection, out AstNode node) {
+    internal bool Parse(string source, string module, ParseRule rule,
+                        DiagnosticCollection collection, out AstNode node,
+                        out IReadOnlyList<SyntaxToken> tokens) {
       int diagnosticCount = collection.Diagnostics.Count;
       Parser parser = SetupParser(source, module, collection);
       ParserRuleContext context = GetContext(parser, rule);
-      var visitor = MakeVisitor();
+      var tokenList = new List<SyntaxToken>();
+      AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
       node = visitor.Visit(context);
-      if (collection.Diagnostics.Count > diagnosticCount) {
-        node = null;
-        return false;
-      }
-      return true;
+      tokens = tokenList;
+      return collection.Diagnostics.Count == diagnosticCount;
     }
 
     protected abstract Lexer MakeLexer(ICharStream stream);
 
     protected abstract Parser MakeParser(ITokenStream stream);
 
-    protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor();
+    protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens);
 
     protected virtual ParserRuleContext SingleIdentifier(Parser parser) {
       throw new NotImplementedException();

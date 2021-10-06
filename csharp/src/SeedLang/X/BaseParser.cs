@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
@@ -26,6 +27,8 @@ namespace SeedLang.X {
   // It provides interfaces to validate the source code, and parse it into an AST tree based on the
   // predefined rules.
   internal abstract class BaseParser {
+    protected abstract IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMapping { get; }
+
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.
     internal bool Validate(string source, string module, ParseRule rule,
@@ -47,10 +50,19 @@ namespace SeedLang.X {
       Parser parser = SetupParser(source, module, collection);
       ParserRuleContext context = GetContext(parser, rule);
       var tokenList = new List<SyntaxToken>();
-      AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
-      node = visitor.Visit(context);
       tokens = tokenList;
-      return collection.Diagnostics.Count == diagnosticCount;
+      AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
+      try {
+        node = visitor.Visit(context);
+      } catch (ParseException) {
+        node = null;
+      }
+      if (collection.Diagnostics.Count > diagnosticCount) {
+        ParseMissingSyntaxTokens(source, tokenList);
+        node = null;
+        return false;
+      }
+      return true;
     }
 
     protected abstract Lexer MakeLexer(ICharStream stream);
@@ -96,6 +108,21 @@ namespace SeedLang.X {
         parser.ErrorHandler = new SyntaxErrorStrategy(module, collection);
       }
       return parser;
+    }
+
+    private void ParseMissingSyntaxTokens(string source, IList<SyntaxToken> tokens) {
+      Lexer lexer = SetupLexer(source);
+      TextPosition end = tokens.Count > 0 ? tokens.Last().Range.End : new TextPosition(0, -1);
+      foreach (var token in lexer.GetAllTokens()) {
+        if (_syntaxTypeMapping.ContainsKey(token.Type)) {
+          TextRange range = CodeReferenceUtils.RangeOfToken(token);
+          if (range.Start > end) {
+            tokens.Add(new SyntaxToken(_syntaxTypeMapping[token.Type], range));
+          }
+        } else {
+          throw new NotImplementedException("Not implemented token type: {token.Type}");
+        }
+      }
     }
 
     private ParserRuleContext GetContext(Parser parser, ParseRule rule) {

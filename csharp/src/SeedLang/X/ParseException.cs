@@ -1,4 +1,3 @@
-using System;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,29 +12,14 @@ using System;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+
 namespace SeedLang.Common {
-  public enum SyntaxType {
-    Keyword,
-    Number,
-    Operator,
-    Parenthesis,
-    String,
-    Symbol,
-    Variable,
-  }
-
-  public class SyntaxToken {
-
-    public SyntaxType Type { get; }
-    public TextRange Range { get; }
-
-    public SyntaxToken(SyntaxType type, TextRange range) {
-      Type = type;
-      Range = range;
+  internal class ParseException : Exception {
+    public ParseException() {
     }
 
-    public override string ToString() {
-      return $"{Type} {Range}";
+    public ParseException(string message) : base(message) {
     }
   }
 }

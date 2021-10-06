@@ -38,6 +38,18 @@ namespace SeedLang.Block {
       void VisitInvalidToken(TextRange range);
     }
 
+    private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
+      { SeedBlockParser.NUMBER, SyntaxType.Number},
+      { SeedBlockParser.ADD, SyntaxType.Operator},
+      { SeedBlockParser.SUB, SyntaxType.Operator},
+      { SeedBlockParser.MUL, SyntaxType.Operator},
+      { SeedBlockParser.DIV, SyntaxType.Operator},
+      { SeedBlockParser.OPEN_PAREN, SyntaxType.Parenthesis},
+      { SeedBlockParser.CLOSE_PAREN, SyntaxType.Parenthesis},
+    };
+
+    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMapping => _syntaxTypes;
+
     // Visits an inline text of block programs. The given listener is notified when each token of
     // the inline text is visited. The negative sign token will be combined with the following
     // number to form a negative number.

@@ -129,19 +129,25 @@ namespace SeedLang.X.Tests {
     [Theory]
     [InlineData("1",
                 "SyntaxErrorInputMismatch '1' {'break', 'continue', 'eval', IDENTIFIER}",
-                "")]
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
 
     [InlineData("eval1",
                 "SyntaxErrorInputMismatch '<EOF>' '='",
-                "")]
+                "Variable [Ln 1, Col 0 - Ln 1, Col 4]")]
 
     [InlineData("eval 1.2 =",
                 "SyntaxErrorUnwantedToken '=' <EOF>",
-                "")]
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 7]," +
+                "Operator [Ln 1, Col 9 - Ln 1, Col 9]")]
 
     [InlineData("eval 1 +",
-                "SyntaxErrorUnwantedToken ';' <EOF>",
-                "")]
+                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 7 - Ln 1, Col 7]")]
     public void TestParseSingleSyntaxError(string input, string errorMessage,
                                            string expectedTokens) {
       Assert.False(_parser.Parse(input, "", ParseRule.Statement, _collection, out AstNode node,

@@ -18,15 +18,19 @@ using SeedLang.Common;
 namespace SeedLang.X {
   // Utilities to set up and maintain code references during parsing and compiling.
   internal static class CodeReferenceUtils {
-    public static TextRange RangeOfToken(IToken token) {
+    internal static TextRange RangeOfToken(IToken token) {
       return RangeOfTokens(token, token);
     }
 
-    public static TextRange RangeOfTokens(IToken start, IToken end) {
+    internal static TextRange RangeOfTokens(IToken start, IToken end) {
       // TODO: need scan the source string to calculate the end column if the end token is in
       // multiple lines.
       return new TextRange(start.Line, start.Column,
                            end.Line, end.Column + end.StopIndex - end.StartIndex);
+    }
+
+    internal static TextRange CombineRanges(TextRange begin, TextRange end) {
+      return new TextRange(begin.Start.Line, begin.Start.Column, end.End.Line, end.End.Column);
     }
   }
 }

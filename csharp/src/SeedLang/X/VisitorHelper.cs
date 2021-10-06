@@ -41,27 +41,31 @@ namespace SeedLang.X {
       _groupingRange = null;
 
       Debug.Assert(exprContexts.Length == 2);
-      var left = visitor.Visit(exprContexts[0]) as Expression;
-      AddSyntaxToken(SyntaxType.Operator, RangeOfToken(opToken));
-      var right = visitor.Visit(exprContexts[1]) as Expression;
+      var left = visitor.Visit(exprContexts[0]);
+      AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
+      var right = visitor.Visit(exprContexts[1]);
 
-      if (range is null) {
-        Debug.Assert(left.Range is TextRange);
-        Debug.Assert(right.Range is TextRange);
-        range = CombineRanges(left.Range as TextRange, right.Range as TextRange);
+      if (left is Expression leftExpr && right is Expression rightExpr) {
+        if (range is null) {
+          Debug.Assert(left.Range is TextRange);
+          Debug.Assert(right.Range is TextRange);
+          range = CodeReferenceUtils.CombineRanges(left.Range as TextRange,
+                                                   right.Range as TextRange);
+        }
+        return Expression.Binary(leftExpr, op, rightExpr, range);
       }
-      return Expression.Binary(left, op, right, range);
+      throw new ParseException("Invalid binary expression.");
     }
 
     // Sets grouping range for sub-expression to use. Only keeps the largest grouping range.
     internal AstNode BuildGrouping(IToken openParen, ParserRuleContext exprContext,
                                    IToken closeParen, AbstractParseTreeVisitor<AstNode> visitor) {
-      TextRange openRange = RangeOfToken(openParen);
-      TextRange closeRange = RangeOfToken(closeParen);
+      TextRange openRange = CodeReferenceUtils.RangeOfToken(openParen);
+      TextRange closeRange = CodeReferenceUtils.RangeOfToken(closeParen);
       AddSyntaxToken(SyntaxType.Symbol, openRange);
 
       if (_groupingRange is null) {
-        _groupingRange = CombineRanges(openRange, closeRange);
+        _groupingRange = CodeReferenceUtils.CombineRanges(openRange, closeRange);
       }
 
       AstNode node = visitor.Visit(exprContext);
@@ -93,13 +97,13 @@ namespace SeedLang.X {
       TextRange range = _groupingRange;
       _groupingRange = null;
 
-      TextRange opRange = RangeOfToken(opToken);
+      TextRange opRange = CodeReferenceUtils.RangeOfToken(opToken);
       AddSyntaxToken(SyntaxType.Operator, opRange);
 
       var expr = visitor.Visit(exprContext) as Expression;
       if (range is null) {
         Debug.Assert(expr.Range is TextRange);
-        range = CombineRanges(opRange, expr.Range as TextRange);
+        range = CodeReferenceUtils.CombineRanges(opRange, expr.Range as TextRange);
       }
       // TODO: handle other unary operators.
       return Expression.Unary(UnaryOperator.Negative, expr, range);
@@ -109,41 +113,34 @@ namespace SeedLang.X {
     internal AssignmentStatement BuildAssign(IToken idToken, IToken equalToken,
                                              ParserRuleContext exprContext,
                                              AbstractParseTreeVisitor<AstNode> visitor) {
-      TextRange idRange = RangeOfToken(idToken);
+      TextRange idRange = CodeReferenceUtils.RangeOfToken(idToken);
       var identifier = Expression.Identifier(idToken.Text, idRange);
       AddSyntaxToken(SyntaxType.Variable, idRange);
-      AddSyntaxToken(SyntaxType.Operator, RangeOfToken(equalToken));
+      AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(equalToken));
 
       var expr = visitor.Visit(exprContext) as Expression;
       Debug.Assert(expr.Range is TextRange);
-      TextRange range = CombineRanges(idRange, expr.Range as TextRange);
+      TextRange range = CodeReferenceUtils.CombineRanges(idRange, expr.Range as TextRange);
       return Statement.Assignment(identifier, expr, range);
     }
 
     // Builds an eval statement from the eval token and the expression context.
     internal EvalStatement BuildEval(IToken evalToken, ParserRuleContext exprContext,
                                      AbstractParseTreeVisitor<AstNode> visitor) {
-      TextRange evalRange = RangeOfToken(evalToken);
+      TextRange evalRange = CodeReferenceUtils.RangeOfToken(evalToken);
       AddSyntaxToken(SyntaxType.Keyword, evalRange);
 
       var expr = visitor.Visit(exprContext) as Expression;
       Debug.Assert(expr.Range is TextRange);
-      return Statement.Eval(expr, CombineRanges(evalRange, expr.Range as TextRange));
-    }
-
-    private static TextRange RangeOfToken(IToken t) {
-      return new TextRange(t.Line, t.Column, t.Line, t.Column + t.Text.Length - 1);
-    }
-
-    private static TextRange CombineRanges(TextRange begin, TextRange end) {
-      return new TextRange(begin.Start.Line, begin.Start.Column, end.End.Line, end.End.Column);
+      TextRange range = CodeReferenceUtils.CombineRanges(evalRange, expr.Range as TextRange);
+      return Statement.Eval(expr, range);
     }
 
     private TextRange HandleConstantOrVariableExpression(IToken token, SyntaxType type) {
-      TextRange tokenRange = RangeOfToken(token);
+      TextRange tokenRange = CodeReferenceUtils.RangeOfToken(token);
       AddSyntaxToken(type, tokenRange);
 
-      TextRange range = _groupingRange is null ? RangeOfToken(token) : _groupingRange;
+      TextRange range = _groupingRange is null ? tokenRange : _groupingRange;
       _groupingRange = null;
       return range;
     }

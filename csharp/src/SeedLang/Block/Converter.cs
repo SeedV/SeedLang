@@ -50,27 +50,26 @@ namespace SeedLang.Block {
       int i = 0;
       while (i < tokens.Count) {
         switch (tokens[i].Type) {
-          case SyntaxType.Number: {
-              string number = TextOfRange(text, tokens[i].Range);
-              blocks.Add(new NumberBlock { Value = number, InlineTextReference = tokens[i].Range });
-              break;
-            }
-          case SyntaxType.Operator: {
-              TextRange range = tokens[i].Range;
-              string op = TextOfRange(text, range);
-              if (op == "-") {
-                if (i < tokens.Count - 1 && tokens[i + 1].Type == SyntaxType.Number) {
-                  TextRange numberRange = CodeReferenceUtils.CombineRanges(range,
-                                                                           tokens[i + 1].Range);
-                  string number = TextOfRange(text, numberRange);
-                  blocks.Add(new NumberBlock { Value = number, InlineTextReference = numberRange });
-                  ++i;
-                  break;
-                }
+          case SyntaxType.Number:
+            blocks.Add(new NumberBlock {
+              Value = TextOfRange(text, tokens[i].Range),
+              InlineTextReference = tokens[i].Range,
+            });
+            break;
+          case SyntaxType.Operator:
+            TextRange range = tokens[i].Range;
+            string op = TextOfRange(text, range);
+            if (op == "-") {
+              if (i < tokens.Count - 1 && tokens[i + 1].Type == SyntaxType.Number) {
+                TextRange newRange = CodeReferenceUtils.CombineRanges(range, tokens[i + 1].Range);
+                string number = TextOfRange(text, newRange);
+                blocks.Add(new NumberBlock { Value = number, InlineTextReference = newRange });
+                ++i;
+                break;
               }
-              blocks.Add(new ArithmeticOperatorBlock { Name = op, InlineTextReference = range });
-              break;
             }
+            blocks.Add(new ArithmeticOperatorBlock { Name = op, InlineTextReference = range });
+            break;
           case SyntaxType.Parenthesis:
             string paren = TextOfRange(text, tokens[i].Range);
             var type = paren == "(" ? ParenthesisBlock.Type.Left : ParenthesisBlock.Type.Right;
@@ -90,8 +89,8 @@ namespace SeedLang.Block {
     }
 
     // Converts a block program to a list of AST trees.
-    internal static IReadOnlyList<AstNode> TryConvert(Program program,
-                                                      DiagnosticCollection collection) {
+    internal static IReadOnlyList<AstNode> Convert(Program program,
+                                                   DiagnosticCollection collection) {
       var nodes = new List<AstNode>();
       foreach (var module in program.Modules) {
         foreach (var rootBlock in module.RootBlockIterator) {

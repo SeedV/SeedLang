@@ -14,6 +14,7 @@ using System;
 // limitations under the License.
 
 namespace SeedLang.Common {
+  // The type of syntax tokens parsed from source code.
   public enum SyntaxType {
     Keyword,
     Number,
@@ -25,6 +26,7 @@ namespace SeedLang.Common {
     Variable,
   }
 
+  // Represents syntax tokens parsed from source code.
   public class SyntaxToken {
 
     public SyntaxType Type { get; }

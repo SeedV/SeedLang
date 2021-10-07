@@ -1,4 +1,3 @@
-using System.Net.Mime;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,16 +23,18 @@ using SeedLang.Runtime;
 namespace SeedLang.X {
   // A helper class to build AST nodes from parser tree contexts.
   internal class VisitorHelper {
-    private readonly IList<SyntaxToken> _tokens;
+    private readonly IList<SyntaxToken> _syntaxTokens;
     private TextRange _groupingRange;
 
     public VisitorHelper(IList<SyntaxToken> tokens) {
-      _tokens = tokens;
+      _syntaxTokens = tokens;
     }
 
+    // Checks the child count of parser rule context. Throw an exception if the criterion is not
+    // met.
     internal static void EnsureChildCountOfContext(ParserRuleContext context, int count) {
       if (context.ChildCount != count) {
-        throw new ParseException($"Parse {context} error.");
+        throw new ParseException($"Parse {context.GetType().Name} error.");
       }
     }
 
@@ -147,14 +148,13 @@ namespace SeedLang.X {
     private TextRange HandleConstantOrVariableExpression(IToken token, SyntaxType type) {
       TextRange tokenRange = CodeReferenceUtils.RangeOfToken(token);
       AddSyntaxToken(type, tokenRange);
-
       TextRange range = _groupingRange is null ? tokenRange : _groupingRange;
       _groupingRange = null;
       return range;
     }
 
     private void AddSyntaxToken(SyntaxType type, TextRange range) {
-      _tokens.Add(new SyntaxToken(type, range));
+      _syntaxTokens.Add(new SyntaxToken(type, range));
     }
   }
 }

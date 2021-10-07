@@ -27,7 +27,8 @@ namespace SeedLang.X {
   // It provides interfaces to validate the source code, and parse it into an AST tree based on the
   // predefined rules.
   internal abstract class BaseParser {
-    protected abstract IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMapping { get; }
+    // The dictionary that maps from token types to syntax token types.
+    protected abstract IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap { get; }
 
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.
@@ -114,10 +115,10 @@ namespace SeedLang.X {
       Lexer lexer = SetupLexer(source);
       TextPosition end = tokens.Count > 0 ? tokens.Last().Range.End : new TextPosition(0, -1);
       foreach (var token in lexer.GetAllTokens()) {
-        if (_syntaxTypeMapping.ContainsKey(token.Type)) {
+        if (_syntaxTypeMap.ContainsKey(token.Type)) {
           TextRange range = CodeReferenceUtils.RangeOfToken(token);
           if (range.Start > end) {
-            tokens.Add(new SyntaxToken(_syntaxTypeMapping[token.Type], range));
+            tokens.Add(new SyntaxToken(_syntaxTypeMap[token.Type], range));
           }
         } else {
           throw new NotImplementedException($"Not implemented token type: {token.Type}");

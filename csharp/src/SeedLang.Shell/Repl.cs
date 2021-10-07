@@ -127,6 +127,7 @@ namespace SeedLang.Shell {
     }
 
     private static int LengthOfRange(TextRange range) {
+      // TODO: need support multiple-line source code?
       return range.End.Column - range.Start.Column + 1;
     }
   }

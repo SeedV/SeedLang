@@ -26,6 +26,7 @@ namespace SeedLang.Block {
   // The InlineTextParser used generated ANTLR4 SeedBlockParser to parse the inline text of block
   // programs.
   internal class InlineTextParser : BaseParser {
+    // The dictionary that maps from token types of SeedBlock to syntax token types.
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
       { SeedBlockParser.NUMBER, SyntaxType.Number },
       { SeedBlockParser.ADD, SyntaxType.Operator },
@@ -37,7 +38,8 @@ namespace SeedLang.Block {
       { SeedBlockParser.UNKNOWN_CHAR, SyntaxType.Unknown },
     };
 
-    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMapping => _syntaxTypes;
+    // The dictionary that maps from token types of SeedBlock to syntax token types.
+    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
 
     protected override Lexer MakeLexer(ICharStream stream) {
       return new SeedBlockLexer(stream);

@@ -22,6 +22,7 @@ using SeedLang.Common;
 namespace SeedLang.X {
   // The parser of SeedPython language.
   internal class PythonParser : BaseParser {
+    // The dictionary that maps from token types of SeedPython to syntax token types.
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
       { SeedPythonParser.EVAL, SyntaxType.Keyword},
       { SeedPythonParser.IDENTIFIER, SyntaxType.Variable},
@@ -36,7 +37,8 @@ namespace SeedLang.X {
       { SeedPythonParser.UNKNOWN_CHAR, SyntaxType.Unknown },
     };
 
-    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMapping => _syntaxTypes;
+    // The dictionary that maps from token types of SeedPython to syntax token types.
+    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
 
     protected override Lexer MakeLexer(ICharStream stream) {
       return new SeedPythonLexer(stream);

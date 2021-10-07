@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +12,8 @@ using System.Linq;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+using System.Linq;
 using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;

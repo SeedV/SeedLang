@@ -24,10 +24,12 @@ namespace SeedLang.Runtime {
   // An executor class to execute SeedBlock programs or SeedX source code. The information during
   // execution can be visualized by registered visualizers.
   public class Executor {
+    // Syntax tokens of current parsed source code.
     public IReadOnlyList<SyntaxToken> SyntaxTokens;
 
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
     private readonly Ast.Executor _executor;
+    // The ast node of current parsed source code.
     private AstNode _node;
 
     public Executor() {
@@ -48,12 +50,13 @@ namespace SeedLang.Runtime {
         return false;
       }
       DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
-      foreach (var node in Converter.TryConvert(program, localCollection)) {
+      foreach (var node in Converter.Convert(program, localCollection)) {
         _executor.Run(node);
       }
       return true;
     }
 
+    // Parses SeedX source code into an AST tree and a list of syntax tokens.
     public bool Parse(string source, string module, SeedXLanguage language,
                       DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
@@ -65,7 +68,7 @@ namespace SeedLang.Runtime {
                           out _node, out SyntaxTokens);
     }
 
-    // Runs SeedX source code based on the given SeedX language and run type.
+    // Runs current parsed AST tree or bytecode based on the run type.
     public bool Run(RunType runType) {
       if (_node is null) {
         return false;

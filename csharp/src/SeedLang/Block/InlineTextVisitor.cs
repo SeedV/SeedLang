@@ -70,18 +70,12 @@ namespace SeedLang.Block {
     }
 
     // Visits an add or subtract binary expression.
-    //
-    // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
-    // items: the left and right ExprContexts.
     public override AstNode VisitAdd_sub([NotNull] SeedBlockParser.Add_subContext context) {
       VisitorHelper.EnsureChildCountOfContext(context, 3);
       return _helper.BuildBinary(context.op, TokenToOperator(context.op), context.expr(), this);
     }
 
     // Visits a multiply or divide binary expression.
-    //
-    // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
-    // items: the left and right ExprContexts.
     public override AstNode VisitMul_div([NotNull] SeedBlockParser.Mul_divContext context) {
       VisitorHelper.EnsureChildCountOfContext(context, 3);
       return _helper.BuildBinary(context.op, TokenToOperator(context.op), context.expr(), this);

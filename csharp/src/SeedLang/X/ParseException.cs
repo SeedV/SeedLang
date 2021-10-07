@@ -15,6 +15,9 @@
 using System;
 
 namespace SeedLang.Common {
+  // An exception class that reports error during AST tree parsing.
+  //
+  // This class is used internally to stop the process if any errors happen during parsing.
   internal class ParseException : Exception {
     public ParseException() {
     }

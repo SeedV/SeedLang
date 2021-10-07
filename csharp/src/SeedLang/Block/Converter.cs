@@ -15,52 +15,12 @@
 using System.Collections.Generic;
 using SeedLang.Ast;
 using SeedLang.Common;
+using SeedLang.X;
 
 namespace SeedLang.Block {
   // The converter that converts a block program to an AST tree, an expression inline text to a list
   // of blocks, or an expression inline text to an AST tree.
   public class Converter {
-    private class InlineTextListener : InlineTextParser.IInlineTextListener {
-      public readonly List<BaseBlock> Blocks = new List<BaseBlock>();
-      public IList<TextRange> InvalidTokenRanges { get; private set; }
-
-      public InlineTextListener(IList<TextRange> invalidTokenRanges) {
-        InvalidTokenRanges = invalidTokenRanges;
-      }
-
-      public void VisitArithmeticOperator(string op, TextRange range) {
-        Blocks.Add(new ArithmeticOperatorBlock { Name = op, InlineTextReference = range });
-      }
-
-      public void VisitCloseParen(TextRange range) {
-        Blocks.Add(new ParenthesisBlock(ParenthesisBlock.Type.Right) {
-          InlineTextReference = range
-        });
-      }
-
-      public void VisitIdentifier(string name, TextRange range) {
-        throw new System.NotImplementedException();
-      }
-
-      public void VisitNumber(string number, TextRange range) {
-        Blocks.Add(new NumberBlock { Value = number, InlineTextReference = range });
-      }
-
-      public void VisitOpenParen(TextRange range) {
-        Blocks.Add(new ParenthesisBlock(ParenthesisBlock.Type.Left) {
-          InlineTextReference = range
-        });
-      }
-
-      public void VisitString(string str, TextRange range) {
-        throw new System.NotImplementedException();
-      }
-
-      public void VisitInvalidToken(TextRange range) {
-        InvalidTokenRanges?.Add(range);
-      }
-    }
-
     // Checks if an inline text is a valid expression. Detailed diagnostic info will be stored in
     // collection if the text is invalid.
     public static bool IsValidInlineTextExpression(string text, DiagnosticCollection collection) {
@@ -83,9 +43,50 @@ namespace SeedLang.Block {
         return null;
       }
       var parser = new InlineTextParser();
-      var listener = new InlineTextListener(invalidTokenRanges);
-      parser.VisitInlineText(text, listener);
-      return listener.Blocks;
+      parser.Parse(text, "", ParseRule.Expression, collection,
+                   out AstNode _, out IReadOnlyList<SyntaxToken> tokens);
+
+      var blocks = new List<BaseBlock>();
+      int i = 0;
+      while (i < tokens.Count) {
+        switch (tokens[i].Type) {
+          case SyntaxType.Number: {
+              string number = TextOfRange(text, tokens[i].Range);
+              blocks.Add(new NumberBlock { Value = number, InlineTextReference = tokens[i].Range });
+              break;
+            }
+          case SyntaxType.Operator: {
+              TextRange range = tokens[i].Range;
+              string op = TextOfRange(text, range);
+              if (op == "-") {
+                if (i < tokens.Count - 1 && tokens[i + 1].Type == SyntaxType.Number) {
+                  TextRange numberRange = CodeReferenceUtils.CombineRanges(range,
+                                                                           tokens[i + 1].Range);
+                  string number = TextOfRange(text, numberRange);
+                  blocks.Add(new NumberBlock { Value = number, InlineTextReference = numberRange });
+                  ++i;
+                  break;
+                }
+              }
+              blocks.Add(new ArithmeticOperatorBlock { Name = op, InlineTextReference = range });
+              break;
+            }
+          case SyntaxType.Parenthesis:
+            string paren = TextOfRange(text, tokens[i].Range);
+            var type = paren == "(" ? ParenthesisBlock.Type.Left : ParenthesisBlock.Type.Right;
+            blocks.Add(new ParenthesisBlock(type) { InlineTextReference = tokens[i].Range });
+            break;
+          case SyntaxType.Keyword:
+          case SyntaxType.String:
+          case SyntaxType.Symbol:
+          case SyntaxType.Unknown:
+          case SyntaxType.Variable:
+            invalidTokenRanges?.Add(tokens[i].Range);
+            break;
+        }
+        ++i;
+      }
+      return blocks;
     }
 
     // Converts a block program to a list of AST trees.
@@ -105,6 +106,10 @@ namespace SeedLang.Block {
         }
       }
       return nodes;
+    }
+
+    private static string TextOfRange(string text, TextRange range) {
+      return text.Substring(range.Start.Column, range.End.Column - range.Start.Column + 1);
     }
   }
 }

@@ -120,7 +120,7 @@ namespace SeedLang.X {
             tokens.Add(new SyntaxToken(_syntaxTypeMapping[token.Type], range));
           }
         } else {
-          throw new NotImplementedException("Not implemented token type: {token.Type}");
+          throw new NotImplementedException($"Not implemented token type: {token.Type}");
         }
       }
     }

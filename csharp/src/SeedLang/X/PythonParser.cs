@@ -33,6 +33,7 @@ namespace SeedLang.X {
       { SeedPythonParser.EQUAL, SyntaxType.Operator},
       { SeedPythonParser.OPEN_PAREN, SyntaxType.Parenthesis},
       { SeedPythonParser.CLOSE_PAREN, SyntaxType.Parenthesis},
+      { SeedPythonParser.UNKNOWN_CHAR, SyntaxType.Unknown },
     };
 
     protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMapping => _syntaxTypes;

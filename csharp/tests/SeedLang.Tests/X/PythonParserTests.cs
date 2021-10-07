@@ -74,17 +74,17 @@ namespace SeedLang.X.Tests {
                 "      [Ln 1, Col 24 - Ln 1, Col 24] NumberConstantExpression (3)",
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
                 "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
                 "Number [Ln 1, Col 11 - Ln 1, Col 11]," +
-                "Symbol [Ln 1, Col 12 - Ln 1, Col 12]," +
-                "Symbol [Ln 1, Col 13 - Ln 1, Col 13]," +
+                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Parenthesis [Ln 1, Col 13 - Ln 1, Col 13]," +
                 "Operator [Ln 1, Col 15 - Ln 1, Col 15]," +
-                "Symbol [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "Parenthesis [Ln 1, Col 17 - Ln 1, Col 17]," +
                 "Variable [Ln 1, Col 18 - Ln 1, Col 18]," +
-                "Symbol [Ln 1, Col 19 - Ln 1, Col 19]," +
+                "Parenthesis [Ln 1, Col 19 - Ln 1, Col 19]," +
                 "Operator [Ln 1, Col 21 - Ln 1, Col 21]," +
                 "Operator [Ln 1, Col 23 - Ln 1, Col 23]," +
                 "Number [Ln 1, Col 24 - Ln 1, Col 24]")]
@@ -102,20 +102,20 @@ namespace SeedLang.X.Tests {
                 "        [Ln 1, Col 23 - Ln 1, Col 23] NumberConstantExpression (4)",
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
                 "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Symbol [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Parenthesis [Ln 1, Col 11 - Ln 1, Col 11]," +
                 "Operator [Ln 1, Col 13 - Ln 1, Col 13]," +
-                "Symbol [Ln 1, Col 15 - Ln 1, Col 15]," +
-                "Symbol [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Parenthesis [Ln 1, Col 15 - Ln 1, Col 15]," +
+                "Parenthesis [Ln 1, Col 16 - Ln 1, Col 16]," +
                 "Number [Ln 1, Col 18 - Ln 1, Col 18]," +
                 "Operator [Ln 1, Col 20 - Ln 1, Col 20]," +
                 "Operator [Ln 1, Col 22 - Ln 1, Col 22]," +
                 "Number [Ln 1, Col 23 - Ln 1, Col 23]," +
-                "Symbol [Ln 1, Col 25 - Ln 1, Col 25]," +
-                "Symbol [Ln 1, Col 26 - Ln 1, Col 26]")]
+                "Parenthesis [Ln 1, Col 25 - Ln 1, Col 25]," +
+                "Parenthesis [Ln 1, Col 26 - Ln 1, Col 26]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", ParseRule.Statement, _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

@@ -68,14 +68,14 @@ namespace SeedLang.X {
                                    IToken closeParen, AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange openRange = CodeReferenceUtils.RangeOfToken(openParen);
       TextRange closeRange = CodeReferenceUtils.RangeOfToken(closeParen);
-      AddSyntaxToken(SyntaxType.Symbol, openRange);
+      AddSyntaxToken(SyntaxType.Parenthesis, openRange);
 
       if (_groupingRange is null) {
         _groupingRange = CodeReferenceUtils.CombineRanges(openRange, closeRange);
       }
 
       AstNode node = visitor.Visit(exprContext);
-      AddSyntaxToken(SyntaxType.Symbol, closeRange);
+      AddSyntaxToken(SyntaxType.Parenthesis, closeRange);
       return node;
     }
 
@@ -106,13 +106,15 @@ namespace SeedLang.X {
       TextRange opRange = CodeReferenceUtils.RangeOfToken(opToken);
       AddSyntaxToken(SyntaxType.Operator, opRange);
 
-      var expr = visitor.Visit(exprContext) as Expression;
-      if (range is null) {
-        Debug.Assert(expr.Range is TextRange);
-        range = CodeReferenceUtils.CombineRanges(opRange, expr.Range as TextRange);
+      if (visitor.Visit(exprContext) is Expression expr) {
+        if (range is null) {
+          Debug.Assert(expr.Range is TextRange);
+          range = CodeReferenceUtils.CombineRanges(opRange, expr.Range as TextRange);
+        }
+        // TODO: handle other unary operators.
+        return Expression.Unary(UnaryOperator.Negative, expr, range);
       }
-      // TODO: handle other unary operators.
-      return Expression.Unary(UnaryOperator.Negative, expr, range);
+      throw new ParseException("Invalid unary expression.");
     }
 
     // Builds an assignment statement from the identifier token and the expression context.

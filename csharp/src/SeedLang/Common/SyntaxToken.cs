@@ -21,6 +21,7 @@ namespace SeedLang.Common {
     Parenthesis,
     String,
     Symbol,
+    Unknown,
     Variable,
   }
 

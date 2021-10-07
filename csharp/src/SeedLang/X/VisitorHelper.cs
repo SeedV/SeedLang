@@ -31,6 +31,12 @@ namespace SeedLang.X {
       _tokens = tokens;
     }
 
+    internal static void EnsureChildCountOfContext(ParserRuleContext context, int count) {
+      if (context.ChildCount != count) {
+        throw new ParseException($"Parse {context} error.");
+      }
+    }
+
     // Builds a binary expression from the binary operator and expression contexts.
     //
     // The exprContexts parameter must contain exact 2 items: the left and right ExprContext.

@@ -70,9 +70,12 @@ namespace SeedLang.Runtime.Tests {
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
 
-      executor.Run("a = 1", "", SeedXLanguage.Python, RunType.Ast);
-      executor.Run("b = 2", "", SeedXLanguage.Python, RunType.Ast);
-      executor.Run("eval a + -b", "", SeedXLanguage.Python, RunType.Ast);
+      Assert.True(executor.Parse("a = 1", "", SeedXLanguage.Python));
+      Assert.True(executor.Run(RunType.Ast));
+      Assert.True(executor.Parse("b = 2", "", SeedXLanguage.Python));
+      Assert.True(executor.Run(RunType.Ast));
+      Assert.True(executor.Parse("eval a + -b", "", SeedXLanguage.Python));
+      Assert.True(executor.Run(RunType.Ast));
 
       Assert.Equal(1, visualizer.Left.ToNumber());
       Assert.Equal(BinaryOperator.Add, visualizer.Op);

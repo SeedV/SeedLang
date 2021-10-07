@@ -38,49 +38,34 @@ namespace SeedLang.Block {
     // Visits a single identifier.
     public override AstNode VisitSingle_identifier(
         [NotNull] SeedBlockParser.Single_identifierContext context) {
-      const int childContextCount = 2;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 2);
       return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a single number.
     public override AstNode VisitSingle_number(
         [NotNull] SeedBlockParser.Single_numberContext context) {
-      const int childContextCount = 2;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 2);
       return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
     // Visits a single string.
     public override AstNode VisitSingle_string(
         [NotNull] SeedBlockParser.Single_stringContext context) {
-      const int childContextCount = 2;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 2);
       return _helper.BuildString(context.STRING().Symbol);
     }
 
     // Visits a single expression.
     public override AstNode VisitSingle_expr(
         [NotNull] SeedBlockParser.Single_exprContext context) {
-      const int childContextCount = 2;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 2);
       return Visit(context.expr());
     }
 
     // Visits an unary expression.
     public override AstNode VisitUnary([NotNull] SeedBlockParser.UnaryContext context) {
-      const int childContextCount = 2;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 2);
       return _helper.BuildUnary(context.op, context.expr(), this);
     }
 
@@ -89,10 +74,7 @@ namespace SeedLang.Block {
     // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
     // items: the left and right ExprContexts.
     public override AstNode VisitAdd_sub([NotNull] SeedBlockParser.Add_subContext context) {
-      const int childContextCount = 3;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 3);
       return _helper.BuildBinary(context.op, TokenToOperator(context.op), context.expr(), this);
     }
 
@@ -101,28 +83,19 @@ namespace SeedLang.Block {
     // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
     // items: the left and right ExprContexts.
     public override AstNode VisitMul_div([NotNull] SeedBlockParser.Mul_divContext context) {
-      const int childContextCount = 3;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 3);
       return _helper.BuildBinary(context.op, TokenToOperator(context.op), context.expr(), this);
     }
 
     // Visits an identifier.
     public override AstNode VisitIdentifier([NotNull] SeedBlockParser.IdentifierContext context) {
-      const int childContextCount = 1;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 1);
       return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a number expression.
     public override AstNode VisitNumber([NotNull] SeedBlockParser.NumberContext context) {
-      const int childContextCount = 1;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 1);
       return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
@@ -131,10 +104,7 @@ namespace SeedLang.Block {
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedBlockParser.GroupingContext context) {
-      const int childContextCount = 3;
-      if (context.ChildCount != childContextCount) {
-        return null;
-      }
+      VisitorHelper.EnsureChildCountOfContext(context, 3);
       return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expr(),
                                    context.CLOSE_PAREN().Symbol, this);
     }

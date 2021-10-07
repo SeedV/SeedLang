@@ -1,4 +1,3 @@
-using System.Diagnostics;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +14,7 @@ using System.Diagnostics;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -92,13 +92,42 @@ namespace SeedLang.Shell {
           break;
         }
         var collection = new DiagnosticCollection();
-        if (!executor.Run(visualizer.Source, "", _language, _runType, collection)) {
+        if (executor.Parse(visualizer.Source, "", _language, collection)) {
+          WriteSource(visualizer.Source, executor.SyntaxTokens);
+          Console.WriteLine("---------- Run ----------");
+          executor.Run(_runType);
+          Console.WriteLine();
+        } else {
           foreach (var diagnostic in collection.Diagnostics) {
             Console.WriteLine(diagnostic);
           }
         }
       }
       executor.Unregister(visualizer);
+    }
+
+    private static void WriteSource(string source, IReadOnlyList<SyntaxToken> syntaxTokens) {
+      Console.WriteLine("---------- Source ----------");
+      int startColumn = 0;
+      foreach (var token in syntaxTokens) {
+        Console.BackgroundColor = Theme.BackgroundColor;
+        Console.ForegroundColor = Theme.ForegroundColor;
+        Console.Write(source.Substring(startColumn, token.Range.Start.Column - startColumn));
+        Console.BackgroundColor = Theme.SyntaxToThemeInfoMap[token.Type].BackgroundColor;
+        Console.ForegroundColor = Theme.SyntaxToThemeInfoMap[token.Type].ForegroundColor;
+        Console.Write(source.Substring(token.Range.Start.Column, LengthOfRange(token.Range)));
+        startColumn = token.Range.End.Column + 1;
+      }
+      Console.BackgroundColor = Theme.BackgroundColor;
+      Console.ForegroundColor = Theme.ForegroundColor;
+      Console.Write(source.Substring(startColumn, source.Length - startColumn));
+      Console.ResetColor();
+      Console.WriteLine();
+      Console.WriteLine();
+    }
+
+    private static int LengthOfRange(TextRange range) {
+      return range.End.Column - range.Start.Column + 1;
     }
   }
 }

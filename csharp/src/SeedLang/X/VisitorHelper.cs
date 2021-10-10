@@ -30,14 +30,6 @@ namespace SeedLang.X {
       _syntaxTokens = tokens;
     }
 
-    // Checks the child count of parser rule context. Throw an exception if the criterion is not
-    // met.
-    internal static void EnsureChildCountOfContext(ParserRuleContext context, int count) {
-      if (context.ChildCount != count) {
-        throw new ParseException($"Parse {context.GetType().Name} error.");
-      }
-    }
-
     // Builds a binary expression from the binary operator and expression contexts.
     //
     // The exprContexts parameter must contain exact 2 items: the left and right ExprContext.
@@ -49,19 +41,21 @@ namespace SeedLang.X {
 
       Debug.Assert(exprContexts.Length == 2);
       var left = visitor.Visit(exprContexts[0]);
-      AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
-      var right = visitor.Visit(exprContexts[1]);
+      if (left is Expression leftExpr) {
+        AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
+        var right = visitor.Visit(exprContexts[1]);
 
-      if (left is Expression leftExpr && right is Expression rightExpr) {
-        if (range is null) {
-          Debug.Assert(left.Range is TextRange);
-          Debug.Assert(right.Range is TextRange);
-          range = CodeReferenceUtils.CombineRanges(left.Range as TextRange,
-                                                   right.Range as TextRange);
+        if (right is Expression rightExpr) {
+          if (range is null) {
+            Debug.Assert(left.Range is TextRange);
+            Debug.Assert(right.Range is TextRange);
+            range = CodeReferenceUtils.CombineRanges(left.Range as TextRange,
+                                                     right.Range as TextRange);
+          }
+          return Expression.Binary(leftExpr, op, rightExpr, range);
         }
-        return Expression.Binary(leftExpr, op, rightExpr, range);
       }
-      throw new ParseException("Invalid binary expression.");
+      return null;
     }
 
     // Sets grouping range for sub-expression to use. Only keeps the largest grouping range.
@@ -115,7 +109,7 @@ namespace SeedLang.X {
         // TODO: handle other unary operators.
         return Expression.Unary(UnaryOperator.Negative, expr, range);
       }
-      throw new ParseException("Invalid unary expression.");
+      return null;
     }
 
     // Builds an assignment statement from the identifier token and the expression context.
@@ -127,10 +121,12 @@ namespace SeedLang.X {
       AddSyntaxToken(SyntaxType.Variable, idRange);
       AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(equalToken));
 
-      var expr = visitor.Visit(exprContext) as Expression;
-      Debug.Assert(expr.Range is TextRange);
-      TextRange range = CodeReferenceUtils.CombineRanges(idRange, expr.Range as TextRange);
-      return Statement.Assignment(identifier, expr, range);
+      if (visitor.Visit(exprContext) is Expression expr) {
+        Debug.Assert(expr.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(idRange, expr.Range as TextRange);
+        return Statement.Assignment(identifier, expr, range);
+      }
+      return null;
     }
 
     // Builds an eval statement from the eval token and the expression context.
@@ -139,10 +135,12 @@ namespace SeedLang.X {
       TextRange evalRange = CodeReferenceUtils.RangeOfToken(evalToken);
       AddSyntaxToken(SyntaxType.Keyword, evalRange);
 
-      var expr = visitor.Visit(exprContext) as Expression;
-      Debug.Assert(expr.Range is TextRange);
-      TextRange range = CodeReferenceUtils.CombineRanges(evalRange, expr.Range as TextRange);
-      return Statement.Eval(expr, range);
+      if (visitor.Visit(exprContext) is Expression expr) {
+        Debug.Assert(expr.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(evalRange, expr.Range as TextRange);
+        return Statement.Eval(expr, range);
+      }
+      return null;
     }
 
     private TextRange HandleConstantOrVariableExpression(IToken token, SyntaxType type) {

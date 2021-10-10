@@ -18,62 +18,42 @@ using SeedLang.Common;
 
 namespace SeedLang.Shell {
   internal static class Theme {
+    // Theme information of source code.
     internal class ThemeInfo {
-      public ConsoleColor BackgroundColor;
       public ConsoleColor ForegroundColor;
     }
 
-    public const ConsoleColor BackgroundColor = ConsoleColor.Black;
-    public const ConsoleColor ForegroundColor = ConsoleColor.White;
-
+    // The dictionary to map syntax token types to theme information. The default console forground
+    // color is used if any syntax type does not exist in this dictionary.
     public static IReadOnlyDictionary<SyntaxType, ThemeInfo> SyntaxToThemeInfoMap =
         new Dictionary<SyntaxType, ThemeInfo> {
           {
             SyntaxType.Keyword,
             new ThemeInfo {
-              BackgroundColor = ConsoleColor.Black,
               ForegroundColor = ConsoleColor.Magenta,
             }
           },
           {
             SyntaxType.Number,
             new ThemeInfo {
-              BackgroundColor = ConsoleColor.Black,
               ForegroundColor = ConsoleColor.Yellow,
             }
           },
           {
             SyntaxType.Operator,
             new ThemeInfo {
-              BackgroundColor = ConsoleColor.Black,
               ForegroundColor = ConsoleColor.Blue,
-            }
-          },
-          {
-            SyntaxType.Parenthesis,
-            new ThemeInfo {
-              BackgroundColor = ConsoleColor.Black,
-              ForegroundColor = ConsoleColor.White,
             }
           },
           {
             SyntaxType.String,
             new ThemeInfo {
-              BackgroundColor = ConsoleColor.Black,
               ForegroundColor = ConsoleColor.Cyan,
-            }
-          },
-          {
-            SyntaxType.Symbol,
-            new ThemeInfo {
-              BackgroundColor = ConsoleColor.Black,
-              ForegroundColor = ConsoleColor.White,
             }
           },
           {
             SyntaxType.Variable,
             new ThemeInfo {
-              BackgroundColor = ConsoleColor.Black,
               ForegroundColor = ConsoleColor.Green,
             }
           },

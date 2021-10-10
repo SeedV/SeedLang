@@ -107,21 +107,19 @@ namespace SeedLang.Shell {
     }
 
     private static void WriteSource(string source, IReadOnlyList<SyntaxToken> syntaxTokens) {
+      Console.ResetColor();
       Console.WriteLine("---------- Source ----------");
       int startColumn = 0;
-      foreach (var token in syntaxTokens) {
-        Console.BackgroundColor = Theme.BackgroundColor;
-        Console.ForegroundColor = Theme.ForegroundColor;
+      foreach (SyntaxToken token in syntaxTokens) {
         Console.Write(source.Substring(startColumn, token.Range.Start.Column - startColumn));
-        Console.BackgroundColor = Theme.SyntaxToThemeInfoMap[token.Type].BackgroundColor;
-        Console.ForegroundColor = Theme.SyntaxToThemeInfoMap[token.Type].ForegroundColor;
+        if (Theme.SyntaxToThemeInfoMap.ContainsKey(token.Type)) {
+          Console.ForegroundColor = Theme.SyntaxToThemeInfoMap[token.Type].ForegroundColor;
+        }
         Console.Write(source.Substring(token.Range.Start.Column, LengthOfRange(token.Range)));
         startColumn = token.Range.End.Column + 1;
+        Console.ResetColor();
       }
-      Console.BackgroundColor = Theme.BackgroundColor;
-      Console.ForegroundColor = Theme.ForegroundColor;
       Console.Write(source.Substring(startColumn, source.Length - startColumn));
-      Console.ResetColor();
       Console.WriteLine();
       Console.WriteLine();
     }

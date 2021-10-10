@@ -38,58 +38,65 @@ namespace SeedLang.Block {
     // Visits a single identifier.
     public override AstNode VisitSingle_identifier(
         [NotNull] SeedBlockParser.Single_identifierContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 2);
       return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a single number.
     public override AstNode VisitSingle_number(
         [NotNull] SeedBlockParser.Single_numberContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 2);
       return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
     // Visits a single string.
     public override AstNode VisitSingle_string(
         [NotNull] SeedBlockParser.Single_stringContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 2);
       return _helper.BuildString(context.STRING().Symbol);
     }
 
     // Visits a single expression.
     public override AstNode VisitSingle_expr(
         [NotNull] SeedBlockParser.Single_exprContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 2);
-      return Visit(context.expr());
+      if (context.expr() is SeedBlockParser.ExprContext expr) {
+        return Visit(expr);
+      }
+      return null;
     }
 
     // Visits an unary expression.
     public override AstNode VisitUnary([NotNull] SeedBlockParser.UnaryContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 2);
-      return _helper.BuildUnary(context.op, context.expr(), this);
+      if (context.expr() is SeedBlockParser.ExprContext expr) {
+        return _helper.BuildUnary(context.op, expr, this);
+      }
+      return null;
     }
 
     // Visits an add or subtract binary expression.
+    //
+    // There should be 2 child expression contexts (left and right) in Add_subContext.
     public override AstNode VisitAdd_sub([NotNull] SeedBlockParser.Add_subContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 3);
-      return _helper.BuildBinary(context.op, TokenToOperator(context.op), context.expr(), this);
+      if (context.expr() is SeedBlockParser.ExprContext[] exprs && exprs.Length == 2) {
+        return _helper.BuildBinary(context.op, TokenToOperator(context.op), exprs, this);
+      }
+      return null;
     }
 
     // Visits a multiply or divide binary expression.
+    //
+    // There should be 2 child expression contexts (left and right) in Mul_divContext.
     public override AstNode VisitMul_div([NotNull] SeedBlockParser.Mul_divContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 3);
-      return _helper.BuildBinary(context.op, TokenToOperator(context.op), context.expr(), this);
+      if (context.expr() is SeedBlockParser.ExprContext[] exprs && exprs.Length == 2) {
+        return _helper.BuildBinary(context.op, TokenToOperator(context.op), exprs, this);
+      }
+      return null;
     }
 
     // Visits an identifier.
     public override AstNode VisitIdentifier([NotNull] SeedBlockParser.IdentifierContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 1);
       return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a number expression.
     public override AstNode VisitNumber([NotNull] SeedBlockParser.NumberContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 1);
       return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
@@ -98,9 +105,11 @@ namespace SeedLang.Block {
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedBlockParser.GroupingContext context) {
-      VisitorHelper.EnsureChildCountOfContext(context, 3);
-      return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expr(),
-                                   context.CLOSE_PAREN().Symbol, this);
+      if (context.expr() is SeedBlockParser.ExprContext expr) {
+        return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, expr,
+                                     context.CLOSE_PAREN().Symbol, this);
+      }
+      return null;
     }
 
     private static BinaryOperator TokenToOperator(IToken token) {

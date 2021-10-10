@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
@@ -53,11 +52,7 @@ namespace SeedLang.X {
       var tokenList = new List<SyntaxToken>();
       tokens = tokenList;
       AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
-      try {
-        node = visitor.Visit(context);
-      } catch (ParseException) {
-        node = null;
-      }
+      node = visitor.Visit(context);
       if (collection.Diagnostics.Count > diagnosticCount) {
         ParseMissingSyntaxTokens(source, tokenList);
         node = null;
@@ -111,17 +106,25 @@ namespace SeedLang.X {
       return parser;
     }
 
+    // Parses missing syntax tokens from all lexer tokens.
+    //
+    // Normally syntax tokens are collected during parsing based on the syntax meaning of tokens.
+    // But there will be some syntax tokens missing if syntax errors happen during parsing. Adds
+    // these missing tokens from all lexer tokens.
     private void ParseMissingSyntaxTokens(string source, IList<SyntaxToken> tokens) {
       Lexer lexer = SetupLexer(source);
-      TextPosition end = tokens.Count > 0 ? tokens.Last().Range.End : new TextPosition(0, -1);
-      foreach (var token in lexer.GetAllTokens()) {
-        if (_syntaxTypeMap.ContainsKey(token.Type)) {
-          TextRange range = CodeReferenceUtils.RangeOfToken(token);
-          if (range.Start > end) {
-            tokens.Add(new SyntaxToken(_syntaxTypeMap[token.Type], range));
+      IList<IToken> lexerTokens = lexer.GetAllTokens();
+      for (int i = 0; i < lexerTokens.Count; ++i) {
+        if (_syntaxTypeMap.ContainsKey(lexerTokens[i].Type)) {
+          TextRange range = CodeReferenceUtils.RangeOfToken(lexerTokens[i]);
+          var syntaxToken = new SyntaxToken(_syntaxTypeMap[lexerTokens[i].Type], range);
+          if (i >= tokens.Count) {
+            tokens.Add(syntaxToken);
+          } else if (tokens[i].Range != range) {
+            tokens.Insert(i, syntaxToken);
           }
         } else {
-          throw new NotImplementedException($"Not implemented token type: {token.Type}");
+          throw new NotImplementedException($"Not implemented token type: {lexerTokens[i].Type}");
         }
       }
     }

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -25,6 +26,9 @@ namespace SeedLang.X {
   // It provides interfaces to validate the source code, and parse it into an AST tree based on the
   // predefined rules.
   internal abstract class BaseParser {
+    // The dictionary that maps from token types to syntax token types.
+    protected abstract IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap { get; }
+
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.
     internal bool Validate(string source, string module, ParseRule rule,
@@ -39,14 +43,18 @@ namespace SeedLang.X {
     // Parses source code into an AST tree based on the parse rule. The concrete ANTLR4 lexer and
     // parser are created by the derived class. The out node is set to null if the given source code
     // is not valid.
-    internal bool TryParse(string source, string module, ParseRule rule,
-                           DiagnosticCollection collection, out AstNode node) {
+    internal bool Parse(string source, string module, ParseRule rule,
+                        DiagnosticCollection collection, out AstNode node,
+                        out IReadOnlyList<SyntaxToken> tokens) {
       int diagnosticCount = collection.Diagnostics.Count;
       Parser parser = SetupParser(source, module, collection);
       ParserRuleContext context = GetContext(parser, rule);
-      var visitor = MakeVisitor();
+      var tokenList = new List<SyntaxToken>();
+      tokens = tokenList;
+      AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
       node = visitor.Visit(context);
       if (collection.Diagnostics.Count > diagnosticCount) {
+        ParseMissingSyntaxTokens(source, tokenList);
         node = null;
         return false;
       }
@@ -57,7 +65,7 @@ namespace SeedLang.X {
 
     protected abstract Parser MakeParser(ITokenStream stream);
 
-    protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor();
+    protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens);
 
     protected virtual ParserRuleContext SingleIdentifier(Parser parser) {
       throw new NotImplementedException();
@@ -96,6 +104,29 @@ namespace SeedLang.X {
         parser.ErrorHandler = new SyntaxErrorStrategy(module, collection);
       }
       return parser;
+    }
+
+    // Parses missing syntax tokens from all lexer tokens.
+    //
+    // Normally syntax tokens are collected during parsing based on the syntax meaning of tokens.
+    // But there will be some syntax tokens missing if syntax errors happen during parsing. Adds
+    // these missing tokens from all lexer tokens.
+    private void ParseMissingSyntaxTokens(string source, IList<SyntaxToken> tokens) {
+      Lexer lexer = SetupLexer(source);
+      IList<IToken> lexerTokens = lexer.GetAllTokens();
+      for (int i = 0; i < lexerTokens.Count; ++i) {
+        if (_syntaxTypeMap.ContainsKey(lexerTokens[i].Type)) {
+          TextRange range = CodeReferenceUtils.RangeOfToken(lexerTokens[i]);
+          var syntaxToken = new SyntaxToken(_syntaxTypeMap[lexerTokens[i].Type], range);
+          if (i >= tokens.Count) {
+            tokens.Add(syntaxToken);
+          } else if (tokens[i].Range != range) {
+            tokens.Insert(i, syntaxToken);
+          }
+        } else {
+          throw new NotImplementedException($"Not implemented token type: {lexerTokens[i].Type}");
+        }
+      }
     }
 
     private ParserRuleContext GetContext(Parser parser, ParseRule rule) {

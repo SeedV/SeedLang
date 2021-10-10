@@ -38,6 +38,7 @@ expr:
 
 EVAL: 'eval';
 
+EQUAL: '=';
 ADD: '+';
 SUB: '-';
 MUL: '*';

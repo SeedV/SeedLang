@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Block;
@@ -22,9 +24,13 @@ namespace SeedLang.Runtime {
   // An executor class to execute SeedBlock programs or SeedX source code. The information during
   // execution can be visualized by registered visualizers.
   public class Executor {
-    private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
+    // Syntax tokens of current parsed source code.
+    public IReadOnlyList<SyntaxToken> SyntaxTokens;
 
+    private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
     private readonly Ast.Executor _executor;
+    // The ast node of current parsed source code.
+    private AstNode _node;
 
     public Executor() {
       _executor = new Ast.Executor(_visualizerCenter);
@@ -44,28 +50,36 @@ namespace SeedLang.Runtime {
         return false;
       }
       DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
-      foreach (var node in Converter.TryConvert(program, localCollection)) {
+      foreach (var node in Converter.Convert(program, localCollection)) {
         _executor.Run(node);
       }
       return true;
     }
 
-    // Runs SeedX source code based on the given SeedX language and run type.
-    public bool Run(string source, string module, SeedXLanguage language, RunType runType,
-                    DiagnosticCollection collection = null) {
+    // Parses SeedX source code into an AST tree and a list of syntax tokens.
+    public bool Parse(string source, string module, SeedXLanguage language,
+                      DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
         return false;
       }
       DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
       BaseParser parser = MakeParser(language);
-      if (parser.TryParse(source, module, ParseRule.Statement, localCollection, out AstNode node)) {
-        switch (runType) {
-          case RunType.Ast:
-            _executor.Run(node);
-            return true;
-        }
+      return parser.Parse(source, module, ParseRule.Statement, localCollection,
+                          out _node, out SyntaxTokens);
+    }
+
+    // Runs current parsed AST tree or bytecode based on the run type.
+    public bool Run(RunType runType) {
+      if (_node is null) {
+        return false;
       }
-      return false;
+      switch (runType) {
+        case RunType.Ast:
+          _executor.Run(_node);
+          return true;
+        default:
+          throw new NotImplementedException($"Unsupported run type: {runType}");
+      }
     }
 
     private static BaseParser MakeParser(SeedXLanguage language) {

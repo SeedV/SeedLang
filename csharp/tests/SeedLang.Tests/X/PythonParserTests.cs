@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+using System.Linq;
 using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;
@@ -29,57 +31,133 @@ namespace SeedLang.X.Tests {
     }
 
     [Theory]
-    [InlineData("id = 1", "id = 1\n")]
-    public void TestParseAssignmentStatement(string input, string expected) {
-      Assert.True(_parser.TryParse(input, "", ParseRule.Statement, _collection, out AstNode node));
-      Assert.NotNull(node);
-      Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
-    }
+    [InlineData("id = 1",
 
-    [Fact]
-    public void TestParseEvalStatementWithRange() {
-      Assert.True(_parser.TryParse("eval (1 + 2) * (( 3 - -4 ))", "", ParseRule.Statement,
-                  _collection, out AstNode node));
-      Assert.Empty(_collection.Diagnostics);
-      Assert.NotNull(node);
-      Assert.Equal(new TextRange(1, 0, 1, 26), node.Range);
-      var expr = (node as EvalStatement).Expr as BinaryExpression;
-      Assert.Equal(new TextRange(1, 5, 1, 26), expr.Range);
-      var left = expr.Left as BinaryExpression;
-      Assert.Equal(new TextRange(1, 5, 1, 11), left.Range);
-      var right = expr.Right as BinaryExpression;
-      Assert.Equal(new TextRange(1, 15, 1, 26), right.Range);
-      var leftNumber = right.Left as NumberConstantExpression;
-      Assert.Equal(new TextRange(1, 18, 1, 18), leftNumber.Range);
-      var unary = right.Right as UnaryExpression;
-      Assert.Equal(new TextRange(1, 22, 1, 23), unary.Range);
-      var rightNumber = unary.Expr as NumberConstantExpression;
-      Assert.Equal(new TextRange(1, 23, 1, 23), rightNumber.Range);
-      Assert.Equal("eval ((1 + 2) * (3 - (- 4)))\n", node.ToString());
-    }
+                "[Ln 1, Col 0 - Ln 1, Col 5] AssignmentStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] IdentifierExpression (id)\n" +
+                "  [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (1)",
 
-    [Theory]
-    [InlineData("eval 1 + 2 * 3 - 4", "eval ((1 + (2 * 3)) - 4)\n")]
-    public void TestParseEvalStatement(string input, string expected) {
-      Assert.True(_parser.TryParse(input, "", ParseRule.Statement, _collection, out AstNode node));
+                "Variable [Ln 1, Col 0 - Ln 1, Col 1]," +
+                "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]")]
+
+    [InlineData("eval 1 + 2 * 3 - 40",
+
+                "[Ln 1, Col 0 - Ln 1, Col 18] EvalStatement\n" +
+                "  [Ln 1, Col 5 - Ln 1, Col 18] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 13] BinaryExpression (+)\n" +
+                "      [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 9 - Ln 1, Col 13] BinaryExpression (*)\n" +
+                "        [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (2)\n" +
+                "        [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (3)\n" +
+                "    [Ln 1, Col 17 - Ln 1, Col 18] NumberConstantExpression (40)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Operator [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Number [Ln 1, Col 13 - Ln 1, Col 13]," +
+                "Operator [Ln 1, Col 15 - Ln 1, Col 15]," +
+                "Number [Ln 1, Col 17 - Ln 1, Col 18]")]
+
+    [InlineData("eval (1 + (2)) - (x) - -3",
+
+                "[Ln 1, Col 0 - Ln 1, Col 24] EvalStatement\n" +
+                "  [Ln 1, Col 5 - Ln 1, Col 24] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 19] BinaryExpression (-)\n" +
+                "      [Ln 1, Col 5 - Ln 1, Col 13] BinaryExpression (+)\n" +
+                "        [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)\n" +
+                "        [Ln 1, Col 10 - Ln 1, Col 12] NumberConstantExpression (2)\n" +
+                "      [Ln 1, Col 17 - Ln 1, Col 19] IdentifierExpression (x)\n" +
+                "    [Ln 1, Col 23 - Ln 1, Col 24] UnaryExpression (-)\n" +
+                "      [Ln 1, Col 24 - Ln 1, Col 24] NumberConstantExpression (3)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Number [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Parenthesis [Ln 1, Col 13 - Ln 1, Col 13]," +
+                "Operator [Ln 1, Col 15 - Ln 1, Col 15]," +
+                "Parenthesis [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "Variable [Ln 1, Col 18 - Ln 1, Col 18]," +
+                "Parenthesis [Ln 1, Col 19 - Ln 1, Col 19]," +
+                "Operator [Ln 1, Col 21 - Ln 1, Col 21]," +
+                "Operator [Ln 1, Col 23 - Ln 1, Col 23]," +
+                "Number [Ln 1, Col 24 - Ln 1, Col 24]")]
+
+    [InlineData("eval (1 + 2) * (( 3 - -4 ))",
+
+                "[Ln 1, Col 0 - Ln 1, Col 26] EvalStatement\n" +
+                "  [Ln 1, Col 5 - Ln 1, Col 26] BinaryExpression (*)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 11] BinaryExpression (+)\n" +
+                "      [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 15 - Ln 1, Col 26] BinaryExpression (-)\n" +
+                "      [Ln 1, Col 18 - Ln 1, Col 18] NumberConstantExpression (3)\n" +
+                "      [Ln 1, Col 22 - Ln 1, Col 23] UnaryExpression (-)\n" +
+                "        [Ln 1, Col 23 - Ln 1, Col 23] NumberConstantExpression (4)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Parenthesis [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Operator [Ln 1, Col 13 - Ln 1, Col 13]," +
+                "Parenthesis [Ln 1, Col 15 - Ln 1, Col 15]," +
+                "Parenthesis [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Number [Ln 1, Col 18 - Ln 1, Col 18]," +
+                "Operator [Ln 1, Col 20 - Ln 1, Col 20]," +
+                "Operator [Ln 1, Col 22 - Ln 1, Col 22]," +
+                "Number [Ln 1, Col 23 - Ln 1, Col 23]," +
+                "Parenthesis [Ln 1, Col 25 - Ln 1, Col 25]," +
+                "Parenthesis [Ln 1, Col 26 - Ln 1, Col 26]")]
+    public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
+      Assert.True(_parser.Parse(input, "", ParseRule.Statement, _collection, out AstNode node,
+                                out IReadOnlyList<SyntaxToken> tokens));
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
+      Assert.Equal(expectedAst, node.ToString());
+      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
 
     // TODO: add test cases for other syntax errors after grammar is more complex.
     [Theory]
-    [InlineData("1", "SyntaxErrorInputMismatch '1' {'break', 'continue', 'eval', IDENTIFIER}")]
-    [InlineData("eval1", @"SyntaxErrorInputMismatch '<EOF>' '='")]
-    [InlineData("eval 1.2 =", @"SyntaxErrorUnwantedToken '=' <EOF>")]
-    public void TestParseSingleSyntaxError(string input, string localizedMessage) {
-      Assert.False(_parser.TryParse(input, "", ParseRule.Statement, _collection, out AstNode node));
+    [InlineData("1",
+                "SyntaxErrorInputMismatch '1' {'break', 'continue', 'eval', IDENTIFIER}",
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
+
+    [InlineData("eval1",
+                "SyntaxErrorInputMismatch '<EOF>' '='",
+                "Variable [Ln 1, Col 0 - Ln 1, Col 4]")]
+
+    [InlineData("eval 1.2 =",
+                "SyntaxErrorUnwantedToken '=' <EOF>",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 7]," +
+                "Operator [Ln 1, Col 9 - Ln 1, Col 9]")]
+
+    [InlineData("eval 1 +",
+                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 7 - Ln 1, Col 7]")]
+    public void TestParseSingleSyntaxError(string input, string errorMessage,
+                                           string expectedTokens) {
+      Assert.False(_parser.Parse(input, "", ParseRule.Statement, _collection, out AstNode node,
+                                out IReadOnlyList<SyntaxToken> tokens));
       Assert.Null(node);
       Assert.Single(_collection.Diagnostics);
       Assert.Equal(SystemReporters.SeedX, _collection.Diagnostics[0].Reporter);
       Assert.Equal(Severity.Fatal, _collection.Diagnostics[0].Severity);
-      Assert.Equal(localizedMessage, _collection.Diagnostics[0].LocalizedMessage);
+      Assert.Equal(errorMessage, _collection.Diagnostics[0].LocalizedMessage);
+      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }
 }

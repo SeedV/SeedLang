@@ -13,9 +13,11 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.X;
 
@@ -27,7 +29,11 @@ namespace SeedLang.Block {
   // result of the last one. InlineTextVisitor overrides the method if the default implement is not
   // correct.
   internal class InlineTextVisitor : SeedBlockBaseVisitor<AstNode> {
-    private readonly VisitorHelper _helper = new VisitorHelper();
+    private readonly VisitorHelper _helper;
+
+    public InlineTextVisitor(IList<SyntaxToken> tokens) {
+      _helper = new VisitorHelper(tokens);
+    }
 
     // Visits a single identifier.
     public override AstNode VisitSingle_identifier(
@@ -50,28 +56,38 @@ namespace SeedLang.Block {
     // Visits a single expression.
     public override AstNode VisitSingle_expr(
         [NotNull] SeedBlockParser.Single_exprContext context) {
-      return Visit(context.expr());
+      if (context.expr() is SeedBlockParser.ExprContext expr) {
+        return Visit(expr);
+      }
+      return null;
     }
 
     // Visits an unary expression.
     public override AstNode VisitUnary([NotNull] SeedBlockParser.UnaryContext context) {
-      return _helper.BuildUnary(context.op, context.expr(), this);
+      if (context.expr() is SeedBlockParser.ExprContext expr) {
+        return _helper.BuildUnary(context.op, expr, this);
+      }
+      return null;
     }
 
     // Visits an add or subtract binary expression.
     //
-    // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
-    // items: the left and right ExprContexts.
+    // There should be 2 child expression contexts (left and right) in Add_subContext.
     public override AstNode VisitAdd_sub([NotNull] SeedBlockParser.Add_subContext context) {
-      return _helper.BuildBinary(TokenToOperator(context.op), context.expr(), this);
+      if (context.expr() is SeedBlockParser.ExprContext[] exprs && exprs.Length == 2) {
+        return _helper.BuildBinary(context.op, TokenToOperator(context.op), exprs, this);
+      }
+      return null;
     }
 
     // Visits a multiply or divide binary expression.
     //
-    // The expr() method of the Add_subContext returns a ExprContext array which contains exact 2
-    // items: the left and right ExprContexts.
+    // There should be 2 child expression contexts (left and right) in Mul_divContext.
     public override AstNode VisitMul_div([NotNull] SeedBlockParser.Mul_divContext context) {
-      return _helper.BuildBinary(TokenToOperator(context.op), context.expr(), this);
+      if (context.expr() is SeedBlockParser.ExprContext[] exprs && exprs.Length == 2) {
+        return _helper.BuildBinary(context.op, TokenToOperator(context.op), exprs, this);
+      }
+      return null;
     }
 
     // Visits an identifier.
@@ -89,8 +105,11 @@ namespace SeedLang.Block {
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedBlockParser.GroupingContext context) {
-      _helper.SetGroupingRange(context.OPEN_PAREN().Symbol, context.CLOSE_PAREN().Symbol);
-      return Visit(context.expr());
+      if (context.expr() is SeedBlockParser.ExprContext expr) {
+        return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, expr,
+                                     context.CLOSE_PAREN().Symbol, this);
+      }
+      return null;
     }
 
     private static BinaryOperator TokenToOperator(IToken token) {

@@ -21,6 +21,7 @@ using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using Antlr4.Runtime.Tree;
 
 namespace SeedLang.X {
   // The visitor class to visit a SeedPython parse tree and generate the corresponding AST tree.
@@ -84,9 +85,9 @@ namespace SeedLang.X {
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
     public override AstNode VisitGrouping([NotNull] SeedPythonParser.GroupingContext context) {
-      if (context.expr() is SeedPythonParser.ExprContext expr) {
-        return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, expr,
-                                     context.CLOSE_PAREN().Symbol, this);
+      if (context.expr() is SeedPythonParser.ExprContext expr &&
+          context.CLOSE_PAREN() is ITerminalNode closeParen) {
+        return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, expr, closeParen.Symbol, this);
       }
       return null;
     }

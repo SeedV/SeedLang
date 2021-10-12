@@ -105,9 +105,11 @@ namespace SeedLang.Block {
     //
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
+    // The parser still calls this method with null references or an invalid terminal node when
+    // syntax errors happen. Returns a null AST node in this situation.
     public override AstNode VisitGrouping([NotNull] SeedBlockParser.GroupingContext context) {
       if (context.expr() is SeedBlockParser.ExprContext expr &&
-          context.CLOSE_PAREN() is ITerminalNode closeParen) {
+          context.CLOSE_PAREN() is ITerminalNode closeParen && closeParen.Symbol.TokenIndex >= 0) {
         return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, expr, closeParen.Symbol, this);
       }
       return null;

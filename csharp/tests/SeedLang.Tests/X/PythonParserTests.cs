@@ -148,6 +148,53 @@ namespace SeedLang.X.Tests {
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Operator [Ln 1, Col 7 - Ln 1, Col 7]")]
+
+    [InlineData("eval 1 + (",
+                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]")]
+
+    [InlineData("eval 1 + ((",
+                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
+
+    [InlineData("eval 1 + (((",
+                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Parenthesis [Ln 1, Col 11 - Ln 1, Col 11]")]
+
+    [InlineData("eval 1 + (2 - 1",
+                "SyntaxErrorMissingToken '<EOF>' ')'",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Operator [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Number [Ln 1, Col 14 - Ln 1, Col 14]")]
+
+    [InlineData("eval 1 + ))",
+                "SyntaxErrorInputMismatch ')' {'-', IDENTIFIER, NUMBER, '('}",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
     public void TestParseSingleSyntaxError(string input, string errorMessage,
                                            string expectedTokens) {
       Assert.False(_parser.Parse(input, "", ParseRule.Statement, _collection, out AstNode node,

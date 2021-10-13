@@ -40,26 +40,26 @@ namespace SeedLang.Shell {
 
       public void On(AssignmentEvent ae) {
         if (ae.Range is TextRange range) {
-          WriteSource(range);
+          WriteSourceWithHighlight(range);
         }
         Console.WriteLine($"{ae.Identifier} = {ae.Value}");
       }
 
       public void On(BinaryEvent be) {
         if (be.Range is TextRange range) {
-          WriteSource(range);
+          WriteSourceWithHighlight(range);
         }
         Console.WriteLine($"{be.Left} {_operatorStrings[be.Op]} {be.Right} = {be.Result}");
       }
 
       public void On(EvalEvent ee) {
         if (ee.Range is TextRange range) {
-          WriteSource(range);
+          WriteSourceWithHighlight(range);
         }
         Console.WriteLine($"eval {ee.Value}");
       }
 
-      private void WriteSource(TextRange range) {
+      internal void WriteSourceWithHighlight(TextRange range) {
         Debug.Assert(range.Start.Column >= 0 && range.Start.Column <= range.End.Column &&
                      range.End.Column < Source.Length);
         Console.Write(Source.Substring(0, range.Start.Column));
@@ -95,13 +95,15 @@ namespace SeedLang.Shell {
         if (executor.Parse(visualizer.Source, "", _language, collection)) {
           WriteSource(visualizer.Source, executor.SyntaxTokens);
           Console.WriteLine("---------- Run ----------");
-          executor.Run(_runType);
-          Console.WriteLine();
-        } else {
-          foreach (var diagnostic in collection.Diagnostics) {
-            Console.WriteLine(diagnostic);
-          }
+          executor.Run(_runType, collection);
         }
+        foreach (var diagnostic in collection.Diagnostics) {
+          if (diagnostic.Range is TextRange range) {
+            visualizer.WriteSourceWithHighlight(range);
+          }
+          Console.WriteLine(diagnostic);
+        }
+        Console.WriteLine();
       }
       executor.Unregister(visualizer);
     }

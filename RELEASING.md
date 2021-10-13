@@ -37,7 +37,7 @@ Manually assign a new version number `<major>.<minor>.<patch>` to the build and
 update the `VersionPrefix` property accordingly at:
 
 * [SeedLang.csproj](./csharp/src/SeedLang/SeedLang.csproj)
-* [SeedLang.Shell.csproj](./csharp/src/SeedLang.Shell/SeedLang.Shell.csprojj)
+* [SeedLang.Shell.csproj](./csharp/src/SeedLang.Shell/SeedLang.Shell.csproj)
 
 Create a release branch and tag it with the new version number. In the release
 branch:

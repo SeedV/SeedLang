@@ -69,14 +69,19 @@ namespace SeedLang.Runtime {
     }
 
     // Runs current parsed AST tree or bytecode based on the run type.
-    public bool Run(RunType runType) {
+    public bool Run(RunType runType, DiagnosticCollection collection = null) {
       if (_node is null) {
         return false;
       }
       switch (runType) {
         case RunType.Ast:
-          _executor.Run(_node);
-          return true;
+          try {
+            _executor.Run(_node);
+            return true;
+          } catch (DiagnosticException exception) {
+            collection?.Report(exception.Diagnostic);
+            return false;
+          }
         default:
           throw new NotImplementedException($"Unsupported run type: {runType}");
       }

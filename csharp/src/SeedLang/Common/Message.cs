@@ -69,6 +69,8 @@ namespace SeedLang.Common {
     InvalidJson1,                       // Not a valid JSON string/file.
     InvalidOperatorName1,               // Invalid operator name.
     InvalidPrimitiveValue1,             // Invalid primitive value.
+    RuntimeErrorDivideByZero,           // Divide by zero runtime error.
+    RuntimeOverflow,                    // Overflow runtime error.
     SyntaxErrorFailedPredicate1,        // Semantic predicate failed syntax error.
     SyntaxErrorInputMismatch2,          // Input mismatch syntax error.
     SyntaxErrorMissingToken2,           // Missing token syntax error.

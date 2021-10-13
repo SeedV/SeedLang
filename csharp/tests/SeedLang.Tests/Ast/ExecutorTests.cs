@@ -125,6 +125,50 @@ namespace SeedLang.Ast.Tests {
       Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
+    [Fact]
+    public void TestExecuteDivideByZero() {
+      var binary1 = Expression.Binary(Expression.Number(1, NewTextRange()),
+                                      BinaryOperator.Divide,
+                                      Expression.Number(0, NewTextRange()),
+                                      NewTextRange());
+      var binary2 = Expression.Binary(Expression.Number(0, NewTextRange()),
+                                      BinaryOperator.Divide,
+                                      Expression.Number(0, NewTextRange()),
+                                      NewTextRange());
+
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      var exception1 = Assert.Throws<DiagnosticException>(() => executor.Run(binary1));
+      Assert.Equal(Message.RuntimeErrorDivideByZero, exception1.Diagnostic.MessageId);
+      var exception2 = Assert.Throws<DiagnosticException>(() => executor.Run(binary2));
+      Assert.Equal(Message.RuntimeErrorDivideByZero, exception2.Diagnostic.MessageId);
+    }
+
+    [Fact]
+    public void TestExecuteOverflow() {
+      var binary1 = Expression.Binary(Expression.Number(7.997e307, NewTextRange()),
+                                      BinaryOperator.Add,
+                                      Expression.Number(9.985e307, NewTextRange()),
+                                      NewTextRange());
+      var binary2 = Expression.Binary(Expression.Number(double.PositiveInfinity, NewTextRange()),
+                                      BinaryOperator.Add,
+                                      Expression.Number(1, NewTextRange()),
+                                      NewTextRange());
+      var assign = Statement.Assignment(Expression.Identifier("id", NewTextRange()),
+                                        Expression.Number(double.NegativeInfinity, NewTextRange()),
+                                        NewTextRange());
+      var eval = Statement.Eval(Expression.Number(double.NaN, NewTextRange()), NewTextRange());
+
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      var exception1 = Assert.Throws<DiagnosticException>(() => executor.Run(binary1));
+      Assert.Equal(Message.RuntimeOverflow, exception1.Diagnostic.MessageId);
+      var exception2 = Assert.Throws<DiagnosticException>(() => executor.Run(binary2));
+      Assert.Equal(Message.RuntimeOverflow, exception2.Diagnostic.MessageId);
+      var exception3 = Assert.Throws<DiagnosticException>(() => executor.Run(assign));
+      Assert.Equal(Message.RuntimeOverflow, exception3.Diagnostic.MessageId);
+      var exception4 = Assert.Throws<DiagnosticException>(() => executor.Run(eval));
+      Assert.Equal(Message.RuntimeOverflow, exception4.Diagnostic.MessageId);
+    }
+
     private static TextRange NewTextRange() {
       return new TextRange(0, 1, 2, 3);
     }

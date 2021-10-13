@@ -38,6 +38,10 @@ namespace SeedLang.Runtime {
       _visualizers.Remove(visualizer);
     }
 
+    internal bool IsEmpty() {
+      return _visualizers.Count == 0;
+    }
+
     internal void Notify(Event e) {
       foreach (var visualizer in _visualizers) {
         visualizer.On(e);

@@ -14,6 +14,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
@@ -56,19 +57,24 @@ namespace SeedLang.Ast {
           _expressionResult = left * right;
           break;
         case BinaryOperator.Divide:
+          CheckDivideByZero(right.ToNumber(), binary.Range);
           _expressionResult = left / right;
           break;
         default:
           Debug.Fail($"Unsupported binary operator: {binary.Op}");
           break;
       }
-      var be = new BinaryEvent(left, binary.Op, right, _expressionResult, binary.Range);
-      _visualizerCenter.BinaryPublisher.Notify(be);
+      CheckOverflow(_expressionResult.ToNumber(), binary.Range);
+      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+        var be = new BinaryEvent(left, binary.Op, right, _expressionResult, binary.Range);
+        _visualizerCenter.BinaryPublisher.Notify(be);
+      }
     }
 
     protected override void Visit(IdentifierExpression identifier) {
       if (_globals.TryGetValue(identifier.Name, out var value)) {
         _expressionResult = value;
+        CheckOverflow(_expressionResult.ToNumber(), identifier.Range);
       } else {
         // TODO: should the result be a null value or default number value if the variable is not
         // assigned before using? Another option is to report a runtime error.
@@ -77,6 +83,7 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(NumberConstantExpression number) {
+      CheckOverflow(number.Value, number.Range);
       _expressionResult = new NumberValue(number.Value);
     }
 
@@ -99,8 +106,27 @@ namespace SeedLang.Ast {
 
     protected override void Visit(EvalStatement eval) {
       Visit(eval.Expr);
-      var ee = new EvalEvent(_expressionResult, eval.Range);
-      _visualizerCenter.EvalPublisher.Notify(ee);
+      if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
+        var ee = new EvalEvent(_expressionResult, eval.Range);
+        _visualizerCenter.EvalPublisher.Notify(ee);
+      }
+    }
+
+    private static void CheckDivideByZero(double divisor, Range range) {
+      if (divisor == 0) {
+        // TODO: how to get the module name?
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", range,
+                                      Message.RuntimeErrorDivideByZero);
+      }
+    }
+
+    private static void CheckOverflow(double value, Range range) {
+      // TODO: do we need separate NaN as another runtime error?
+      if (double.IsInfinity(value) || double.IsNaN(value)) {
+        // TODO: how to get the module name?
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", range,
+                                      Message.RuntimeOverflow);
+      }
     }
   }
 }

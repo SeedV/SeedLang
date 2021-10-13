@@ -4,7 +4,12 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <PackageId>SeedLang.Shell</PackageId>
-    <Version>0.1.1</Version>
+    <ReleaseTag>preview</ReleaseTag>
+    <VersionPrefix>0.1.2</VersionPrefix>
+    <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
+    <Version Condition="'$(ReleaseTag)' != 'release'">$(VersionPrefix)-$(ReleaseTag)$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</Version>
+    <Version Condition="'$(ReleaseTag)' == 'release'">$(VersionPrefix)+$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</Version>
+    <Copyright>Copyright 2021 The Aha001 Team</Copyright>
     <Authors>The Aha001 Team</Authors>
     <Company>SeedV.com</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

@@ -11,3 +11,11 @@ See the [architecture design doc](design/overview.md).
 
 For the developers of SeedLang, please check out the [contributing guide](CONTRIBUTING.md)
 for guidelines about how to proceed.
+
+## How to build
+
+See the [building guide](BUILDING.md).
+
+## How to release
+
+See the [releasing guide](RELEASING.md).

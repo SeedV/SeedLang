@@ -12,33 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Runtime;
+using System.Collections.Generic;
 
-namespace SeedLang.Ast {
-  // An immutable number value class.
-  internal class NumberValue : BaseValue {
-    private readonly double _value;
+namespace SeedLang.Runtime {
+  // The global environment to store names and values of global variables.
+  internal class GlobalEnvironment<Value> {
+    private readonly Dictionary<string, Value> _globals = new Dictionary<string, Value>();
 
-    public override ValueType Type {
-      get {
-        return ValueType.Number;
-      }
+    internal void SetVariable(string name, Value value) {
+      _globals[name] = value;
     }
 
-    internal NumberValue() {
-      _value = 0;
-    }
-
-    internal NumberValue(double value) {
-      _value = value;
-    }
-
-    public override double ToNumber() {
-      return _value;
-    }
-
-    public override string ToString() {
-      return $"{_value}";
+    internal bool TryGetVariable(string name, out Value value) {
+      return _globals.TryGetValue(name, out value);
     }
   }
 }

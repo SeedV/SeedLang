@@ -23,10 +23,10 @@ namespace SeedLang.Ast.Tests {
                                      IVisualizer<BinaryEvent>,
                                      IVisualizer<EvalEvent> {
       public string Identifier { get; private set; }
-      public IValue Left { get; private set; }
+      public Value Left { get; private set; }
       public BinaryOperator Op { get; private set; }
-      public IValue Right { get; private set; }
-      public IValue Result { get; private set; }
+      public Value Right { get; private set; }
+      public Value Result { get; private set; }
       public Range Range { get; private set; }
 
       public void On(AssignmentEvent ae) {

@@ -15,23 +15,43 @@
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  // The value type used in SeedLang virtual machine.
-  internal struct Value : IValue {
+  // The value type used in the SeedLang virtual machine.
+  internal struct VMValue {
     public ValueType Type { get; }
 
     private readonly double _number;
 
-    internal Value(double number) {
+    internal VMValue(double number) {
       Type = ValueType.Number;
       _number = number;
     }
 
-    public double ToNumber() {
+    public override string ToString() {
+      return $"{_number}";
+    }
+
+    internal double ToNumber() {
       return _number;
     }
 
-    public override string ToString() {
-      return $"{_number}";
+    internal Value ToValue() {
+      return new NumberValue(_number);
+    }
+
+    public static VMValue operator +(VMValue lhs, VMValue rhs) {
+      return new VMValue(lhs._number + rhs._number);
+    }
+
+    public static VMValue operator -(VMValue lhs, VMValue rhs) {
+      return new VMValue(lhs._number - rhs._number);
+    }
+
+    public static VMValue operator *(VMValue lhs, VMValue rhs) {
+      return new VMValue(lhs._number * rhs._number);
+    }
+
+    public static VMValue operator /(VMValue lhs, VMValue rhs) {
+      return new VMValue(lhs._number / rhs._number);
     }
   }
 }

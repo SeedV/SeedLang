@@ -18,6 +18,7 @@ using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Block;
 using SeedLang.Common;
+using SeedLang.Interpreter;
 using SeedLang.X;
 
 namespace SeedLang.Runtime {
@@ -29,11 +30,14 @@ namespace SeedLang.Runtime {
 
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
     private readonly Ast.Executor _executor;
+    private readonly VM _vm;
+
     // The ast node of current parsed source code.
     private AstNode _node;
 
     public Executor() {
       _executor = new Ast.Executor(_visualizerCenter);
+      _vm = new VM(_visualizerCenter);
     }
 
     public void Register<Visualizer>(Visualizer visualizer) {
@@ -82,6 +86,11 @@ namespace SeedLang.Runtime {
             collection?.Report(exception.Diagnostic);
             return false;
           }
+        case RunType.Bytecode:
+          var compiler = new Compiler();
+          var chunk = compiler.Compile(_node);
+          _vm.Run(chunk);
+          return true;
         default:
           throw new NotImplementedException($"Unsupported run type: {runType}");
       }

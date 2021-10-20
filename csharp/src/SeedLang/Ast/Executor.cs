@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -24,15 +23,14 @@ namespace SeedLang.Ast {
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
 
-    // The dictionary to store variable names and current values of global variables.
-    // TODO: define a class to handle global symbol table lookup.
-    private readonly Dictionary<string, BaseValue> _globals = new Dictionary<string, BaseValue>();
+    // The global environment to store names and values of global variables.
+    private readonly GlobalEnvironment<Value> _globals = new GlobalEnvironment<Value>();
 
     // The result of current executed expression.
-    private BaseValue _expressionResult;
+    private Value _expressionResult;
 
-    internal Executor(VisualizerCenter visualizerCenter) {
-      _visualizerCenter = visualizerCenter;
+    internal Executor(VisualizerCenter visualizerCenter = null) {
+      _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
     }
 
     // Executes the given AST tree.
@@ -42,9 +40,9 @@ namespace SeedLang.Ast {
 
     protected override void Visit(BinaryExpression binary) {
       Visit(binary.Left);
-      BaseValue left = _expressionResult;
+      Value left = _expressionResult;
       Visit(binary.Right);
-      BaseValue right = _expressionResult;
+      Value right = _expressionResult;
       // TODO: handle other operators.
       switch (binary.Op) {
         case BinaryOperator.Add:
@@ -72,7 +70,7 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(IdentifierExpression identifier) {
-      if (_globals.TryGetValue(identifier.Name, out var value)) {
+      if (_globals.TryGetVariable(identifier.Name, out var value)) {
         _expressionResult = value;
         CheckOverflow(_expressionResult.ToNumber(), identifier.Range);
       } else {
@@ -99,7 +97,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(AssignmentStatement assignment) {
       Visit(assignment.Expr);
-      _globals[assignment.Identifier.Name] = _expressionResult;
+      _globals.SetVariable(assignment.Identifier.Name, _expressionResult);
       var ae = new AssignmentEvent(assignment.Identifier.Name, _expressionResult, assignment.Range);
       _visualizerCenter.AssignmentPublisher.Notify(ae);
     }

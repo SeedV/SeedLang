@@ -26,7 +26,9 @@ namespace SeedLang.Interpreter {
     // The bytecode of this chunk.
     public IReadOnlyList<Instruction> Bytecode => _bytecode;
 
-    // The source code range of each instruction in bytecode.
+    // Source code ranges of the instructions in bytecode.
+    //
+    // The length of Bytecode and Range lists shall be the same.
     public IReadOnlyList<Range> Ranges => _ranges;
 
     // The actual count of the registers that is needed for this chunk.
@@ -42,7 +44,6 @@ namespace SeedLang.Interpreter {
     public override string ToString() {
       var sb = new StringBuilder();
       for (int i = 0; i < _bytecode.Count; ++i) {
-
         sb.Append($"{_bytecode[i],-20}{ConstantOperandToString(_bytecode[i])}");
         sb.AppendLine(i < _ranges.Count && _ranges[i] is Range range ? $"{range}" : "");
       }

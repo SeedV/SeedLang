@@ -71,6 +71,7 @@ namespace SeedLang.Interpreter {
           op = BinaryOperator.Multiply;
           break;
         case Opcode.DIV:
+          // TODO: add divide by zero and overflow check.
           _registers[instr.A] = ValueOfRK(instr.B) / ValueOfRK(instr.C);
           op = BinaryOperator.Divide;
           break;

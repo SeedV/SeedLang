@@ -15,7 +15,8 @@
 using System.Collections.Generic;
 
 namespace SeedLang.Runtime {
-  // The global environment to store names and values of global variables.
+  // The global environment to store names and values of global variables. The generic parameter
+  // Value could be runtime Value or VMValue.
   internal class GlobalEnvironment<Value> {
     private readonly Dictionary<string, Value> _globals = new Dictionary<string, Value>();
 

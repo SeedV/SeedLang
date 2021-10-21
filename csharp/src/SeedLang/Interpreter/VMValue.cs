@@ -16,6 +16,9 @@ using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // The value type used in the SeedLang virtual machine.
+  //
+  // It's designed as a value type (struct) to avoid object creating frequently. A coresponding
+  // runtime Value is genrated and sent to the visualizer center when visualizers need be notified.
   internal struct VMValue {
     public ValueType Type { get; }
 

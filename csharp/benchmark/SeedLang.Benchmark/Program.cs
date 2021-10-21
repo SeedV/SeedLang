@@ -17,7 +17,7 @@ using BenchmarkDotNet.Running;
 namespace SeedLang.Benchmark {
   class Program {
     static void Main(string[] _) {
-      BenchmarkRunner.Run<ExecuteBinaryBenchmark>();
+      BenchmarkRunner.Run<BinaryExpressionBenchmark>();
     }
   }
 }

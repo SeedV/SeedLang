@@ -21,7 +21,7 @@ namespace SeedLang.Runtime {
     public BinaryOperator Op { get; }
     public Value Right { get; }
     public Value Result { get; }
-    // The source code range of the binary expression
+    // The source code range of the binary expression.
     public Range Range { get; }
 
     public BinaryEvent(Value left, BinaryOperator op, Value right, Value result, Range range) {
@@ -37,7 +37,7 @@ namespace SeedLang.Runtime {
   public class AssignmentEvent {
     public string Identifier { get; }
     public Value Value { get; }
-    // The source code range of the assignment statement
+    // The source code range of the assignment statement.
     public Range Range { get; }
 
     public AssignmentEvent(string identifier, Value value, Range range) {
@@ -50,7 +50,7 @@ namespace SeedLang.Runtime {
   // An event which is triggered when an eval statement is executed.
   public class EvalEvent {
     public Value Value { get; }
-    // The source code range of the eval statement
+    // The source code range of the eval statement.
     public Range Range { get; }
 
     public EvalEvent(Value value, Range range) {

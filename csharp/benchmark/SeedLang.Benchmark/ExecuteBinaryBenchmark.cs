@@ -19,14 +19,14 @@ using SeedLang.Interpreter;
 using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
-  public class ExecuteBinaryBenchmark {
+  public class BinaryExpressionBenchmark {
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
     private readonly EvalStatement _eval;
     private readonly Ast.Executor _executor;
     private readonly Chunk _chunk;
     private readonly VM _vm;
 
-    public ExecuteBinaryBenchmark() {
+    public BinaryExpressionBenchmark() {
       var left = Expression.Number(1, NewTextRange());
       var right = Expression.Number(2, NewTextRange());
       var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRange());
@@ -39,13 +39,13 @@ namespace SeedLang.Benchmark {
       _vm = new VM(_visualizerCenter);
     }
 
-    // Benchmarks the running time of the AST executor.
+    // Benchmarks binary expression running time of the AST executor.
     [Benchmark]
     public void BenchmarkAstRun() {
       _executor.Run(_eval);
     }
 
-    // Benchmarks the running time of the VM. The compiling time is not included.
+    // Benchmarks binary expression running time of the VM. Compiling time is not included.
     [Benchmark]
     public void BenchmarkVMRun() {
       _vm.Run(_chunk);

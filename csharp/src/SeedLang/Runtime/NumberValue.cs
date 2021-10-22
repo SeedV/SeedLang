@@ -12,24 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Runtime;
-
-namespace SeedLang.Ast {
+namespace SeedLang.Runtime {
   // An immutable number value class.
-  internal class NumberValue : BaseValue {
+  internal class NumberValue : Value {
     private readonly double _value;
 
-    public override ValueType Type {
-      get {
-        return ValueType.Number;
-      }
-    }
+    public override ValueType Type => ValueType.Number;
 
-    internal NumberValue() {
-      _value = 0;
-    }
-
-    internal NumberValue(double value) {
+    internal NumberValue(double value = 0) {
       _value = value;
     }
 

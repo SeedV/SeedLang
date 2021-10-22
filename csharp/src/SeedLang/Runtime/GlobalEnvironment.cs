@@ -12,26 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Runtime;
+using System.Collections.Generic;
 
-namespace SeedLang.Interpreter {
-  // The value type used in SeedLang virtual machine.
-  internal struct Value : IValue {
-    public ValueType Type { get; }
+namespace SeedLang.Runtime {
+  // The global environment to store names and values of global variables. The generic parameter
+  // Value could be runtime Value or VMValue.
+  internal class GlobalEnvironment<Value> {
+    private readonly Dictionary<string, Value> _globals = new Dictionary<string, Value>();
 
-    private readonly double _number;
-
-    internal Value(double number) {
-      Type = ValueType.Number;
-      _number = number;
+    internal void SetVariable(string name, Value value) {
+      _globals[name] = value;
     }
 
-    public double ToNumber() {
-      return _number;
-    }
-
-    public override string ToString() {
-      return $"{_number}";
+    internal bool TryGetVariable(string name, out Value value) {
+      return _globals.TryGetValue(name, out value);
     }
   }
 }

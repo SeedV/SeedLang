@@ -19,20 +19,20 @@ namespace SeedLang.Runtime.Tests {
   public class ExecutorTests {
     private class MockupVisualizer : IVisualizer<BinaryEvent>,
                                      IVisualizer<EvalEvent> {
-      public IValue Left { get; private set; }
+      public Value Left { get; private set; }
       public BinaryOperator Op { get; private set; }
-      public IValue Right { get; private set; }
-      public IValue Result { get; private set; }
+      public Value Right { get; private set; }
+      public Value Result { get; private set; }
 
-      public void On(BinaryEvent e) {
-        Left = e.Left;
-        Op = e.Op;
-        Right = e.Right;
-        Result = e.Result;
+      public void On(BinaryEvent be) {
+        Left = be.Left;
+        Op = be.Op;
+        Right = be.Right;
+        Result = be.Result;
       }
 
-      public void On(EvalEvent e) {
-        Result = e.Value;
+      public void On(EvalEvent ee) {
+        Result = ee.Value;
       }
     }
 

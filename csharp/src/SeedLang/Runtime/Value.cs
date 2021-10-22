@@ -12,28 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Runtime;
+namespace SeedLang.Runtime {
+  public enum ValueType {
+    Number,
+    String,
+  }
 
-namespace SeedLang.Ast {
-  // The base class of all the value classes that are used during AST tree execution.
-  internal abstract class BaseValue : IValue {
+  // The base class of all runtime value classes.
+  public abstract class Value {
     public abstract ValueType Type { get; }
 
     public abstract double ToNumber();
 
-    public static BaseValue operator +(BaseValue lhs, BaseValue rhs) {
+    public static Value operator +(Value lhs, Value rhs) {
       return new NumberValue(lhs.ToNumber() + rhs.ToNumber());
     }
 
-    public static BaseValue operator -(BaseValue lhs, BaseValue rhs) {
+    public static Value operator -(Value lhs, Value rhs) {
       return new NumberValue(lhs.ToNumber() - rhs.ToNumber());
     }
 
-    public static BaseValue operator *(BaseValue lhs, BaseValue rhs) {
+    public static Value operator *(Value lhs, Value rhs) {
       return new NumberValue(lhs.ToNumber() * rhs.ToNumber());
     }
 
-    public static BaseValue operator /(BaseValue lhs, BaseValue rhs) {
+    public static Value operator /(Value lhs, Value rhs) {
       return new NumberValue(lhs.ToNumber() / rhs.ToNumber());
     }
   }

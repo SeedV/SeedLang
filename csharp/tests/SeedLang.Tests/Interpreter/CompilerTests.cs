@@ -29,9 +29,9 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "LOADK 0 250         ; 1\n" +
-          "EVAL 0              \n" +
-          "RETURN 0            \n"
+          "LOADK 0 250         ;1        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "EVAL 0                        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "RETURN 0                      \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, chunk.ToString());
     }
@@ -45,9 +45,9 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "ADD 0 250 251       \n" +
-          "EVAL 0              \n" +
-          "RETURN 0            \n"
+          "ADD 0 250 251                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "EVAL 0                        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "RETURN 0                      \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, chunk.ToString());
     }
@@ -63,10 +63,10 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "ADD 1 251 252       \n" +
-          "SUB 0 250 1         \n" +
-          "EVAL 0              \n" +
-          "RETURN 0            \n"
+          "ADD 1 251 252                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "SUB 0 250 1                   [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "EVAL 0                        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "RETURN 0                      \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, chunk.ToString());
     }
@@ -82,10 +82,10 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "ADD 1 250 251       \n" +
-          "SUB 0 250 1         \n" +
-          "EVAL 0              \n" +
-          "RETURN 0            \n"
+          "ADD 1 250 251                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "SUB 0 250 1                   [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "EVAL 0                        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "RETURN 0                      \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, chunk.ToString());
     }

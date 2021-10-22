@@ -36,7 +36,7 @@ namespace SeedLang.Interpreter {
     private readonly RegisterAllocator _registerAllocator = new RegisterAllocator();
     private ExpressionInfo _expressionInfo;
 
-    internal Chunk Compile(Statement node) {
+    internal Chunk Compile(AstNode node) {
       _chunk = new Chunk();
       _constantCache = new ConstantCache(_chunk);
       Visit(node);
@@ -46,7 +46,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BinaryExpression binary) {
-      uint result = _expressionInfo.ResultRegister;
+      uint resultRegister = _expressionInfo.ResultRegister;
       bool needLeftRegister = NeedAllocateRegister(binary.Left);
       bool needRightRegister = NeedAllocateRegister(binary.Right);
       uint left = needLeftRegister ? _registerAllocator.AllocateTempVariable() : 0;
@@ -63,7 +63,7 @@ namespace SeedLang.Interpreter {
       if (!needRightRegister) {
         right = _expressionInfo.ResultConstId;
       }
-      _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), result, left, right);
+      _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), resultRegister, left, right, binary.Range);
     }
 
     protected override void Visit(IdentifierExpression expression) {
@@ -73,7 +73,8 @@ namespace SeedLang.Interpreter {
     protected override void Visit(NumberConstantExpression number) {
       _expressionInfo.ResultConstId = _constantCache.IdOfConstant(number.Value);
       if (_expressionInfo.NeedLoadConstant) {
-        _chunk.Emit(Opcode.LOADK, _expressionInfo.ResultRegister, _expressionInfo.ResultConstId);
+        _chunk.Emit(Opcode.LOADK, _expressionInfo.ResultRegister, _expressionInfo.ResultConstId,
+                    number.Range);
       }
     }
 
@@ -94,7 +95,7 @@ namespace SeedLang.Interpreter {
       _expressionInfo.NeedLoadConstant = true;
       _expressionInfo.ResultRegister = register;
       Visit(eval.Expr);
-      _chunk.Emit(Opcode.EVAL, register);
+      _chunk.Emit(Opcode.EVAL, register, eval.Range);
     }
 
     private static bool NeedAllocateRegister(Expression expression) {

@@ -12,19 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  public enum ValueType {
-    Number,
-    String
-  }
+using BenchmarkDotNet.Running;
 
-  // The value interface of all value types.
-  //
-  // There are different kinds of value types in the AST and interpreter components. They all
-  // implement this value interface.
-  public interface IValue {
-    ValueType Type { get; }
-    double ToNumber();
-    string ToString();
+namespace SeedLang.Benchmark {
+  class Program {
+    static void Main(string[] _) {
+      BenchmarkRunner.Run<BinaryExpressionBenchmark>();
+    }
   }
 }

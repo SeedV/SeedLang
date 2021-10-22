@@ -14,16 +14,12 @@
 
 using System;
 
-namespace SeedLang.Ast {
+namespace SeedLang.Runtime {
   // An immutable string value class.
-  internal class StringValue : BaseValue {
+  internal class StringValue : Value {
     private readonly string _value;
 
-    public override Runtime.ValueType Type {
-      get {
-        return Runtime.ValueType.String;
-      }
-    }
+    public override ValueType Type => ValueType.String;
 
     internal StringValue(string value) {
       _value = value;

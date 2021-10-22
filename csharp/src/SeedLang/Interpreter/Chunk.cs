@@ -45,7 +45,8 @@ namespace SeedLang.Interpreter {
       var sb = new StringBuilder();
       for (int i = 0; i < _bytecode.Count; ++i) {
         sb.Append($"{_bytecode[i],-20}{ConstantOperandToString(_bytecode[i])}");
-        sb.AppendLine(i < _ranges.Count && _ranges[i] is Range range ? $"{range}" : "");
+        Debug.Assert(i < _ranges.Count);
+        sb.AppendLine(_ranges[i] is null ? "" : $"{_ranges[i]}");
       }
       return sb.ToString();
     }

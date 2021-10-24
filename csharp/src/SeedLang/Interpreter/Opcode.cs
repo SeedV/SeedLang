@@ -18,10 +18,13 @@ namespace SeedLang.Interpreter {
   // All the opcodes of SeedLang virtual machine.
   internal enum Opcode {
     LOADK,        // R(A) := Kst(Bx)
+    GETGLOB,      // R[A] := Gbl[Kst(Bx)]
+    SETGLOB,      // Gbl[Kst(Bx)] := R[A]
     ADD,          // R(A) := RK(B)  RK(C)
     SUB,          // R(A) := RK(B) - RK(C)
     MUL,          // R(A) := RK(B) * RK(C)
     DIV,          // R(A) := RK(B) / RK(C)
+    UNM,          // R(A) := -RK(B)
     EVAL,         // Eval R(A)
     RETURN,       // Return R(A)
   }
@@ -38,17 +41,20 @@ namespace SeedLang.Interpreter {
     internal static OpcodeType Type(this Opcode op) {
       switch (op) {
         case Opcode.LOADK:
+        case Opcode.GETGLOB:
+        case Opcode.SETGLOB:
           return OpcodeType.ABx;
         case Opcode.ADD:
         case Opcode.SUB:
         case Opcode.MUL:
         case Opcode.DIV:
+        case Opcode.UNM:
           return OpcodeType.ABC;
         case Opcode.EVAL:
         case Opcode.RETURN:
           return OpcodeType.A;
         default:
-          throw new NotImplementedException();
+          throw new NotImplementedException("Unsupported opcode: {op}.");
       }
     }
   }

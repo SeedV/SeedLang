@@ -169,7 +169,7 @@ MUL A B C                   # R(A) := RK(B) * RK(C)
 DIV A B C                   # R(A) := RK(B) / RK(C)
 MOD A B C                   # R(A) := RK(B) % RK(C)
 POW A B C                   # R(A) := RK(B) ^ RK(C)
-UNM A B                     # R(A) := -R(B)
+UNM A B                     # R(A) := -RK(B)
 LEN A B                     # R(A) := length of R(B)
 ```
 

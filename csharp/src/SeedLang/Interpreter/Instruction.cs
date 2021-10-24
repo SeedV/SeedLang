@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
@@ -59,19 +58,6 @@ namespace SeedLang.Interpreter {
     internal Instruction(Opcode opcode, uint a, uint bx) {
       Debug.Assert(opcode.Type() == OpcodeType.ABx, $"{opcode} shall be type ABx opcode.");
       _code = (uint)opcode | a << _posA | bx << _posBx;
-    }
-
-    public override string ToString() {
-      switch (Opcode.Type()) {
-        case OpcodeType.A:
-          return $"{Opcode} {A}";
-        case OpcodeType.ABC:
-          return $"{Opcode} {A} {B} {C}";
-        case OpcodeType.ABx:
-          return $"{Opcode} {A} {Bx}";
-        default:
-          throw new NotImplementedException();
-      }
     }
   }
 }

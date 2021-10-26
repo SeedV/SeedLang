@@ -23,7 +23,7 @@ namespace SeedLang.Interpreter {
     private struct ExpressionInfo {
       // A boolean flag to indicate if current expression can handle constant sub-expressions. If it
       // is false, the constant sub-expression needs to emit a LOADK instruction to load its value into
-      // ResultRegister. Otherwise the constant sub-expression need sets its id to ResultConstId for
+      // ResultRegister. Otherwise the constant sub-expression needs to set its id to ResultConstId for
       // current expression to use.
       public bool CanHandleConstSubExpr;
       // The register allocated for the result of the sub-expression.

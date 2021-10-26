@@ -73,7 +73,7 @@ namespace SeedLang.Ast {
 
     protected abstract void Visit(BinaryExpression binary);
 
-    protected abstract void Visit(IdentifierExpression expression);
+    protected abstract void Visit(IdentifierExpression identifier);
 
     protected abstract void Visit(NumberConstantExpression number);
 

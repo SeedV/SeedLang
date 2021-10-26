@@ -29,11 +29,11 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "LOADK 0 250         ;1        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "EVAL 0                        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "RETURN 0                      \n"
+          "1    LOADK     0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "2    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "3    RETURN    0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, chunk.ToString());
+      Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
     [Fact]
@@ -45,11 +45,11 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "ADD 0 250 251                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "EVAL 0                        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "RETURN 0                      \n"
+          "1    ADD       0 -1 -2        ; 1 2               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "2    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "3    RETURN    0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, chunk.ToString());
+      Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
     [Fact]
@@ -63,12 +63,12 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "ADD 1 251 252                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "SUB 0 250 1                   [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "EVAL 0                        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "RETURN 0                      \n"
+          "1    ADD       1 -2 -3        ; 2 3               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "2    SUB       0 -1 1         ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "3    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "4    RETURN    0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, chunk.ToString());
+      Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
     [Fact]
@@ -82,12 +82,59 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
-          "ADD 1 250 251                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "SUB 0 250 1                   [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "EVAL 0                        [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "RETURN 0                      \n"
+          "1    ADD       1 -1 -2        ; 1 2               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "2    SUB       0 -1 1         ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "3    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "4    RETURN    0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, chunk.ToString());
+      Assert.Equal(expected, new Disassembler(chunk).ToString());
+    }
+
+    [Fact]
+    public void TestCompileUnary() {
+      var number = Expression.Number(1, _testTextRange);
+      var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
+      var eval = Statement.Eval(unary, _testTextRange);
+      var compiler = new Compiler();
+      var chunk = compiler.Compile(eval);
+      string expected = (
+          "1    UNM       0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "2    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "3    RETURN    0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(chunk).ToString());
+    }
+
+    [Fact]
+    public void TestCompileAssignNumber() {
+      var identifier = Expression.Identifier("name", _testTextRange);
+      var number = Expression.Number(1, _testTextRange);
+      var assignment = Statement.Assignment(identifier, number, _testTextRange);
+      var compiler = new Compiler();
+      var chunk = compiler.Compile(assignment);
+      string expected = (
+          "1    LOADK     0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "2    SETGLOB   0 -2           ; name              [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "3    RETURN    0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(chunk).ToString());
+    }
+
+    [Fact]
+    public void TestCompileAssignBinary() {
+      var identifier = Expression.Identifier("name", _testTextRange);
+      var left = Expression.Number(1, _testTextRange);
+      var right = Expression.Number(2, _testTextRange);
+      var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
+      var assignment = Statement.Assignment(identifier, binary, _testTextRange);
+      var compiler = new Compiler();
+      var chunk = compiler.Compile(assignment);
+      string expected = (
+          "1    ADD       0 -1 -2        ; 1 2               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "2    SETGLOB   0 -3           ; name              [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "3    RETURN    0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
   }
 }

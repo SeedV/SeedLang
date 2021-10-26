@@ -49,14 +49,16 @@ namespace SeedLang.Interpreter.Tests {
       }
     }
 
+    private static TextRange _testTextRange => new TextRange(0, 1, 2, 3);
+
     [Fact]
-    public void TestVM() {
-      var left = Expression.Number(1, NewTextRange());
-      var right = Expression.Number(2, new TextRange(0, 1, 2, 3));
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, new TextRange(0, 1, 2, 3));
-      var eval = Statement.Eval(binary, new TextRange(0, 1, 2, 3));
+    public void TestEvalBinary() {
+      var left = Expression.Number(1, _testTextRange);
+      var right = Expression.Number(2, _testTextRange);
+      var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
+      var eval = Statement.Eval(binary, _testTextRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(eval);
+      Chunk chunk = compiler.Compile(eval);
 
       (var vm, var visualizer) = NewVMWithVisualizer();
       vm.Run(chunk);
@@ -65,11 +67,52 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.ToNumber());
       Assert.Equal(3, visualizer.Result.ToNumber());
-      Assert.Equal(NewTextRange(), visualizer.Range);
+      Assert.Equal(_testTextRange, visualizer.Range);
     }
 
-    private static TextRange NewTextRange() {
-      return new TextRange(0, 1, 2, 3);
+    [Fact]
+    public void TestEvalGlobalVariable() {
+      var compiler = new Compiler();
+      (var vm, var visualizer) = NewVMWithVisualizer();
+
+      var identifier = Expression.Identifier("name", _testTextRange);
+      var number = Expression.Number(1, _testTextRange);
+      var assignment = Statement.Assignment(identifier, number, _testTextRange);
+      Chunk chunk = compiler.Compile(assignment);
+      vm.Run(chunk);
+
+      var eval = Statement.Eval(identifier, _testTextRange);
+      chunk = compiler.Compile(eval);
+      vm.Run(chunk);
+
+      Assert.Equal(1, visualizer.Result.ToNumber());
+      Assert.Equal(_testTextRange, visualizer.Range);
+    }
+
+    [Fact]
+    public void TestEvalUnary() {
+      var compiler = new Compiler();
+      (var vm, var visualizer) = NewVMWithVisualizer();
+
+      var number = Expression.Number(1, _testTextRange);
+      var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
+      var eval = Statement.Eval(unary, _testTextRange);
+      Chunk chunk = compiler.Compile(eval);
+      vm.Run(chunk);
+
+      Assert.Equal(-1, visualizer.Result.ToNumber());
+      Assert.Equal(_testTextRange, visualizer.Range);
+
+      var left = Expression.Number(1, _testTextRange);
+      var right = Expression.Number(2, _testTextRange);
+      var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
+      unary = Expression.Unary(UnaryOperator.Negative, binary, _testTextRange);
+      eval = Statement.Eval(unary, _testTextRange);
+      chunk = compiler.Compile(eval);
+      vm.Run(chunk);
+
+      Assert.Equal(-3, visualizer.Result.ToNumber());
+      Assert.Equal(_testTextRange, visualizer.Range);
     }
 
     private static (VM, MockupVisualizer) NewVMWithVisualizer() {

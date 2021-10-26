@@ -20,25 +20,54 @@ namespace SeedLang.Interpreter {
   // It's designed as a value type (struct) to avoid object creating frequently. A coresponding
   // runtime Value is genrated and sent to the visualizer center when visualizers need be notified.
   internal struct VMValue {
-    public ValueType Type { get; }
-
+    private readonly ValueType _type;
     private readonly double _number;
+    private readonly object _object;
 
     internal VMValue(double number) {
-      Type = ValueType.Number;
+      _type = ValueType.Number;
       _number = number;
+      _object = null;
+    }
+
+    internal VMValue(string str) {
+      _type = ValueType.String;
+      _number = 0;
+      _object = str;
     }
 
     public override string ToString() {
-      return $"{_number}";
+      switch (_type) {
+        case ValueType.Number:
+          return $"{_number}";
+        case ValueType.String:
+          return $"{_object}";
+        default:
+          throw new System.NotImplementedException($"Unsupported value type: {_type}.");
+      }
     }
 
     internal double ToNumber() {
-      return _number;
+      switch (_type) {
+        case ValueType.Number:
+          return _number;
+        case ValueType.String:
+          // TODO: need parse string to number?
+          return 0;
+        default:
+          throw new System.NotImplementedException($"Unsupported value type: {_type}.");
+      }
     }
 
     internal Value ToValue() {
-      return new NumberValue(_number);
+      switch (_type) {
+        case ValueType.Number:
+          return new NumberValue(_number);
+        case ValueType.String:
+          return new StringValue(_object as string);
+        default:
+          throw new System.NotImplementedException($"Unsupported value type: {_type}.");
+      }
     }
 
     public static VMValue operator +(VMValue lhs, VMValue rhs) {

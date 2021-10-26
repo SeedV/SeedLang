@@ -77,22 +77,22 @@ namespace SeedLang.Runtime {
       if (_node is null) {
         return false;
       }
-      switch (runType) {
-        case RunType.Ast:
-          try {
+      try {
+        switch (runType) {
+          case RunType.Ast:
             _executor.Run(_node);
             return true;
-          } catch (DiagnosticException exception) {
-            collection?.Report(exception.Diagnostic);
-            return false;
-          }
-        case RunType.Bytecode:
-          var compiler = new Compiler();
-          var chunk = compiler.Compile(_node);
-          _vm.Run(chunk);
-          return true;
-        default:
-          throw new NotImplementedException($"Unsupported run type: {runType}");
+          case RunType.Bytecode:
+            var compiler = new Compiler();
+            var chunk = compiler.Compile(_node);
+            _vm.Run(chunk);
+            return true;
+          default:
+            throw new NotImplementedException($"Unsupported run type: {runType}");
+        }
+      } catch (DiagnosticException exception) {
+        collection?.Report(exception.Diagnostic);
+        return false;
       }
     }
 

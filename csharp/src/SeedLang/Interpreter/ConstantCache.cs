@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 
 namespace SeedLang.Interpreter {
@@ -21,13 +20,14 @@ namespace SeedLang.Interpreter {
   internal class ConstantCache {
     private readonly Chunk _chunk;
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
+    private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
 
     internal ConstantCache(Chunk chunk) {
       _chunk = chunk;
     }
 
     // Returns the id of the given number constant and adds the constant into the constant list of
-    // the chunk if it is not in the constants list.
+    // the chunk if it is not in the constant list.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {
         _numbers[number] = _chunk.AddConstant(number);
@@ -35,8 +35,13 @@ namespace SeedLang.Interpreter {
       return _numbers[number];
     }
 
+    // Returns the id of the given string constant and adds the constant into the constant list of
+    // the chunk if it is not in the constant list.
     internal uint IdOfConstant(string str) {
-      throw new NotImplementedException();
+      if (!_strings.ContainsKey(str)) {
+        _strings[str] = _chunk.AddConstant(str);
+      }
+      return _strings[str];
     }
   }
 }

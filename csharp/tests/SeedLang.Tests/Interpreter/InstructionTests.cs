@@ -35,17 +35,5 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(1u, loadK.A);
       Assert.Equal(2u, loadK.Bx);
     }
-
-    [Fact]
-    public void TestInstructionsToString() {
-      var ret = new Instruction(Opcode.RETURN, 1);
-      Assert.Equal("RETURN 1", ret.ToString());
-
-      var add = new Instruction(Opcode.ADD, 1, 2, 3);
-      Assert.Equal("ADD 1 2 3", add.ToString());
-
-      var loadK = new Instruction(Opcode.LOADK, 1, 2);
-      Assert.Equal("LOADK 1 2", loadK.ToString());
-    }
   }
 }

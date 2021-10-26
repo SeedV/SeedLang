@@ -19,6 +19,10 @@ namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
     private readonly VisualizerCenter _visualizerCenter;
+
+    // The global environment to store names and values of global variables.
+    private readonly GlobalEnvironment<VMValue> _globals = new GlobalEnvironment<VMValue>();
+
     private Chunk _chunk;
     private VMValue[] _registers;
 
@@ -28,7 +32,7 @@ namespace SeedLang.Interpreter {
 
     internal void Run(Chunk chunk) {
       _chunk = chunk;
-      _registers = new VMValue[chunk.RegisterCount];
+      _registers = new VMValue[_chunk.RegisterCount];
       int pc = 0;
       while (pc < _chunk.Bytecode.Count) {
         Instruction instr = _chunk.Bytecode[pc];
@@ -36,15 +40,24 @@ namespace SeedLang.Interpreter {
           case Opcode.LOADK:
             _registers[instr.A] = _chunk.ValueOfConstId(instr.Bx);
             break;
+          case Opcode.GETGLOB:
+            HandleGetGlobal(instr);
+            break;
+          case Opcode.SETGLOB:
+            HandleSetGlobal(instr, _chunk.Ranges[pc]);
+            break;
           case Opcode.ADD:
           case Opcode.SUB:
           case Opcode.MUL:
           case Opcode.DIV:
-            HandleBinary(instr, chunk.Ranges[pc]);
+            HandleBinary(instr, _chunk.Ranges[pc]);
+            break;
+          case Opcode.UNM:
+            _registers[instr.A] = new VMValue(-ValueOfRK(instr.B).ToNumber());
             break;
           case Opcode.EVAL:
             if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-              var ee = new EvalEvent(_registers[instr.A].ToValue(), chunk.Ranges[pc]);
+              var ee = new EvalEvent(_registers[instr.A].ToValue(), _chunk.Ranges[pc]);
               _visualizerCenter.EvalPublisher.Notify(ee);
             }
             break;
@@ -52,6 +65,22 @@ namespace SeedLang.Interpreter {
             return;
         }
         ++pc;
+      }
+    }
+
+    private void HandleGetGlobal(Instruction instr) {
+      var name = _chunk.ValueOfConstId(instr.Bx).ToString();
+      if (_globals.TryGetVariable(name, out VMValue value)) {
+        _registers[instr.A] = value;
+      }
+    }
+
+    private void HandleSetGlobal(Instruction instr, Range range) {
+      var name = _chunk.ValueOfConstId(instr.Bx).ToString();
+      _globals.SetVariable(name, _registers[instr.A]);
+      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
+        var ae = new AssignmentEvent(name, _registers[instr.A].ToValue(), range);
+        _visualizerCenter.AssignmentPublisher.Notify(ae);
       }
     }
 
@@ -71,11 +100,13 @@ namespace SeedLang.Interpreter {
           op = BinaryOperator.Multiply;
           break;
         case Opcode.DIV:
-          // TODO: add divide by zero and overflow check.
-          _registers[instr.A] = ValueOfRK(instr.B) / ValueOfRK(instr.C);
+          VMValue divisor = ValueOfRK(instr.C);
+          CheckDivideByZero(divisor.ToNumber(), range);
+          _registers[instr.A] = ValueOfRK(instr.B) / divisor;
           op = BinaryOperator.Divide;
           break;
       }
+      CheckOverflow(_registers[instr.A].ToNumber(), range);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var be = new BinaryEvent(ValueOfRK(instr.B).ToValue(), op, ValueOfRK(instr.C).ToValue(),
                                  _registers[instr.A].ToValue(), range);
@@ -88,6 +119,25 @@ namespace SeedLang.Interpreter {
         return _registers[rkPos];
       }
       return _chunk.ValueOfConstId(rkPos);
+    }
+
+    // TODO: extract this utility method into a common place like runtime component.
+    private static void CheckDivideByZero(double divisor, Range range) {
+      if (divisor == 0) {
+        // TODO: how to get the module name?
+        throw new DiagnosticException(SystemReporters.SeedVM, Severity.Error, "", range,
+                                      Message.RuntimeErrorDivideByZero);
+      }
+    }
+
+    // TODO: extract this utility method into a common place like runtime component.
+    private static void CheckOverflow(double value, Range range) {
+      // TODO: do we need separate NaN as another runtime error?
+      if (double.IsInfinity(value) || double.IsNaN(value)) {
+        // TODO: how to get the module name?
+        throw new DiagnosticException(SystemReporters.SeedVM, Severity.Error, "", range,
+                                      Message.RuntimeOverflow);
+      }
     }
   }
 }

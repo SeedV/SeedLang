@@ -202,10 +202,12 @@ export function render(block, config) {
 
   if (block in BLOCK_DEFS) {
     const blockDef = BLOCK_DEFS[block];
-    if (blockDef.validValues && !blockDef.validValues.includes(config)) {
-      throw new Error('Invalid config string: ' + config);
+    const configString = config || blockDef.defaultConfig;
+    if (blockDef.validValues && !blockDef.validValues.includes(configString)) {
+      throw new Error('Invalid config string: ' + configString);
     }
-    const blockShape = blockDef.renderer(draw, BLOCK_DEFS[block], config, null);
+    const blockShape =
+        blockDef.renderer(draw, BLOCK_DEFS[block], configString, null);
     draw.size(blockShape.width + 2 * GLOBAL_DEFS.margin,
         blockShape.height + 2 * GLOBAL_DEFS.margin);
   }
@@ -281,8 +283,7 @@ function centerChildrenVertically(childrenShapes, shapeHeight, hasConnectors) {
  * @return {!RenderedShape} The rendered shape info.
  */
 function renderRoundRectValue(draw, blockDef, config, offset) {
-  const valueString = config || blockDef.defaultConfig;
-  let textLength = valueString.length;
+  let textLength = config.length;
   if (blockDef.delimiter) {
     textLength += 2;
   }
@@ -298,7 +299,7 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
       .radius(GLOBAL_DEFS.rectRadius)
       .move(shapeOffset.x, shapeOffset.y);
 
-  renderCenterText(group, valueString, shapeWidth, shapeHeight, blockDef.color,
+  renderCenterText(group, config, shapeWidth, shapeHeight, blockDef.color,
       shapeOffset);
 
   if (blockDef.delimiter) {
@@ -329,8 +330,7 @@ function renderRoundRectValue(draw, blockDef, config, offset) {
  * @return {!RenderedShape} The rendered shape info.
  */
 function renderOctagonToken(draw, blockDef, config, offset) {
-  const nameString = config || blockDef.defaultConfig;
-  const textLength = nameString.length;
+  const textLength = config.length;
   const shapeWidth = 2 * GLOBAL_DEFS.padding +
     textLength * GLOBAL_DEFS.fontCharWidth;
   const shapeHeight = 2 * GLOBAL_DEFS.padding + GLOBAL_DEFS.fontCharHeight;
@@ -338,23 +338,24 @@ function renderOctagonToken(draw, blockDef, config, offset) {
       new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
 
   const group = draw.group();
-  group.polygon()
-      .plot([
-        [shapeOffset.x, shapeOffset.y + GLOBAL_DEFS.rectRadius],
-        [shapeOffset.x + GLOBAL_DEFS.rectRadius, shapeOffset.y],
-        [shapeOffset.x + shapeWidth - GLOBAL_DEFS.rectRadius, shapeOffset.y],
-        [shapeOffset.x + shapeWidth, shapeOffset.y + GLOBAL_DEFS.rectRadius],
-        [shapeOffset.x + shapeWidth,
-          shapeOffset.y + shapeHeight - GLOBAL_DEFS.rectRadius],
-        [shapeOffset.x + shapeWidth - GLOBAL_DEFS.rectRadius,
-          shapeOffset.y + shapeHeight],
-        [shapeOffset.x + GLOBAL_DEFS.rectRadius, shapeOffset.y + shapeHeight],
-        [shapeOffset.x, shapeOffset.y + shapeHeight - GLOBAL_DEFS.rectRadius],
-      ])
-      .fill(blockDef.background)
-      .move(shapeOffset.x, shapeOffset.y);
+  {
+    const ox = shapeOffset.x;
+    const oy = shapeOffset.y;
+    const rr = GLOBAL_DEFS.rectRadius;
+    const w = shapeWidth;
+    const h = shapeHeight;
+    group.polygon()
+        .plot([
+          [ox, oy + rr], [ox + rr, oy],
+          [ox + w - rr, oy], [ox + w, oy + rr],
+          [ox + w, oy + h - rr], [ox + w - rr, oy + h],
+          [ox + rr, oy + h], [ox, oy + h - rr],
+        ])
+        .fill(blockDef.background)
+        .move(ox, oy);
+  }
 
-  renderCenterText(group, nameString, shapeWidth, shapeHeight, blockDef.color,
+  renderCenterText(group, config, shapeWidth, shapeHeight, blockDef.color,
       shapeOffset);
 
   return new RenderedShape(group, shapeWidth, shapeHeight);
@@ -371,8 +372,7 @@ function renderOctagonToken(draw, blockDef, config, offset) {
  * @return {!RenderedShape} The rendered shape info.
  */
 function renderExpressionContainer(draw, blockDef, config, offset) {
-  const expressionString = config || blockDef.defaultConfig;
-  const children = utils.splitListItems(expressionString, BLOCK_DEFS);
+  const children = utils.splitListItems(config, BLOCK_DEFS);
   const shapeOffset = offset ||
       new svgjs.Point(GLOBAL_DEFS.margin, GLOBAL_DEFS.margin);
 
@@ -470,7 +470,6 @@ function renderLabelAndInputs(draw, blockDef, configString, shapeOffset) {
  * @return {!RenderedShape} The rendered shape info.
  */
 function renderStatement(draw, blockDef, config, offset) {
-  const configString = config || blockDef.defaultConfig;
   // For a statement block, its anchor point is the top-most point of its
   // left-most edge. Hence, the y position of the anchor point is lower than the
   // highest position of the shape, at the top connector.
@@ -481,43 +480,38 @@ function renderStatement(draw, blockDef, config, offset) {
 
   const group = draw.group();
   const labelAndInputShapes =
-      renderLabelAndInputs(group, blockDef, configString, shapeOffset);
+      renderLabelAndInputs(group, blockDef, config, shapeOffset);
   const shapeWidth = labelAndInputShapes.width;
   const shapeHeight = labelAndInputShapes.height;
-
-  group.polygon()
-      .plot([
-        [shapeOffset.x, shapeOffset.y],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding, shapeOffset.y],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorWidth - GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorWidth,
-        shapeOffset.y],
-        [shapeOffset.x + shapeWidth, shapeOffset.y],
-        [shapeOffset.x + shapeWidth, shapeOffset.y + shapeHeight -
-            GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorWidth,
-        shapeOffset.y + shapeHeight - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorWidth - GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y + shapeHeight - 2 * GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y + shapeHeight - 2 * GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding,
-          shapeOffset.y + shapeHeight - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x,
-          shapeOffset.y + shapeHeight - GLOBAL_DEFS.connectorHeight],
-      ])
-      .fill(background)
-      .back();
-
+  {
+    const ox = shapeOffset.x;
+    const oy = shapeOffset.y;
+    const lp = GLOBAL_DEFS.statementLeftPadding;
+    const ccs = GLOBAL_DEFS.connectorCornerSize;
+    const cw = GLOBAL_DEFS.connectorWidth;
+    const ch = GLOBAL_DEFS.connectorHeight;
+    const w = shapeWidth;
+    const h = shapeHeight;
+    group.polygon()
+        .plot([
+          // Top-left corner.
+          [ox, oy],
+          // Top connector.
+          [ox + lp, oy], [ox + lp + ccs, oy - ch],
+          [ox + lp + cw - ccs, oy - ch], [ox + lp + cw, oy],
+          // Top-right corner.
+          [ox + w, oy],
+          // Bottom-right corner.
+          [ox + w, oy + h - ch],
+          // Bottom connector.
+          [ox + lp + cw, oy + h - ch], [ox + lp + cw - ccs, oy + h - 2 * ch],
+          [oy + lp + ccs, oy + h - 2 * ch], [ox + lp, oy + h - ch],
+          // Bottom-left corner.
+          [ox, oy + h - ch],
+        ])
+        .fill(background)
+        .back();
+  }
   return new RenderedShape(group, shapeWidth, shapeHeight);
 }
 
@@ -532,9 +526,8 @@ function renderStatement(draw, blockDef, config, offset) {
  * @return {!RenderedShape} The rendered shape info.
  */
 function renderFlowControlStatement(draw, blockDef, config, offset) {
-  const configString = config || blockDef.defaultConfig;
   const parsedResult =
-      utils.splitInputItemsAndCompoundStatements(configString, BLOCK_DEFS);
+      utils.splitInputItemsAndCompoundStatements(config, BLOCK_DEFS);
   const inputConfigString = parsedResult.inputConfigString;
   const childStatements = parsedResult.statements;
   // For a statement block, its anchor point is the top-most point of its
@@ -585,85 +578,59 @@ function renderFlowControlStatement(draw, blockDef, config, offset) {
       GLOBAL_DEFS.statementLeftPadding;
   const shapeFootHeight = GLOBAL_DEFS.connectorHeight + GLOBAL_DEFS.padding;
 
-  group.polygon()
-      .plot([
-        [shapeOffset.x, shapeOffset.y],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding, shapeOffset.y],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorWidth - GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorWidth,
-        shapeOffset.y],
-        [shapeOffset.x + shapeHeadWidth, shapeOffset.y],
-        [shapeOffset.x + shapeHeadWidth,
-          shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + 2 * GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.padding + GLOBAL_DEFS.connectorWidth,
-        shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + 2 * GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.padding + GLOBAL_DEFS.connectorWidth -
-            GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y + shapeHeadHeight - 2 * GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + 2 * GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.padding + GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y + shapeHeadHeight - 2 * GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + 2 * GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.padding,
-        shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding,
-          shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding,
-          shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-          shapeBodyHeight],
-        [shapeOffset.x + 2 * GLOBAL_DEFS.statementLeftPadding +
-          GLOBAL_DEFS.padding,
-        shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-          shapeBodyHeight],
-        [shapeOffset.x + 2 * GLOBAL_DEFS.statementLeftPadding +
-          GLOBAL_DEFS.padding + GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-          shapeBodyHeight - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + 2 * GLOBAL_DEFS.statementLeftPadding +
-          GLOBAL_DEFS.padding + GLOBAL_DEFS.connectorWidth -
-          GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-          shapeBodyHeight - GLOBAL_DEFS.connectorHeight],
-        [shapeOffset.x + 2 * GLOBAL_DEFS.statementLeftPadding +
-          GLOBAL_DEFS.padding + GLOBAL_DEFS.connectorWidth,
-        shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-          shapeBodyHeight],
-        [shapeOffset.x + shapeFootWidth,
-          shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-              shapeBodyHeight],
-        [shapeOffset.x + shapeFootWidth,
-          shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-              shapeBodyHeight + shapeFootHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorWidth,
-        shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-            shapeBodyHeight + shapeFootHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            GLOBAL_DEFS.connectorWidth - GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y + shapeHeadHeight - 2 * GLOBAL_DEFS.connectorHeight +
-            shapeBodyHeight + shapeFootHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding +
-            + GLOBAL_DEFS.connectorCornerSize,
-        shapeOffset.y + shapeHeadHeight - 2 * GLOBAL_DEFS.connectorHeight +
-            shapeBodyHeight + shapeFootHeight],
-        [shapeOffset.x + GLOBAL_DEFS.statementLeftPadding,
-          shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-              shapeBodyHeight + shapeFootHeight],
-        [shapeOffset.x,
-          shapeOffset.y + shapeHeadHeight - GLOBAL_DEFS.connectorHeight +
-              shapeBodyHeight + shapeFootHeight],
-      ])
-      .fill(background)
-      .back();
-
+  {
+    const ox = shapeOffset.x;
+    const oy = shapeOffset.y;
+    const p = GLOBAL_DEFS.padding;
+    const lp = GLOBAL_DEFS.statementLeftPadding;
+    const ccs = GLOBAL_DEFS.connectorCornerSize;
+    const cw = GLOBAL_DEFS.connectorWidth;
+    const ch = GLOBAL_DEFS.connectorHeight;
+    const hw = shapeHeadWidth;
+    const hh = shapeHeadHeight;
+    const fw = shapeFootWidth;
+    const fh = shapeFootHeight;
+    const bh = shapeBodyHeight;
+    group.polygon()
+        .plot([
+          // Top-left corner.
+          [ox, oy],
+          // Top connector of the header.
+          [ox + lp, oy], [ox + lp + ccs, oy - ch],
+          [ox + lp + cw - ccs, oy - ch], [ox + lp + cw, oy],
+          // Top-right corner.
+          [ox + hw, oy],
+          // Bottom-right corner of the header.
+          [ox + hw, oy + hh - ch],
+          // Bottom connector of the header.
+          [ox + 2 * lp + p + cw, oy + hh - ch],
+          [ox + 2 * lp + p + cw - ccs, oy + hh - 2 * ch],
+          [ox + 2 * lp + p + ccs, oy + hh - 2 * ch],
+          [ox + 2 * lp + p, oy + hh - ch],
+          // Inner bottom-left corner of the header.
+          [ox + lp, oy + hh - ch],
+          // Inner top-left corner of the footer.
+          [ox + lp, oy + hh - ch + bh],
+          // Top connector of the footer.
+          [ox + 2 * lp + p, oy + hh + bh - ch],
+          [ox + 2 * lp + p + ccs, oy + hh + bh - 2 * ch],
+          [ox + 2 * lp + p + cw - ccs, oy + hh + bh - 2 * ch],
+          [ox + 2 * lp + p + cw, oy + hh + bh - ch],
+          // Top-right corner of the footer.
+          [ox + fw, oy + hh + bh - ch],
+          // Bottom-right corner of the footer.
+          [ox + fw, oy + hh + bh + fh - ch],
+          // Bottom connector of the footer.
+          [ox + lp + cw, oy + hh + bh + fh - ch],
+          [ox + lp + cw - ccs, oy + hh + bh + fh - 2 * ch],
+          [ox + lp + ccs, oy + hh + bh + fh - 2 * ch],
+          [ox + lp, oy + hh + bh + fh - ch],
+          // Bottom-left corner of the footer.
+          [ox, oy + hh + bh + fh - ch],
+        ])
+        .fill(background)
+        .back();
+  }
   const shapeWidth = Math.max(shapeHeadWidth, shapeBodyWidth, shapeFootWidth);
   const shapeHeight = shapeHeadHeight + shapeBodyHeight + shapeFootHeight;
   return new RenderedShape(group, shapeWidth, shapeHeight);

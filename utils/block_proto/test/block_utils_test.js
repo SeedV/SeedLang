@@ -74,20 +74,31 @@ describe('splitInputItems', function() {
 
 describe('splitInputItemsAndCompoundStatements', function() {
   it('checkSplit1', function() {
-    const s = 'x,>,3_set:counter|counter,+,1_set:x|x,-,1';
-    const ret = utils.splitInputItemsAndCompoundStatements(s, BLOCK_DEFS);
+    const s = '{x,>,3}{set:counter|counter,+,1_set:x|x,-,1}';
+    const ret = utils.splitInputItemsAndStatementGroups(s, BLOCK_DEFS);
     assert.strictEqual(ret.inputConfigString, 'x,>,3');
-    assert.strictEqual(ret.statements.length, 2);
-    assert.strictEqual(ret.statements[0].blockConfig, 'counter|counter,+,1');
-    assert.strictEqual(ret.statements[1].blockConfig, 'x|x,-,1');
+    assert.strictEqual(ret.statementGroups.length, 1);
+    assert.strictEqual(ret.statementGroups[0][0].blockConfig,
+        'counter|counter,+,1');
+    assert.strictEqual(ret.statementGroups[0][1].blockConfig, 'x|x,-,1');
   });
 
   it('checkSplit2', function() {
-    const s = 'x|items_set:y|y,+,x';
-    const ret = utils.splitInputItemsAndCompoundStatements(s, BLOCK_DEFS);
+    const s = '{x|items}{set:y|y,+,x}';
+    const ret = utils.splitInputItemsAndStatementGroups(s, BLOCK_DEFS);
     assert.strictEqual(ret.inputConfigString, 'x|items');
-    assert.strictEqual(ret.statements.length, 1);
-    assert.strictEqual(ret.statements[0].blockConfig, 'y|y,+,x');
+    assert.strictEqual(ret.statementGroups.length, 1);
+    assert.strictEqual(ret.statementGroups[0][0].blockConfig, 'y|y,+,x');
+  });
+
+  it('checkSplit3', function() {
+    const s = '{x,>,3}{set:y|y,+,1}{set:y|y,-,1_set:y|y,*,2}';
+    const ret = utils.splitInputItemsAndStatementGroups(s, BLOCK_DEFS);
+    assert.strictEqual(ret.inputConfigString, 'x,>,3');
+    assert.strictEqual(ret.statementGroups.length, 2);
+    assert.strictEqual(ret.statementGroups[0][0].blockConfig, 'y|y,+,1');
+    assert.strictEqual(ret.statementGroups[1][0].blockConfig, 'y|y,-,1');
+    assert.strictEqual(ret.statementGroups[1][1].blockConfig, 'y|y,*,2');
   });
 });
 

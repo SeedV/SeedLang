@@ -267,14 +267,10 @@ function renderCenterText(draw, text, shapeWidth, shapeHeight, color, offset) {
  * Centers a container's children shapes vertically.
  * @param {!Array<RenderedShape>} childrenShapes The rendered children shapes.
  * @param {number} shapeHeight The height of the current container shape.
- * @param {boolean} hasConnectors If the current container shape has top/bottom
- *     connectors.
  */
-function centerChildrenVertically(childrenShapes, shapeHeight, hasConnectors) {
+function centerChildrenVertically(childrenShapes, shapeHeight) {
   for (const childShape of childrenShapes) {
-    const childrenAreaHeight =
-        shapeHeight - (hasConnectors ? GLOBAL_DEFS.connectorHeight : 0) -
-            2 * GLOBAL_DEFS.padding;
+    const childrenAreaHeight = shapeHeight - 2 * GLOBAL_DEFS.padding;
     const delta = (childrenAreaHeight - childShape.height) / 2;
     if (delta > 0) {
       childShape.shape.dy(delta);
@@ -405,7 +401,7 @@ function renderExpressionContainer(draw, blockDef, config, offset) {
     }
   }
   const shapeHeight = 2 * GLOBAL_DEFS.padding + maxChildHeight;
-  centerChildrenVertically(childrenShapes, shapeHeight, true);
+  centerChildrenVertically(childrenShapes, shapeHeight);
 
   group.rect(shapeWidth, shapeHeight)
       .fill(blockDef.background)
@@ -464,12 +460,8 @@ function renderLabelsAndInputs(draw, labelColor, fields, configString, offset) {
       }
     }
   }
-  shapeWidth =
-      Math.max(shapeWidth,
-          2 * GLOBAL_DEFS.statementLeftPadding + GLOBAL_DEFS.padding +
-          2 * GLOBAL_DEFS.connectorWidth);
   const shapeHeight = 2 * GLOBAL_DEFS.padding + maxChildHeight;
-  centerChildrenVertically(childrenShapes, shapeHeight, true);
+  centerChildrenVertically(childrenShapes, shapeHeight);
   return new RenderedShape(childrenShapes, shapeWidth, shapeHeight);
 }
 
@@ -601,10 +593,15 @@ function renderFlowControlStatement(draw, blockDef, config, offset) {
     blockDef.color = GLOBAL_DEFS.colors.light;
   }
 
+  const footerWidth = 2 * GLOBAL_DEFS.statementLeftPadding +
+      GLOBAL_DEFS.padding + 2 * GLOBAL_DEFS.connectorWidth;
+  const footerHeight = GLOBAL_DEFS.connectorHeight + GLOBAL_DEFS.padding;
+
   const group = draw.group();
   const header1 =
       renderLabelsAndInputs(group, blockDef.color, blockDef.fields,
           parsedResult.inputConfigString, shapeOffset);
+  header1.width = Math.max(header1.width, footerWidth);
 
   const bodyOffset1 = new svgjs.Point(
       shapeOffset.x + GLOBAL_DEFS.statementLeftPadding + GLOBAL_DEFS.padding,
@@ -621,15 +618,12 @@ function renderFlowControlStatement(draw, blockDef, config, offset) {
     header2 =
         renderLabelsAndInputs(group, blockDef.color, blockDef.secondaryFields,
             null, headerOffset2);
+    header2.width = Math.max(header2.width, footerWidth);
     const bodyOffset2 = new svgjs.Point(
         bodyOffset1.x,
         headerOffset2.y + header2.height + GLOBAL_DEFS.padding);
     body2 = renderStatementGroup(group, statementGroup2, bodyOffset2);
   }
-
-  const footerWidth = 2 * GLOBAL_DEFS.statementLeftPadding +
-      GLOBAL_DEFS.padding + 2 * GLOBAL_DEFS.connectorWidth;
-  const footerHeight = GLOBAL_DEFS.connectorHeight + GLOBAL_DEFS.padding;
 
   {
     const ox = shapeOffset.x;

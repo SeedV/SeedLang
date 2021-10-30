@@ -26,6 +26,7 @@ dot -Tsvg -oseed_block_code_view.svg seed_block_code_view.gv
 # Re-generate SeedBlock example images with the block prototype util.
 node ../utils/block_proto -b break -o example_block_images/break_block.svg
 node ../utils/block_proto -b if -o example_block_images/if_block.svg
+node ../utils/block_proto -b ifElse -o example_block_images/ifelse_block.svg
 node ../utils/block_proto -b number -o example_block_images/number_block.svg
 node ../utils/block_proto -b set -o example_block_images/set_block.svg
 node ../utils/block_proto -b string -o example_block_images/string_block.svg

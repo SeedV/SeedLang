@@ -68,8 +68,7 @@ namespace SeedLang.Runtime {
       }
       DiagnosticCollection localCollection = collection ?? new DiagnosticCollection();
       BaseParser parser = MakeParser(language);
-      return parser.Parse(source, module, ParseRule.Statement, localCollection,
-                          out _node, out SyntaxTokens);
+      return parser.Parse(source, module, localCollection, out _node, out SyntaxTokens);
     }
 
     // Runs current parsed AST tree or bytecode based on the run type.

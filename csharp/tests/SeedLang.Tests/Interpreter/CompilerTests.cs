@@ -25,7 +25,7 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestCompileEvalNumber() {
       var number = Expression.Number(1, _testTextRange);
-      var eval = Statement.Eval(number, _testTextRange);
+      var eval = Statement.Expression(number, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
@@ -41,7 +41,7 @@ namespace SeedLang.Interpreter.Tests {
       var left = Expression.Number(1, _testTextRange);
       var right = Expression.Number(2, _testTextRange);
       var expr = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
-      var eval = Statement.Eval(expr, _testTextRange);
+      var eval = Statement.Expression(expr, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
@@ -59,7 +59,7 @@ namespace SeedLang.Interpreter.Tests {
       var number3 = Expression.Number(3, _testTextRange);
       var right = Expression.Binary(number2, BinaryOperator.Add, number3, _testTextRange);
       var expr = Expression.Binary(left, BinaryOperator.Subtract, right, _testTextRange);
-      var eval = Statement.Eval(expr, _testTextRange);
+      var eval = Statement.Expression(expr, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
@@ -78,7 +78,7 @@ namespace SeedLang.Interpreter.Tests {
       var number2 = Expression.Number(2, _testTextRange);
       var right = Expression.Binary(number1, BinaryOperator.Add, number2, _testTextRange);
       var expr = Expression.Binary(left, BinaryOperator.Subtract, right, _testTextRange);
-      var eval = Statement.Eval(expr, _testTextRange);
+      var eval = Statement.Expression(expr, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (
@@ -94,7 +94,7 @@ namespace SeedLang.Interpreter.Tests {
     public void TestCompileUnary() {
       var number = Expression.Number(1, _testTextRange);
       var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
-      var eval = Statement.Eval(unary, _testTextRange);
+      var eval = Statement.Expression(unary, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(eval);
       string expected = (

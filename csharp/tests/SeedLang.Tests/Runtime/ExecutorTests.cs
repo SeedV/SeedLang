@@ -74,7 +74,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.True(executor.Run(RunType.Ast));
       Assert.True(executor.Parse("b = 2", "", SeedXLanguage.Python));
       Assert.True(executor.Run(RunType.Ast));
-      Assert.True(executor.Parse("eval a + -b", "", SeedXLanguage.Python));
+      Assert.True(executor.Parse("a + -b", "", SeedXLanguage.Python));
       Assert.True(executor.Run(RunType.Ast));
 
       Assert.Equal(1, visualizer.Left.ToNumber());

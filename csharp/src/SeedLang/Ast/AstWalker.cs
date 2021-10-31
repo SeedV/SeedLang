@@ -62,7 +62,7 @@ namespace SeedLang.Ast {
         case AssignmentStatement assignment:
           Visit(assignment);
           break;
-        case EvalStatement eval:
+        case ExpressionStatement eval:
           Visit(eval);
           break;
         default:
@@ -83,6 +83,6 @@ namespace SeedLang.Ast {
 
     protected abstract void Visit(AssignmentStatement assignment);
 
-    protected abstract void Visit(EvalStatement eval);
+    protected abstract void Visit(ExpressionStatement expr);
   }
 }

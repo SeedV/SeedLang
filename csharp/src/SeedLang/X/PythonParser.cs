@@ -24,7 +24,6 @@ namespace SeedLang.X {
   internal class PythonParser : BaseParser {
     // The dictionary that maps from token types of SeedPython to syntax token types.
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
-      { SeedPythonParser.EVAL, SyntaxType.Keyword},
       { SeedPythonParser.IDENTIFIER, SyntaxType.Variable},
       { SeedPythonParser.NUMBER, SyntaxType.Number},
       { SeedPythonParser.ADD, SyntaxType.Operator},

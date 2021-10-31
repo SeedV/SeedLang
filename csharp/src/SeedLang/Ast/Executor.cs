@@ -102,10 +102,10 @@ namespace SeedLang.Ast {
       _visualizerCenter.AssignmentPublisher.Notify(ae);
     }
 
-    protected override void Visit(EvalStatement eval) {
-      Visit(eval.Expr);
+    protected override void Visit(ExpressionStatement expr) {
+      Visit(expr.Expr);
       if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
-        var ee = new EvalEvent(_expressionResult, eval.Range);
+        var ee = new EvalEvent(_expressionResult, expr.Range);
         _visualizerCenter.EvalPublisher.Notify(ee);
       }
     }

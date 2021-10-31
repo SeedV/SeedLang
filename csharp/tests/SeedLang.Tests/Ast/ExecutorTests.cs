@@ -100,7 +100,7 @@ namespace SeedLang.Ast.Tests {
       var number3 = Expression.Number(3, NewTextRange());
       var left = Expression.Binary(number1, BinaryOperator.Add, number2, NewTextRange());
       var binary = Expression.Binary(left, BinaryOperator.Multiply, number3, NewTextRange());
-      var eval = Statement.Eval(binary, NewTextRange());
+      var eval = Statement.Expression(binary, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(eval);
@@ -119,7 +119,7 @@ namespace SeedLang.Ast.Tests {
 
       var right = Expression.Number(3, NewTextRange());
       var binary = Expression.Binary(identifier, BinaryOperator.Multiply, right, NewTextRange());
-      var eval = Statement.Eval(binary, NewTextRange());
+      var eval = Statement.Expression(binary, NewTextRange());
       executor.Run(eval);
       Assert.Equal(6, visualizer.Result.ToNumber());
       Assert.Equal(NewTextRange(), visualizer.Range);
@@ -156,7 +156,7 @@ namespace SeedLang.Ast.Tests {
       var assign = Statement.Assignment(Expression.Identifier("id", NewTextRange()),
                                         Expression.Number(double.NegativeInfinity, NewTextRange()),
                                         NewTextRange());
-      var eval = Statement.Eval(Expression.Number(double.NaN, NewTextRange()), NewTextRange());
+      var eval = Statement.Expression(Expression.Number(double.NaN, NewTextRange()), NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       var exception1 = Assert.Throws<DiagnosticException>(() => executor.Run(binary1));

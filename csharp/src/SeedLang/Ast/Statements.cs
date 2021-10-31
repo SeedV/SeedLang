@@ -24,8 +24,8 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to creates the eval statement.
-    internal static EvalStatement Eval(Expression expr, Range range) {
-      return new EvalStatement(expr, range);
+    internal static ExpressionStatement Expression(Expression expr, Range range) {
+      return new ExpressionStatement(expr, range);
     }
 
     internal Statement(Range range) : base(range) {
@@ -43,10 +43,10 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal class EvalStatement : Statement {
+  internal class ExpressionStatement : Statement {
     public Expression Expr { get; }
 
-    internal EvalStatement(Expression expr, Range range) : base(range) {
+    internal ExpressionStatement(Expression expr, Range range) : base(range) {
       Expr = expr;
     }
   }

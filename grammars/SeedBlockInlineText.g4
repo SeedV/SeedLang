@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-grammar SeedBlock;
+grammar SeedBlockInlineText;
 
 import Common;
 
-single_identifier: IDENTIFIER EOF;
-single_number: NUMBER EOF;
-single_string: STRING EOF;
-single_expr: expr EOF;
+single_stmt: expr_stmt EOF;
+
+expr_stmt: expr;

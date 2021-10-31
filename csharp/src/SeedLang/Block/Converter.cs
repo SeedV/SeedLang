@@ -29,8 +29,8 @@ namespace SeedLang.Block {
                           Message.EmptyInlineText);
         return false;
       }
-      var parser = new InlineTextParser();
-      return parser.Validate(text, "", ParseRule.Expression, collection);
+      var parser = new BlockInlineTextParser();
+      return parser.Validate(text, "", collection);
     }
 
     // Converts an expression inline text to a list of blocks. A list of invalidTokenRanges can be
@@ -42,9 +42,8 @@ namespace SeedLang.Block {
                           Message.EmptyInlineText);
         return null;
       }
-      var parser = new InlineTextParser();
-      parser.Parse(text, "", ParseRule.Expression, collection,
-                   out AstNode _, out IReadOnlyList<SyntaxToken> tokens);
+      var parser = new BlockInlineTextParser();
+      parser.Parse(text, "", collection, out AstNode _, out IReadOnlyList<SyntaxToken> tokens);
 
       var blocks = new List<BaseBlock>();
       int i = 0;
@@ -96,9 +95,9 @@ namespace SeedLang.Block {
         foreach (var rootBlock in module.RootBlockIterator) {
           // TODO: implement a visitor to parse other kinds of blocks.
           if (rootBlock is ExpressionBlock expressionBlock) {
-            var parser = new InlineTextParser();
-            if (parser.Parse(expressionBlock.GetEditableText(), module.Name, ParseRule.Expression,
-                             collection, out AstNode node, out IReadOnlyList<SyntaxToken> _)) {
+            var parser = new BlockInlineTextParser();
+            if (parser.Parse(expressionBlock.GetEditableText(), module.Name, collection,
+                             out AstNode node, out IReadOnlyList<SyntaxToken> _)) {
               nodes.Add(node);
             }
           }

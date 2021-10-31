@@ -21,7 +21,7 @@ using SeedLang.Runtime;
 namespace SeedLang.Benchmark {
   public class BinaryExpressionBenchmark {
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
-    private readonly EvalStatement _eval;
+    private readonly ExpressionStatement _eval;
     private readonly Ast.Executor _executor;
     private readonly Chunk _chunk;
     private readonly VM _vm;
@@ -30,7 +30,7 @@ namespace SeedLang.Benchmark {
       var left = Expression.Number(1, NewTextRange());
       var right = Expression.Number(2, NewTextRange());
       var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRange());
-      _eval = Statement.Eval(binary, NewTextRange());
+      _eval = Statement.Expression(binary, NewTextRange());
 
       _executor = new Ast.Executor(_visualizerCenter);
 

@@ -116,11 +116,8 @@ namespace SeedLang.X {
     }
 
     // Visits an eval statement.
-    public override AstNode VisitEval_stmt([NotNull] SeedPythonParser.Eval_stmtContext context) {
-      if (context.expr() is SeedPythonParser.ExprContext expr) {
-        return _helper.BuildEval(context.EVAL().Symbol, expr, this);
-      }
-      return null;
+    public override AstNode VisitExpr_stmt([NotNull] SeedPythonParser.Expr_stmtContext context) {
+      return _helper.BuildExprStatement(context.expr(), this);
     }
 
     internal static BinaryOperator TokenToOperator(IToken token) {

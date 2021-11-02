@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -59,8 +58,7 @@ namespace SeedLang.Ast {
           _expressionResult = left / right;
           break;
         default:
-          Debug.Fail($"Unsupported binary operator: {binary.Op}");
-          break;
+          throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
       }
       CheckOverflow(_expressionResult.ToNumber(), binary.Range);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {

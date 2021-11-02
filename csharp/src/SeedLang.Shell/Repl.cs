@@ -56,7 +56,7 @@ namespace SeedLang.Shell {
         if (ee.Range is TextRange range) {
           WriteSourceWithHighlight(range);
         }
-        Console.WriteLine($"Result: {ee.Value}");
+        Console.WriteLine($"Eval result: {ee.Value}");
       }
 
       internal void WriteSourceWithHighlight(TextRange range) {

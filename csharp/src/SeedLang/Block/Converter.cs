@@ -33,20 +33,22 @@ namespace SeedLang.Block {
       return parser.Validate(text, "", collection);
     }
 
-    // Converts an expression inline text to a list of blocks. A list of invalidTokenRanges can be
-    // passed in, to collect the text ranges of invalid tokens.
-    public static IReadOnlyList<BaseBlock> InlineTextToBlocks(
-        string text, IList<TextRange> invalidTokenRanges, DiagnosticCollection collection) {
+    // Converts an expression inline text to a list of blocks. Returns null if the inline text is
+    // null, empty or invalid.
+    public static IReadOnlyList<BaseBlock> InlineTextToBlocks(string text,
+                                                              DiagnosticCollection collection) {
       if (string.IsNullOrEmpty(text)) {
         collection.Report(SystemReporters.SeedBlock, Severity.Error, null, null,
                           Message.EmptyInlineText);
         return null;
       }
       var parser = new BlockInlineTextParser();
-      parser.Parse(text, "", collection, out AstNode _, out IReadOnlyList<SyntaxToken> tokens);
+      if (!parser.Parse(text, "", collection, out _, out IReadOnlyList<SyntaxToken> tokens)) {
+        return null;
+      }
 
-      var blocks = new List<BaseBlock>();
       int i = 0;
+      var blocks = new List<BaseBlock>();
       while (i < tokens.Count) {
         switch (tokens[i].Type) {
           case SyntaxType.Number:
@@ -79,7 +81,6 @@ namespace SeedLang.Block {
           case SyntaxType.Symbol:
           case SyntaxType.Unknown:
           case SyntaxType.Variable:
-            invalidTokenRanges?.Add(tokens[i].Range);
             break;
         }
         ++i;

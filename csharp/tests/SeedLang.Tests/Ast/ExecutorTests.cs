@@ -94,22 +94,22 @@ namespace SeedLang.Ast.Tests {
     }
 
     [Fact]
-    public void TestExecuteEvalStatement() {
+    public void TestExecuteExpressionStatement() {
       var number1 = Expression.Number(1, NewTextRange());
       var number2 = Expression.Number(2, NewTextRange());
       var number3 = Expression.Number(3, NewTextRange());
       var left = Expression.Binary(number1, BinaryOperator.Add, number2, NewTextRange());
       var binary = Expression.Binary(left, BinaryOperator.Multiply, number3, NewTextRange());
-      var eval = Statement.Expression(binary, NewTextRange());
+      var expr = Statement.Expression(binary, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
-      executor.Run(eval);
+      executor.Run(expr);
       Assert.Equal(9, visualizer.Result.ToNumber());
       Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
     [Fact]
-    public void TestExecuteEvalWithVariable() {
+    public void TestExecuteExpressionStatementWithVariable() {
       (var executor, var visualizer) = NewExecutorWithVisualizer();
 
       var identifier = Expression.Identifier("a", NewTextRange());
@@ -119,8 +119,8 @@ namespace SeedLang.Ast.Tests {
 
       var right = Expression.Number(3, NewTextRange());
       var binary = Expression.Binary(identifier, BinaryOperator.Multiply, right, NewTextRange());
-      var eval = Statement.Expression(binary, NewTextRange());
-      executor.Run(eval);
+      var expr = Statement.Expression(binary, NewTextRange());
+      executor.Run(expr);
       Assert.Equal(6, visualizer.Result.ToNumber());
       Assert.Equal(NewTextRange(), visualizer.Range);
     }

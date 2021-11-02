@@ -17,13 +17,13 @@ using SeedLang.Common;
 namespace SeedLang.Ast {
   // The base class of all statement nodes.
   internal abstract class Statement : AstNode {
-    // The factory method to creates the assignment statement.
+    // The factory method to creates an assignment statement.
     internal static AssignmentStatement Assignment(IdentifierExpression identifier, Expression expr,
                                                    Range range) {
       return new AssignmentStatement(identifier, expr, range);
     }
 
-    // The factory method to creates the eval statement.
+    // The factory method to creates an expression statement.
     internal static ExpressionStatement Expression(Expression expr, Range range) {
       return new ExpressionStatement(expr, range);
     }

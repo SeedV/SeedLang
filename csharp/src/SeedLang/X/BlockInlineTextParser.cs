@@ -21,10 +21,10 @@ using SeedLang.Common;
 using SeedLang.X;
 
 namespace SeedLang.Block {
-  // The parser to parse an inline text of SeedBlock programs.
+  // The parser to parse a block inline text of SeedBlock programs.
   //
-  // The InlineTextParser used generated ANTLR4 SeedBlockInlineTextParser to parse the inline text of block
-  // programs.
+  // The BlockInlineTextParser uses generated ANTLR4 SeedBlockInlineTextParser to parse the inline
+  // text of block programs.
   internal class BlockInlineTextParser : BaseParser {
     // The dictionary that maps from token types of SeedBlock to syntax token types.
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {

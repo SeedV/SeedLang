@@ -115,7 +115,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Visits an eval statement.
+    // Visits an expression statement.
     public override AstNode VisitExpr_stmt([NotNull] SeedPythonParser.Expr_stmtContext context) {
       return _helper.BuildExprStatement(context.expr(), this);
     }

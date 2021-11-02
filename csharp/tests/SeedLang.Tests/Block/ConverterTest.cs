@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
 using Xunit;
 using SeedLang.Common;
 
@@ -44,18 +43,18 @@ namespace SeedLang.Block.Tests {
     [Fact]
     public void TestInlineTextToBlocks() {
       var collection = new DiagnosticCollection();
-      Assert.Null(Converter.InlineTextToBlocks(null, null, collection));
+      Assert.Null(Converter.InlineTextToBlocks(null, collection));
       Assert.Single(collection.Diagnostics);
 
       collection = new DiagnosticCollection();
-      Assert.Null(Converter.InlineTextToBlocks("", null, collection));
+      Assert.Null(Converter.InlineTextToBlocks("", collection));
       Assert.Single(collection.Diagnostics);
 
       var expressionBlock = new ExpressionBlock();
       var module = new Module { Name = "Main" };
       module.AddStandaloneBlock(expressionBlock);
       collection = new DiagnosticCollection();
-      var blocks = Converter.InlineTextToBlocks("(1 + 2) * 3 / -4 + 3.14", null, collection);
+      var blocks = Converter.InlineTextToBlocks("(1 + 2) * 3 / -4 + 3.14", collection);
       int index = 0;
       foreach (var block in blocks) {
         module.AddStandaloneBlock(block);
@@ -70,21 +69,8 @@ namespace SeedLang.Block.Tests {
     [Fact]
     public void TestInlineTextWithInvalidTokens() {
       var collection = new DiagnosticCollection();
-      var invalidTokens = new List<TextRange>();
-      var blocks = Converter.InlineTextToBlocks("9 * -3.14@3@@", invalidTokens, collection);
-      Assert.Equal(4, blocks.Count);
-      Assert.Equal("9", (blocks[0] as NumberBlock).Value);
-      Assert.Equal(new TextRange(1, 0, 1, 0), blocks[0].InlineTextReference);
-      Assert.Equal("*", (blocks[1] as ArithmeticOperatorBlock).Name);
-      Assert.Equal(new TextRange(1, 2, 1, 2), blocks[1].InlineTextReference);
-      Assert.Equal("-3.14", (blocks[2] as NumberBlock).Value);
-      Assert.Equal(new TextRange(1, 4, 1, 8), blocks[2].InlineTextReference);
-      Assert.Equal("3", (blocks[3] as NumberBlock).Value);
-      Assert.Equal(new TextRange(1, 10, 1, 10), blocks[3].InlineTextReference);
-      Assert.Equal(3, invalidTokens.Count);
-      Assert.Equal(new TextRange(1, 9, 1, 9), invalidTokens[0]);
-      Assert.Equal(new TextRange(1, 11, 1, 11), invalidTokens[1]);
-      Assert.Equal(new TextRange(1, 12, 1, 12), invalidTokens[2]);
+      var blocks = Converter.InlineTextToBlocks("9 * -3.14@3@@", collection);
+      Assert.Null(blocks);
     }
   }
 }

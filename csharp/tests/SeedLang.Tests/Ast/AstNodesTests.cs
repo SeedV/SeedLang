@@ -85,14 +85,14 @@ namespace SeedLang.Ast.Tests {
         var three = Expression.Number(3, NewTextRange());
         var left = Expression.Binary(one, BinaryOperator.Add, two, NewTextRange());
         var binary = Expression.Binary(left, BinaryOperator.Multiply, three, NewTextRange());
-        var eval = Statement.Expression(binary, NewTextRange());
+        var expr = Statement.Expression(binary, NewTextRange());
         var expectedOutput = $"{NewTextRange()} ExpressionStatement\n" +
                              $"  {NewTextRange()} BinaryExpression (*)\n" +
                              $"    {NewTextRange()} BinaryExpression (+)\n" +
                              $"      {NewTextRange()} NumberConstantExpression (1)\n" +
                              $"      {NewTextRange()} NumberConstantExpression (2)\n" +
                              $"    {NewTextRange()} NumberConstantExpression (3)";
-        Add(eval, expectedOutput);
+        Add(expr, expectedOutput);
       }
     }
 

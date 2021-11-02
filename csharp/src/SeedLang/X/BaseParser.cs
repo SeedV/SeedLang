@@ -62,6 +62,8 @@ namespace SeedLang.X {
 
     protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens);
 
+    // Returns the parser rule context of the single statement. This method must be implemented by
+    // the derived class.
     protected virtual ParserRuleContext SingleStmt(Parser parser) {
       throw new NotImplementedException();
     }
@@ -102,8 +104,6 @@ namespace SeedLang.X {
           } else if (tokens[i].Range != range) {
             tokens.Insert(i, syntaxToken);
           }
-        } else {
-          throw new NotImplementedException($"Not implemented token type: {lexerTokens[i].Type}");
         }
       }
     }

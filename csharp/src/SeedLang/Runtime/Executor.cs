@@ -46,14 +46,14 @@ namespace SeedLang.Runtime {
       if (program is null) {
         return false;
       }
-      foreach (AstNode node in Converter.Convert(program,
-                                                 collection ?? new DiagnosticCollection())) {
+      var localCollection = collection ?? new DiagnosticCollection();
+      foreach (AstNode node in Converter.Convert(program, localCollection)) {
         _executor.Run(node);
       }
       return true;
     }
 
-    // Parses SeedX source code into an AST tree and a list of syntax tokens.
+    // Parses SeedX source code into a list of syntax tokens.
     public static IReadOnlyList<SyntaxToken> ParseSyntaxTokens(
         string source, string module, SeedXLanguage language,
         DiagnosticCollection collection = null) {
@@ -66,15 +66,18 @@ namespace SeedLang.Runtime {
       return syntaxTokens;
     }
 
-    // Runs current parsed AST tree or bytecode based on the run type.
+    // Runs SeedX source code based on the language and run type. Returns null if the source code is
+    // null, empty or invalid.
     public bool Run(string source, string module, SeedXLanguage language, RunType runType,
                     DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
         return false;
       }
       BaseParser parser = MakeParser(language);
-      parser.Parse(source, module, collection ?? new DiagnosticCollection(), out AstNode node,
-                   out _);
+      var localCollection = collection ?? new DiagnosticCollection();
+      if (!parser.Parse(source, module, localCollection, out AstNode node, out _)) {
+        return false;
+      }
       try {
         switch (runType) {
           case RunType.Ast:

@@ -25,7 +25,7 @@ namespace SeedLang.Interpreter {
     MUL,          // R(A) := RK(B) * RK(C)
     DIV,          // R(A) := RK(B) / RK(C)
     UNM,          // R(A) := -RK(B)
-    EVAL,         // Eval R(A)
+    EVAL,         // Eval R(A). Evaluates the expresion statement. TODO: do we need this?
     RETURN,       // Return R(A)
   }
 

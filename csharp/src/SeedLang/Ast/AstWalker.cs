@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Diagnostics;
 
 namespace SeedLang.Ast {
@@ -27,8 +28,7 @@ namespace SeedLang.Ast {
           Visit(statement);
           break;
         default:
-          Debug.Fail($"Not implemented node type: {node.GetType()}");
-          break;
+          throw new NotImplementedException($"Not implemented node type: {node.GetType()}");
       }
     }
 
@@ -51,8 +51,8 @@ namespace SeedLang.Ast {
           Visit(unary);
           break;
         default:
-          Debug.Fail($"Not implemented expression type: {expression.GetType()}");
-          break;
+          throw new NotImplementedException(
+              $"Not implemented expression type: {expression.GetType()}");
       }
     }
 
@@ -62,12 +62,12 @@ namespace SeedLang.Ast {
         case AssignmentStatement assignment:
           Visit(assignment);
           break;
-        case ExpressionStatement eval:
-          Visit(eval);
+        case ExpressionStatement expr:
+          Visit(expr);
           break;
         default:
-          Debug.Fail($"Not implemented statement type: {statement.GetType()}");
-          break;
+          throw new NotImplementedException(
+              $"Not implemented statement type: {statement.GetType()}");
       }
     }
 

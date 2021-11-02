@@ -15,6 +15,7 @@
 namespace SeedLang.Runtime {
   // All SeedX languages.
   public enum SeedXLanguage {
+    BlockInlineText,
     Python,
   }
 }

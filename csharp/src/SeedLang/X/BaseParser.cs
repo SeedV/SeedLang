@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
@@ -32,11 +31,10 @@ namespace SeedLang.X {
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.
     internal bool Validate(string source, string module, DiagnosticCollection collection) {
-      var localCollection = collection ?? new DiagnosticCollection();
-      int diagnosticCount = localCollection.Diagnostics.Count;
-      Parser parser = SetupParser(source, module, localCollection);
+      int diagnosticCount = collection.Diagnostics.Count;
+      Parser parser = SetupParser(source, module, collection);
       SingleStmt(parser);
-      return localCollection.Diagnostics.Count == diagnosticCount;
+      return collection.Diagnostics.Count == diagnosticCount;
     }
 
     // Parses source code into an AST tree based on the parse rule. The concrete ANTLR4 lexer and

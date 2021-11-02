@@ -47,7 +47,7 @@ namespace SeedLang.Runtime {
     }
   }
 
-  // An event which is triggered when an eval statement is executed.
+  // An event which is triggered when an expression statement is executed.
   public class EvalEvent {
     public Value Value { get; }
     // The source code range of the eval statement.

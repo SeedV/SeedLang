@@ -74,15 +74,15 @@ export function splitInputItems(inputString) {
  * Splits a config string of a flow control statement. See an example config
  * string of an if statement:
  *
- * 'x,>,3{set:counter|counter,+,1_set:x|x,-,1}'
+ * '{x,>,3}{set:counter|counter,+,1_set:x|x,-,1}'
  *
  * And an example config of an ifElse statement:
  *
- * 'x,>,3{set:counter|counter,+,1_set:x|x,-,1}{set:counter|counter,-,1}'
+ * '{x,>,3}{set:counter|counter,+,1_set:x|x,-,1}{set:counter|counter,-,1}'
  *
  * Following the input part, one or more statement groups are guarded with '{}'
  * pairs. The statements in a single statement group are separated by '_'. For
- * each each statement, the statement name and its input are separated by ':'.
+ * each statement, the statement name and its input are separated by ':'.
  * @param {string} configString The config string.
  * @param {!Object} blockDefs The definition of all blocks.
  * @return {!Object} The parsed info.

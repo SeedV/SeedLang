@@ -223,6 +223,8 @@ Example:
 
 ![Example](./example_block_images/if_block.svg)
 
+![Example](./example_block_images/ifelse_block.svg)
+
 ### Number
 
 * Category: Expression Block

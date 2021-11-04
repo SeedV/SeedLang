@@ -5,7 +5,7 @@
 Install [Node.js](https://nodejs.org/en/) then set up the environment with
 
 ```bash
-npm install
+yarn
 ```
 
 Print the usage info of the utility with

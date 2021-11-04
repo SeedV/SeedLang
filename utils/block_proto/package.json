@@ -12,13 +12,13 @@
   "license": "Apache-2.0",
   "type": "module",
   "devDependencies": {
-    "eslint": "^7.28.0",
+    "eslint": "^8.1.0",
     "eslint-config-google": "^0.14.0",
     "mocha": "^9.0.0"
   },
   "dependencies": {
     "@svgdotjs/svg.js": "^3.1.0",
     "svgdom": "^0.1.8",
-    "yargs": "^16.2.0"
+    "yargs": "^17.2.1"
   }
 }

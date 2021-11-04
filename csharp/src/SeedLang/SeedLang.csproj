@@ -34,11 +34,11 @@
         <Error>true</Error>
         <LibPath>../../../grammars</LibPath>
     </Antlr4>
-    <Antlr4 Include="../../../grammars/SeedBlock.g4">
+    <Antlr4 Include="../../../grammars/SeedBlockInlineText.g4">
         <Listener>false</Listener>
         <Visitor>true</Visitor>
         <GAtn>false</GAtn>
-        <Package>SeedLang.Block</Package>
+        <Package>SeedLang.X</Package>
         <Error>true</Error>
         <LibPath>../../../grammars</LibPath>
     </Antlr4>

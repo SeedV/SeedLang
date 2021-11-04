@@ -130,15 +130,10 @@ namespace SeedLang.X {
     }
 
     // Builds an eval statement from the eval token and the expression context.
-    internal EvalStatement BuildEval(IToken evalToken, ParserRuleContext exprContext,
-                                     AbstractParseTreeVisitor<AstNode> visitor) {
-      TextRange evalRange = CodeReferenceUtils.RangeOfToken(evalToken);
-      AddSyntaxToken(SyntaxType.Keyword, evalRange);
-
+    internal ExpressionStatement BuildExprStatement(ParserRuleContext exprContext,
+                                                    AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(exprContext) is Expression expr) {
-        Debug.Assert(expr.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(evalRange, expr.Range as TextRange);
-        return Statement.Eval(expr, range);
+        return Statement.Expression(expr, expr.Range);
       }
       return null;
     }

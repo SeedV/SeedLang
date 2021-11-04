@@ -63,10 +63,10 @@ stmt: simple_stmt | compound_stmt;
 
 simple_stmt: small_stmt (';' small_stmt)* (';')?;
 
-small_stmt: assign_stmt | eval_stmt | flow_stmt;
+small_stmt: assign_stmt | expr_stmt | flow_stmt;
 
 assign_stmt: IDENTIFIER EQUAL expr;
-eval_stmt: EVAL expr;
+expr_stmt: expr;
 flow_stmt: break_stmt | continue_stmt;
 break_stmt: 'break';
 continue_stmt: 'continue';

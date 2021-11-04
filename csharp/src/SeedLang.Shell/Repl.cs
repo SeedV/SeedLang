@@ -56,7 +56,7 @@ namespace SeedLang.Shell {
         if (ee.Range is TextRange range) {
           WriteSourceWithHighlight(range);
         }
-        Console.WriteLine($"eval {ee.Value}");
+        Console.WriteLine($"Eval result: {ee.Value}");
       }
 
       internal void WriteSourceWithHighlight(TextRange range) {
@@ -91,13 +91,13 @@ namespace SeedLang.Shell {
         if (visualizer.Source == "quit") {
           break;
         }
-        var collection = new DiagnosticCollection();
-        if (executor.Parse(visualizer.Source, "", _language, collection)) {
-          WriteSource(visualizer.Source, executor.SyntaxTokens);
-          Console.WriteLine("---------- Run ----------");
-          executor.Run(_runType, collection);
-        }
-        foreach (var diagnostic in collection.Diagnostics) {
+        IReadOnlyList<SyntaxToken> syntaxTokens = Executor.ParseSyntaxTokens(visualizer.Source, "",
+                                                                             _language);
+        WriteSource(visualizer.Source, syntaxTokens);
+        Console.WriteLine("---------- Run ----------");
+        var runCollection = new DiagnosticCollection();
+        executor.Run(visualizer.Source, "", _language, _runType, runCollection);
+        foreach (var diagnostic in runCollection.Diagnostics) {
           if (diagnostic.Range is TextRange range) {
             visualizer.WriteSourceWithHighlight(range);
           }

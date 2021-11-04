@@ -19,9 +19,9 @@ using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Block.Tests {
-  public class InlineTextParserTests {
+  public class BlockInlineTextParserTests {
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
-    private readonly InlineTextParser _parser = new InlineTextParser();
+    private readonly BlockInlineTextParser _parser = new BlockInlineTextParser();
 
     [Theory]
     [InlineData("0", true)]
@@ -36,36 +36,36 @@ namespace SeedLang.Block.Tests {
     [InlineData("1.2.3", false)]
     [InlineData("1a", false)]
     public void TestValidateNumber(string input, bool result) {
-      Assert.Equal(result, _parser.Validate(input, "", ParseRule.Number, _collection));
+      Assert.Equal(result, _parser.Validate(input, "", _collection));
     }
 
     [Theory]
-    [InlineData(ParseRule.Number, "0",
+    [InlineData("0",
                 "[Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (0)",
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
-    [InlineData(ParseRule.Number, "0.",
+    [InlineData("0.",
                 "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
-    [InlineData(ParseRule.Number, ".0",
+    [InlineData(".0",
                 "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
-    [InlineData(ParseRule.Number, ".5",
+    [InlineData(".5",
                 "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0.5)",
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
-    [InlineData(ParseRule.Number, "1.5",
+    [InlineData("1.5",
                 "[Ln 1, Col 0 - Ln 1, Col 2] NumberConstantExpression (1.5)",
                 "Number [Ln 1, Col 0 - Ln 1, Col 2]")]
-    [InlineData(ParseRule.Number, "1e3",
+    [InlineData("1e3",
                 "[Ln 1, Col 0 - Ln 1, Col 2] NumberConstantExpression (1000)",
                 "Number [Ln 1, Col 0 - Ln 1, Col 2]")]
-    [InlineData(ParseRule.Number, "1e+20",
+    [InlineData("1e+20",
                 "[Ln 1, Col 0 - Ln 1, Col 4] NumberConstantExpression (1E+20)",
                 "Number [Ln 1, Col 0 - Ln 1, Col 4]")]
-    [InlineData(ParseRule.Number, "1e-5",
+    [InlineData("1e-5",
                 "[Ln 1, Col 0 - Ln 1, Col 3] NumberConstantExpression (1E-05)",
                 "Number [Ln 1, Col 0 - Ln 1, Col 3]")]
 
-    [InlineData(ParseRule.Expression, "1 + 2",
+    [InlineData("1 + 2",
 
                 "[Ln 1, Col 0 - Ln 1, Col 4] BinaryExpression (+)\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
@@ -75,7 +75,7 @@ namespace SeedLang.Block.Tests {
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
 
-    [InlineData(ParseRule.Expression, "1 - 2 * 3",
+    [InlineData("1 - 2 * 3",
 
                 "[Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (-)\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
@@ -89,7 +89,7 @@ namespace SeedLang.Block.Tests {
                 "Operator [Ln 1, Col 6 - Ln 1, Col 6]," +
                 "Number [Ln 1, Col 8 - Ln 1, Col 8]")]
 
-    [InlineData(ParseRule.Expression, "(1 + 2) / 3",
+    [InlineData("(1 + 2) / 3",
 
                 "[Ln 1, Col 0 - Ln 1, Col 10] BinaryExpression (/)\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (+)\n" +
@@ -105,7 +105,7 @@ namespace SeedLang.Block.Tests {
                 "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Number [Ln 1, Col 10 - Ln 1, Col 10]")]
 
-    [InlineData(ParseRule.Expression, "-1 + 2",
+    [InlineData("-1 + 2",
 
                 "[Ln 1, Col 0 - Ln 1, Col 5] BinaryExpression (+)\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 1] UnaryExpression (-)\n" +
@@ -117,7 +117,7 @@ namespace SeedLang.Block.Tests {
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]")]
 
-    [InlineData(ParseRule.Expression, "-(1 + 2)",
+    [InlineData("-(1 + 2)",
 
                 "[Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (-)\n" +
                 "  [Ln 1, Col 1 - Ln 1, Col 7] BinaryExpression (+)\n" +
@@ -131,7 +131,7 @@ namespace SeedLang.Block.Tests {
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
                 "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]")]
 
-    [InlineData(ParseRule.Expression, "2 - - 1",
+    [InlineData("2 - - 1",
 
                 "[Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (-)\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (2)\n" +
@@ -142,9 +142,8 @@ namespace SeedLang.Block.Tests {
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]")]
-    public void TestInlineTextParser(ParseRule rule, string input, string expected,
-                                     string expectedTokens) {
-      Assert.True(_parser.Parse(input, "", rule, _collection, out AstNode node,
+    public void TestBlockInlineTextParser(string input, string expected, string expectedTokens) {
+      Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
@@ -202,8 +201,8 @@ namespace SeedLang.Block.Tests {
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +
                 "Unknown [Ln 1, Col 2 - Ln 1, Col 2]")]
     public void TestParsePartialOrInvalidExpressions(string input, string expectedTokens) {
-      var parser = new InlineTextParser();
-      parser.Parse(input, "", ParseRule.Expression, _collection,
+      var parser = new BlockInlineTextParser();
+      parser.Parse(input, "", _collection,
                    out AstNode node, out IReadOnlyList<SyntaxToken> tokens);
       Assert.Null(node);
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));

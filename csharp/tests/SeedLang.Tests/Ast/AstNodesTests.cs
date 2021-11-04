@@ -27,7 +27,7 @@ namespace SeedLang.Ast.Tests {
         AddUnaryExpression();
 
         AddAssignmentStatement();
-        AddEvalStatement();
+        AddExpressionStatement();
       }
 
       private void AddBinaryExpression() {
@@ -79,20 +79,20 @@ namespace SeedLang.Ast.Tests {
         Add(assignment, expectedOutput);
       }
 
-      private void AddEvalStatement() {
+      private void AddExpressionStatement() {
         var one = Expression.Number(1, NewTextRange());
         var two = Expression.Number(2, NewTextRange());
         var three = Expression.Number(3, NewTextRange());
         var left = Expression.Binary(one, BinaryOperator.Add, two, NewTextRange());
         var binary = Expression.Binary(left, BinaryOperator.Multiply, three, NewTextRange());
-        var eval = Statement.Eval(binary, NewTextRange());
-        var expectedOutput = $"{NewTextRange()} EvalStatement\n" +
+        var expr = Statement.Expression(binary, NewTextRange());
+        var expectedOutput = $"{NewTextRange()} ExpressionStatement\n" +
                              $"  {NewTextRange()} BinaryExpression (*)\n" +
                              $"    {NewTextRange()} BinaryExpression (+)\n" +
                              $"      {NewTextRange()} NumberConstantExpression (1)\n" +
                              $"      {NewTextRange()} NumberConstantExpression (2)\n" +
                              $"    {NewTextRange()} NumberConstantExpression (3)";
-        Add(eval, expectedOutput);
+        Add(expr, expectedOutput);
       }
     }
 

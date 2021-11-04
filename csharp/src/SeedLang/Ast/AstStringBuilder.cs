@@ -109,7 +109,7 @@ namespace SeedLang.Ast {
       Exit();
     }
 
-    protected override void Visit(EvalStatement eval) {
+    protected override void Visit(ExpressionStatement eval) {
       Enter(eval);
       Visit(eval.Expr);
       Exit();

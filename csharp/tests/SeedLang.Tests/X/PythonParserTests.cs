@@ -24,10 +24,10 @@ namespace SeedLang.X.Tests {
     private readonly PythonParser _parser = new PythonParser();
 
     [Theory]
-    [InlineData("eval 1 + 2 * 3 - 4", true)]
-    [InlineData("eval 1 +", false)]
-    public void TestValidateEvalStatement(string input, bool result) {
-      Assert.Equal(result, _parser.Validate(input, "", ParseRule.Statement, _collection));
+    [InlineData("1 + 2 * 3 - 4", true)]
+    [InlineData("1 +", false)]
+    public void TestValidateExpressionStatement(string input, bool result) {
+      Assert.Equal(result, _parser.Validate(input, "", _collection));
     }
 
     [Theory]
@@ -41,83 +41,80 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]")]
 
-    [InlineData("eval 1 + 2 * 3 - 40",
+    [InlineData("1 + 2 * 3 - 40",
 
-                "[Ln 1, Col 0 - Ln 1, Col 18] EvalStatement\n" +
-                "  [Ln 1, Col 5 - Ln 1, Col 18] BinaryExpression (-)\n" +
-                "    [Ln 1, Col 5 - Ln 1, Col 13] BinaryExpression (+)\n" +
-                "      [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (1)\n" +
-                "      [Ln 1, Col 9 - Ln 1, Col 13] BinaryExpression (*)\n" +
-                "        [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (2)\n" +
-                "        [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (3)\n" +
-                "    [Ln 1, Col 17 - Ln 1, Col 18] NumberConstantExpression (40)",
+                "[Ln 1, Col 0 - Ln 1, Col 13] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 13] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (+)\n" +
+                "      [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 4 - Ln 1, Col 8] BinaryExpression (*)\n" +
+                "        [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
+                "        [Ln 1, Col 8 - Ln 1, Col 8] NumberConstantExpression (3)\n" +
+                "    [Ln 1, Col 12 - Ln 1, Col 13] NumberConstantExpression (40)",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Operator [Ln 1, Col 11 - Ln 1, Col 11]," +
-                "Number [Ln 1, Col 13 - Ln 1, Col 13]," +
-                "Operator [Ln 1, Col 15 - Ln 1, Col 15]," +
-                "Number [Ln 1, Col 17 - Ln 1, Col 18]")]
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Operator [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Number [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Operator [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Number [Ln 1, Col 12 - Ln 1, Col 13]")]
 
-    [InlineData("eval (1 + (2)) - (x) - -3",
+    [InlineData("(1 + (2)) - (x) - -3",
 
-                "[Ln 1, Col 0 - Ln 1, Col 24] EvalStatement\n" +
-                "  [Ln 1, Col 5 - Ln 1, Col 24] BinaryExpression (-)\n" +
-                "    [Ln 1, Col 5 - Ln 1, Col 19] BinaryExpression (-)\n" +
-                "      [Ln 1, Col 5 - Ln 1, Col 13] BinaryExpression (+)\n" +
-                "        [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)\n" +
-                "        [Ln 1, Col 10 - Ln 1, Col 12] NumberConstantExpression (2)\n" +
-                "      [Ln 1, Col 17 - Ln 1, Col 19] IdentifierExpression (x)\n" +
-                "    [Ln 1, Col 23 - Ln 1, Col 24] UnaryExpression (-)\n" +
-                "      [Ln 1, Col 24 - Ln 1, Col 24] NumberConstantExpression (3)",
+                "[Ln 1, Col 0 - Ln 1, Col 19] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 19] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 14] BinaryExpression (-)\n" +
+                "      [Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (+)\n" +
+                "        [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                "        [Ln 1, Col 5 - Ln 1, Col 7] NumberConstantExpression (2)\n" +
+                "      [Ln 1, Col 12 - Ln 1, Col 14] IdentifierExpression (x)\n" +
+                "    [Ln 1, Col 18 - Ln 1, Col 19] UnaryExpression (-)\n" +
+                "      [Ln 1, Col 19 - Ln 1, Col 19] NumberConstantExpression (3)",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Operator [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Variable [Ln 1, Col 13 - Ln 1, Col 13]," +
+                "Parenthesis [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Operator [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Operator [Ln 1, Col 18 - Ln 1, Col 18]," +
+                "Number [Ln 1, Col 19 - Ln 1, Col 19]")]
+
+    [InlineData("(1 + 2) * (( 3 - -4 ))",
+
+                "[Ln 1, Col 0 - Ln 1, Col 21] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 21] BinaryExpression (*)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (+)\n" +
+                "      [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 10 - Ln 1, Col 21] BinaryExpression (-)\n" +
+                "      [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (3)\n" +
+                "      [Ln 1, Col 17 - Ln 1, Col 18] UnaryExpression (-)\n" +
+                "        [Ln 1, Col 18 - Ln 1, Col 18] NumberConstantExpression (4)",
+
+                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Parenthesis [Ln 1, Col 6 - Ln 1, Col 6]," +
                 "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Number [Ln 1, Col 11 - Ln 1, Col 11]," +
-                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
-                "Parenthesis [Ln 1, Col 13 - Ln 1, Col 13]," +
-                "Operator [Ln 1, Col 15 - Ln 1, Col 15]," +
-                "Parenthesis [Ln 1, Col 17 - Ln 1, Col 17]," +
-                "Variable [Ln 1, Col 18 - Ln 1, Col 18]," +
-                "Parenthesis [Ln 1, Col 19 - Ln 1, Col 19]," +
-                "Operator [Ln 1, Col 21 - Ln 1, Col 21]," +
-                "Operator [Ln 1, Col 23 - Ln 1, Col 23]," +
-                "Number [Ln 1, Col 24 - Ln 1, Col 24]")]
-
-    [InlineData("eval (1 + 2) * (( 3 - -4 ))",
-
-                "[Ln 1, Col 0 - Ln 1, Col 26] EvalStatement\n" +
-                "  [Ln 1, Col 5 - Ln 1, Col 26] BinaryExpression (*)\n" +
-                "    [Ln 1, Col 5 - Ln 1, Col 11] BinaryExpression (+)\n" +
-                "      [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)\n" +
-                "      [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (2)\n" +
-                "    [Ln 1, Col 15 - Ln 1, Col 26] BinaryExpression (-)\n" +
-                "      [Ln 1, Col 18 - Ln 1, Col 18] NumberConstantExpression (3)\n" +
-                "      [Ln 1, Col 22 - Ln 1, Col 23] UnaryExpression (-)\n" +
-                "        [Ln 1, Col 23 - Ln 1, Col 23] NumberConstantExpression (4)",
-
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
-                "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
                 "Parenthesis [Ln 1, Col 11 - Ln 1, Col 11]," +
-                "Operator [Ln 1, Col 13 - Ln 1, Col 13]," +
-                "Parenthesis [Ln 1, Col 15 - Ln 1, Col 15]," +
-                "Parenthesis [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Number [Ln 1, Col 13 - Ln 1, Col 13]," +
+                "Operator [Ln 1, Col 15 - Ln 1, Col 15]," +
+                "Operator [Ln 1, Col 17 - Ln 1, Col 17]," +
                 "Number [Ln 1, Col 18 - Ln 1, Col 18]," +
-                "Operator [Ln 1, Col 20 - Ln 1, Col 20]," +
-                "Operator [Ln 1, Col 22 - Ln 1, Col 22]," +
-                "Number [Ln 1, Col 23 - Ln 1, Col 23]," +
-                "Parenthesis [Ln 1, Col 25 - Ln 1, Col 25]," +
-                "Parenthesis [Ln 1, Col 26 - Ln 1, Col 26]")]
+                "Parenthesis [Ln 1, Col 20 - Ln 1, Col 20]," +
+                "Parenthesis [Ln 1, Col 21 - Ln 1, Col 21]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
-      Assert.True(_parser.Parse(input, "", ParseRule.Statement, _collection, out AstNode node,
+      Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
@@ -127,78 +124,63 @@ namespace SeedLang.X.Tests {
 
     // TODO: add test cases for other syntax errors after grammar is more complex.
     [Theory]
-    [InlineData("1",
-                "SyntaxErrorInputMismatch '1' {'break', 'continue', 'eval', IDENTIFIER}",
-                "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
-
-    [InlineData("eval1",
-                "SyntaxErrorInputMismatch '<EOF>' '='",
-                "Variable [Ln 1, Col 0 - Ln 1, Col 4]")]
-
-    [InlineData("eval 1.2 =",
+    [InlineData("1.2 =",
                 "SyntaxErrorUnwantedToken '=' <EOF>",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Number [Ln 1, Col 5 - Ln 1, Col 7]," +
-                "Operator [Ln 1, Col 9 - Ln 1, Col 9]")]
+                "Number [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 4 - Ln 1, Col 4]")]
 
-    [InlineData("eval 1 +",
+    [InlineData("1 +",
                 "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Operator [Ln 1, Col 7 - Ln 1, Col 7]")]
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]")]
 
-    [InlineData("eval 1 + (",
+    [InlineData("1 + (",
                 "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]")]
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]")]
 
-    [InlineData("eval 1 + ((",
+    [InlineData("1 + ((",
                 "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
 
-    [InlineData("eval 1 + (((",
+    [InlineData("1 + (((",
                 "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Parenthesis [Ln 1, Col 11 - Ln 1, Col 11]")]
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Parenthesis [Ln 1, Col 6 - Ln 1, Col 6]")]
 
-    [InlineData("eval 1 + (2 - 1",
+    [InlineData("1 + (2 - 1",
                 "SyntaxErrorMissingToken '<EOF>' ')'",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Operator [Ln 1, Col 12 - Ln 1, Col 12]," +
-                "Number [Ln 1, Col 14 - Ln 1, Col 14]")]
+                "Number [Ln 1, Col 9 - Ln 1, Col 9]")]
 
-    [InlineData("eval 1 + ))",
+    [InlineData("1 + ))",
                 "SyntaxErrorInputMismatch ')' {'-', IDENTIFIER, NUMBER, '('}",
 
-                "Keyword [Ln 1, Col 0 - Ln 1, Col 3]," +
-                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
     public void TestParseSingleSyntaxError(string input, string errorMessage,
                                            string expectedTokens) {
-      Assert.False(_parser.Parse(input, "", ParseRule.Statement, _collection, out AstNode node,
-                                out IReadOnlyList<SyntaxToken> tokens));
+      Assert.False(_parser.Parse(input, "", _collection, out AstNode node,
+                                 out IReadOnlyList<SyntaxToken> tokens));
       Assert.Null(node);
       Assert.Single(_collection.Diagnostics);
       Assert.Equal(SystemReporters.SeedX, _collection.Diagnostics[0].Reporter);

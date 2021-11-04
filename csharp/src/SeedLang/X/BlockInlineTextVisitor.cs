@@ -23,49 +23,27 @@ using SeedLang.Runtime;
 using SeedLang.X;
 
 namespace SeedLang.Block {
-  // The visitor class to visit an inline text of SeedBlock programs and generate the corresponding
-  // AST tree.
+  // The visitor class to visit a block inline text of SeedBlock programs and generate the
+  // corresponding AST tree.
   //
-  // The default implement of SeedBlockBaseVisitor is to visit all the children and return the
-  // result of the last one. InlineTextVisitor overrides the method if the default implement is not
-  // correct.
-  internal class InlineTextVisitor : SeedBlockBaseVisitor<AstNode> {
+  // The default implement of SeedBlockInlineTextBaseVisitor is to visit all the children and return
+  // the result of the last one. BlockInlineTextVisitor overrides the method if the default
+  // implement is not correct.
+  internal class BlockInlineTextVisitor : SeedBlockInlineTextBaseVisitor<AstNode> {
     private readonly VisitorHelper _helper;
 
-    public InlineTextVisitor(IList<SyntaxToken> tokens) {
+    public BlockInlineTextVisitor(IList<SyntaxToken> tokens) {
       _helper = new VisitorHelper(tokens);
     }
 
-    // Visits a single identifier.
-    public override AstNode VisitSingle_identifier(
-        [NotNull] SeedBlockParser.Single_identifierContext context) {
-      return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
-    }
-
-    // Visits a single number.
-    public override AstNode VisitSingle_number(
-        [NotNull] SeedBlockParser.Single_numberContext context) {
-      return _helper.BuildNumber(context.NUMBER().Symbol);
-    }
-
-    // Visits a single string.
-    public override AstNode VisitSingle_string(
-        [NotNull] SeedBlockParser.Single_stringContext context) {
-      return _helper.BuildString(context.STRING().Symbol);
-    }
-
-    // Visits a single expression.
-    public override AstNode VisitSingle_expr(
-        [NotNull] SeedBlockParser.Single_exprContext context) {
-      if (context.expr() is SeedBlockParser.ExprContext expr) {
-        return Visit(expr);
-      }
-      return null;
+    public override AstNode VisitSingle_stmt(
+        [NotNull] SeedBlockInlineTextParser.Single_stmtContext context) {
+      return Visit(context.expr_stmt());
     }
 
     // Visits an unary expression.
-    public override AstNode VisitUnary([NotNull] SeedBlockParser.UnaryContext context) {
-      if (context.expr() is SeedBlockParser.ExprContext expr) {
+    public override AstNode VisitUnary([NotNull] SeedBlockInlineTextParser.UnaryContext context) {
+      if (context.expr() is SeedBlockInlineTextParser.ExprContext expr) {
         return _helper.BuildUnary(context.op, expr, this);
       }
       return null;
@@ -74,8 +52,9 @@ namespace SeedLang.Block {
     // Visits an add or subtract binary expression.
     //
     // There should be 2 child expression contexts (left and right) in Add_subContext.
-    public override AstNode VisitAdd_sub([NotNull] SeedBlockParser.Add_subContext context) {
-      if (context.expr() is SeedBlockParser.ExprContext[] exprs && exprs.Length == 2) {
+    public override AstNode VisitAdd_sub(
+        [NotNull] SeedBlockInlineTextParser.Add_subContext context) {
+      if (context.expr() is SeedBlockInlineTextParser.ExprContext[] exprs && exprs.Length == 2) {
         return _helper.BuildBinary(context.op, TokenToOperator(context.op), exprs, this);
       }
       return null;
@@ -84,20 +63,22 @@ namespace SeedLang.Block {
     // Visits a multiply or divide binary expression.
     //
     // There should be 2 child expression contexts (left and right) in Mul_divContext.
-    public override AstNode VisitMul_div([NotNull] SeedBlockParser.Mul_divContext context) {
-      if (context.expr() is SeedBlockParser.ExprContext[] exprs && exprs.Length == 2) {
+    public override AstNode VisitMul_div(
+        [NotNull] SeedBlockInlineTextParser.Mul_divContext context) {
+      if (context.expr() is SeedBlockInlineTextParser.ExprContext[] exprs && exprs.Length == 2) {
         return _helper.BuildBinary(context.op, TokenToOperator(context.op), exprs, this);
       }
       return null;
     }
 
     // Visits an identifier.
-    public override AstNode VisitIdentifier([NotNull] SeedBlockParser.IdentifierContext context) {
+    public override AstNode VisitIdentifier(
+        [NotNull] SeedBlockInlineTextParser.IdentifierContext context) {
       return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
     }
 
     // Visits a number expression.
-    public override AstNode VisitNumber([NotNull] SeedBlockParser.NumberContext context) {
+    public override AstNode VisitNumber([NotNull] SeedBlockInlineTextParser.NumberContext context) {
       return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
@@ -107,8 +88,9 @@ namespace SeedLang.Block {
     // represents the grouping structure.
     // The parser still calls this method with null references or an invalid terminal node when
     // syntax errors happen. Returns a null AST node in this situation.
-    public override AstNode VisitGrouping([NotNull] SeedBlockParser.GroupingContext context) {
-      if (context.expr() is SeedBlockParser.ExprContext expr &&
+    public override AstNode VisitGrouping(
+        [NotNull] SeedBlockInlineTextParser.GroupingContext context) {
+      if (context.expr() is SeedBlockInlineTextParser.ExprContext expr &&
           context.CLOSE_PAREN() is ITerminalNode closeParen && closeParen.Symbol.TokenIndex >= 0) {
         return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, expr, closeParen.Symbol, this);
       }
@@ -117,13 +99,13 @@ namespace SeedLang.Block {
 
     private static BinaryOperator TokenToOperator(IToken token) {
       switch (token.Type) {
-        case SeedBlockParser.ADD:
+        case SeedBlockInlineTextParser.ADD:
           return BinaryOperator.Add;
-        case SeedBlockParser.SUB:
+        case SeedBlockInlineTextParser.SUB:
           return BinaryOperator.Subtract;
-        case SeedBlockParser.MUL:
+        case SeedBlockInlineTextParser.MUL:
           return BinaryOperator.Multiply;
-        case SeedBlockParser.DIV:
+        case SeedBlockInlineTextParser.DIV:
           return BinaryOperator.Divide;
         default:
           throw new ArgumentException("Unsupported binary operator token.");

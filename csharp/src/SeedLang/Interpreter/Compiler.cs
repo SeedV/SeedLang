@@ -116,12 +116,12 @@ namespace SeedLang.Interpreter {
       _registerAllocator.DeallocateVariable();
     }
 
-    protected override void Visit(EvalStatement eval) {
+    protected override void Visit(ExpressionStatement expr) {
       uint register = _registerAllocator.AllocateTempVariable();
       _expressionInfo.CanHandleConstSubExpr = false;
       _expressionInfo.ResultRegister = register;
-      Visit(eval.Expr);
-      _chunk.Emit(Opcode.EVAL, register, eval.Range);
+      Visit(expr.Expr);
+      _chunk.Emit(Opcode.EVAL, register, expr.Range);
       _registerAllocator.DeallocateVariable();
     }
 

@@ -17,15 +17,15 @@ using SeedLang.Common;
 namespace SeedLang.Ast {
   // The base class of all statement nodes.
   internal abstract class Statement : AstNode {
-    // The factory method to creates the assignment statement.
+    // The factory method to create an assignment statement.
     internal static AssignmentStatement Assignment(IdentifierExpression identifier, Expression expr,
                                                    Range range) {
       return new AssignmentStatement(identifier, expr, range);
     }
 
-    // The factory method to creates the eval statement.
-    internal static EvalStatement Eval(Expression expr, Range range) {
-      return new EvalStatement(expr, range);
+    // The factory method to create an expression statement.
+    internal static ExpressionStatement Expression(Expression expr, Range range) {
+      return new ExpressionStatement(expr, range);
     }
 
     internal Statement(Range range) : base(range) {
@@ -43,10 +43,10 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal class EvalStatement : Statement {
+  internal class ExpressionStatement : Statement {
     public Expression Expr { get; }
 
-    internal EvalStatement(Expression expr, Range range) : base(range) {
+    internal ExpressionStatement(Expression expr, Range range) : base(range) {
       Expr = expr;
     }
   }

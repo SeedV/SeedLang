@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
@@ -31,28 +30,24 @@ namespace SeedLang.X {
 
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.
-    internal bool Validate(string source, string module, ParseRule rule,
-                           DiagnosticCollection collection) {
-      var localCollection = collection ?? new DiagnosticCollection();
-      int diagnosticCount = localCollection.Diagnostics.Count;
-      Parser parser = SetupParser(source, module, localCollection);
-      GetContext(parser, rule);
-      return localCollection.Diagnostics.Count == diagnosticCount;
+    internal bool Validate(string source, string module, DiagnosticCollection collection) {
+      int diagnosticCount = collection.Diagnostics.Count;
+      Parser parser = SetupParser(source, module, collection);
+      SingleStmt(parser);
+      return collection.Diagnostics.Count == diagnosticCount;
     }
 
     // Parses source code into an AST tree based on the parse rule. The concrete ANTLR4 lexer and
     // parser are created by the derived class. The out node is set to null if the given source code
     // is not valid.
-    internal bool Parse(string source, string module, ParseRule rule,
-                        DiagnosticCollection collection, out AstNode node,
-                        out IReadOnlyList<SyntaxToken> tokens) {
+    internal bool Parse(string source, string module, DiagnosticCollection collection,
+                        out AstNode node, out IReadOnlyList<SyntaxToken> tokens) {
       int diagnosticCount = collection.Diagnostics.Count;
       Parser parser = SetupParser(source, module, collection);
-      ParserRuleContext context = GetContext(parser, rule);
       var tokenList = new List<SyntaxToken>();
       tokens = tokenList;
       AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
-      node = visitor.Visit(context);
+      node = visitor.Visit(SingleStmt(parser));
       if (collection.Diagnostics.Count > diagnosticCount) {
         ParseMissingSyntaxTokens(source, tokenList);
         node = null;
@@ -67,22 +62,8 @@ namespace SeedLang.X {
 
     protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens);
 
-    protected virtual ParserRuleContext SingleIdentifier(Parser parser) {
-      throw new NotImplementedException();
-    }
-
-    protected virtual ParserRuleContext SingleNumber(Parser parser) {
-      throw new NotImplementedException();
-    }
-
-    protected virtual ParserRuleContext SingleString(Parser parser) {
-      throw new NotImplementedException();
-    }
-
-    protected virtual ParserRuleContext SingleExpr(Parser parser) {
-      throw new NotImplementedException();
-    }
-
+    // Returns the parser rule context of the single statement. This method must be implemented by
+    // the derived class.
     protected virtual ParserRuleContext SingleStmt(Parser parser) {
       throw new NotImplementedException();
     }
@@ -123,27 +104,7 @@ namespace SeedLang.X {
           } else if (tokens[i].Range != range) {
             tokens.Insert(i, syntaxToken);
           }
-        } else {
-          throw new NotImplementedException($"Not implemented token type: {lexerTokens[i].Type}");
         }
-      }
-    }
-
-    private ParserRuleContext GetContext(Parser parser, ParseRule rule) {
-      switch (rule) {
-        case ParseRule.Identifier:
-          return SingleIdentifier(parser);
-        case ParseRule.Number:
-          return SingleNumber(parser);
-        case ParseRule.String:
-          return SingleString(parser);
-        case ParseRule.Expression:
-          return SingleExpr(parser);
-        case ParseRule.Statement:
-          return SingleStmt(parser);
-        default:
-          Debug.Assert(false, $"Not implemented parse rule: {rule}");
-          return null;
       }
     }
   }

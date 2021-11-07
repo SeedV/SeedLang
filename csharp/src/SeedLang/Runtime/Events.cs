@@ -17,14 +17,14 @@ using SeedLang.Common;
 namespace SeedLang.Runtime {
   // An event which is triggered when a binary expression is evaluated.
   public class BinaryEvent {
-    public Value Left { get; }
+    public IValue Left { get; }
     public BinaryOperator Op { get; }
-    public Value Right { get; }
-    public Value Result { get; }
+    public IValue Right { get; }
+    public IValue Result { get; }
     // The source code range of the binary expression.
     public Range Range { get; }
 
-    public BinaryEvent(Value left, BinaryOperator op, Value right, Value result, Range range) {
+    public BinaryEvent(IValue left, BinaryOperator op, IValue right, IValue result, Range range) {
       Left = left;
       Op = op;
       Right = right;
@@ -36,11 +36,11 @@ namespace SeedLang.Runtime {
   // An event which is triggered when an assignment statement is executed.
   public class AssignmentEvent {
     public string Identifier { get; }
-    public Value Value { get; }
+    public IValue Value { get; }
     // The source code range of the assignment statement.
     public Range Range { get; }
 
-    public AssignmentEvent(string identifier, Value value, Range range) {
+    public AssignmentEvent(string identifier, IValue value, Range range) {
       Identifier = identifier;
       Value = value;
       Range = range;
@@ -49,11 +49,11 @@ namespace SeedLang.Runtime {
 
   // An event which is triggered when an expression statement is executed.
   public class EvalEvent {
-    public Value Value { get; }
+    public IValue Value { get; }
     // The source code range of the eval statement.
     public Range Range { get; }
 
-    public EvalEvent(Value value, Range range) {
+    public EvalEvent(IValue value, Range range) {
       Value = value;
       Range = range;
     }

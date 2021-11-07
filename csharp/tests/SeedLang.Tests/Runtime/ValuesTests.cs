@@ -12,30 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using Xunit;
 
-namespace SeedLang.Runtime {
-  // An immutable string value class.
-  internal class StringValue : Value {
-    private readonly string _value;
-
-    public override ValueType Type => ValueType.String;
-
-    internal StringValue(string value) {
-      _value = value;
-    }
-
-    // TODO: decide if implicit cast from a string to a number is allowed (Python does not support)
-    public override double ToNumber() {
-      try {
-        return double.Parse(_value);
-      } catch (Exception) {
-        return 0;
-      }
-    }
-
-    public override string ToString() {
-      return _value;
+namespace SeedLang.Runtime.Tests {
+  public class ValuesTests {
+    [Fact]
+    public void TestBooleanValue() {
+      var boolean = new BooleanValue();
+      Assert.False(boolean.Boolean);
+      Assert.Equal(0, boolean.Number);
+      Assert.Equal("False", boolean.String);
     }
   }
 }

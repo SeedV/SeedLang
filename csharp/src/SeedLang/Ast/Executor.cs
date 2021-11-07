@@ -23,10 +23,10 @@ namespace SeedLang.Ast {
     private readonly VisualizerCenter _visualizerCenter;
 
     // The global environment to store names and values of global variables.
-    private readonly GlobalEnvironment<Value> _globals = new GlobalEnvironment<Value>();
+    private readonly GlobalEnvironment<IValue> _globals = new GlobalEnvironment<IValue>();
 
     // The result of current executed expression.
-    private Value _expressionResult;
+    private IValue _expressionResult;
 
     internal Executor(VisualizerCenter visualizerCenter = null) {
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
@@ -39,28 +39,28 @@ namespace SeedLang.Ast {
 
     protected override void Visit(BinaryExpression binary) {
       Visit(binary.Left);
-      Value left = _expressionResult;
+      IValue left = _expressionResult;
       Visit(binary.Right);
-      Value right = _expressionResult;
+      IValue right = _expressionResult;
       // TODO: handle other operators.
       switch (binary.Op) {
         case BinaryOperator.Add:
-          _expressionResult = left + right;
+          _expressionResult = new NumberValue(ValueHelper.Add(left, right));
           break;
         case BinaryOperator.Subtract:
-          _expressionResult = left - right;
+          _expressionResult = new NumberValue(ValueHelper.Subtract(left, right));
           break;
         case BinaryOperator.Multiply:
-          _expressionResult = left * right;
+          _expressionResult = new NumberValue(ValueHelper.Multiply(left, right));
           break;
         case BinaryOperator.Divide:
-          CheckDivideByZero(right.ToNumber(), binary.Range);
-          _expressionResult = left / right;
+          CheckDivideByZero(right.Number, binary.Range);
+          _expressionResult = new NumberValue(ValueHelper.Divide(left, right));
           break;
         default:
           throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
       }
-      CheckOverflow(_expressionResult.ToNumber(), binary.Range);
+      CheckOverflow(_expressionResult.Number, binary.Range);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var be = new BinaryEvent(left, binary.Op, right, _expressionResult, binary.Range);
         _visualizerCenter.BinaryPublisher.Notify(be);
@@ -70,7 +70,7 @@ namespace SeedLang.Ast {
     protected override void Visit(IdentifierExpression identifier) {
       if (_globals.TryGetVariable(identifier.Name, out var value)) {
         _expressionResult = value;
-        CheckOverflow(_expressionResult.ToNumber(), identifier.Range);
+        CheckOverflow(_expressionResult.Number, identifier.Range);
       } else {
         // TODO: should the result be a null value or default number value if the variable is not
         // assigned before using? Another option is to report a runtime error.
@@ -90,7 +90,7 @@ namespace SeedLang.Ast {
     protected override void Visit(UnaryExpression unary) {
       Visit(unary.Expr);
       // TODO: handle other unary operators, and add an unary event for visualization if needed.
-      _expressionResult = new NumberValue(_expressionResult.ToNumber() * -1);
+      _expressionResult = new NumberValue(_expressionResult.Number * -1);
     }
 
     protected override void Visit(AssignmentStatement assignment) {

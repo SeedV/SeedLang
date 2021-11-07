@@ -53,11 +53,11 @@ namespace SeedLang.Interpreter {
             HandleBinary(instr, _chunk.Ranges[pc]);
             break;
           case Opcode.UNM:
-            _registers[instr.A] = new VMValue(-ValueOfRK(instr.B).ToNumber());
+            _registers[instr.A] = new VMValue(-ValueOfRK(instr.B).Number);
             break;
           case Opcode.EVAL:
             if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-              var ee = new EvalEvent(_registers[instr.A].ToValue(), _chunk.Ranges[pc]);
+              var ee = new EvalEvent(_registers[instr.A], _chunk.Ranges[pc]);
               _visualizerCenter.EvalPublisher.Notify(ee);
             }
             break;
@@ -79,37 +79,39 @@ namespace SeedLang.Interpreter {
       var name = _chunk.ValueOfConstId(instr.Bx).ToString();
       _globals.SetVariable(name, _registers[instr.A]);
       if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var ae = new AssignmentEvent(name, _registers[instr.A].ToValue(), range);
+        var ae = new AssignmentEvent(name, _registers[instr.A], range);
         _visualizerCenter.AssignmentPublisher.Notify(ae);
       }
     }
 
     private void HandleBinary(Instruction instr, Range range) {
       BinaryOperator op = BinaryOperator.Add;
+      double result = 0;
       switch (instr.Opcode) {
         case Opcode.ADD:
-          _registers[instr.A] = ValueOfRK(instr.B) + ValueOfRK(instr.C);
           op = BinaryOperator.Add;
+          result = ValueHelper.Add(ValueOfRK(instr.B), ValueOfRK(instr.C));
           break;
         case Opcode.SUB:
-          _registers[instr.A] = ValueOfRK(instr.B) - ValueOfRK(instr.C);
           op = BinaryOperator.Subtract;
+          result = ValueHelper.Subtract(ValueOfRK(instr.B), ValueOfRK(instr.C));
           break;
         case Opcode.MUL:
-          _registers[instr.A] = ValueOfRK(instr.B) * ValueOfRK(instr.C);
           op = BinaryOperator.Multiply;
+          result = ValueHelper.Multiply(ValueOfRK(instr.B), ValueOfRK(instr.C));
           break;
         case Opcode.DIV:
           VMValue divisor = ValueOfRK(instr.C);
-          CheckDivideByZero(divisor.ToNumber(), range);
-          _registers[instr.A] = ValueOfRK(instr.B) / divisor;
+          CheckDivideByZero(divisor.Number, range);
           op = BinaryOperator.Divide;
+          result = ValueHelper.Divide(ValueOfRK(instr.B), ValueOfRK(instr.C));
           break;
       }
-      CheckOverflow(_registers[instr.A].ToNumber(), range);
+      CheckOverflow(result, range);
+      _registers[instr.A] = new VMValue(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var be = new BinaryEvent(ValueOfRK(instr.B).ToValue(), op, ValueOfRK(instr.C).ToValue(),
-                                 _registers[instr.A].ToValue(), range);
+        var be = new BinaryEvent(ValueOfRK(instr.B), op, ValueOfRK(instr.C), _registers[instr.A],
+                                 range);
         _visualizerCenter.BinaryPublisher.Notify(be);
       }
     }

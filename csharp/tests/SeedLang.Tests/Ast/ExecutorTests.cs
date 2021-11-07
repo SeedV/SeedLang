@@ -23,10 +23,10 @@ namespace SeedLang.Ast.Tests {
                                      IVisualizer<BinaryEvent>,
                                      IVisualizer<EvalEvent> {
       public string Identifier { get; private set; }
-      public Value Left { get; private set; }
+      public IValue Left { get; private set; }
       public BinaryOperator Op { get; private set; }
-      public Value Right { get; private set; }
-      public Value Result { get; private set; }
+      public IValue Right { get; private set; }
+      public IValue Result { get; private set; }
       public Range Range { get; private set; }
 
       public void On(AssignmentEvent ae) {
@@ -57,10 +57,10 @@ namespace SeedLang.Ast.Tests {
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(binary);
-      Assert.Equal(1, visualizer.Left.ToNumber());
+      Assert.Equal(1, visualizer.Left.Number);
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
-      Assert.Equal(2, visualizer.Right.ToNumber());
-      Assert.Equal(3, visualizer.Result.ToNumber());
+      Assert.Equal(2, visualizer.Right.Number);
+      Assert.Equal(3, visualizer.Result.Number);
       Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
@@ -75,7 +75,7 @@ namespace SeedLang.Ast.Tests {
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(assignment);
       Assert.Equal(name, visualizer.Identifier);
-      Assert.Equal(-1, visualizer.Result.ToNumber());
+      Assert.Equal(-1, visualizer.Result.Number);
       Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
@@ -89,7 +89,7 @@ namespace SeedLang.Ast.Tests {
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(assignment);
       Assert.Equal(name, visualizer.Identifier);
-      Assert.Equal(1, visualizer.Result.ToNumber());
+      Assert.Equal(1, visualizer.Result.Number);
       Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
@@ -104,7 +104,7 @@ namespace SeedLang.Ast.Tests {
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(expr);
-      Assert.Equal(9, visualizer.Result.ToNumber());
+      Assert.Equal(9, visualizer.Result.Number);
       Assert.Equal(NewTextRange(), visualizer.Range);
     }
 
@@ -121,7 +121,7 @@ namespace SeedLang.Ast.Tests {
       var binary = Expression.Binary(identifier, BinaryOperator.Multiply, right, NewTextRange());
       var expr = Statement.Expression(binary, NewTextRange());
       executor.Run(expr);
-      Assert.Equal(6, visualizer.Result.ToNumber());
+      Assert.Equal(6, visualizer.Result.Number);
       Assert.Equal(NewTextRange(), visualizer.Range);
     }
 

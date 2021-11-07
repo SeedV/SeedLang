@@ -19,10 +19,10 @@ namespace SeedLang.Runtime.Tests {
   public class ExecutorTests {
     private class MockupVisualizer : IVisualizer<BinaryEvent>,
                                      IVisualizer<EvalEvent> {
-      public Value Left { get; private set; }
+      public IValue Left { get; private set; }
       public BinaryOperator Op { get; private set; }
-      public Value Right { get; private set; }
-      public Value Result { get; private set; }
+      public IValue Right { get; private set; }
+      public IValue Result { get; private set; }
 
       public void On(BinaryEvent be) {
         Left = be.Left;
@@ -58,10 +58,10 @@ namespace SeedLang.Runtime.Tests {
       executor.Register(visualizer);
       executor.Run(program);
 
-      Assert.Equal(1, visualizer.Left.ToNumber());
+      Assert.Equal(1, visualizer.Left.Number);
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
-      Assert.Equal(2, visualizer.Right.ToNumber());
-      Assert.Equal(3, visualizer.Result.ToNumber());
+      Assert.Equal(2, visualizer.Right.Number);
+      Assert.Equal(3, visualizer.Result.Number);
     }
 
     [Fact]
@@ -74,10 +74,10 @@ namespace SeedLang.Runtime.Tests {
       Assert.True(executor.Run("b = 2", "", SeedXLanguage.Python, RunType.Ast));
       Assert.True(executor.Run("a + -b", "", SeedXLanguage.Python, RunType.Ast));
 
-      Assert.Equal(1, visualizer.Left.ToNumber());
+      Assert.Equal(1, visualizer.Left.Number);
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
-      Assert.Equal(-2, visualizer.Right.ToNumber());
-      Assert.Equal(-1, visualizer.Result.ToNumber());
+      Assert.Equal(-2, visualizer.Right.Number);
+      Assert.Equal(-1, visualizer.Result.Number);
     }
   }
 }

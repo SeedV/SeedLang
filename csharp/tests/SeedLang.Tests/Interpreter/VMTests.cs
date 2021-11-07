@@ -23,10 +23,10 @@ namespace SeedLang.Interpreter.Tests {
                                      IVisualizer<BinaryEvent>,
                                      IVisualizer<EvalEvent> {
       public string Identifier { get; private set; }
-      public Value Left { get; private set; }
+      public IValue Left { get; private set; }
       public BinaryOperator Op { get; private set; }
-      public Value Right { get; private set; }
-      public Value Result { get; private set; }
+      public IValue Right { get; private set; }
+      public IValue Result { get; private set; }
       public Range Range { get; private set; }
 
       public void On(AssignmentEvent ae) {
@@ -63,10 +63,10 @@ namespace SeedLang.Interpreter.Tests {
       (var vm, var visualizer) = NewVMWithVisualizer();
       vm.Run(chunk);
 
-      Assert.Equal(1, visualizer.Left.ToNumber());
+      Assert.Equal(1, visualizer.Left.Number);
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
-      Assert.Equal(2, visualizer.Right.ToNumber());
-      Assert.Equal(3, visualizer.Result.ToNumber());
+      Assert.Equal(2, visualizer.Right.Number);
+      Assert.Equal(3, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);
     }
 
@@ -85,7 +85,7 @@ namespace SeedLang.Interpreter.Tests {
       chunk = compiler.Compile(eval);
       vm.Run(chunk);
 
-      Assert.Equal(1, visualizer.Result.ToNumber());
+      Assert.Equal(1, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);
     }
 
@@ -100,7 +100,7 @@ namespace SeedLang.Interpreter.Tests {
       Chunk chunk = compiler.Compile(eval);
       vm.Run(chunk);
 
-      Assert.Equal(-1, visualizer.Result.ToNumber());
+      Assert.Equal(-1, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);
 
       var left = Expression.Number(1, _testTextRange);
@@ -111,7 +111,7 @@ namespace SeedLang.Interpreter.Tests {
       chunk = compiler.Compile(eval);
       vm.Run(chunk);
 
-      Assert.Equal(-3, visualizer.Result.ToNumber());
+      Assert.Equal(-3, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);
     }
 

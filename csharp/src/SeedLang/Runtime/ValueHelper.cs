@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   internal static class ValueHelper {
@@ -50,7 +49,7 @@ namespace SeedLang.Runtime {
     }
 
     internal static bool StringToBoolean(string value) {
-      return value.ToLower() == "true";
+      return value == "True";
     }
 
     internal static double StringToNumber(string value) {

@@ -14,6 +14,7 @@
 
 namespace SeedLang.Runtime {
   public enum ValueType {
+    Null,
     Boolean,
     Number,
     String,
@@ -24,6 +25,13 @@ namespace SeedLang.Runtime {
     bool Boolean { get; }
     double Number { get; }
     string String { get; }
+  }
+
+  internal class NullValue : IValue {
+    public ValueType Type => ValueType.Null;
+    public bool Boolean => false;
+    public double Number => 0;
+    public string String => "";
   }
 
   // An immutable boolean value class.

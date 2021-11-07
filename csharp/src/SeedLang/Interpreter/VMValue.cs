@@ -25,6 +25,8 @@ namespace SeedLang.Interpreter {
     public bool Boolean {
       get {
         switch (Type) {
+          case ValueType.Null:
+            return false;
           case ValueType.Boolean:
           case ValueType.Number:
             return ValueHelper.NumberToBoolean(_number);
@@ -39,6 +41,8 @@ namespace SeedLang.Interpreter {
     public double Number {
       get {
         switch (Type) {
+          case ValueType.Null:
+            return 0;
           case ValueType.Boolean:
           case ValueType.Number:
             return _number;
@@ -53,6 +57,8 @@ namespace SeedLang.Interpreter {
     public string String {
       get {
         switch (Type) {
+          case ValueType.Null:
+            return "";
           case ValueType.Boolean:
             return ValueHelper.BooleanToString(ValueHelper.NumberToBoolean(_number));
           case ValueType.Number:
@@ -68,13 +74,13 @@ namespace SeedLang.Interpreter {
     private readonly double _number;
     private readonly object _object;
 
-    internal VMValue(bool value = false) {
+    internal VMValue(bool value) {
       Type = ValueType.Boolean;
       _number = ValueHelper.BooleanToNumber(value);
       _object = null;
     }
 
-    internal VMValue(double value = 0) {
+    internal VMValue(double value) {
       Type = ValueType.Number;
       _number = value;
       _object = null;

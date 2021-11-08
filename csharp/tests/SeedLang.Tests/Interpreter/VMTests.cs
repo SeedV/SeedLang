@@ -52,13 +52,13 @@ namespace SeedLang.Interpreter.Tests {
     private static TextRange _testTextRange => new TextRange(0, 1, 2, 3);
 
     [Fact]
-    public void TestEvalBinary() {
+    public void TestBinaryExpressionStatement() {
       var left = Expression.Number(1, _testTextRange);
       var right = Expression.Number(2, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
-      var eval = Statement.Expression(binary, _testTextRange);
+      var expr = Statement.Expression(binary, _testTextRange);
       var compiler = new Compiler();
-      Chunk chunk = compiler.Compile(eval);
+      Chunk chunk = compiler.Compile(expr);
 
       (var vm, var visualizer) = NewVMWithVisualizer();
       vm.Run(chunk);
@@ -71,7 +71,7 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestEvalGlobalVariable() {
+    public void TestGlobalVariable() {
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
 
@@ -81,8 +81,8 @@ namespace SeedLang.Interpreter.Tests {
       Chunk chunk = compiler.Compile(assignment);
       vm.Run(chunk);
 
-      var eval = Statement.Expression(identifier, _testTextRange);
-      chunk = compiler.Compile(eval);
+      var expr = Statement.Expression(identifier, _testTextRange);
+      chunk = compiler.Compile(expr);
       vm.Run(chunk);
 
       Assert.Equal(1, visualizer.Result.Number);
@@ -90,14 +90,14 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestEvalUnary() {
+    public void TestUnaryExpressionStatement() {
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
 
       var number = Expression.Number(1, _testTextRange);
       var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
-      var eval = Statement.Expression(unary, _testTextRange);
-      Chunk chunk = compiler.Compile(eval);
+      var expr = Statement.Expression(unary, _testTextRange);
+      Chunk chunk = compiler.Compile(expr);
       vm.Run(chunk);
 
       Assert.Equal(-1, visualizer.Result.Number);
@@ -107,8 +107,8 @@ namespace SeedLang.Interpreter.Tests {
       var right = Expression.Number(2, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
       unary = Expression.Unary(UnaryOperator.Negative, binary, _testTextRange);
-      eval = Statement.Expression(unary, _testTextRange);
-      chunk = compiler.Compile(eval);
+      expr = Statement.Expression(unary, _testTextRange);
+      chunk = compiler.Compile(expr);
       vm.Run(chunk);
 
       Assert.Equal(-3, visualizer.Result.Number);

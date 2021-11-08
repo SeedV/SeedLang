@@ -18,6 +18,7 @@ namespace SeedLang.Benchmark {
   class Program {
     static void Main(string[] _) {
       BenchmarkRunner.Run<BinaryExpressionBenchmark>();
+      BenchmarkRunner.Run<ValueBenchmark>();
     }
   }
 }

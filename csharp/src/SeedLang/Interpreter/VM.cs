@@ -35,46 +35,42 @@ namespace SeedLang.Interpreter {
       _registers = new VMValue[_chunk.RegisterCount];
       int pc = 0;
       while (pc < _chunk.Bytecode.Count) {
-        HandleInstruction(pc);
-        ++pc;
-      }
-    }
-
-    private void HandleInstruction(int pc) {
-      Instruction instr = _chunk.Bytecode[pc];
-      try {
-        switch (instr.Opcode) {
-          case Opcode.LOADK:
-            _registers[instr.A] = LoadConstantValue(instr.Bx);
-            break;
-          case Opcode.GETGLOB:
-            HandleGetGlobal(instr);
-            break;
-          case Opcode.SETGLOB:
-            HandleSetGlobal(instr, _chunk.Ranges[pc]);
-            break;
-          case Opcode.ADD:
-          case Opcode.SUB:
-          case Opcode.MUL:
-          case Opcode.DIV:
-            HandleBinary(instr, _chunk.Ranges[pc]);
-            break;
-          case Opcode.UNM:
-            _registers[instr.A] = new VMValue(-ValueOfRK(instr.B).Number);
-            break;
-          case Opcode.EVAL:
-            if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-              var ee = new EvalEvent(_registers[instr.A], _chunk.Ranges[pc]);
-              _visualizerCenter.EvalPublisher.Notify(ee);
-            }
-            break;
-          case Opcode.RETURN:
-            return;
+        Instruction instr = _chunk.Bytecode[pc];
+        try {
+          switch (instr.Opcode) {
+            case Opcode.LOADK:
+              _registers[instr.A] = LoadConstantValue(instr.Bx);
+              break;
+            case Opcode.GETGLOB:
+              HandleGetGlobal(instr);
+              break;
+            case Opcode.SETGLOB:
+              HandleSetGlobal(instr, _chunk.Ranges[pc]);
+              break;
+            case Opcode.ADD:
+            case Opcode.SUB:
+            case Opcode.MUL:
+            case Opcode.DIV:
+              HandleBinary(instr, _chunk.Ranges[pc]);
+              break;
+            case Opcode.UNM:
+              _registers[instr.A] = new VMValue(-ValueOfRK(instr.B).Number);
+              break;
+            case Opcode.EVAL:
+              if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+                var ee = new EvalEvent(_registers[instr.A], _chunk.Ranges[pc]);
+                _visualizerCenter.EvalPublisher.Notify(ee);
+              }
+              break;
+            case Opcode.RETURN:
+              return;
+          }
+        } catch (DiagnosticException ex) {
+          throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
+                                        ex.Diagnostic.Module, _chunk.Ranges[pc],
+                                        ex.Diagnostic.MessageId);
         }
-      } catch (DiagnosticException ex) {
-        throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
-                                      ex.Diagnostic.Module, _chunk.Ranges[pc],
-                                      ex.Diagnostic.MessageId);
+        ++pc;
       }
     }
 
@@ -111,7 +107,6 @@ namespace SeedLang.Interpreter {
           result = ValueHelper.Multiply(ValueOfRK(instr.B), ValueOfRK(instr.C));
           break;
         case Opcode.DIV:
-          VMValue divisor = ValueOfRK(instr.C);
           op = BinaryOperator.Divide;
           result = ValueHelper.Divide(ValueOfRK(instr.B), ValueOfRK(instr.C));
           break;

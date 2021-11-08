@@ -18,9 +18,10 @@ using System.Text;
 namespace SeedLang.Common {
   // Pre-defined diagnostic reporter names for the system components.
   public static class SystemReporters {
-    public const string SeedBlock = "SeedLang.Block";
-    public const string SeedX = "SeedLang.X";
     public const string SeedAst = "SeedLang.Ast";
+    public const string SeedBlock = "SeedLang.Block";
+    public const string SeedRuntime = "SeedLang.Runtime";
+    public const string SeedX = "SeedLang.X";
     public const string SeedVM = "SeedLang.VM";
   }
 

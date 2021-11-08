@@ -12,24 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   internal static class ValueHelper {
     internal static double Add<V>(V lhs, V rhs) where V : IValue {
-      return lhs.Number + rhs.Number;
+      double result = lhs.Number + rhs.Number;
+      CheckOverflow(result);
+      return result;
     }
 
     internal static double Subtract<V>(V lhs, V rhs) where V : IValue {
-      return lhs.Number - rhs.Number;
+      double result = lhs.Number - rhs.Number;
+      CheckOverflow(result);
+      return result;
     }
 
     internal static double Multiply<V>(V lhs, V rhs) where V : IValue {
-      return lhs.Number * rhs.Number;
+      double result = lhs.Number * rhs.Number;
+      CheckOverflow(result);
+      return result;
     }
 
     internal static double Divide<V>(V lhs, V rhs) where V : IValue {
-      return lhs.Number / rhs.Number;
+      if (rhs.Number == 0) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                      Message.RuntimeErrorDivideByZero);
+      }
+      double result = lhs.Number / rhs.Number;
+      CheckOverflow(result);
+      return result;
     }
 
     internal static double BooleanToNumber(bool value) {
@@ -55,8 +67,16 @@ namespace SeedLang.Runtime {
     internal static double StringToNumber(string value) {
       try {
         return double.Parse(value);
-      } catch (Exception) {
+      } catch (System.Exception) {
         return 0;
+      }
+    }
+
+    internal static void CheckOverflow(double value) {
+      // TODO: do we need separate NaN as another runtime error?
+      if (double.IsInfinity(value) || double.IsNaN(value)) {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                      Message.RuntimeOverflow);
       }
     }
   }

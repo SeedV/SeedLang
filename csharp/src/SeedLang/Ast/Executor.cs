@@ -43,24 +43,28 @@ namespace SeedLang.Ast {
       Visit(binary.Right);
       IValue right = _expressionResult;
       // TODO: handle other operators.
-      switch (binary.Op) {
-        case BinaryOperator.Add:
-          _expressionResult = new NumberValue(ValueHelper.Add(left, right));
-          break;
-        case BinaryOperator.Subtract:
-          _expressionResult = new NumberValue(ValueHelper.Subtract(left, right));
-          break;
-        case BinaryOperator.Multiply:
-          _expressionResult = new NumberValue(ValueHelper.Multiply(left, right));
-          break;
-        case BinaryOperator.Divide:
-          CheckDivideByZero(right.Number, binary.Range);
-          _expressionResult = new NumberValue(ValueHelper.Divide(left, right));
-          break;
-        default:
-          throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
+      try {
+        switch (binary.Op) {
+          case BinaryOperator.Add:
+            _expressionResult = new NumberValue(ValueHelper.Add(left, right));
+            break;
+          case BinaryOperator.Subtract:
+            _expressionResult = new NumberValue(ValueHelper.Subtract(left, right));
+            break;
+          case BinaryOperator.Multiply:
+            _expressionResult = new NumberValue(ValueHelper.Multiply(left, right));
+            break;
+          case BinaryOperator.Divide:
+            _expressionResult = new NumberValue(ValueHelper.Divide(left, right));
+            break;
+          default:
+            throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
+        }
+      } catch (DiagnosticException ex) {
+        throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
+                                      ex.Diagnostic.Module, binary.Range,
+                                      ex.Diagnostic.MessageId);
       }
-      CheckOverflow(_expressionResult.Number, binary.Range);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var be = new BinaryEvent(left, binary.Op, right, _expressionResult, binary.Range);
         _visualizerCenter.BinaryPublisher.Notify(be);
@@ -70,7 +74,6 @@ namespace SeedLang.Ast {
     protected override void Visit(IdentifierExpression identifier) {
       if (_globals.TryGetVariable(identifier.Name, out var value)) {
         _expressionResult = value;
-        CheckOverflow(_expressionResult.Number, identifier.Range);
       } else {
         // TODO: should the result be a null value or default number value if the variable is not
         // assigned before using? Another option is to report a runtime error.
@@ -79,8 +82,14 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(NumberConstantExpression number) {
-      CheckOverflow(number.Value, number.Range);
-      _expressionResult = new NumberValue(number.Value);
+      try {
+        ValueHelper.CheckOverflow(number.Value);
+        _expressionResult = new NumberValue(number.Value);
+      } catch (DiagnosticException ex) {
+        throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
+                                      ex.Diagnostic.Module, number.Range,
+                                      ex.Diagnostic.MessageId);
+      }
     }
 
     protected override void Visit(StringConstantExpression str) {
@@ -105,23 +114,6 @@ namespace SeedLang.Ast {
       if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
         var ee = new EvalEvent(_expressionResult, expr.Range);
         _visualizerCenter.EvalPublisher.Notify(ee);
-      }
-    }
-
-    private static void CheckDivideByZero(double divisor, Range range) {
-      if (divisor == 0) {
-        // TODO: how to get the module name?
-        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", range,
-                                      Message.RuntimeErrorDivideByZero);
-      }
-    }
-
-    private static void CheckOverflow(double value, Range range) {
-      // TODO: do we need separate NaN as another runtime error?
-      if (double.IsInfinity(value) || double.IsNaN(value)) {
-        // TODO: how to get the module name?
-        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", range,
-                                      Message.RuntimeOverflow);
       }
     }
   }

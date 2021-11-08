@@ -35,10 +35,17 @@ namespace SeedLang.Interpreter {
       _registers = new VMValue[_chunk.RegisterCount];
       int pc = 0;
       while (pc < _chunk.Bytecode.Count) {
-        Instruction instr = _chunk.Bytecode[pc];
+        HandleInstruction(pc);
+        ++pc;
+      }
+    }
+
+    private void HandleInstruction(int pc) {
+      Instruction instr = _chunk.Bytecode[pc];
+      try {
         switch (instr.Opcode) {
           case Opcode.LOADK:
-            _registers[instr.A] = _chunk.ValueOfConstId(instr.Bx);
+            _registers[instr.A] = LoadConstantValue(instr.Bx);
             break;
           case Opcode.GETGLOB:
             HandleGetGlobal(instr);
@@ -64,7 +71,10 @@ namespace SeedLang.Interpreter {
           case Opcode.RETURN:
             return;
         }
-        ++pc;
+      } catch (DiagnosticException ex) {
+        throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
+                                      ex.Diagnostic.Module, _chunk.Ranges[pc],
+                                      ex.Diagnostic.MessageId);
       }
     }
 
@@ -102,12 +112,10 @@ namespace SeedLang.Interpreter {
           break;
         case Opcode.DIV:
           VMValue divisor = ValueOfRK(instr.C);
-          CheckDivideByZero(divisor.Number, range);
           op = BinaryOperator.Divide;
           result = ValueHelper.Divide(ValueOfRK(instr.B), ValueOfRK(instr.C));
           break;
       }
-      CheckOverflow(result, range);
       _registers[instr.A] = new VMValue(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var be = new BinaryEvent(ValueOfRK(instr.B), op, ValueOfRK(instr.C), _registers[instr.A],
@@ -120,26 +128,13 @@ namespace SeedLang.Interpreter {
       if (rkPos < Chunk.MaxRegisterCount) {
         return _registers[rkPos];
       }
-      return _chunk.ValueOfConstId(rkPos);
+      return LoadConstantValue(rkPos);
     }
 
-    // TODO: extract this utility method into a common place like runtime component.
-    private static void CheckDivideByZero(double divisor, Range range) {
-      if (divisor == 0) {
-        // TODO: how to get the module name?
-        throw new DiagnosticException(SystemReporters.SeedVM, Severity.Error, "", range,
-                                      Message.RuntimeErrorDivideByZero);
-      }
-    }
-
-    // TODO: extract this utility method into a common place like runtime component.
-    private static void CheckOverflow(double value, Range range) {
-      // TODO: do we need separate NaN as another runtime error?
-      if (double.IsInfinity(value) || double.IsNaN(value)) {
-        // TODO: how to get the module name?
-        throw new DiagnosticException(SystemReporters.SeedVM, Severity.Error, "", range,
-                                      Message.RuntimeOverflow);
-      }
+    private VMValue LoadConstantValue(uint constId) {
+      VMValue value = _chunk.ValueOfConstId(constId);
+      ValueHelper.CheckOverflow(value.Number);
+      return value;
     }
   }
 }

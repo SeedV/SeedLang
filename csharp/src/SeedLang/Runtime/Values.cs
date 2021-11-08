@@ -32,6 +32,10 @@ namespace SeedLang.Runtime {
     public bool Boolean => false;
     public double Number => 0;
     public string String => "";
+
+    public override string ToString() {
+      return String;
+    }
   }
 
   // An immutable boolean value class.
@@ -41,8 +45,12 @@ namespace SeedLang.Runtime {
     public double Number => ValueHelper.BooleanToNumber(Boolean);
     public string String => ValueHelper.BooleanToString(Boolean);
 
-    internal BooleanValue(bool value = false) {
+    internal BooleanValue(bool value) {
       Boolean = value;
+    }
+
+    public override string ToString() {
+      return String;
     }
   }
 
@@ -56,6 +64,10 @@ namespace SeedLang.Runtime {
     internal NumberValue(double value = 0) {
       Number = value;
     }
+
+    public override string ToString() {
+      return String;
+    }
   }
 
   // An immutable string value class.
@@ -67,6 +79,10 @@ namespace SeedLang.Runtime {
 
     internal StringValue(string value = "") {
       String = value;
+    }
+
+    public override string ToString() {
+      return String;
     }
   }
 }

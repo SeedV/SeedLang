@@ -21,64 +21,56 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNullValue() {
-      var boolean = new NullValue();
-      Assert.False(boolean.Boolean);
-      Assert.Equal(0, boolean.Number);
-      Assert.Equal("", boolean.String);
+      var @null = new NullValue();
+      Assert.False(@null.Boolean);
+      Assert.Equal(0, @null.Number);
+      Assert.Equal("", @null.String);
+      Assert.Equal("", @null.ToString());
     }
 
     [Fact]
     public void TestBooleanValue() {
-      var boolean = new BooleanValue();
+      var boolean = new BooleanValue(false);
       Assert.False(boolean.Boolean);
       Assert.Equal(0, boolean.Number);
       Assert.Equal(_expectedFalseString, boolean.String);
-
-      boolean = new BooleanValue(false);
-      Assert.False(boolean.Boolean);
-      Assert.Equal(0, boolean.Number);
-      Assert.Equal(_expectedFalseString, boolean.String);
+      Assert.Equal(_expectedFalseString, boolean.ToString());
 
       boolean = new BooleanValue(true);
       Assert.True(boolean.Boolean);
       Assert.Equal(1, boolean.Number);
       Assert.Equal(_expectedTrueString, boolean.String);
+      Assert.Equal(_expectedTrueString, boolean.ToString());
     }
 
     [Fact]
     public void TestNumberValue() {
-      var number = new NumberValue();
-      Assert.False(number.Boolean);
-      Assert.Equal(0, number.Number);
-      Assert.Equal("0", number.String);
-
-      number = new NumberValue(1);
+      var number = new NumberValue(1);
       Assert.True(number.Boolean);
       Assert.Equal(1, number.Number);
       Assert.Equal("1", number.String);
+      Assert.Equal("1", number.ToString());
 
       number = new NumberValue(2.5);
       Assert.True(number.Boolean);
       Assert.Equal(2.5, number.Number);
       Assert.Equal("2.5", number.String);
+      Assert.Equal("2.5", number.ToString());
     }
 
     [Fact]
     public void TestStringValue() {
-      var str = new StringValue();
-      Assert.False(str.Boolean);
-      Assert.Equal(0, str.Number);
-      Assert.Equal("", str.String);
-
-      str = new StringValue("1");
+      var str = new StringValue("1");
       Assert.False(str.Boolean);
       Assert.Equal(1, str.Number);
       Assert.Equal("1", str.String);
+      Assert.Equal("1", str.ToString());
 
       str = new StringValue(_expectedTrueString);
       Assert.True(str.Boolean);
       Assert.Equal(0, str.Number);
       Assert.Equal(_expectedTrueString, str.String);
+      Assert.Equal(_expectedTrueString, str.ToString());
     }
   }
 }

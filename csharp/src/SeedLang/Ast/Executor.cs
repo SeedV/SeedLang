@@ -78,7 +78,6 @@ namespace SeedLang.Ast {
 
     protected override void Visit(NumberConstantExpression number) {
       try {
-        ValueHelper.CheckOverflow(number.Value);
         _expressionResult = new NumberValue(number.Value);
       } catch (DiagnosticException ex) {
         throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,

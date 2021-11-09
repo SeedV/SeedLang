@@ -93,28 +93,29 @@ namespace SeedLang.Interpreter {
     private void HandleBinary(Instruction instr, Range range) {
       BinaryOperator op = BinaryOperator.Add;
       double result = 0;
+      VMValue left = ValueOfRK(instr.B);
+      VMValue right = ValueOfRK(instr.C);
       switch (instr.Opcode) {
         case Opcode.ADD:
           op = BinaryOperator.Add;
-          result = ValueHelper.Add(ValueOfRK(instr.B), ValueOfRK(instr.C));
+          result = ValueHelper.Add(left, right);
           break;
         case Opcode.SUB:
           op = BinaryOperator.Subtract;
-          result = ValueHelper.Subtract(ValueOfRK(instr.B), ValueOfRK(instr.C));
+          result = ValueHelper.Subtract(left, right);
           break;
         case Opcode.MUL:
           op = BinaryOperator.Multiply;
-          result = ValueHelper.Multiply(ValueOfRK(instr.B), ValueOfRK(instr.C));
+          result = ValueHelper.Multiply(left, right);
           break;
         case Opcode.DIV:
           op = BinaryOperator.Divide;
-          result = ValueHelper.Divide(ValueOfRK(instr.B), ValueOfRK(instr.C));
+          result = ValueHelper.Divide(left, right);
           break;
       }
       _registers[instr.A] = new VMValue(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var be = new BinaryEvent(ValueOfRK(instr.B), op, ValueOfRK(instr.C), _registers[instr.A],
-                                 range);
+        var be = new BinaryEvent(left, op, right, _registers[instr.A], range);
         _visualizerCenter.BinaryPublisher.Notify(be);
       }
     }
@@ -127,7 +128,6 @@ namespace SeedLang.Interpreter {
     }
 
     private ref readonly VMValue LoadConstantValue(uint constId) {
-      ValueHelper.CheckOverflow(_chunk.ValueOfConstId(constId).Number);
       return ref _chunk.ValueOfConstId(constId);
     }
   }

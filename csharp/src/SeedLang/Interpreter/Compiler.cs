@@ -34,15 +34,17 @@ namespace SeedLang.Interpreter {
 
     private Chunk _chunk;
     private ConstantCache _constantCache;
-    private readonly RegisterAllocator _registerAllocator = new RegisterAllocator();
+    private RegisterAllocator _registerAllocator;
     private ExpressionInfo _expressionInfo;
 
     internal Chunk Compile(AstNode node) {
       _chunk = new Chunk();
-      _constantCache = new ConstantCache(_chunk);
+      _constantCache = new ConstantCache();
+      _registerAllocator = new RegisterAllocator();
       Visit(node);
       _chunk.Emit(Opcode.RETURN, 0);
       _chunk.RegisterCount = _registerAllocator.MaxRegisterCount;
+      _chunk.SetConstants(_constantCache.Constants.ToArray());
       return _chunk;
     }
 

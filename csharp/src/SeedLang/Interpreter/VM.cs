@@ -21,7 +21,8 @@ namespace SeedLang.Interpreter {
     private readonly VisualizerCenter _visualizerCenter;
 
     // The global environment to store names and values of global variables.
-    private readonly GlobalEnvironment<VMValue> _globals = new GlobalEnvironment<VMValue>();
+    private readonly GlobalEnvironment<VMValue> _globals =
+        new GlobalEnvironment<VMValue>(new VMValue());
 
     private Chunk _chunk;
     private VMValue[] _registers;
@@ -76,9 +77,8 @@ namespace SeedLang.Interpreter {
 
     private void HandleGetGlobal(Instruction instr) {
       var name = _chunk.ValueOfConstId(instr.Bx).ToString();
-      if (_globals.TryGetVariable(name, out VMValue value)) {
-        _registers[instr.A] = value;
-      }
+      _registers[instr.A] = _globals.
+      GetVariable(name);
     }
 
     private void HandleSetGlobal(Instruction instr, Range range) {
@@ -119,17 +119,16 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private VMValue ValueOfRK(uint rkPos) {
+    private ref readonly VMValue ValueOfRK(uint rkPos) {
       if (rkPos < Chunk.MaxRegisterCount) {
-        return _registers[rkPos];
+        return ref _registers[rkPos];
       }
-      return LoadConstantValue(rkPos);
+      return ref LoadConstantValue(rkPos);
     }
 
-    private VMValue LoadConstantValue(uint constId) {
-      VMValue value = _chunk.ValueOfConstId(constId);
-      ValueHelper.CheckOverflow(value.Number);
-      return value;
+    private ref readonly VMValue LoadConstantValue(uint constId) {
+      ValueHelper.CheckOverflow(_chunk.ValueOfConstId(constId).Number);
+      return ref _chunk.ValueOfConstId(constId);
     }
   }
 }

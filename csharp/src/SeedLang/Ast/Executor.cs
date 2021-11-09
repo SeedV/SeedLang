@@ -23,7 +23,8 @@ namespace SeedLang.Ast {
     private readonly VisualizerCenter _visualizerCenter;
 
     // The global environment to store names and values of global variables.
-    private readonly GlobalEnvironment<IValue> _globals = new GlobalEnvironment<IValue>();
+    private readonly GlobalEnvironment<IValue> _globals =
+        new GlobalEnvironment<IValue>(new NullValue());
 
     // The result of current executed expression.
     private IValue _expressionResult;
@@ -72,13 +73,7 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(IdentifierExpression identifier) {
-      if (_globals.TryGetVariable(identifier.Name, out var value)) {
-        _expressionResult = value;
-      } else {
-        // TODO: should the result be a null value or default number value if the variable is not
-        // assigned before using? Another option is to report a runtime error.
-        _expressionResult = new NumberValue();
-      }
+      _expressionResult = _globals.GetVariable(identifier.Name);
     }
 
     protected override void Visit(NumberConstantExpression number) {

@@ -13,24 +13,23 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
   // A cache class to cache the constant id of constants. It only adds the unique constant into the
   // constant list of the chunk.
   internal class ConstantCache {
-    private readonly Chunk _chunk;
+    public List<VMValue> Constants { get; } = new List<VMValue>();
+
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
-
-    internal ConstantCache(Chunk chunk) {
-      _chunk = chunk;
-    }
 
     // Returns the id of the given number constant and adds the constant into the constant list of
     // the chunk if it is not in the constant list.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {
-        _numbers[number] = _chunk.AddConstant(number);
+        Constants.Add(new VMValue(number));
+        _numbers[number] = IdOfLastConst();
       }
       return _numbers[number];
     }
@@ -39,9 +38,15 @@ namespace SeedLang.Interpreter {
     // the chunk if it is not in the constant list.
     internal uint IdOfConstant(string str) {
       if (!_strings.ContainsKey(str)) {
-        _strings[str] = _chunk.AddConstant(str);
+        Constants.Add(new VMValue(str));
+        _strings[str] = IdOfLastConst();
       }
       return _strings[str];
+    }
+
+    private uint IdOfLastConst() {
+      Debug.Assert(Constants.Count >= 1);
+      return (uint)Constants.Count - 1 + Chunk.MaxRegisterCount;
     }
   }
 }

@@ -31,7 +31,7 @@ namespace SeedLang.Benchmark {
     public void BenchmarkAddingVMValue() {
       var left = new VMValue(1);
       var right = new VMValue(2);
-      double _ = ValueHelper.Add(left, right);
+      double _ = ValueHelper.Add(in left, in right);
     }
   }
 }

@@ -16,25 +16,25 @@ using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   internal static class ValueHelper {
-    internal static double Add<V>(V lhs, V rhs) where V : IValue {
+    internal static double Add<Value>(in Value lhs, in Value rhs) where Value : IValue {
       double result = lhs.Number + rhs.Number;
       CheckOverflow(result);
       return result;
     }
 
-    internal static double Subtract<V>(V lhs, V rhs) where V : IValue {
+    internal static double Subtract<Value>(in Value lhs, in Value rhs) where Value : IValue {
       double result = lhs.Number - rhs.Number;
       CheckOverflow(result);
       return result;
     }
 
-    internal static double Multiply<V>(V lhs, V rhs) where V : IValue {
+    internal static double Multiply<Value>(in Value lhs, in Value rhs) where Value : IValue {
       double result = lhs.Number * rhs.Number;
       CheckOverflow(result);
       return result;
     }
 
-    internal static double Divide<V>(V lhs, V rhs) where V : IValue {
+    internal static double Divide<Value>(in Value lhs, in Value rhs) where Value : IValue {
       if (rhs.Number == 0) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
                                       Message.RuntimeErrorDivideByZero);

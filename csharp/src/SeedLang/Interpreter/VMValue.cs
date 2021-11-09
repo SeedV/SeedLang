@@ -19,7 +19,7 @@ namespace SeedLang.Interpreter {
   //
   // It's designed as a value type (struct) to avoid object creating frequently. A coresponding
   // runtime Value is genrated and sent to the visualizer center when visualizers need be notified.
-  internal struct VMValue : IValue {
+  internal readonly struct VMValue : IValue {
     public ValueType Type { get; }
 
     public bool Boolean {

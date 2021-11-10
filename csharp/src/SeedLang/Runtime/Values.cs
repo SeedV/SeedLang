@@ -27,6 +27,7 @@ namespace SeedLang.Runtime {
     string String { get; }
   }
 
+  // An immutable null value class.
   internal class NullValue : IValue {
     public ValueType Type => ValueType.Null;
     public bool Boolean => false;

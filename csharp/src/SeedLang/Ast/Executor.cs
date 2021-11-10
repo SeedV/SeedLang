@@ -62,6 +62,7 @@ namespace SeedLang.Ast {
             throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
         }
       } catch (DiagnosticException ex) {
+        // Throws a new diagnostic exception with more information.
         throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
                                       ex.Diagnostic.Module, binary.Range,
                                       ex.Diagnostic.MessageId);

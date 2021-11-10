@@ -18,17 +18,15 @@ using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
   public class ValueBenchmark {
-    // Benchmarks binary expression running time of the AST executor.
     [Benchmark]
-    public void BenchmarkAddingNumberValue() {
+    public void BenchmarkAddingTwoNumberValue() {
       var left = new NumberValue(1);
       var right = new NumberValue(2);
       double _ = ValueHelper.Add(left, right);
     }
 
-    // Benchmarks binary expression running time of the VM. Compiling time is not included.
     [Benchmark]
-    public void BenchmarkAddingVMValue() {
+    public void BenchmarkAddingTwoVMValue() {
       var left = new VMValue(1);
       var right = new VMValue(2);
       double _ = ValueHelper.Add(in left, in right);

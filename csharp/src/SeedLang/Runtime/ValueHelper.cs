@@ -15,6 +15,7 @@
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
+  // A helper class to do value operations. The generic parameter Value could be IValue or VMValue.
   internal static class ValueHelper {
     internal static double Add<Value>(in Value lhs, in Value rhs) where Value : IValue {
       double result = lhs.Number + rhs.Number;

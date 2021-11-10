@@ -73,12 +73,12 @@ namespace SeedLang.Runtime {
       if (string.IsNullOrEmpty(source) || module is null) {
         return false;
       }
-      BaseParser parser = MakeParser(language);
-      var localCollection = collection ?? new DiagnosticCollection();
-      if (!parser.Parse(source, module, localCollection, out AstNode node, out _)) {
-        return false;
-      }
       try {
+        BaseParser parser = MakeParser(language);
+        var localCollection = collection ?? new DiagnosticCollection();
+        if (!parser.Parse(source, module, localCollection, out AstNode node, out _)) {
+          return false;
+        }
         switch (runType) {
           case RunType.Ast:
             _executor.Run(node);

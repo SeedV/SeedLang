@@ -1,4 +1,3 @@
-using System.Security.Principal;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -145,28 +144,24 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteOverflow() {
-      var binary1 = Expression.Binary(Expression.Number(7.997e307, NewTextRange()),
-                                      BinaryOperator.Add,
-                                      Expression.Number(9.985e307, NewTextRange()),
-                                      NewTextRange());
-      var binary2 = Expression.Binary(Expression.Number(double.PositiveInfinity, NewTextRange()),
-                                      BinaryOperator.Add,
-                                      Expression.Number(1, NewTextRange()),
-                                      NewTextRange());
-      var assign = Statement.Assignment(Expression.Identifier("id", NewTextRange()),
-                                        Expression.Number(double.NegativeInfinity, NewTextRange()),
-                                        NewTextRange());
-      var eval = Statement.Expression(Expression.Number(double.NaN, NewTextRange()), NewTextRange());
+      var exception = Assert.Throws<DiagnosticException>(() =>
+          Expression.Number(double.PositiveInfinity, NewTextRange()));
+      Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
+      exception = Assert.Throws<DiagnosticException>(() =>
+          Expression.Number(double.NegativeInfinity, NewTextRange()));
+      Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
+      exception = Assert.Throws<DiagnosticException>(() =>
+          Expression.Number(double.NaN, NewTextRange()));
+      Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
+
+      var binary = Expression.Binary(Expression.Number(7.997e307, NewTextRange()),
+                                     BinaryOperator.Add,
+                                     Expression.Number(9.985e307, NewTextRange()),
+                                     NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
-      var exception1 = Assert.Throws<DiagnosticException>(() => executor.Run(binary1));
-      Assert.Equal(Message.RuntimeOverflow, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => executor.Run(binary2));
-      Assert.Equal(Message.RuntimeOverflow, exception2.Diagnostic.MessageId);
-      var exception3 = Assert.Throws<DiagnosticException>(() => executor.Run(assign));
-      Assert.Equal(Message.RuntimeOverflow, exception3.Diagnostic.MessageId);
-      var exception4 = Assert.Throws<DiagnosticException>(() => executor.Run(eval));
-      Assert.Equal(Message.RuntimeOverflow, exception4.Diagnostic.MessageId);
+      exception = Assert.Throws<DiagnosticException>(() => executor.Run(binary));
+      Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
     }
 
     private static TextRange NewTextRange() {

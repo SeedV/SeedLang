@@ -120,6 +120,8 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    // Gets the register value or constant value according to rkPos. Returns a readonly reference to
+    // avoid copying.
     private ref readonly VMValue ValueOfRK(uint rkPos) {
       if (rkPos < Chunk.MaxRegisterCount) {
         return ref _registers[rkPos];
@@ -127,6 +129,7 @@ namespace SeedLang.Interpreter {
       return ref LoadConstantValue(rkPos);
     }
 
+    // Loads the constant value of constId. Returns a readonly reference to avoid copying.
     private ref readonly VMValue LoadConstantValue(uint constId) {
       return ref _chunk.ValueOfConstId(constId);
     }

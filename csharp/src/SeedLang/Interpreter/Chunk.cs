@@ -55,9 +55,7 @@ namespace SeedLang.Interpreter {
       _ranges.Add(range);
     }
 
-    // Adds a number constant into the constant list and returns the id of the input constant.
-    //
-    // The returned constant id is the index in the constant list plus the maximum register count.
+    // Sets the constant list. It must be called by the compiler after compilation.
     internal void SetConstants(VMValue[] constants) {
       _constants = constants;
     }
@@ -66,6 +64,7 @@ namespace SeedLang.Interpreter {
       return constId >= MaxRegisterCount && constId - MaxRegisterCount < _constants.Length;
     }
 
+    // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.
     internal ref readonly VMValue ValueOfConstId(uint constId) {
       return ref _constants[IndexOfConstId(constId)];
     }

@@ -22,12 +22,14 @@ namespace SeedLang.Runtime.Tests {
                                          MockupBinaryVisualizer,
                                          MockupMultipleVisualizer>;
 
-  internal class MockupValue : Value {
-    public override ValueType Type => ValueType.Number;
+  internal class MockupValue : IValue {
+    public ValueType Type => ValueType.Number;
 
-    public override double ToNumber() {
-      return 0;
-    }
+    public bool Boolean => false;
+
+    public double Number => 0;
+
+    public string String => "false";
   }
 
   internal class MockupBinaryVisualizer : IVisualizer<BinaryEvent> {

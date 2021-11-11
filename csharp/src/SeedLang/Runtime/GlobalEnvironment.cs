@@ -16,16 +16,24 @@ using System.Collections.Generic;
 
 namespace SeedLang.Runtime {
   // The global environment to store names and values of global variables. The generic parameter
-  // Value could be runtime Value or VMValue.
+  // Value could be IValue or VMValue.
   internal class GlobalEnvironment<Value> {
     private readonly Dictionary<string, Value> _globals = new Dictionary<string, Value>();
+    private readonly Value _defaultValue;
 
-    internal void SetVariable(string name, Value value) {
+    internal GlobalEnvironment(in Value defaultValue) {
+      _defaultValue = defaultValue;
+    }
+
+    internal void SetVariable(string name, in Value value) {
       _globals[name] = value;
     }
 
-    internal bool TryGetVariable(string name, out Value value) {
-      return _globals.TryGetValue(name, out value);
+    internal Value GetVariable(string name) {
+      if (!_globals.ContainsKey(name)) {
+        _globals[name] = _defaultValue;
+      }
+      return _globals[name];
     }
   }
 }

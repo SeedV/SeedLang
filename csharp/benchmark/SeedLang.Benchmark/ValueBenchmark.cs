@@ -12,30 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using BenchmarkDotNet.Attributes;
+using SeedLang.Interpreter;
+using SeedLang.Runtime;
 
-namespace SeedLang.Runtime {
-  // An immutable string value class.
-  internal class StringValue : Value {
-    private readonly string _value;
-
-    public override ValueType Type => ValueType.String;
-
-    internal StringValue(string value) {
-      _value = value;
+namespace SeedLang.Benchmark {
+  public class ValueBenchmark {
+    [Benchmark]
+    public void BenchmarkAddingTwoNumberValue() {
+      var left = new NumberValue(1);
+      var right = new NumberValue(2);
+      double _ = ValueHelper.Add(left, right);
     }
 
-    // TODO: decide if implicit cast from a string to a number is allowed (Python does not support)
-    public override double ToNumber() {
-      try {
-        return double.Parse(_value);
-      } catch (Exception) {
-        return 0;
-      }
-    }
-
-    public override string ToString() {
-      return _value;
+    [Benchmark]
+    public void BenchmarkAddingTwoVMValue() {
+      var left = new VMValue(1);
+      var right = new VMValue(2);
+      double _ = ValueHelper.Add(in left, in right);
     }
   }
 }

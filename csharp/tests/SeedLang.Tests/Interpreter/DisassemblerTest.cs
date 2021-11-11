@@ -23,15 +23,17 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestDisassember() {
       var chunk = new Chunk();
-      chunk.Emit(Opcode.LOADK, 0, chunk.AddConstant(1), _testTextRange);
-      chunk.Emit(Opcode.GETGLOB, 1, chunk.AddConstant("global_variable"), _testTextRange);
-      chunk.Emit(Opcode.SETGLOB, 1, chunk.AddConstant("name"), _testTextRange);
+      var cache = new ConstantCache();
+      chunk.Emit(Opcode.LOADK, 0, cache.IdOfConstant(1), _testTextRange);
+      chunk.Emit(Opcode.GETGLOB, 1, cache.IdOfConstant("global_variable"), _testTextRange);
+      chunk.Emit(Opcode.SETGLOB, 1, cache.IdOfConstant("name"), _testTextRange);
       chunk.Emit(Opcode.ADD, 0, 1, 2, _testTextRange);
-      chunk.Emit(Opcode.SUB, 0, chunk.AddConstant(2), 2, _testTextRange);
-      chunk.Emit(Opcode.MUL, 0, 1, chunk.AddConstant(3), _testTextRange);
-      chunk.Emit(Opcode.DIV, 0, chunk.AddConstant(4), chunk.AddConstant(5), _testTextRange);
-      chunk.Emit(Opcode.UNM, 0, chunk.AddConstant(6), 0, _testTextRange);
+      chunk.Emit(Opcode.SUB, 0, cache.IdOfConstant(2), 2, _testTextRange);
+      chunk.Emit(Opcode.MUL, 0, 1, cache.IdOfConstant(3), _testTextRange);
+      chunk.Emit(Opcode.DIV, 0, cache.IdOfConstant(4), cache.IdOfConstant(5), _testTextRange);
+      chunk.Emit(Opcode.UNM, 0, cache.IdOfConstant(6), 0, _testTextRange);
       chunk.Emit(Opcode.RETURN, 0);
+      chunk.SetConstants(cache.Constants.ToArray());
       string expected = (
           "1    LOADK     0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "2    GETGLOB   1 -2           ; global_variable   [Ln 0, Col 1 - Ln 2, Col 3]\n" +

@@ -35,10 +35,10 @@ namespace SeedLang.Interpreter {
 
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
-    // The constant list to hold all the constants used in this chunk.
-    private readonly List<VMValue> _constants = new List<VMValue>();
-
     private readonly List<Range> _ranges = new List<Range>();
+
+    // The constant list to hold all the constants used in this chunk.
+    private VMValue[] _constants;
 
     internal void Emit(Opcode opcode, uint a, Range range = null) {
       _bytecode.Add(new Instruction(opcode, a));
@@ -55,39 +55,24 @@ namespace SeedLang.Interpreter {
       _ranges.Add(range);
     }
 
-    // Adds a number constant into the constant list and returns the id of the input constant.
-    //
-    // The returned constant id is the index in the constant list plus the maximum register count.
-    internal uint AddConstant(double number) {
-      _constants.Add(new VMValue(number));
-      return IdOfLastConst();
-    }
-
-    // Adds a string constant into the constant list and returns the id of the input constant.
-    //
-    // The returned constant id is the index in the constant list plus the maximum register count.
-    internal uint AddConstant(string str) {
-      _constants.Add(new VMValue(str));
-      return IdOfLastConst();
+    // Sets the constant list. It must be called by the compiler after compilation.
+    internal void SetConstants(VMValue[] constants) {
+      _constants = constants;
     }
 
     internal bool IsConstIdValid(uint constId) {
-      return constId >= MaxRegisterCount && constId - MaxRegisterCount < _constants.Count;
+      return constId >= MaxRegisterCount && constId - MaxRegisterCount < _constants.Length;
     }
 
-    internal VMValue ValueOfConstId(uint constId) {
-      return _constants[IndexOfConstId(constId)];
+    // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.
+    internal ref readonly VMValue ValueOfConstId(uint constId) {
+      return ref _constants[IndexOfConstId(constId)];
     }
 
     // Converts the constant id to the index in the constant list.
     private int IndexOfConstId(uint constId) {
       Debug.Assert(IsConstIdValid(constId), "Invalid constant id.");
       return (int)(constId - MaxRegisterCount);
-    }
-
-    private uint IdOfLastConst() {
-      Debug.Assert(_constants.Count >= 1);
-      return (uint)_constants.Count - 1 + MaxRegisterCount;
     }
   }
 }

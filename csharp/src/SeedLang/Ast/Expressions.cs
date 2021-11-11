@@ -40,6 +40,8 @@ namespace SeedLang.Ast {
 
     // The factory method to create a number constant expression.
     internal static NumberConstantExpression Number(double value, Range range) {
+      // Throws a runtime overflow exception if the constant number is overflowed.
+      ValueHelper.CheckOverflow(value, range);
       return new NumberConstantExpression(value, range);
     }
 

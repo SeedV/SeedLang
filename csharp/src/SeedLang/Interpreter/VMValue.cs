@@ -17,73 +17,86 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The value type used in the SeedLang virtual machine.
   //
-  // It's designed as a value type (struct) to avoid object creating frequently. A coresponding
-  // runtime Value is genrated and sent to the visualizer center when visualizers need be notified.
-  internal struct VMValue {
-    private readonly ValueType _type;
+  // Design consideration:
+  // 1) It's designed as a value type (struct) to avoid object creating frequently. It's boxed into
+  //    an IValue object and sent to the visualizer center when visualizers need be notified.
+  // 2) "in" keyword is used when passing VMValue as a parameter of functions to avoid copying.
+  // 3) "ref readonly" keywords are used when returning VMValue from a function to avoid copying.
+  internal readonly struct VMValue : IValue {
+    public ValueType Type { get; }
+
+    public bool Boolean {
+      get {
+        switch (Type) {
+          case ValueType.Null:
+            return false;
+          case ValueType.Boolean:
+          case ValueType.Number:
+            return ValueHelper.NumberToBoolean(_number);
+          case ValueType.String:
+            return ValueHelper.StringToBoolean(_object as string);
+          default:
+            throw new System.NotImplementedException($"Unsupported value type: {Type}.");
+        }
+      }
+    }
+
+    public double Number {
+      get {
+        switch (Type) {
+          case ValueType.Null:
+            return 0;
+          case ValueType.Boolean:
+          case ValueType.Number:
+            return _number;
+          case ValueType.String:
+            return ValueHelper.StringToNumber(_object as string);
+          default:
+            throw new System.NotImplementedException($"Unsupported value type: {Type}.");
+        }
+      }
+    }
+
+    public string String {
+      get {
+        switch (Type) {
+          case ValueType.Null:
+            return "";
+          case ValueType.Boolean:
+            return ValueHelper.BooleanToString(ValueHelper.NumberToBoolean(_number));
+          case ValueType.Number:
+            return ValueHelper.NumberToString(_number);
+          case ValueType.String:
+            return _object as string;
+          default:
+            throw new System.NotImplementedException($"Unsupported value type: {Type}.");
+        }
+      }
+    }
+
     private readonly double _number;
     private readonly object _object;
 
-    internal VMValue(double number) {
-      _type = ValueType.Number;
-      _number = number;
+    internal VMValue(bool value) {
+      Type = ValueType.Boolean;
+      _number = ValueHelper.BooleanToNumber(value);
       _object = null;
     }
 
-    internal VMValue(string str) {
-      _type = ValueType.String;
+    internal VMValue(double value) {
+      Type = ValueType.Number;
+      _number = value;
+      _object = null;
+    }
+
+    internal VMValue(string value) {
+      Type = ValueType.String;
       _number = 0;
-      _object = str;
+      _object = value;
     }
 
     public override string ToString() {
-      switch (_type) {
-        case ValueType.Number:
-          return $"{_number}";
-        case ValueType.String:
-          return $"{_object}";
-        default:
-          throw new System.NotImplementedException($"Unsupported value type: {_type}.");
-      }
-    }
-
-    internal double ToNumber() {
-      switch (_type) {
-        case ValueType.Number:
-          return _number;
-        case ValueType.String:
-          // TODO: need parse string to number?
-          return 0;
-        default:
-          throw new System.NotImplementedException($"Unsupported value type: {_type}.");
-      }
-    }
-
-    internal Value ToValue() {
-      switch (_type) {
-        case ValueType.Number:
-          return new NumberValue(_number);
-        case ValueType.String:
-          return new StringValue(_object as string);
-        default:
-          throw new System.NotImplementedException($"Unsupported value type: {_type}.");
-      }
-    }
-
-    public static VMValue operator +(VMValue lhs, VMValue rhs) {
-      return new VMValue(lhs._number + rhs._number);
-    }
-
-    public static VMValue operator -(VMValue lhs, VMValue rhs) {
-      return new VMValue(lhs._number - rhs._number);
-    }
-
-    public static VMValue operator *(VMValue lhs, VMValue rhs) {
-      return new VMValue(lhs._number * rhs._number);
-    }
-
-    public static VMValue operator /(VMValue lhs, VMValue rhs) {
-      return new VMValue(lhs._number / rhs._number);
+      return String;
     }
   }
 }

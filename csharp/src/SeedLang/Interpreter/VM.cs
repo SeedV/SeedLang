@@ -21,7 +21,8 @@ namespace SeedLang.Interpreter {
     private readonly VisualizerCenter _visualizerCenter;
 
     // The global environment to store names and values of global variables.
-    private readonly GlobalEnvironment<VMValue> _globals = new GlobalEnvironment<VMValue>();
+    private readonly GlobalEnvironment<VMValue> _globals =
+        new GlobalEnvironment<VMValue>(new VMValue());
 
     private Chunk _chunk;
     private VMValue[] _registers;
@@ -36,33 +37,39 @@ namespace SeedLang.Interpreter {
       int pc = 0;
       while (pc < _chunk.Bytecode.Count) {
         Instruction instr = _chunk.Bytecode[pc];
-        switch (instr.Opcode) {
-          case Opcode.LOADK:
-            _registers[instr.A] = _chunk.ValueOfConstId(instr.Bx);
-            break;
-          case Opcode.GETGLOB:
-            HandleGetGlobal(instr);
-            break;
-          case Opcode.SETGLOB:
-            HandleSetGlobal(instr, _chunk.Ranges[pc]);
-            break;
-          case Opcode.ADD:
-          case Opcode.SUB:
-          case Opcode.MUL:
-          case Opcode.DIV:
-            HandleBinary(instr, _chunk.Ranges[pc]);
-            break;
-          case Opcode.UNM:
-            _registers[instr.A] = new VMValue(-ValueOfRK(instr.B).ToNumber());
-            break;
-          case Opcode.EVAL:
-            if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-              var ee = new EvalEvent(_registers[instr.A].ToValue(), _chunk.Ranges[pc]);
-              _visualizerCenter.EvalPublisher.Notify(ee);
-            }
-            break;
-          case Opcode.RETURN:
-            return;
+        try {
+          switch (instr.Opcode) {
+            case Opcode.LOADK:
+              _registers[instr.A] = LoadConstantValue(instr.Bx);
+              break;
+            case Opcode.GETGLOB:
+              HandleGetGlobal(instr);
+              break;
+            case Opcode.SETGLOB:
+              HandleSetGlobal(instr, _chunk.Ranges[pc]);
+              break;
+            case Opcode.ADD:
+            case Opcode.SUB:
+            case Opcode.MUL:
+            case Opcode.DIV:
+              HandleBinary(instr, _chunk.Ranges[pc]);
+              break;
+            case Opcode.UNM:
+              _registers[instr.A] = new VMValue(-ValueOfRK(instr.B).Number);
+              break;
+            case Opcode.EVAL:
+              if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+                var ee = new EvalEvent(_registers[instr.A], _chunk.Ranges[pc]);
+                _visualizerCenter.EvalPublisher.Notify(ee);
+              }
+              break;
+            case Opcode.RETURN:
+              return;
+          }
+        } catch (DiagnosticException ex) {
+          throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
+                                        ex.Diagnostic.Module, _chunk.Ranges[pc],
+                                        ex.Diagnostic.MessageId);
         }
         ++pc;
       }
@@ -70,74 +77,61 @@ namespace SeedLang.Interpreter {
 
     private void HandleGetGlobal(Instruction instr) {
       var name = _chunk.ValueOfConstId(instr.Bx).ToString();
-      if (_globals.TryGetVariable(name, out VMValue value)) {
-        _registers[instr.A] = value;
-      }
+      _registers[instr.A] = _globals.
+      GetVariable(name);
     }
 
     private void HandleSetGlobal(Instruction instr, Range range) {
       var name = _chunk.ValueOfConstId(instr.Bx).ToString();
       _globals.SetVariable(name, _registers[instr.A]);
       if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var ae = new AssignmentEvent(name, _registers[instr.A].ToValue(), range);
+        var ae = new AssignmentEvent(name, _registers[instr.A], range);
         _visualizerCenter.AssignmentPublisher.Notify(ae);
       }
     }
 
     private void HandleBinary(Instruction instr, Range range) {
       BinaryOperator op = BinaryOperator.Add;
+      double result = 0;
+      VMValue left = ValueOfRK(instr.B);
+      VMValue right = ValueOfRK(instr.C);
       switch (instr.Opcode) {
         case Opcode.ADD:
-          _registers[instr.A] = ValueOfRK(instr.B) + ValueOfRK(instr.C);
           op = BinaryOperator.Add;
+          result = ValueHelper.Add(left, right);
           break;
         case Opcode.SUB:
-          _registers[instr.A] = ValueOfRK(instr.B) - ValueOfRK(instr.C);
           op = BinaryOperator.Subtract;
+          result = ValueHelper.Subtract(left, right);
           break;
         case Opcode.MUL:
-          _registers[instr.A] = ValueOfRK(instr.B) * ValueOfRK(instr.C);
           op = BinaryOperator.Multiply;
+          result = ValueHelper.Multiply(left, right);
           break;
         case Opcode.DIV:
-          VMValue divisor = ValueOfRK(instr.C);
-          CheckDivideByZero(divisor.ToNumber(), range);
-          _registers[instr.A] = ValueOfRK(instr.B) / divisor;
           op = BinaryOperator.Divide;
+          result = ValueHelper.Divide(left, right);
           break;
       }
-      CheckOverflow(_registers[instr.A].ToNumber(), range);
+      _registers[instr.A] = new VMValue(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var be = new BinaryEvent(ValueOfRK(instr.B).ToValue(), op, ValueOfRK(instr.C).ToValue(),
-                                 _registers[instr.A].ToValue(), range);
+        var be = new BinaryEvent(left, op, right, _registers[instr.A], range);
         _visualizerCenter.BinaryPublisher.Notify(be);
       }
     }
 
-    private VMValue ValueOfRK(uint rkPos) {
+    // Gets the register value or constant value according to rkPos. Returns a readonly reference to
+    // avoid copying.
+    private ref readonly VMValue ValueOfRK(uint rkPos) {
       if (rkPos < Chunk.MaxRegisterCount) {
-        return _registers[rkPos];
+        return ref _registers[rkPos];
       }
-      return _chunk.ValueOfConstId(rkPos);
+      return ref LoadConstantValue(rkPos);
     }
 
-    // TODO: extract this utility method into a common place like runtime component.
-    private static void CheckDivideByZero(double divisor, Range range) {
-      if (divisor == 0) {
-        // TODO: how to get the module name?
-        throw new DiagnosticException(SystemReporters.SeedVM, Severity.Error, "", range,
-                                      Message.RuntimeErrorDivideByZero);
-      }
-    }
-
-    // TODO: extract this utility method into a common place like runtime component.
-    private static void CheckOverflow(double value, Range range) {
-      // TODO: do we need separate NaN as another runtime error?
-      if (double.IsInfinity(value) || double.IsNaN(value)) {
-        // TODO: how to get the module name?
-        throw new DiagnosticException(SystemReporters.SeedVM, Severity.Error, "", range,
-                                      Message.RuntimeOverflow);
-      }
+    // Loads the constant value of constId. Returns a readonly reference to avoid copying.
+    private ref readonly VMValue LoadConstantValue(uint constId) {
+      return ref _chunk.ValueOfConstId(constId);
     }
   }
 }

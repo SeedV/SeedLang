@@ -60,11 +60,17 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestStringValue() {
-      var str = new StringValue("1");
+      var str = new StringValue("");
       Assert.False(str.Boolean);
-      Assert.Equal(1, str.Number);
-      Assert.Equal("1", str.String);
-      Assert.Equal("1", str.ToString());
+      Assert.Equal(0, str.Number);
+      Assert.Equal("", str.String);
+      Assert.Equal("", str.ToString());
+
+      str = new StringValue(_expectedFalseString);
+      Assert.True(str.Boolean);
+      Assert.Equal(0, str.Number);
+      Assert.Equal(_expectedFalseString, str.String);
+      Assert.Equal(_expectedFalseString, str.ToString());
 
       str = new StringValue(_expectedTrueString);
       Assert.True(str.Boolean);

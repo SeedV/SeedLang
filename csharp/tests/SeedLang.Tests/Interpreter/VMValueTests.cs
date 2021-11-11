@@ -25,6 +25,7 @@ namespace SeedLang.Interpreter.Tests {
       Assert.False(@null.Boolean);
       Assert.Equal(0, @null.Number);
       Assert.Equal("", @null.String);
+      Assert.Equal("", @null.ToString());
     }
 
     [Fact]
@@ -33,11 +34,13 @@ namespace SeedLang.Interpreter.Tests {
       Assert.False(boolean.Boolean);
       Assert.Equal(0, boolean.Number);
       Assert.Equal(_expectedFalseString, boolean.String);
+      Assert.Equal(_expectedFalseString, boolean.ToString());
 
       boolean = new VMValue(true);
       Assert.True(boolean.Boolean);
       Assert.Equal(1, boolean.Number);
       Assert.Equal(_expectedTrueString, boolean.String);
+      Assert.Equal(_expectedTrueString, boolean.ToString());
     }
 
     [Fact]
@@ -46,24 +49,34 @@ namespace SeedLang.Interpreter.Tests {
       Assert.True(number.Boolean);
       Assert.Equal(1, number.Number);
       Assert.Equal("1", number.String);
+      Assert.Equal("1", number.ToString());
 
       number = new VMValue(2.5);
       Assert.True(number.Boolean);
       Assert.Equal(2.5, number.Number);
       Assert.Equal("2.5", number.String);
+      Assert.Equal("2.5", number.ToString());
     }
 
     [Fact]
     public void TestStringValue() {
-      var str = new VMValue("1");
+      var str = new VMValue("");
       Assert.False(str.Boolean);
-      Assert.Equal(1, str.Number);
-      Assert.Equal("1", str.String);
+      Assert.Equal(0, str.Number);
+      Assert.Equal("", str.String);
+      Assert.Equal("", str.ToString());
+
+      str = new VMValue(_expectedFalseString);
+      Assert.True(str.Boolean);
+      Assert.Equal(0, str.Number);
+      Assert.Equal(_expectedFalseString, str.String);
+      Assert.Equal(_expectedFalseString, str.ToString());
 
       str = new VMValue(_expectedTrueString);
       Assert.True(str.Boolean);
       Assert.Equal(0, str.Number);
       Assert.Equal(_expectedTrueString, str.String);
+      Assert.Equal(_expectedTrueString, str.ToString());
     }
   }
 }

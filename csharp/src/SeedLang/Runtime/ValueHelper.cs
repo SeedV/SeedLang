@@ -1,3 +1,4 @@
+using System.Diagnostics;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +63,8 @@ namespace SeedLang.Runtime {
     }
 
     internal static bool StringToBoolean(string value) {
-      return value == "True";
+      Debug.Assert(!(value is null));
+      return value != "";
     }
 
     internal static double StringToNumber(string value) {

@@ -10,7 +10,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/csharp/src/SeedLang.Shell/bin/Debug/net5.0/SeedLang.Shell.dll",
+      "program": "${workspaceFolder}/csharp/src/SeedLang.Shell/bin/Debug/net6.0/SeedLang.Shell.dll",
       "args": [],
       "cwd": "${workspaceFolder}/csharp/src/SeedLang",
       // Use integratedTerminal to allow reading from the console.

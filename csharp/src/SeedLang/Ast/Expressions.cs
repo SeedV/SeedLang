@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -22,6 +23,12 @@ namespace SeedLang.Ast {
     internal static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right,
                                             Range range) {
       return new BinaryExpression(left, op, right, range);
+    }
+
+    // The factory method to create a compare expression.
+    internal static CompareExpression Compare(Expression[] exprs, CompareOperator[] ops,
+                                              Range range) {
+      return new CompareExpression(exprs, ops, range);
     }
 
     // The factory method to create an identifier expression.
@@ -69,6 +76,19 @@ namespace SeedLang.Ast {
       Left = left;
       Op = op;
       Right = right;
+    }
+  }
+
+  internal class CompareExpression : Expression {
+    public Expression[] Exprs { get; }
+    public CompareOperator[] Ops { get; }
+
+    internal CompareExpression(Expression[] exprs, CompareOperator[] ops,
+                               Range range) : base(range) {
+      Debug.Assert(ops.Length > 0, "Must have at least 1 compare operator.");
+      Debug.Assert(exprs.Length == ops.Length + 1, "Incorrect length of exprs or ops.");
+      Exprs = exprs;
+      Ops = ops;
     }
   }
 

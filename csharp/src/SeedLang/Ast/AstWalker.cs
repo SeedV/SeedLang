@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Diagnostics;
 
 namespace SeedLang.Ast {
   // A base class to traverse an AST tree.
@@ -37,6 +36,9 @@ namespace SeedLang.Ast {
       switch (expression) {
         case BinaryExpression binary:
           Visit(binary);
+          break;
+        case CompareExpression compare:
+          Visit(compare);
           break;
         case IdentifierExpression identifier:
           Visit(identifier);
@@ -72,6 +74,8 @@ namespace SeedLang.Ast {
     }
 
     protected abstract void Visit(BinaryExpression binary);
+
+    protected abstract void Visit(CompareExpression compare);
 
     protected abstract void Visit(IdentifierExpression identifier);
 

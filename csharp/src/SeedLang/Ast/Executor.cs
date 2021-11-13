@@ -73,6 +73,9 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(CompareExpression compare) {
+    }
+
     protected override void Visit(IdentifierExpression identifier) {
       _expressionResult = _globals.GetVariable(identifier.Name);
     }

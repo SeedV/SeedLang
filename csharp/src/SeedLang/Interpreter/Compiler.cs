@@ -75,6 +75,9 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    protected override void Visit(CompareExpression compare) {
+    }
+
     protected override void Visit(IdentifierExpression identifier) {
       uint variableNameId = _constantCache.IdOfConstant(identifier.Name);
       _chunk.Emit(Opcode.GETGLOB, _expressionInfo.ResultRegister, variableNameId, identifier.Range);

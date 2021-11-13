@@ -21,7 +21,16 @@ namespace SeedLang.Runtime {
     Divide,
     FloorDivide,
     Power,
-    Modulus
+    Modulus,
+  }
+
+  public enum CompareOperator {
+    Less,
+    Great,
+    LessEqual,
+    GreatEqual,
+    EqualEqual,
+    NotEqual,
   }
 
   // The operators of unary expressions.

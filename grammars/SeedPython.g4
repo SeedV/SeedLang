@@ -73,13 +73,9 @@ continue_stmt: 'continue';
 
 compound_stmt: if_stmt | while_stmt;
 if_stmt:
-  'if' test ':' suite ('elif' test ':' suite)* (
+  'if' compare ':' suite ('elif' compare ':' suite)* (
     'else' ':' suite
   )?;
-while_stmt: 'while' test ':' suite;
+while_stmt: 'while' compare ':' suite;
 
 suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT;
-
-test: expr (comp_op expr)*;
-
-comp_op: '<' | '>' | '==' | '>=' | '<=' | '!=';

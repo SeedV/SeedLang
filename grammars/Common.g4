@@ -32,6 +32,16 @@ expr:
   | NUMBER                      # number
   | OPEN_PAREN expr CLOSE_PAREN # grouping;
 
+compare: expr (comp_op expr)*;
+
+comp_op:
+  LESS
+  | GREAT
+  | EQUALEQUAL
+  | LESSEQUAL
+  | GREATEQUAL
+  | NOTEQUAL;
+
 /*
  * Lexer rules
  */
@@ -42,6 +52,13 @@ ADD: '+';
 SUB: '-';
 MUL: '*';
 DIV: '/';
+
+LESS: '<';
+GREAT: '>';
+EQUALEQUAL: '==';
+GREATEQUAL: '>=';
+LESSEQUAL: '<=';
+NOTEQUAL: '!=';
 
 IDENTIFIER: ID_START ID_CONTINUE*;
 

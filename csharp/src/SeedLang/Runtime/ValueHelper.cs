@@ -1,4 +1,3 @@
-using System.Diagnostics;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,7 @@ using System.Diagnostics;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
@@ -44,6 +44,22 @@ namespace SeedLang.Runtime {
       double result = lhs.Number / rhs.Number;
       CheckOverflow(result);
       return result;
+    }
+
+    internal static bool Less<Value>(in Value lhs, in Value rhs) where Value : IValue {
+      return lhs.Number < rhs.Number;
+    }
+
+    internal static bool Great<Value>(in Value lhs, in Value rhs) where Value : IValue {
+      return lhs.Number > rhs.Number;
+    }
+
+    internal static bool LessEqual<Value>(in Value lhs, in Value rhs) where Value : IValue {
+      return lhs.Number <= rhs.Number;
+    }
+
+    internal static bool GreatEqual<Value>(in Value lhs, in Value rhs) where Value : IValue {
+      return lhs.Number >= rhs.Number;
     }
 
     internal static double BooleanToNumber(bool value) {

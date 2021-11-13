@@ -22,7 +22,7 @@ namespace SeedLang.Interpreter {
   //    an IValue object and sent to the visualizer center when visualizers need be notified.
   // 2) "in" keyword is used when passing VMValue as a parameter of functions to avoid copying.
   // 3) "ref readonly" keywords are used when returning VMValue from a function to avoid copying.
-  internal readonly struct VMValue : IValue {
+  internal readonly struct VMValue : IValue, System.IEquatable<VMValue> {
     public ValueType Type { get; }
 
     public bool Boolean {
@@ -93,6 +93,49 @@ namespace SeedLang.Interpreter {
       Type = ValueType.String;
       _number = 0;
       _object = value;
+    }
+
+    public static bool operator ==(VMValue lhs, VMValue rhs) {
+      return lhs.Equals(rhs);
+    }
+
+    public static bool operator !=(VMValue lhs, VMValue rhs) {
+      return !(lhs == rhs);
+    }
+
+    public bool Equals(VMValue other) {
+      if (Type != other.Type) {
+        return false;
+      }
+      switch (Type) {
+        case ValueType.Null:
+          return true;
+        case ValueType.Boolean:
+        case ValueType.Number:
+          return _number == other._number;
+        case ValueType.String:
+          return _object as string == other._object as string;
+        default:
+          throw new System.NotImplementedException($"Unsupported value type: {Type}.");
+      }
+    }
+
+    public override bool Equals(object obj) {
+      return obj is VMValue other && Equals(other);
+    }
+
+    public override int GetHashCode() {
+      switch (Type) {
+        case ValueType.Null:
+          return Type.GetHashCode();
+        case ValueType.Boolean:
+        case ValueType.Number:
+          return (Type, _number).GetHashCode();
+        case ValueType.String:
+          return (Type, _object as string).GetHashCode();
+        default:
+          throw new System.NotImplementedException($"Unsupported value type: {Type}.");
+      }
     }
 
     public override string ToString() {

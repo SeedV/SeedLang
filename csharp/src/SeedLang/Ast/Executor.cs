@@ -74,6 +74,48 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(CompareExpression compare) {
+      // Ops of the compare expression have at least one items, and the length of Exprs is exact one
+      // more than Ops. It is enforced in the constructor of compare expressions.
+      var exprs = new IValue[compare.Exprs.Length];
+      Visit(compare.Exprs[0]);
+      exprs[0] = _expressionResult;
+      for (int i = 0; i < compare.Ops.Length; ++i) {
+        Visit(compare.Exprs[i + 1]);
+        exprs[i + 1] = _expressionResult;
+        bool result;
+        switch (compare.Ops[i]) {
+          case CompareOperator.Less:
+            result = ValueHelper.Less(exprs[i], exprs[i + 1]);
+            break;
+          case CompareOperator.Great:
+            result = ValueHelper.Great(exprs[i], exprs[i + 1]);
+            break;
+          case CompareOperator.LessEqual:
+            result = ValueHelper.LessEqual(exprs[i], exprs[i + 1]);
+            break;
+          case CompareOperator.GreatEqual:
+            result = ValueHelper.GreatEqual(exprs[i], exprs[i + 1]);
+            break;
+          case CompareOperator.EqualEqual:
+            result = exprs[i] == exprs[i + 1];
+            break;
+          case CompareOperator.NotEqual:
+            result = exprs[i] != exprs[i + 1];
+            break;
+          default:
+            throw new System.NotImplementedException(
+                $"Unsupported compare operator: {compare.Ops[i]}");
+        }
+        if (!result) {
+          _expressionResult = new BooleanValue(false);
+          return;
+        }
+        _expressionResult = new BooleanValue(true);
+      }
+      if (!_visualizerCenter.ComparePublisher.IsEmpty()) {
+        var ce = new CompareEvent(exprs, compare.Ops, _expressionResult, compare.Range);
+        _visualizerCenter.ComparePublisher.Notify(ce);
+      }
     }
 
     protected override void Visit(IdentifierExpression identifier) {

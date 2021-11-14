@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
@@ -53,8 +54,7 @@ namespace SeedLang.Block {
         [NotNull] SeedBlockInlineTextParser.MulDivExpressionContext context) {
       if (context.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
           exprs.Length == 2) {
-        IToken op = (context.mulDivOperator().GetChild(0) as ITerminalNode).Symbol;
-        return _helper.BuildBinary(op, TokenToOperator(op), exprs, this);
+        return _helper.BuildBinary(context.mulDivOperator(), exprs, ToBinaryOperator, this);
       }
       return null;
     }
@@ -66,8 +66,7 @@ namespace SeedLang.Block {
         [NotNull] SeedBlockInlineTextParser.AddSubExpressionContext context) {
       if (context.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
           exprs.Length == 2) {
-        IToken op = (context.addSubOperator().GetChild(0) as ITerminalNode).Symbol;
-        return _helper.BuildBinary(op, TokenToOperator(op), exprs, this);
+        return _helper.BuildBinary(context.addSubOperator(), exprs, ToBinaryOperator, this);
       }
       return null;
     }
@@ -75,6 +74,10 @@ namespace SeedLang.Block {
     // Visits a compare expression.
     public override AstNode VisitComapreExpression(
         [NotNull] SeedBlockInlineTextParser.ComapreExpressionContext context) {
+      if (GetCompareItems(context, out ParserRuleContext left, out ParserRuleContext op,
+                          out ParserRuleContext right)) {
+        return _helper.BuildCompare(left, op, right, ToCompareOperator, GetCompareItems, this);
+      }
       return null;
     }
 
@@ -109,8 +112,26 @@ namespace SeedLang.Block {
       return Visit(context.expressionStatement());
     }
 
-    private static BinaryOperator TokenToOperator(IToken token) {
-      switch (token.Type) {
+    private static bool GetCompareItems(ParserRuleContext context, out ParserRuleContext left,
+                                        out ParserRuleContext op, out ParserRuleContext right) {
+      if (context is SeedBlockInlineTextParser.ComapreExpressionContext compare) {
+        if (compare.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
+            compare.compareOperator() is SeedBlockInlineTextParser.CompareOperatorContext[] ops &&
+            ops.Length == 1 && exprs.Length == 2) {
+          left = exprs[0];
+          op = ops[0];
+          right = exprs[1];
+          return true;
+        }
+      }
+      left = op = right = null;
+      return false;
+    }
+
+    internal static BinaryOperator ToBinaryOperator(ParserRuleContext context) {
+      Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
+      int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
+      switch (tokenType) {
         case SeedBlockInlineTextParser.ADD:
           return BinaryOperator.Add;
         case SeedBlockInlineTextParser.SUB:
@@ -120,8 +141,29 @@ namespace SeedLang.Block {
         case SeedBlockInlineTextParser.DIV:
           return BinaryOperator.Divide;
         default:
-          throw new ArgumentException("Unsupported binary operator token.");
+          throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
       }
     }
+    internal static CompareOperator ToCompareOperator(ParserRuleContext context) {
+      Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
+      int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
+      switch (tokenType) {
+        case SeedBlockInlineTextParser.LESS:
+          return CompareOperator.Less;
+        case SeedBlockInlineTextParser.GREAT:
+          return CompareOperator.Great;
+        case SeedBlockInlineTextParser.LESSEQUAL:
+          return CompareOperator.LessEqual;
+        case SeedBlockInlineTextParser.GREATEQUAL:
+          return CompareOperator.GreatEqual;
+        case SeedBlockInlineTextParser.EQUALEQUAL:
+          return CompareOperator.EqualEqual;
+        case SeedBlockInlineTextParser.NOTEQUAL:
+          return CompareOperator.NotEqual;
+        default:
+          throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
+      }
+    }
+
   }
 }

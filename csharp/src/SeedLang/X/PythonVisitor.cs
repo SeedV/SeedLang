@@ -18,10 +18,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
-using Antlr4.Runtime.Tree;
 
 namespace SeedLang.X {
   // The visitor class to visit a SeedPython parse tree and generate the corresponding AST tree.
@@ -52,8 +52,7 @@ namespace SeedLang.X {
     public override AstNode VisitMulDivExpression(
         [NotNull] SeedPythonParser.MulDivExpressionContext context) {
       if (context.expression() is SeedPythonParser.ExpressionContext[] exprs && exprs.Length == 2) {
-        IToken op = (context.mulDivOperator().GetChild(0) as ITerminalNode).Symbol;
-        return _helper.BuildBinary(op, TokenToOperator(op), exprs, this);
+        return _helper.BuildBinary(context.mulDivOperator(), exprs, ToBinaryOperator, this);
       }
       return null;
     }
@@ -64,8 +63,7 @@ namespace SeedLang.X {
     public override AstNode VisitAddSubExpression(
         [NotNull] SeedPythonParser.AddSubExpressionContext context) {
       if (context.expression() is SeedPythonParser.ExpressionContext[] exprs && exprs.Length == 2) {
-        IToken op = (context.addSubOperator().GetChild(0) as ITerminalNode).Symbol;
-        return _helper.BuildBinary(op, TokenToOperator(op), exprs, this);
+        return _helper.BuildBinary(context.addSubOperator(), exprs, ToBinaryOperator, this);
       }
       return null;
     }
@@ -73,10 +71,9 @@ namespace SeedLang.X {
     // Visits a compare expression.
     public override AstNode VisitComapreExpression(
         [NotNull] SeedPythonParser.ComapreExpressionContext context) {
-      if (context.expression() is SeedPythonParser.ExpressionContext[] exprs &&
-          context.compareOperator() is SeedPythonParser.CompareOperatorContext[] ops &&
-          ops.Length > 0 && exprs.Length == ops.Length + 1) {
-        return _helper.BuildCompare(exprs, ops, ToCompareOperator, this);
+      if (GetCompareItems(context, out ParserRuleContext left, out ParserRuleContext op,
+                          out ParserRuleContext right)) {
+        return _helper.BuildCompare(left, op, right, ToCompareOperator, GetCompareItems, this);
       }
       return null;
     }
@@ -126,7 +123,8 @@ namespace SeedLang.X {
     public override AstNode VisitAssignStatement(
         [NotNull] SeedPythonParser.AssignStatementContext context) {
       if (context.expression() is SeedPythonParser.ExpressionContext expr) {
-        return _helper.BuildAssign(context.IDENTIFIER().Symbol, context.EQUAL().Symbol, expr, this);
+        return _helper.BuildAssignStatement(context.IDENTIFIER().Symbol, context.EQUAL().Symbol,
+                                            expr, this);
       }
       return null;
     }
@@ -137,8 +135,26 @@ namespace SeedLang.X {
       return VisitorHelper.BuildExpressionStatement(context.expression(), this);
     }
 
-    internal static BinaryOperator TokenToOperator(IToken token) {
-      switch (token.Type) {
+    private static bool GetCompareItems(ParserRuleContext context, out ParserRuleContext left,
+                                        out ParserRuleContext op, out ParserRuleContext right) {
+      if (context is SeedPythonParser.ComapreExpressionContext compare) {
+        if (compare.expression() is SeedPythonParser.ExpressionContext[] exprs &&
+            compare.compareOperator() is SeedPythonParser.CompareOperatorContext[] ops &&
+            ops.Length == 1 && exprs.Length == 2) {
+          left = exprs[0];
+          op = ops[0];
+          right = exprs[1];
+          return true;
+        }
+      }
+      left = op = right = null;
+      return false;
+    }
+
+    private static BinaryOperator ToBinaryOperator(ParserRuleContext context) {
+      Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
+      int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
+      switch (tokenType) {
         case SeedPythonParser.ADD:
           return BinaryOperator.Add;
         case SeedPythonParser.SUB:
@@ -148,11 +164,11 @@ namespace SeedLang.X {
         case SeedPythonParser.DIV:
           return BinaryOperator.Divide;
         default:
-          throw new ArgumentException("Unsupported binary operator token.");
+          throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
       }
     }
 
-    internal static CompareOperator ToCompareOperator(ParserRuleContext context) {
+    private static CompareOperator ToCompareOperator(ParserRuleContext context) {
       Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
       int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
       switch (tokenType) {

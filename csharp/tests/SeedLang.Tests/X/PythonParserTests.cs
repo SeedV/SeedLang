@@ -113,6 +113,23 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 18 - Ln 1, Col 18]," +
                 "Parenthesis [Ln 1, Col 20 - Ln 1, Col 20]," +
                 "Parenthesis [Ln 1, Col 21 - Ln 1, Col 21]")]
+
+    [InlineData("1 < 2 > 3 <= 4",
+
+                "[Ln 1, Col 0 - Ln 1, Col 13] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 13] CompareExpression\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1) (<)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2) (>)\n" +
+                "    [Ln 1, Col 8 - Ln 1, Col 8] NumberConstantExpression (3) (<=)\n" +
+                "    [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (4)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Operator [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Number [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Operator [Ln 1, Col 10 - Ln 1, Col 11]," +
+                "Number [Ln 1, Col 13 - Ln 1, Col 13]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

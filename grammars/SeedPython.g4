@@ -55,27 +55,33 @@ tokens {
   DEDENT
 }
 
-single_stmt: small_stmt EOF;
+singleStatement: smallStatement EOF;
 
-file_input: (NEWLINE | stmt)* EOF;
+fileInput: (NEWLINE | statement)* EOF;
 
-stmt: simple_stmt | compound_stmt;
+statement: simpleStatement | compoundStatement;
 
-simple_stmt: small_stmt (';' small_stmt)* (';')?;
+simpleStatement:
+  smallStatement (';' smallStatement)* (';')?;
 
-small_stmt: assign_stmt | expr_stmt | flow_stmt;
+smallStatement:
+  assignStatement
+  | expressionStatement
+  | flowStatement;
 
-assign_stmt: IDENTIFIER EQUAL expr;
-expr_stmt: expr;
-flow_stmt: break_stmt | continue_stmt;
-break_stmt: 'break';
-continue_stmt: 'continue';
+assignStatement: IDENTIFIER EQUAL expression;
+expressionStatement: expression;
+flowStatement: breakStatement | continueStatement;
+breakStatement: 'break';
+continueStatement: 'continue';
 
-compound_stmt: if_stmt | while_stmt;
-if_stmt:
+compoundStatement: ifStatement | whileStatement;
+ifStatement:
   'if' compare ':' suite ('elif' compare ':' suite)* (
     'else' ':' suite
   )?;
-while_stmt: 'while' compare ':' suite;
+whileStatement: 'while' compare ':' suite;
 
-suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT;
+suite:
+  simpleStatement
+  | NEWLINE INDENT statement+ DEDENT;

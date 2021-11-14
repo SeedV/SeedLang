@@ -76,25 +76,26 @@ namespace SeedLang.Ast {
     protected override void Visit(CompareExpression compare) {
       // Ops of the compare expression have at least one items, and the length of Exprs is exact one
       // more than Ops. It is enforced in the constructor of compare expressions.
+      Visit(compare.First);
+      IValue first = _expressionResult;
       var exprs = new IValue[compare.Exprs.Length];
-      Visit(compare.Exprs[0]);
-      exprs[0] = _expressionResult;
       for (int i = 0; i < compare.Ops.Length; ++i) {
-        Visit(compare.Exprs[i + 1]);
-        exprs[i + 1] = _expressionResult;
+        Visit(compare.Exprs[i]);
+        exprs[i] = _expressionResult;
         bool result;
+        IValue left = i > 0 ? exprs[i - 1] : first;
         switch (compare.Ops[i]) {
           case CompareOperator.Less:
-            result = ValueHelper.Less(exprs[i], exprs[i + 1]);
+            result = ValueHelper.Less(left, exprs[i]);
             break;
           case CompareOperator.Great:
-            result = ValueHelper.Great(exprs[i], exprs[i + 1]);
+            result = ValueHelper.Great(left, exprs[i]);
             break;
           case CompareOperator.LessEqual:
-            result = ValueHelper.LessEqual(exprs[i], exprs[i + 1]);
+            result = ValueHelper.LessEqual(left, exprs[i]);
             break;
           case CompareOperator.GreatEqual:
-            result = ValueHelper.GreatEqual(exprs[i], exprs[i + 1]);
+            result = ValueHelper.GreatEqual(left, exprs[i]);
             break;
           case CompareOperator.EqualEqual:
             result = exprs[i] == exprs[i + 1];
@@ -113,7 +114,7 @@ namespace SeedLang.Ast {
         _expressionResult = new BooleanValue(true);
       }
       if (!_visualizerCenter.ComparePublisher.IsEmpty()) {
-        var ce = new CompareEvent(exprs, compare.Ops, _expressionResult, compare.Range);
+        var ce = new CompareEvent(first, compare.Ops, exprs, _expressionResult, compare.Range);
         _visualizerCenter.ComparePublisher.Notify(ce);
       }
     }

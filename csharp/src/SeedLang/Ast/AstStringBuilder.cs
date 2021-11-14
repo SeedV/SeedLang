@@ -97,12 +97,10 @@ namespace SeedLang.Ast {
 
     protected override void Visit(CompareExpression compare) {
       Enter(compare);
-      // Ops of the compare expression have at least one items, and the length of Exprs is exact one
-      // more than Ops. It is enforced in the constructor of compare expressions.
-      Visit(compare.Exprs[0]);
+      Visit(compare.First);
       for (int i = 0; i < compare.Ops.Length; ++i) {
         _out.Append($" ({compare.Ops[i].Symbol()})");
-        Visit(compare.Exprs[i + 1]);
+        Visit(compare.Exprs[i]);
       }
       Exit();
     }

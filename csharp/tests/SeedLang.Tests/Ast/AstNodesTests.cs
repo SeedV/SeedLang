@@ -49,9 +49,9 @@ namespace SeedLang.Ast.Tests {
         var first = Expression.Number(1, _textRange);
         var second = Expression.Number(2, _textRange);
         var third = Expression.Number(3, _textRange);
-        var exprs = new Expression[] { first, second, third };
         var ops = new CompareOperator[] { CompareOperator.Less, CompareOperator.Great };
-        var compare = Expression.Compare(exprs, ops, _textRange);
+        var exprs = new Expression[] { second, third };
+        var compare = Expression.Compare(first, ops, exprs, _textRange);
         var expectedOutput = $"{_textRange} CompareExpression\n" +
                              $"  {_textRange} NumberConstantExpression (1) (<)\n" +
                              $"  {_textRange} NumberConstantExpression (2) (>)\n" +

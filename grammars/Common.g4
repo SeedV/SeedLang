@@ -24,17 +24,24 @@ grammar Common;
  * Parser rules
  */
 
-expr:
-  op = SUB expr                 # unary
-  | expr op = (MUL | DIV) expr  # mul_div
-  | expr op = (ADD | SUB) expr  # add_sub
-  | IDENTIFIER                  # identifier
-  | NUMBER                      # number
-  | OPEN_PAREN expr CLOSE_PAREN # grouping;
+expression:
+  unaryOperator expression                   # unaryExpression
+  | expression mulDivOperator expression     # mulDivExpression
+  | expression addSubOperator expression     # addSubExpression
+  | expression (compareOperator expression)+ # comapreExpression
+  | IDENTIFIER                               # identifier
+  | NUMBER                                   # number
+  | OPEN_PAREN expression CLOSE_PAREN        # grouping;
 
-compare: expr (comp_op expr)*;
+compare: expression ( compareOperator expression)+;
 
-comp_op:
+unaryOperator: SUB;
+
+mulDivOperator: MUL | DIV;
+
+addSubOperator: ADD | SUB;
+
+compareOperator:
   LESS
   | GREAT
   | EQUALEQUAL

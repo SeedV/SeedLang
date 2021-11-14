@@ -53,9 +53,9 @@ namespace SeedLang.Block {
       return new BlockInlineTextVisitor(tokens);
     }
 
-    protected override ParserRuleContext SingleStmt(Parser parser) {
+    protected override ParserRuleContext SingleStatement(Parser parser) {
       Debug.Assert(parser is SeedBlockInlineTextParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedBlockInlineTextParser).single_stmt();
+      return (parser as SeedBlockInlineTextParser).singleStatement();
     }
   }
 }

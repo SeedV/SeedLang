@@ -43,15 +43,15 @@ namespace SeedLang.Runtime {
 
   // An event which is triggered when a compare expression is evaluated.
   public class CompareEvent : AbstractEvent {
-    public IValue[] Exprs { get; }
+    public IValue First { get; }
     public CompareOperator[] Ops { get; }
+    public IValue[] Exprs { get; }
     public IValue Result { get; }
 
-    public CompareEvent(IValue[] exprs, CompareOperator[] ops, IValue result, Range range) :
-        base(range) {
-      Debug.Assert(ops.Length > 0, "Must have at least 1 compare operator.");
-      Debug.Assert(exprs.Length == ops.Length + 1, "Incorrect length of exprs or ops.");
-
+    public CompareEvent(IValue first, CompareOperator[] ops, IValue[] exprs, IValue result,
+                        Range range) : base(range) {
+      Debug.Assert(ops.Length > 0 && ops.Length == exprs.Length);
+      First = first;
       Exprs = exprs;
       Ops = ops;
       Result = result;

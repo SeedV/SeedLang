@@ -61,19 +61,20 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteCompareExpression() {
-      var left = Expression.Number(1, NewTextRange());
-      var right = Expression.Number(2, NewTextRange());
-      var exprs = new Expression[] { left, right };
+      var first = Expression.Number(1, NewTextRange());
+      var second = Expression.Number(2, NewTextRange());
       var ops = new CompareOperator[] { CompareOperator.Less };
-      var compare = Expression.Compare(exprs, ops, NewTextRange());
+      var exprs = new Expression[] { second };
+      var compare = Expression.Compare(first, ops, exprs, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(compare);
 
-      var expectedExprs = new IValue[] { new NumberValue(1), new NumberValue(2) };
-      Assert.Equal(expectedExprs, visualizer.CompareEvent.Exprs);
+      Assert.Equal(new NumberValue(1), visualizer.CompareEvent.First);
       var expectedOps = new CompareOperator[] { CompareOperator.Less };
       Assert.Equal(expectedOps, visualizer.CompareEvent.Ops);
+      var expectedExprs = new IValue[] { new NumberValue(2) };
+      Assert.Equal(expectedExprs, visualizer.CompareEvent.Exprs);
       Assert.Equal(new BooleanValue(true), visualizer.CompareEvent.Result);
       Assert.Equal(NewTextRange(), visualizer.CompareEvent.Range);
     }

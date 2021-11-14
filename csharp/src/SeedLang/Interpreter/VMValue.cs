@@ -95,26 +95,24 @@ namespace SeedLang.Interpreter {
       _object = value;
     }
 
-    public static bool operator ==(VMValue lhs, VMValue rhs) {
+    public static bool operator ==(in VMValue lhs, in VMValue rhs) {
       return lhs.Equals(rhs);
     }
 
-    public static bool operator !=(VMValue lhs, VMValue rhs) {
+    public static bool operator !=(in VMValue lhs, in VMValue rhs) {
       return !(lhs == rhs);
     }
 
     public bool Equals(VMValue other) {
-      if (Type != other.Type) {
-        return false;
-      }
       switch (Type) {
         case ValueType.Null:
-          return true;
+          return other.Type == ValueType.Null;
         case ValueType.Boolean:
         case ValueType.Number:
-          return _number == other._number;
+          return (other.Type == ValueType.Boolean || other.Type == ValueType.Number) &&
+                 _number == other._number;
         case ValueType.String:
-          return _object as string == other._object as string;
+          return other.Type == ValueType.String && _object as string == other._object as string;
         default:
           throw new System.NotImplementedException($"Unsupported value type: {Type}.");
       }

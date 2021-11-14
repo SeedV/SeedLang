@@ -51,9 +51,9 @@ namespace SeedLang.X {
       return new PythonVisitor(tokens);
     }
 
-    protected override ParserRuleContext SingleStmt(Parser parser) {
+    protected override ParserRuleContext SingleStatement(Parser parser) {
       Debug.Assert(parser is SeedPythonParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedPythonParser).single_stmt();
+      return (parser as SeedPythonParser).singleStatement();
     }
   }
 }

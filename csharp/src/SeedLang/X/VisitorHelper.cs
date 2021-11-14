@@ -14,6 +14,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
@@ -40,10 +41,10 @@ namespace SeedLang.X {
       _groupingRange = null;
 
       Debug.Assert(exprContexts.Length == 2);
-      var left = visitor.Visit(exprContexts[0]);
+      AstNode left = visitor.Visit(exprContexts[0]);
       if (left is Expression leftExpr) {
         AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
-        var right = visitor.Visit(exprContexts[1]);
+        AstNode right = visitor.Visit(exprContexts[1]);
 
         if (right is Expression rightExpr) {
           if (range is null) {
@@ -54,6 +55,39 @@ namespace SeedLang.X {
           }
           return Expression.Binary(leftExpr, op, rightExpr, range);
         }
+      }
+      return null;
+    }
+
+    internal CompareExpression BuildCompare(
+        ParserRuleContext[] exprContexts, ParserRuleContext[] opContexts,
+        System.Func<ParserRuleContext, CompareOperator> toCompareOperator,
+        AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange range = _groupingRange;
+      _groupingRange = null;
+
+      Debug.Assert(opContexts.Length > 0 && exprContexts.Length == opContexts.Length + 1);
+      AstNode first = visitor.Visit(exprContexts[0]);
+      var ops = new CompareOperator[opContexts.Length];
+      var exprs = new Expression[opContexts.Length];
+      if (first is Expression firstExpr) {
+        for (int i = 0; i < opContexts.Length; ++i) {
+          ops[i] = toCompareOperator(opContexts[i]);
+          AstNode next = visitor.Visit(exprContexts[i + 1]);
+          if (next is Expression nextExpr) {
+            exprs[i] = nextExpr;
+          } else {
+            return null;
+          }
+        }
+        if (range is null) {
+
+          Debug.Assert(first.Range is TextRange);
+          Debug.Assert(exprs.Last().Range is TextRange);
+          range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
+                                                   exprs.Last().Range as TextRange);
+        }
+        return Expression.Compare(firstExpr, ops, exprs, range);
       }
       return null;
     }
@@ -129,9 +163,9 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an eval statement from the eval token and the expression context.
-    internal ExpressionStatement BuildExprStatement(ParserRuleContext exprContext,
-                                                    AbstractParseTreeVisitor<AstNode> visitor) {
+    // Builds an expression statement from the expression context.
+    internal static ExpressionStatement BuildExpressionStatement(
+        ParserRuleContext exprContext, AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(exprContext) is Expression expr) {
         return Statement.Expression(expr, expr.Range);
       }

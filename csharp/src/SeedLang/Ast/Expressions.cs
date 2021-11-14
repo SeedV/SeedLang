@@ -26,9 +26,9 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a compare expression.
-    internal static CompareExpression Compare(Expression[] exprs, CompareOperator[] ops,
-                                              Range range) {
-      return new CompareExpression(exprs, ops, range);
+    internal static CompareExpression Compare(Expression first, CompareOperator[] ops,
+                                              Expression[] exprs, Range range) {
+      return new CompareExpression(first, ops, exprs, range);
     }
 
     // The factory method to create an identifier expression.
@@ -80,15 +80,16 @@ namespace SeedLang.Ast {
   }
 
   internal class CompareExpression : Expression {
-    public Expression[] Exprs { get; }
+    public Expression First { get; }
     public CompareOperator[] Ops { get; }
+    public Expression[] Exprs { get; }
 
-    internal CompareExpression(Expression[] exprs, CompareOperator[] ops,
+    internal CompareExpression(Expression first, CompareOperator[] ops, Expression[] exprs,
                                Range range) : base(range) {
-      Debug.Assert(ops.Length > 0, "Must have at least 1 compare operator.");
-      Debug.Assert(exprs.Length == ops.Length + 1, "Incorrect length of exprs or ops.");
-      Exprs = exprs;
+      Debug.Assert(ops.Length > 0 && ops.Length == exprs.Length);
+      First = first;
       Ops = ops;
+      Exprs = exprs;
     }
   }
 

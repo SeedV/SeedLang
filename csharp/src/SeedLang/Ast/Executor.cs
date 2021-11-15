@@ -96,10 +96,10 @@ namespace SeedLang.Ast {
             currentResult = ValueHelper.GreatEqual(left, exprs[i]);
             break;
           case CompareOperator.EqualEqual:
-            currentResult = exprs[i] == exprs[i + 1];
+            currentResult = left.Equals(exprs[i]);
             break;
           case CompareOperator.NotEqual:
-            currentResult = exprs[i] != exprs[i + 1];
+            currentResult = !left.Equals(exprs[i]);
             break;
           default:
             throw new System.NotImplementedException(

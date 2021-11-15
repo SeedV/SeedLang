@@ -24,6 +24,9 @@ grammar Common;
  * Parser rules
  */
 
+// TODO: there is too much limitation for direct left recursive syntax
+//       definition, may need change to classic syntax defintion.
+// TODO: add null and boolean constants (True and False).
 expression:
   unaryOperator expression                   # unaryExpression
   | expression mulDivOperator expression     # mulDivExpression

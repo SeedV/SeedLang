@@ -35,22 +35,19 @@ namespace SeedLang.X {
       _syntaxTokens = tokens;
     }
 
-    // Builds a binary expression from the binary operator and expression contexts.
-    //
-    // The exprContexts parameter must contain exact 2 items: the left and right ExprContext.
+    // Builds a binary expression.
     internal BinaryExpression BuildBinary(
-        ParserRuleContext opContext, ParserRuleContext[] exprContexts,
+        ParserRuleContext leftContext, ParserRuleContext opContext, ParserRuleContext rightContext,
         System.Func<ParserRuleContext, BinaryOperator> toOperator,
         AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange range = _groupingRange;
       _groupingRange = null;
 
-      Debug.Assert(exprContexts.Length == 2);
-      AstNode left = visitor.Visit(exprContexts[0]);
+      AstNode left = visitor.Visit(leftContext);
       if (left is Expression leftExpr) {
         IToken opToken = (opContext.GetChild(0) as ITerminalNode).Symbol;
         AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
-        AstNode right = visitor.Visit(exprContexts[1]);
+        AstNode right = visitor.Visit(rightContext);
 
         if (right is Expression rightExpr) {
           if (range is null) {
@@ -65,6 +62,7 @@ namespace SeedLang.X {
       return null;
     }
 
+    // Builds a compare expression.
     internal CompareExpression BuildCompare(ParserRuleContext left, ParserRuleContext op,
                                             ParserRuleContext right,
                                             ToCompareOperator toCompareOperator,
@@ -104,7 +102,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an unary expresssion from the unary operator token and the expression context.
+    // Builds an unary expresssion.
     internal UnaryExpression BuildUnary(IToken opToken, ParserRuleContext exprContext,
                                         AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange range = _groupingRange;
@@ -124,7 +122,8 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Sets grouping range for sub-expression to use. Only keeps the largest grouping range.
+    // Builds a grouping expressions, and sets grouping range for sub-expression to use. Only keeps
+    // the largest grouping range.
     internal AstNode BuildGrouping(IToken openParen, ParserRuleContext exprContext,
                                    IToken closeParen, AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange openRange = CodeReferenceUtils.RangeOfToken(openParen);
@@ -140,25 +139,25 @@ namespace SeedLang.X {
       return node;
     }
 
-    // Builds an identifier expresssion from the identifier token.
+    // Builds an identifier expresssion.
     internal IdentifierExpression BuildIdentifier(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Variable);
       return Expression.Identifier(token.Text, range);
     }
 
-    // Builds a number constant expresssion from the number token.
+    // Builds a number constant expresssion.
     internal NumberConstantExpression BuildNumber(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Number);
       return Expression.Number(token.Text, range);
     }
 
-    // Builds a string constant expresssion from the string token.
+    // Builds a string constant expresssion.
     internal StringConstantExpression BuildString(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.String);
       return Expression.String(token.Text, range);
     }
 
-    // Builds an assignment statement from the identifier token and the expression context.
+    // Builds an assignment statement.
     internal AssignmentStatement BuildAssignStatement(
         IToken idToken, IToken equalToken, ParserRuleContext exprContext,
         AbstractParseTreeVisitor<AstNode> visitor) {
@@ -175,7 +174,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an expression statement from the expression context.
+    // Builds an expression statement.
     internal static ExpressionStatement BuildExpressionStatement(
         ParserRuleContext exprContext, AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(exprContext) is Expression expr) {

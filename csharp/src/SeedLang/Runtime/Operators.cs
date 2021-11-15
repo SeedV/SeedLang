@@ -24,6 +24,7 @@ namespace SeedLang.Runtime {
     Modulus,
   }
 
+  // The operators of compare expressions.
   public enum CompareOperator {
     Less,
     Great,

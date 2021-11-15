@@ -75,6 +75,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    // TODO: implement compare expressions visiting.
     protected override void Visit(CompareExpression compare) {
     }
 

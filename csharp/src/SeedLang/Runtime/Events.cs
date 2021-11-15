@@ -17,7 +17,7 @@ using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   public abstract class AbstractEvent {
-    // The source code range of the binary expression.
+    // The range of source code.
     public Range Range { get; }
 
     public AbstractEvent(Range range) {

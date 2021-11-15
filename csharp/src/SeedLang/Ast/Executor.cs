@@ -74,47 +74,52 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(CompareExpression compare) {
-      // Ops of the compare expression have at least one items, and the length of Exprs is exact one
-      // more than Ops. It is enforced in the constructor of compare expressions.
       Visit(compare.First);
       IValue first = _expressionResult;
       var exprs = new IValue[compare.Exprs.Length];
+      bool currentResult = true;
       for (int i = 0; i < compare.Ops.Length; ++i) {
         Visit(compare.Exprs[i]);
         exprs[i] = _expressionResult;
-        bool result;
         IValue left = i > 0 ? exprs[i - 1] : first;
         switch (compare.Ops[i]) {
           case CompareOperator.Less:
-            result = ValueHelper.Less(left, exprs[i]);
+            currentResult = ValueHelper.Less(left, exprs[i]);
             break;
           case CompareOperator.Great:
-            result = ValueHelper.Great(left, exprs[i]);
+            currentResult = ValueHelper.Great(left, exprs[i]);
             break;
           case CompareOperator.LessEqual:
-            result = ValueHelper.LessEqual(left, exprs[i]);
+            currentResult = ValueHelper.LessEqual(left, exprs[i]);
             break;
           case CompareOperator.GreatEqual:
-            result = ValueHelper.GreatEqual(left, exprs[i]);
+            currentResult = ValueHelper.GreatEqual(left, exprs[i]);
             break;
           case CompareOperator.EqualEqual:
-            result = exprs[i] == exprs[i + 1];
+            currentResult = exprs[i] == exprs[i + 1];
             break;
           case CompareOperator.NotEqual:
-            result = exprs[i] != exprs[i + 1];
+            currentResult = exprs[i] != exprs[i + 1];
             break;
           default:
             throw new System.NotImplementedException(
                 $"Unsupported compare operator: {compare.Ops[i]}");
         }
-        if (!result) {
-          _expressionResult = new BooleanValue(false);
-          return;
+        if (!currentResult) {
+          break;
         }
-        _expressionResult = new BooleanValue(true);
       }
+      _expressionResult = new BooleanValue(currentResult);
       if (!_visualizerCenter.ComparePublisher.IsEmpty()) {
-        var ce = new CompareEvent(first, compare.Ops, exprs, _expressionResult, compare.Range);
+        // Evaluate short circuit expressions for visualizers notification.
+        IValue result = _expressionResult;
+        for (int i = 0; i < exprs.Length; ++i) {
+          if (exprs[i] is null) {
+            Visit(compare.Exprs[i]);
+            exprs[i] = _expressionResult;
+          }
+        }
+        var ce = new CompareEvent(first, compare.Ops, exprs, result, compare.Range);
         _visualizerCenter.ComparePublisher.Notify(ce);
       }
     }

@@ -49,24 +49,26 @@ namespace SeedLang.Block {
 
     // Visits a multiply or divide binary expression.
     //
-    // There should be 2 child expression contexts (left and right) in Mul_divContext.
+    // There should be 2 child expression contexts (left and right) in MulDivExpressionContext.
     public override AstNode VisitMulDivExpression(
         [NotNull] SeedBlockInlineTextParser.MulDivExpressionContext context) {
       if (context.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
           exprs.Length == 2) {
-        return _helper.BuildBinary(context.mulDivOperator(), exprs, ToBinaryOperator, this);
+        ParserRuleContext op = context.mulDivOperator();
+        return _helper.BuildBinary(exprs[0], op, exprs[1], ToBinaryOperator, this);
       }
       return null;
     }
 
     // Visits an add or subtract binary expression.
     //
-    // There should be 2 child expression contexts (left and right) in Add_subContext.
+    // There should be 2 child expression contexts (left and right) in AddSubExpressionContext.
     public override AstNode VisitAddSubExpression(
         [NotNull] SeedBlockInlineTextParser.AddSubExpressionContext context) {
       if (context.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
           exprs.Length == 2) {
-        return _helper.BuildBinary(context.addSubOperator(), exprs, ToBinaryOperator, this);
+        ParserRuleContext op = context.addSubOperator();
+        return _helper.BuildBinary(exprs[0], op, exprs[1], ToBinaryOperator, this);
       }
       return null;
     }
@@ -128,7 +130,7 @@ namespace SeedLang.Block {
       return false;
     }
 
-    internal static BinaryOperator ToBinaryOperator(ParserRuleContext context) {
+    private static BinaryOperator ToBinaryOperator(ParserRuleContext context) {
       Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
       int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
       switch (tokenType) {
@@ -144,7 +146,7 @@ namespace SeedLang.Block {
           throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
       }
     }
-    internal static CompareOperator ToCompareOperator(ParserRuleContext context) {
+    private static CompareOperator ToCompareOperator(ParserRuleContext context) {
       Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
       int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
       switch (tokenType) {
@@ -164,6 +166,5 @@ namespace SeedLang.Block {
           throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
       }
     }
-
   }
 }

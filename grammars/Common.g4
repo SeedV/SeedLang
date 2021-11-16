@@ -24,13 +24,34 @@ grammar Common;
  * Parser rules
  */
 
-expr:
-  op = SUB expr                 # unary
-  | expr op = (MUL | DIV) expr  # mul_div
-  | expr op = (ADD | SUB) expr  # add_sub
-  | IDENTIFIER                  # identifier
-  | NUMBER                      # number
-  | OPEN_PAREN expr CLOSE_PAREN # grouping;
+// TODO: there is too much limitation for direct left recursive syntax
+//       definition, may need change to classic syntax defintion.
+// TODO: add null and boolean constants (True and False).
+expression:
+  unaryOperator expression                      # unaryExpression
+  | expression mulDivOperator expression        # mulDivExpression
+  | expression addSubOperator expression        # addSubExpression
+  | expression (comparisonOperator expression)+ # comaprisonExpression
+  | IDENTIFIER                                  # identifier
+  | NUMBER                                      # number
+  | OPEN_PAREN expression CLOSE_PAREN           # grouping;
+
+comparison:
+  expression (comparisonOperator expression)+;
+
+unaryOperator: SUB;
+
+mulDivOperator: MUL | DIV;
+
+addSubOperator: ADD | SUB;
+
+comparisonOperator:
+  LESS
+  | GREATER
+  | LESSEQUAL
+  | GREATEREQUAL
+  | EQEQUAL
+  | NOTEQUAL;
 
 /*
  * Lexer rules
@@ -42,6 +63,13 @@ ADD: '+';
 SUB: '-';
 MUL: '*';
 DIV: '/';
+
+LESS: '<';
+GREATER: '>';
+EQEQUAL: '==';
+GREATEREQUAL: '>=';
+LESSEQUAL: '<=';
+NOTEQUAL: '!=';
 
 IDENTIFIER: ID_START ID_CONTINUE*;
 

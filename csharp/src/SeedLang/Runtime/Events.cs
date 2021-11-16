@@ -12,24 +12,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
+  public abstract class AbstractEvent {
+    // The range of source code.
+    public Range Range { get; }
+
+    public AbstractEvent(Range range) {
+      Range = range;
+    }
+  }
+
   // An event which is triggered when a binary expression is evaluated.
-  public class BinaryEvent {
+  public class BinaryEvent : AbstractEvent {
     public IValue Left { get; }
     public BinaryOperator Op { get; }
     public IValue Right { get; }
     public IValue Result { get; }
-    // The source code range of the binary expression.
-    public Range Range { get; }
 
-    public BinaryEvent(IValue left, BinaryOperator op, IValue right, IValue result, Range range) {
+    public BinaryEvent(IValue left, BinaryOperator op, IValue right, IValue result, Range range) :
+        base(range) {
       Left = left;
       Op = op;
       Right = right;
       Result = result;
-      Range = range;
+    }
+  }
+
+  // An event which is triggered when a comparison expression is evaluated.
+  //
+  // The length Exprs is as same as Ops. But not all the expressions are evaluated due to short
+  // circuit. They are filled as null in the corresponding positions of Exprs.
+  public class ComparisonEvent : AbstractEvent {
+    public IValue First { get; }
+    public ComparisonOperator[] Ops { get; }
+    public IValue[] Exprs { get; }
+    public IValue Result { get; }
+
+    public ComparisonEvent(IValue first, ComparisonOperator[] ops, IValue[] exprs, IValue result,
+                           Range range) : base(range) {
+      Debug.Assert(ops.Length > 0 && ops.Length == exprs.Length);
+      First = first;
+      Exprs = exprs;
+      Ops = ops;
+      Result = result;
     }
   }
 

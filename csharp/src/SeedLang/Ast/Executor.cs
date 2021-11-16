@@ -73,6 +73,50 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(ComparisonExpression comparison) {
+      Visit(comparison.First);
+      IValue first = _expressionResult;
+      var exprs = new IValue[comparison.Exprs.Length];
+      bool currentResult = true;
+      for (int i = 0; i < comparison.Ops.Length; ++i) {
+        Visit(comparison.Exprs[i]);
+        exprs[i] = _expressionResult;
+        IValue left = i > 0 ? exprs[i - 1] : first;
+        switch (comparison.Ops[i]) {
+          case ComparisonOperator.Less:
+            currentResult = ValueHelper.Less(left, exprs[i]);
+            break;
+          case ComparisonOperator.Greater:
+            currentResult = ValueHelper.Great(left, exprs[i]);
+            break;
+          case ComparisonOperator.LessEqual:
+            currentResult = ValueHelper.LessEqual(left, exprs[i]);
+            break;
+          case ComparisonOperator.GreaterEqual:
+            currentResult = ValueHelper.GreatEqual(left, exprs[i]);
+            break;
+          case ComparisonOperator.EqEqual:
+            currentResult = left.Equals(exprs[i]);
+            break;
+          case ComparisonOperator.NotEqual:
+            currentResult = !left.Equals(exprs[i]);
+            break;
+          default:
+            throw new System.NotImplementedException(
+                $"Unsupported comparison operator: {comparison.Ops[i]}");
+        }
+        if (!currentResult) {
+          break;
+        }
+      }
+      _expressionResult = new BooleanValue(currentResult);
+      if (!_visualizerCenter.ComparisonPublisher.IsEmpty()) {
+        var ce = new ComparisonEvent(first, comparison.Ops, exprs, _expressionResult,
+                                     comparison.Range);
+        _visualizerCenter.ComparisonPublisher.Notify(ce);
+      }
+    }
+
     protected override void Visit(IdentifierExpression identifier) {
       _expressionResult = _globals.GetVariable(identifier.Name);
     }

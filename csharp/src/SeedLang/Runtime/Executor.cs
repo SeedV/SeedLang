@@ -101,7 +101,7 @@ namespace SeedLang.Runtime {
       switch (language) {
         case SeedXLanguage.BlockInlineText:
           return new BlockInlineTextParser();
-        case SeedXLanguage.Python:
+        case SeedXLanguage.SeedPython:
           return new PythonParser();
         default:
           throw new NotImplementedException($"Unsupported SeedX language: {language}.");

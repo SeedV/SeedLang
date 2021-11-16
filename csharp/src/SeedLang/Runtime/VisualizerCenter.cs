@@ -20,6 +20,8 @@ namespace SeedLang.Runtime {
   // visualizers.
   internal class VisualizerCenter {
     public Publisher<BinaryEvent> BinaryPublisher { get; } = new Publisher<BinaryEvent>();
+    public Publisher<ComparisonEvent> ComparisonPublisher { get; } =
+        new Publisher<ComparisonEvent>();
     public Publisher<AssignmentEvent> AssignmentPublisher { get; } =
         new Publisher<AssignmentEvent>();
     public Publisher<EvalEvent> EvalPublisher { get; } = new Publisher<EvalEvent>();

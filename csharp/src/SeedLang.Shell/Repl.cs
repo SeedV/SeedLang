@@ -23,20 +23,31 @@ namespace SeedLang.Shell {
   internal sealed class Repl {
     private class Visualizer : IVisualizer<AssignmentEvent>,
                                IVisualizer<BinaryEvent>,
+                               IVisualizer<ComparisonEvent>,
                                IVisualizer<EvalEvent> {
       // Current executed source code.
       public string Source { get; set; }
 
-      private readonly Dictionary<BinaryOperator, string> _operatorStrings =
-        new Dictionary<BinaryOperator, string>() {
-          {BinaryOperator.Add, "+"},
-          {BinaryOperator.Subtract, "-"},
-          {BinaryOperator.Multiply, "*"},
-          {BinaryOperator.Divide, "/"},
-          {BinaryOperator.FloorDivide, "//"},
-          {BinaryOperator.Power, "**"},
-          {BinaryOperator.Modulus, "%"},
-        };
+      private readonly Dictionary<BinaryOperator, string> _binaryOperatorStrings =
+          new Dictionary<BinaryOperator, string>() {
+            {BinaryOperator.Add, "+"},
+            {BinaryOperator.Subtract, "-"},
+            {BinaryOperator.Multiply, "*"},
+            {BinaryOperator.Divide, "/"},
+            {BinaryOperator.FloorDivide, "//"},
+            {BinaryOperator.Power, "**"},
+            {BinaryOperator.Modulus, "%"},
+          };
+
+      private readonly Dictionary<ComparisonOperator, string> _comparisonOperatorStrings =
+          new Dictionary<ComparisonOperator, string>() {
+            {ComparisonOperator.Less, "<"},
+            {ComparisonOperator.Greater, ">"},
+            {ComparisonOperator.LessEqual, "<="},
+            {ComparisonOperator.GreaterEqual, ">="},
+            {ComparisonOperator.EqEqual, "=="},
+            {ComparisonOperator.NotEqual, "!="},
+          };
 
       public void On(AssignmentEvent ae) {
         if (ae.Range is TextRange range) {
@@ -49,7 +60,19 @@ namespace SeedLang.Shell {
         if (be.Range is TextRange range) {
           WriteSourceWithHighlight(range);
         }
-        Console.WriteLine($"{be.Left} {_operatorStrings[be.Op]} {be.Right} = {be.Result}");
+        Console.WriteLine($"{be.Left} {_binaryOperatorStrings[be.Op]} {be.Right} = {be.Result}");
+      }
+
+      public void On(ComparisonEvent ce) {
+        if (ce.Range is TextRange range) {
+          WriteSourceWithHighlight(range);
+        }
+        Console.Write($"{ce.First} ");
+        for (int i = 0; i < ce.Ops.Length; ++i) {
+          string exprString = ce.Exprs[i] is IValue value ? value.String : "?";
+          Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {exprString} ");
+        }
+        Console.WriteLine($"= {ce.Result}");
       }
 
       public void On(EvalEvent ee) {

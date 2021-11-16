@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -22,6 +23,12 @@ namespace SeedLang.Ast {
     internal static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right,
                                             Range range) {
       return new BinaryExpression(left, op, right, range);
+    }
+
+    // The factory method to create a comparison expression.
+    internal static ComparisonExpression Comparison(Expression first, ComparisonOperator[] ops,
+                                                    Expression[] exprs, Range range) {
+      return new ComparisonExpression(first, ops, exprs, range);
     }
 
     // The factory method to create an identifier expression.
@@ -69,6 +76,20 @@ namespace SeedLang.Ast {
       Left = left;
       Op = op;
       Right = right;
+    }
+  }
+
+  internal class ComparisonExpression : Expression {
+    public Expression First { get; }
+    public ComparisonOperator[] Ops { get; }
+    public Expression[] Exprs { get; }
+
+    internal ComparisonExpression(Expression first, ComparisonOperator[] ops, Expression[] exprs,
+                                  Range range) : base(range) {
+      Debug.Assert(ops.Length > 0 && ops.Length == exprs.Length);
+      First = first;
+      Ops = ops;
+      Exprs = exprs;
     }
   }
 

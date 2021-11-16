@@ -17,8 +17,8 @@ using System.Text;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
-  internal static class BinaryOperatorExtensions {
-    // Returns the internal string representation of the binary operator.
+  internal static class OperatorExtensions {
+    // Returns the internal string representation of binary operators.
     internal static string Symbol(this BinaryOperator op) {
       switch (op) {
         case BinaryOperator.Add:
@@ -36,19 +36,37 @@ namespace SeedLang.Ast {
         case BinaryOperator.Modulus:
           return "%";
         default:
-          throw new ArgumentException("Unsupported binary operator.");
+          throw new NotImplementedException($"Unsupported binary operator: {op}.");
       }
     }
-  }
 
-  internal static class UnaryOperatorExtensions {
-    // Returns the internal string representation of the unary operator.
+    // Returns the internal string representation of comparison operators.
+    internal static string Symbol(this ComparisonOperator op) {
+      switch (op) {
+        case ComparisonOperator.Less:
+          return "<";
+        case ComparisonOperator.Greater:
+          return ">";
+        case ComparisonOperator.LessEqual:
+          return "<=";
+        case ComparisonOperator.GreaterEqual:
+          return ">=";
+        case ComparisonOperator.EqEqual:
+          return "==";
+        case ComparisonOperator.NotEqual:
+          return "!=";
+        default:
+          throw new NotImplementedException($"Unsupported comparison operator: {op}.");
+      }
+    }
+
+    // Returns the internal string representation of unary operators.
     internal static string Symbol(this UnaryOperator op) {
       switch (op) {
         case UnaryOperator.Negative:
           return "-";
         default:
-          throw new ArgumentException("Unsupported unary operator.");
+          throw new NotImplementedException($"Unsupported unary operator: {op}.");
       }
     }
   }
@@ -74,6 +92,16 @@ namespace SeedLang.Ast {
       _out.Append($" ({binary.Op.Symbol()})");
       Visit(binary.Left);
       Visit(binary.Right);
+      Exit();
+    }
+
+    protected override void Visit(ComparisonExpression comparison) {
+      Enter(comparison);
+      Visit(comparison.First);
+      for (int i = 0; i < comparison.Ops.Length; ++i) {
+        _out.Append($" ({comparison.Ops[i].Symbol()})");
+        Visit(comparison.Exprs[i]);
+      }
       Exit();
     }
 

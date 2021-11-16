@@ -1,3 +1,4 @@
+using System.Text;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +78,43 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(0, str.Number);
       Assert.Equal(_expectedTrueString, str.String);
       Assert.Equal(_expectedTrueString, str.ToString());
+    }
+
+    [Fact]
+    public void TestVMValueEquality() {
+      Assert.NotEqual(new VMValue(), new VMValue(false));
+      Assert.NotEqual(new VMValue(), new VMValue(0));
+      Assert.NotEqual(new VMValue(), new VMValue(""));
+      Assert.Equal(new VMValue(), new VMValue());
+
+      Assert.NotEqual(new VMValue(false), new VMValue());
+      Assert.NotEqual(new VMValue(false), new VMValue(""));
+      Assert.Equal(new VMValue(false), new VMValue(false));
+      Assert.Equal(new VMValue(true), new VMValue(true));
+      Assert.NotEqual(new VMValue(false), new VMValue(true));
+
+      Assert.NotEqual(new VMValue(false), new VMValue(1));
+      Assert.NotEqual(new VMValue(false), new VMValue(2));
+      Assert.NotEqual(new VMValue(true), new VMValue(0));
+      Assert.NotEqual(new VMValue(true), new VMValue(2));
+      Assert.Equal(new VMValue(false), new VMValue(0));
+      Assert.Equal(new VMValue(true), new VMValue(1));
+
+      Assert.NotEqual(new VMValue(0), new VMValue());
+      Assert.NotEqual(new VMValue(0), new VMValue(""));
+
+      Assert.NotEqual(new VMValue(1), new VMValue(false));
+      Assert.NotEqual(new VMValue(2), new VMValue(false));
+      Assert.NotEqual(new VMValue(0), new VMValue(true));
+      Assert.NotEqual(new VMValue(2), new VMValue(true));
+      Assert.Equal(new VMValue(0), new VMValue(false));
+      Assert.Equal(new VMValue(1), new VMValue(true));
+
+      Assert.NotEqual(new VMValue(""), new VMValue());
+      Assert.NotEqual(new VMValue(""), new VMValue(false));
+      Assert.NotEqual(new VMValue(""), new VMValue(0));
+      Assert.NotEqual(new VMValue("0"), new VMValue("1"));
+      Assert.Equal(new VMValue("1"), new VMValue("1"));
     }
   }
 }

@@ -75,6 +75,10 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    // TODO: implement comparison expressions visiting.
+    protected override void Visit(ComparisonExpression comparison) {
+    }
+
     protected override void Visit(IdentifierExpression identifier) {
       uint variableNameId = _constantCache.IdOfConstant(identifier.Name);
       _chunk.Emit(Opcode.GETGLOB, _expressionInfo.ResultRegister, variableNameId, identifier.Range);

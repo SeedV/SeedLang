@@ -20,7 +20,7 @@ using SeedLang.Runtime;
 namespace SeedLang.Shell {
   internal class Program {
     internal class Options {
-      [Option('l', "language", Required = false, Default = SeedXLanguage.Python,
+      [Option('l', "language", Required = false, Default = SeedXLanguage.SeedPython,
         HelpText = "The programming language of the source code.")]
       public SeedXLanguage Language { get; set; }
 

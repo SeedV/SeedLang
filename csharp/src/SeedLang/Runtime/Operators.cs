@@ -24,13 +24,13 @@ namespace SeedLang.Runtime {
     Modulus,
   }
 
-  // The operators of compare expressions.
-  public enum CompareOperator {
+  // The operators of comparison expressions.
+  public enum ComparisonOperator {
     Less,
-    Great,
+    Greater,
     LessEqual,
-    GreatEqual,
-    EqualEqual,
+    GreaterEqual,
+    EqEqual,
     NotEqual,
   }
 

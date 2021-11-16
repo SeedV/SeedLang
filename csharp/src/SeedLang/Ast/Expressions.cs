@@ -25,10 +25,10 @@ namespace SeedLang.Ast {
       return new BinaryExpression(left, op, right, range);
     }
 
-    // The factory method to create a compare expression.
-    internal static CompareExpression Compare(Expression first, CompareOperator[] ops,
-                                              Expression[] exprs, Range range) {
-      return new CompareExpression(first, ops, exprs, range);
+    // The factory method to create a comparison expression.
+    internal static ComparisonExpression Comparison(Expression first, ComparisonOperator[] ops,
+                                                    Expression[] exprs, Range range) {
+      return new ComparisonExpression(first, ops, exprs, range);
     }
 
     // The factory method to create an identifier expression.
@@ -79,13 +79,13 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal class CompareExpression : Expression {
+  internal class ComparisonExpression : Expression {
     public Expression First { get; }
-    public CompareOperator[] Ops { get; }
+    public ComparisonOperator[] Ops { get; }
     public Expression[] Exprs { get; }
 
-    internal CompareExpression(Expression first, CompareOperator[] ops, Expression[] exprs,
-                               Range range) : base(range) {
+    internal ComparisonExpression(Expression first, ComparisonOperator[] ops, Expression[] exprs,
+                                  Range range) : base(range) {
       Debug.Assert(ops.Length > 0 && ops.Length == exprs.Length);
       First = first;
       Ops = ops;

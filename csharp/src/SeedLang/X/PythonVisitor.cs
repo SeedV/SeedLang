@@ -70,12 +70,13 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Visits a compare expression.
-    public override AstNode VisitComapreExpression(
-        [NotNull] SeedPythonParser.ComapreExpressionContext context) {
-      if (GetCompareItems(context, out ParserRuleContext left, out ParserRuleContext op,
-                          out ParserRuleContext right)) {
-        return _helper.BuildCompare(left, op, right, ToCompareOperator, GetCompareItems, this);
+    // Visits a comparison expression.
+    public override AstNode VisitComaprisonExpression(
+        [NotNull] SeedPythonParser.ComaprisonExpressionContext context) {
+      if (GetComparisonItems(context, out ParserRuleContext left, out ParserRuleContext op,
+                             out ParserRuleContext right)) {
+        return _helper.BuildComparison(left, op, right, ToComparisonOperator, GetComparisonItems,
+                                       this);
       }
       return null;
     }
@@ -137,11 +138,11 @@ namespace SeedLang.X {
       return VisitorHelper.BuildExpressionStatement(context.expression(), this);
     }
 
-    private static bool GetCompareItems(ParserRuleContext context, out ParserRuleContext left,
+    private static bool GetComparisonItems(ParserRuleContext context, out ParserRuleContext left,
                                         out ParserRuleContext op, out ParserRuleContext right) {
-      if (context is SeedPythonParser.ComapreExpressionContext compare) {
-        if (compare.expression() is SeedPythonParser.ExpressionContext[] exprs &&
-            compare.compareOperator() is SeedPythonParser.CompareOperatorContext[] ops &&
+      if (context is SeedPythonParser.ComaprisonExpressionContext comparison) {
+        if (comparison.expression() is SeedPythonParser.ExpressionContext[] exprs &&
+            comparison.comparisonOperator() is SeedPythonParser.ComparisonOperatorContext[] ops &&
             ops.Length == 1 && exprs.Length == 2) {
           left = exprs[0];
           op = ops[0];
@@ -166,28 +167,28 @@ namespace SeedLang.X {
         case SeedPythonParser.DIV:
           return BinaryOperator.Divide;
         default:
-          throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
+          throw new NotImplementedException($"Unsupported comparison operator token: {tokenType}.");
       }
     }
 
-    private static CompareOperator ToCompareOperator(ParserRuleContext context) {
+    private static ComparisonOperator ToComparisonOperator(ParserRuleContext context) {
       Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
       int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
       switch (tokenType) {
         case SeedPythonParser.LESS:
-          return CompareOperator.Less;
-        case SeedPythonParser.GREAT:
-          return CompareOperator.Great;
+          return ComparisonOperator.Less;
+        case SeedPythonParser.GREATER:
+          return ComparisonOperator.Greater;
         case SeedPythonParser.LESSEQUAL:
-          return CompareOperator.LessEqual;
-        case SeedPythonParser.GREATEQUAL:
-          return CompareOperator.GreatEqual;
-        case SeedPythonParser.EQUALEQUAL:
-          return CompareOperator.EqualEqual;
+          return ComparisonOperator.LessEqual;
+        case SeedPythonParser.GREATEREQUAL:
+          return ComparisonOperator.GreaterEqual;
+        case SeedPythonParser.EQEQUAL:
+          return ComparisonOperator.EqEqual;
         case SeedPythonParser.NOTEQUAL:
-          return CompareOperator.NotEqual;
+          return ComparisonOperator.NotEqual;
         default:
-          throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
+          throw new NotImplementedException($"Unsupported comparison operator token: {tokenType}.");
       }
     }
   }

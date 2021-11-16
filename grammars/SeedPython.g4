@@ -77,10 +77,10 @@ continueStatement: 'continue';
 
 compoundStatement: ifStatement | whileStatement;
 ifStatement:
-  'if' compare ':' suite ('elif' compare ':' suite)* (
-    'else' ':' suite
-  )?;
-whileStatement: 'while' compare ':' suite;
+  'if' comparison ':' suite (
+    'elif' comparison ':' suite
+  )* ('else' ':' suite)?;
+whileStatement: 'while' comparison ':' suite;
 
 suite:
   simpleStatement

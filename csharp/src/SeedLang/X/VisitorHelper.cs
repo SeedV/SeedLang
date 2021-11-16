@@ -24,9 +24,11 @@ using SeedLang.Runtime;
 namespace SeedLang.X {
   // A helper class to build AST nodes from parser tree contexts.
   internal class VisitorHelper {
-    internal delegate CompareOperator ToCompareOperator(ParserRuleContext opContext);
-    internal delegate bool GetCompareItems(ParserRuleContext context, out ParserRuleContext left,
-                                           out ParserRuleContext op, out ParserRuleContext right);
+    internal delegate ComparisonOperator ToComparisonOperator(ParserRuleContext opContext);
+    internal delegate bool GetComparisonItems(ParserRuleContext context,
+                                              out ParserRuleContext left,
+                                              out ParserRuleContext op,
+                                              out ParserRuleContext right);
 
     private readonly IList<SyntaxToken> _syntaxTokens;
     private TextRange _groupingRange;
@@ -62,28 +64,28 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds a compare expression.
-    internal CompareExpression BuildCompare(ParserRuleContext left, ParserRuleContext op,
-                                            ParserRuleContext right,
-                                            ToCompareOperator toCompareOperator,
-                                            GetCompareItems getCompareItems,
-                                            AbstractParseTreeVisitor<AstNode> visitor) {
+    // Builds a comparison expression.
+    internal ComparisonExpression BuildComparison(ParserRuleContext left, ParserRuleContext op,
+                                                  ParserRuleContext right,
+                                                  ToComparisonOperator toComparisonOperator,
+                                                  GetComparisonItems getComparisonItems,
+                                                  AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange range = _groupingRange;
       _groupingRange = null;
 
       AstNode first = visitor.Visit(left);
       if (first is Expression firstExpr) {
-        var ops = new List<CompareOperator>();
+        var ops = new List<ComparisonOperator>();
         var exprs = new List<Expression>();
         ParserRuleContext opContext = op;
         ParserRuleContext nextContext = right;
         while (!(nextContext is null)) {
           IToken opToken = (opContext.GetChild(0) as ITerminalNode).Symbol;
           AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
-          ops.Add(toCompareOperator(opContext));
-          bool isNextCompare = getCompareItems(nextContext, out ParserRuleContext nextFirst,
-                                               out opContext, out ParserRuleContext nextNext);
-          AstNode next = isNextCompare ? visitor.Visit(nextFirst) : visitor.Visit(nextContext);
+          ops.Add(toComparisonOperator(opContext));
+          bool isNextComparison = getComparisonItems(nextContext, out ParserRuleContext nextFirst,
+                                                     out opContext, out ParserRuleContext nextNext);
+          AstNode next = isNextComparison ? visitor.Visit(nextFirst) : visitor.Visit(nextContext);
           if (next is Expression nextExpr) {
             exprs.Add(nextExpr);
           } else {
@@ -97,7 +99,7 @@ namespace SeedLang.X {
           range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
                                                    exprs.Last().Range as TextRange);
         }
-        return Expression.Compare(firstExpr, ops.ToArray(), exprs.ToArray(), range);
+        return Expression.Comparison(firstExpr, ops.ToArray(), exprs.ToArray(), range);
       }
       return null;
     }

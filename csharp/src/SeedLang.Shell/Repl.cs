@@ -23,7 +23,7 @@ namespace SeedLang.Shell {
   internal sealed class Repl {
     private class Visualizer : IVisualizer<AssignmentEvent>,
                                IVisualizer<BinaryEvent>,
-                               IVisualizer<CompareEvent>,
+                               IVisualizer<ComparisonEvent>,
                                IVisualizer<EvalEvent> {
       // Current executed source code.
       public string Source { get; set; }
@@ -39,14 +39,14 @@ namespace SeedLang.Shell {
             {BinaryOperator.Modulus, "%"},
           };
 
-      private readonly Dictionary<CompareOperator, string> _compareOperatorStrings =
-          new Dictionary<CompareOperator, string>() {
-            {CompareOperator.Less, "<"},
-            {CompareOperator.Great, ">"},
-            {CompareOperator.LessEqual, "<="},
-            {CompareOperator.GreatEqual, ">="},
-            {CompareOperator.EqualEqual, "=="},
-            {CompareOperator.NotEqual, "!="},
+      private readonly Dictionary<ComparisonOperator, string> _comparisonOperatorStrings =
+          new Dictionary<ComparisonOperator, string>() {
+            {ComparisonOperator.Less, "<"},
+            {ComparisonOperator.Greater, ">"},
+            {ComparisonOperator.LessEqual, "<="},
+            {ComparisonOperator.GreaterEqual, ">="},
+            {ComparisonOperator.EqEqual, "=="},
+            {ComparisonOperator.NotEqual, "!="},
           };
 
       public void On(AssignmentEvent ae) {
@@ -63,13 +63,14 @@ namespace SeedLang.Shell {
         Console.WriteLine($"{be.Left} {_binaryOperatorStrings[be.Op]} {be.Right} = {be.Result}");
       }
 
-      public void On(CompareEvent ce) {
+      public void On(ComparisonEvent ce) {
         if (ce.Range is TextRange range) {
           WriteSourceWithHighlight(range);
         }
         Console.Write($"{ce.First} ");
         for (int i = 0; i < ce.Ops.Length; ++i) {
-          Console.Write($"{_compareOperatorStrings[ce.Ops[i]]} {ce.Exprs[i]} ");
+          string exprString = ce.Exprs[i] is IValue value ? value.String : "?";
+          Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {exprString} ");
         }
         Console.WriteLine($"= {ce.Result}");
       }

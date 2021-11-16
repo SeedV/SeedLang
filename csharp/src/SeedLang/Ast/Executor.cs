@@ -73,54 +73,47 @@ namespace SeedLang.Ast {
       }
     }
 
-    protected override void Visit(CompareExpression compare) {
-      Visit(compare.First);
+    protected override void Visit(ComparisonExpression comparison) {
+      Visit(comparison.First);
       IValue first = _expressionResult;
-      var exprs = new IValue[compare.Exprs.Length];
+      var exprs = new IValue[comparison.Exprs.Length];
       bool currentResult = true;
-      for (int i = 0; i < compare.Ops.Length; ++i) {
-        Visit(compare.Exprs[i]);
+      for (int i = 0; i < comparison.Ops.Length; ++i) {
+        Visit(comparison.Exprs[i]);
         exprs[i] = _expressionResult;
         IValue left = i > 0 ? exprs[i - 1] : first;
-        switch (compare.Ops[i]) {
-          case CompareOperator.Less:
+        switch (comparison.Ops[i]) {
+          case ComparisonOperator.Less:
             currentResult = ValueHelper.Less(left, exprs[i]);
             break;
-          case CompareOperator.Great:
+          case ComparisonOperator.Greater:
             currentResult = ValueHelper.Great(left, exprs[i]);
             break;
-          case CompareOperator.LessEqual:
+          case ComparisonOperator.LessEqual:
             currentResult = ValueHelper.LessEqual(left, exprs[i]);
             break;
-          case CompareOperator.GreatEqual:
+          case ComparisonOperator.GreaterEqual:
             currentResult = ValueHelper.GreatEqual(left, exprs[i]);
             break;
-          case CompareOperator.EqualEqual:
+          case ComparisonOperator.EqEqual:
             currentResult = left.Equals(exprs[i]);
             break;
-          case CompareOperator.NotEqual:
+          case ComparisonOperator.NotEqual:
             currentResult = !left.Equals(exprs[i]);
             break;
           default:
             throw new System.NotImplementedException(
-                $"Unsupported compare operator: {compare.Ops[i]}");
+                $"Unsupported comparison operator: {comparison.Ops[i]}");
         }
         if (!currentResult) {
           break;
         }
       }
       _expressionResult = new BooleanValue(currentResult);
-      if (!_visualizerCenter.ComparePublisher.IsEmpty()) {
-        // Evaluate short circuit expressions for visualizers notification.
-        IValue result = _expressionResult;
-        for (int i = 0; i < exprs.Length; ++i) {
-          if (exprs[i] is null) {
-            Visit(compare.Exprs[i]);
-            exprs[i] = _expressionResult;
-          }
-        }
-        var ce = new CompareEvent(first, compare.Ops, exprs, result, compare.Range);
-        _visualizerCenter.ComparePublisher.Notify(ce);
+      if (!_visualizerCenter.ComparisonPublisher.IsEmpty()) {
+        var ce = new ComparisonEvent(first, comparison.Ops, exprs, _expressionResult,
+                                     comparison.Range);
+        _visualizerCenter.ComparisonPublisher.Notify(ce);
       }
     }
 

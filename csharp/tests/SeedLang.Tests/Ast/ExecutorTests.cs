@@ -20,11 +20,11 @@ namespace SeedLang.Ast.Tests {
   public class ExecutorTests {
     private class MockupVisualizer : IVisualizer<AssignmentEvent>,
                                      IVisualizer<BinaryEvent>,
-                                     IVisualizer<CompareEvent>,
+                                     IVisualizer<ComparisonEvent>,
                                      IVisualizer<EvalEvent> {
       public AssignmentEvent AssignmentEvent { get; private set; }
       public BinaryEvent BinaryEvent { get; private set; }
-      public CompareEvent CompareEvent { get; private set; }
+      public ComparisonEvent ComparisonEvent { get; private set; }
       public EvalEvent EvalEvent { get; private set; }
 
       public void On(AssignmentEvent ae) {
@@ -35,8 +35,8 @@ namespace SeedLang.Ast.Tests {
         BinaryEvent = be;
       }
 
-      public void On(CompareEvent ce) {
-        CompareEvent = ce;
+      public void On(ComparisonEvent ce) {
+        ComparisonEvent = ce;
       }
 
       public void On(EvalEvent ee) {
@@ -60,69 +60,70 @@ namespace SeedLang.Ast.Tests {
     }
 
     [Fact]
-    public void TestExecuteCompareExpression() {
+    public void TestExecuteComparisonExpression() {
       var first = Expression.Number(1, NewTextRange());
       var second = Expression.Number(2, NewTextRange());
-      var ops1 = new CompareOperator[] { CompareOperator.Less };
-      var ops2 = new CompareOperator[] { CompareOperator.Great };
+      var ops1 = new ComparisonOperator[] { ComparisonOperator.Less };
+      var ops2 = new ComparisonOperator[] { ComparisonOperator.Greater };
       var exprs = new Expression[] { second };
-      var compare1 = Expression.Compare(first, ops1, exprs, NewTextRange());
-      var compare2 = Expression.Compare(first, ops2, exprs, NewTextRange());
+      var comparison1 = Expression.Comparison(first, ops1, exprs, NewTextRange());
+      var comparison2 = Expression.Comparison(first, ops2, exprs, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
 
-      executor.Run(compare1);
-      Assert.Equal(new NumberValue(1), visualizer.CompareEvent.First);
-      Assert.Equal(ops1, visualizer.CompareEvent.Ops);
+      executor.Run(comparison1);
+      Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
+      Assert.Equal(ops1, visualizer.ComparisonEvent.Ops);
       var expectedExprs = new IValue[] { new NumberValue(2) };
-      Assert.Equal(expectedExprs, visualizer.CompareEvent.Exprs);
-      Assert.Equal(new BooleanValue(true), visualizer.CompareEvent.Result);
-      Assert.Equal(NewTextRange(), visualizer.CompareEvent.Range);
+      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(new BooleanValue(true), visualizer.ComparisonEvent.Result);
+      Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
 
-      executor.Run(compare2);
-      Assert.Equal(new NumberValue(1), visualizer.CompareEvent.First);
-      Assert.Equal(ops2, visualizer.CompareEvent.Ops);
-      Assert.Equal(expectedExprs, visualizer.CompareEvent.Exprs);
-      Assert.Equal(new BooleanValue(false), visualizer.CompareEvent.Result);
-      Assert.Equal(NewTextRange(), visualizer.CompareEvent.Range);
+      executor.Run(comparison2);
+      Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
+      Assert.Equal(ops2, visualizer.ComparisonEvent.Ops);
+      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(new BooleanValue(false), visualizer.ComparisonEvent.Result);
+      Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
     }
 
     [Fact]
-    public void TestExecuteMultipleCompareExpression() {
+    public void TestExecuteMultipleComparisonExpression() {
       var first = Expression.Number(1, NewTextRange());
       var second = Expression.Number(2, NewTextRange());
       var third = Expression.Number(3, NewTextRange());
-      var ops1 = new CompareOperator[] { CompareOperator.Less, CompareOperator.Less };
-      var ops2 = new CompareOperator[] { CompareOperator.Great, CompareOperator.Less };
-      var ops3 = new CompareOperator[] { CompareOperator.Less, CompareOperator.Great };
+      var ops1 = new ComparisonOperator[] { ComparisonOperator.Less, ComparisonOperator.Less };
+      var ops2 = new ComparisonOperator[] { ComparisonOperator.Greater, ComparisonOperator.Less };
+      var ops3 = new ComparisonOperator[] { ComparisonOperator.Less, ComparisonOperator.Greater };
       var exprs = new Expression[] { second, third };
-      var compare1 = Expression.Compare(first, ops1, exprs, NewTextRange());
-      var compare2 = Expression.Compare(first, ops2, exprs, NewTextRange());
-      var compare3 = Expression.Compare(first, ops3, exprs, NewTextRange());
+      var comparison1 = Expression.Comparison(first, ops1, exprs, NewTextRange());
+      var comparison2 = Expression.Comparison(first, ops2, exprs, NewTextRange());
+      var comparison3 = Expression.Comparison(first, ops3, exprs, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
 
-      executor.Run(compare1);
-      Assert.Equal(new NumberValue(1), visualizer.CompareEvent.First);
-      Assert.Equal(ops1, visualizer.CompareEvent.Ops);
+      executor.Run(comparison1);
+      Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
+      Assert.Equal(ops1, visualizer.ComparisonEvent.Ops);
       var expectedExprs = new IValue[] { new NumberValue(2), new NumberValue(3) };
-      Assert.Equal(expectedExprs, visualizer.CompareEvent.Exprs);
-      Assert.Equal(new BooleanValue(true), visualizer.CompareEvent.Result);
-      Assert.Equal(NewTextRange(), visualizer.CompareEvent.Range);
+      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(new BooleanValue(true), visualizer.ComparisonEvent.Result);
+      Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
 
-      executor.Run(compare2);
-      Assert.Equal(new NumberValue(1), visualizer.CompareEvent.First);
-      Assert.Equal(ops2, visualizer.CompareEvent.Ops);
-      Assert.Equal(expectedExprs, visualizer.CompareEvent.Exprs);
-      Assert.Equal(new BooleanValue(false), visualizer.CompareEvent.Result);
-      Assert.Equal(NewTextRange(), visualizer.CompareEvent.Range);
+      executor.Run(comparison2);
+      Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
+      Assert.Equal(ops2, visualizer.ComparisonEvent.Ops);
+      var expectedShortCircuitExprs = new IValue[] { new NumberValue(2), null };
+      Assert.Equal(expectedShortCircuitExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(new BooleanValue(false), visualizer.ComparisonEvent.Result);
+      Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
 
-      executor.Run(compare3);
-      Assert.Equal(new NumberValue(1), visualizer.CompareEvent.First);
-      Assert.Equal(ops3, visualizer.CompareEvent.Ops);
-      Assert.Equal(expectedExprs, visualizer.CompareEvent.Exprs);
-      Assert.Equal(new BooleanValue(false), visualizer.CompareEvent.Result);
-      Assert.Equal(NewTextRange(), visualizer.CompareEvent.Range);
+      executor.Run(comparison3);
+      Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
+      Assert.Equal(ops3, visualizer.ComparisonEvent.Ops);
+      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(new BooleanValue(false), visualizer.ComparisonEvent.Result);
+      Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
     }
 
     [Fact]

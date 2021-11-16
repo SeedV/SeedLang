@@ -40,23 +40,23 @@ namespace SeedLang.Ast {
       }
     }
 
-    // Returns the internal string representation of compare operators.
-    internal static string Symbol(this CompareOperator op) {
+    // Returns the internal string representation of comparison operators.
+    internal static string Symbol(this ComparisonOperator op) {
       switch (op) {
-        case CompareOperator.Less:
+        case ComparisonOperator.Less:
           return "<";
-        case CompareOperator.Great:
+        case ComparisonOperator.Greater:
           return ">";
-        case CompareOperator.LessEqual:
+        case ComparisonOperator.LessEqual:
           return "<=";
-        case CompareOperator.GreatEqual:
+        case ComparisonOperator.GreaterEqual:
           return ">=";
-        case CompareOperator.EqualEqual:
+        case ComparisonOperator.EqEqual:
           return "==";
-        case CompareOperator.NotEqual:
+        case ComparisonOperator.NotEqual:
           return "!=";
         default:
-          throw new NotImplementedException($"Unsupported binary operator: {op}.");
+          throw new NotImplementedException($"Unsupported comparison operator: {op}.");
       }
     }
 
@@ -95,12 +95,12 @@ namespace SeedLang.Ast {
       Exit();
     }
 
-    protected override void Visit(CompareExpression compare) {
-      Enter(compare);
-      Visit(compare.First);
-      for (int i = 0; i < compare.Ops.Length; ++i) {
-        _out.Append($" ({compare.Ops[i].Symbol()})");
-        Visit(compare.Exprs[i]);
+    protected override void Visit(ComparisonExpression comparison) {
+      Enter(comparison);
+      Visit(comparison.First);
+      for (int i = 0; i < comparison.Ops.Length; ++i) {
+        _out.Append($" ({comparison.Ops[i].Symbol()})");
+        Visit(comparison.Exprs[i]);
       }
       Exit();
     }

@@ -117,7 +117,7 @@ namespace SeedLang.X.Tests {
     [InlineData("1 < 2 > 3 <= 4",
 
                 "[Ln 1, Col 0 - Ln 1, Col 13] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 13] CompareExpression\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 13] ComparisonExpression\n" +
                 "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1) (<)\n" +
                 "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2) (>)\n" +
                 "    [Ln 1, Col 8 - Ln 1, Col 8] NumberConstantExpression (3) (<=)\n" +

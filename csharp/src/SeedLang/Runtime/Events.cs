@@ -41,15 +41,18 @@ namespace SeedLang.Runtime {
     }
   }
 
-  // An event which is triggered when a compare expression is evaluated.
-  public class CompareEvent : AbstractEvent {
+  // An event which is triggered when a comparison expression is evaluated.
+  //
+  // The length Exprs is as same as Ops. But not all the expressions are evaluated due to short
+  // circuit. They are filled as null in the corresponding positions of Exprs.
+  public class ComparisonEvent : AbstractEvent {
     public IValue First { get; }
-    public CompareOperator[] Ops { get; }
+    public ComparisonOperator[] Ops { get; }
     public IValue[] Exprs { get; }
     public IValue Result { get; }
 
-    public CompareEvent(IValue first, CompareOperator[] ops, IValue[] exprs, IValue result,
-                        Range range) : base(range) {
+    public ComparisonEvent(IValue first, ComparisonOperator[] ops, IValue[] exprs, IValue result,
+                           Range range) : base(range) {
       Debug.Assert(ops.Length > 0 && ops.Length == exprs.Length);
       First = first;
       Exprs = exprs;

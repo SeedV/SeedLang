@@ -25,7 +25,7 @@ namespace SeedLang.Ast.Tests {
 
       public TestData() {
         AddBinaryExpression();
-        AddCompareExpression();
+        AddComparisonExpression();
         AddIdentifierExpression();
         AddNumberConstantExpression();
         AddStringConstantExpression();
@@ -45,18 +45,18 @@ namespace SeedLang.Ast.Tests {
         Add(binary, expectedOutput);
       }
 
-      private void AddCompareExpression() {
+      private void AddComparisonExpression() {
         var first = Expression.Number(1, _textRange);
         var second = Expression.Number(2, _textRange);
         var third = Expression.Number(3, _textRange);
-        var ops = new CompareOperator[] { CompareOperator.Less, CompareOperator.Great };
+        var ops = new ComparisonOperator[] { ComparisonOperator.Less, ComparisonOperator.Greater };
         var exprs = new Expression[] { second, third };
-        var compare = Expression.Compare(first, ops, exprs, _textRange);
-        var expectedOutput = $"{_textRange} CompareExpression\n" +
+        var comparison = Expression.Comparison(first, ops, exprs, _textRange);
+        var expectedOutput = $"{_textRange} ComparisonExpression\n" +
                              $"  {_textRange} NumberConstantExpression (1) (<)\n" +
                              $"  {_textRange} NumberConstantExpression (2) (>)\n" +
                              $"  {_textRange} NumberConstantExpression (3)";
-        Add(compare, expectedOutput);
+        Add(comparison, expectedOutput);
       }
 
       private void AddIdentifierExpression() {

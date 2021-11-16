@@ -37,8 +37,8 @@ namespace SeedLang.Ast {
         case BinaryExpression binary:
           Visit(binary);
           break;
-        case CompareExpression compare:
-          Visit(compare);
+        case ComparisonExpression comparison:
+          Visit(comparison);
           break;
         case IdentifierExpression identifier:
           Visit(identifier);
@@ -75,7 +75,7 @@ namespace SeedLang.Ast {
 
     protected abstract void Visit(BinaryExpression binary);
 
-    protected abstract void Visit(CompareExpression compare);
+    protected abstract void Visit(ComparisonExpression comparison);
 
     protected abstract void Visit(IdentifierExpression identifier);
 

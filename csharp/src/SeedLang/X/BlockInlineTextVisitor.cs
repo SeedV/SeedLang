@@ -73,12 +73,13 @@ namespace SeedLang.Block {
       return null;
     }
 
-    // Visits a compare expression.
-    public override AstNode VisitComapreExpression(
-        [NotNull] SeedBlockInlineTextParser.ComapreExpressionContext context) {
-      if (GetCompareItems(context, out ParserRuleContext left, out ParserRuleContext op,
-                          out ParserRuleContext right)) {
-        return _helper.BuildCompare(left, op, right, ToCompareOperator, GetCompareItems, this);
+    // Visits a comparison expression.
+    public override AstNode VisitComaprisonExpression(
+        [NotNull] SeedBlockInlineTextParser.ComaprisonExpressionContext context) {
+      if (GetComparisonItems(context, out ParserRuleContext left, out ParserRuleContext op,
+                             out ParserRuleContext right)) {
+        return _helper.BuildComparison(left, op, right, ToComparisonOperator, GetComparisonItems,
+                                       this);
       }
       return null;
     }
@@ -114,11 +115,12 @@ namespace SeedLang.Block {
       return Visit(context.expressionStatement());
     }
 
-    private static bool GetCompareItems(ParserRuleContext context, out ParserRuleContext left,
-                                        out ParserRuleContext op, out ParserRuleContext right) {
-      if (context is SeedBlockInlineTextParser.ComapreExpressionContext compare) {
-        if (compare.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
-            compare.compareOperator() is SeedBlockInlineTextParser.CompareOperatorContext[] ops &&
+    private static bool GetComparisonItems(ParserRuleContext context, out ParserRuleContext left,
+                                           out ParserRuleContext op, out ParserRuleContext right) {
+      if (context is SeedBlockInlineTextParser.ComaprisonExpressionContext comparison) {
+        if (comparison.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
+            comparison.comparisonOperator() is
+                SeedBlockInlineTextParser.ComparisonOperatorContext[] ops &&
             ops.Length == 1 && exprs.Length == 2) {
           left = exprs[0];
           op = ops[0];
@@ -143,27 +145,27 @@ namespace SeedLang.Block {
         case SeedBlockInlineTextParser.DIV:
           return BinaryOperator.Divide;
         default:
-          throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
+          throw new NotImplementedException($"Unsupported comparison operator token: {tokenType}.");
       }
     }
-    private static CompareOperator ToCompareOperator(ParserRuleContext context) {
+    private static ComparisonOperator ToComparisonOperator(ParserRuleContext context) {
       Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
       int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
       switch (tokenType) {
         case SeedBlockInlineTextParser.LESS:
-          return CompareOperator.Less;
-        case SeedBlockInlineTextParser.GREAT:
-          return CompareOperator.Great;
+          return ComparisonOperator.Less;
+        case SeedBlockInlineTextParser.GREATER:
+          return ComparisonOperator.Greater;
         case SeedBlockInlineTextParser.LESSEQUAL:
-          return CompareOperator.LessEqual;
-        case SeedBlockInlineTextParser.GREATEQUAL:
-          return CompareOperator.GreatEqual;
-        case SeedBlockInlineTextParser.EQUALEQUAL:
-          return CompareOperator.EqualEqual;
+          return ComparisonOperator.LessEqual;
+        case SeedBlockInlineTextParser.GREATEREQUAL:
+          return ComparisonOperator.GreaterEqual;
+        case SeedBlockInlineTextParser.EQEQUAL:
+          return ComparisonOperator.EqEqual;
         case SeedBlockInlineTextParser.NOTEQUAL:
-          return CompareOperator.NotEqual;
+          return ComparisonOperator.NotEqual;
         default:
-          throw new NotImplementedException($"Unsupported compare operator token: {tokenType}.");
+          throw new NotImplementedException($"Unsupported comparison operator token: {tokenType}.");
       }
     }
   }

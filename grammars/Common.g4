@@ -28,15 +28,16 @@ grammar Common;
 //       definition, may need change to classic syntax defintion.
 // TODO: add null and boolean constants (True and False).
 expression:
-  unaryOperator expression                   # unaryExpression
-  | expression mulDivOperator expression     # mulDivExpression
-  | expression addSubOperator expression     # addSubExpression
-  | expression (compareOperator expression)+ # comapreExpression
-  | IDENTIFIER                               # identifier
-  | NUMBER                                   # number
-  | OPEN_PAREN expression CLOSE_PAREN        # grouping;
+  unaryOperator expression                      # unaryExpression
+  | expression mulDivOperator expression        # mulDivExpression
+  | expression addSubOperator expression        # addSubExpression
+  | expression (comparisonOperator expression)+ # comaprisonExpression
+  | IDENTIFIER                                  # identifier
+  | NUMBER                                      # number
+  | OPEN_PAREN expression CLOSE_PAREN           # grouping;
 
-compare: expression ( compareOperator expression)+;
+comparison:
+  expression (comparisonOperator expression)+;
 
 unaryOperator: SUB;
 
@@ -44,12 +45,12 @@ mulDivOperator: MUL | DIV;
 
 addSubOperator: ADD | SUB;
 
-compareOperator:
+comparisonOperator:
   LESS
-  | GREAT
-  | EQUALEQUAL
+  | GREATER
   | LESSEQUAL
-  | GREATEQUAL
+  | GREATEREQUAL
+  | EQEQUAL
   | NOTEQUAL;
 
 /*
@@ -64,9 +65,9 @@ MUL: '*';
 DIV: '/';
 
 LESS: '<';
-GREAT: '>';
-EQUALEQUAL: '==';
-GREATEQUAL: '>=';
+GREATER: '>';
+EQEQUAL: '==';
+GREATEREQUAL: '>=';
 LESSEQUAL: '<=';
 NOTEQUAL: '!=';
 

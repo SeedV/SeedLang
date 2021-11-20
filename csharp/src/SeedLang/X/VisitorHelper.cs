@@ -24,11 +24,7 @@ using SeedLang.Runtime;
 namespace SeedLang.X {
   // A helper class to build AST nodes from parser tree contexts.
   internal class VisitorHelper {
-    internal delegate ComparisonOperator ToComparisonOperator(ParserRuleContext opContext);
-    internal delegate bool GetComparisonItems(ParserRuleContext context,
-                                              out ParserRuleContext left,
-                                              out ParserRuleContext op,
-                                              out ParserRuleContext right);
+    internal delegate ComparisonOperator ToComparisonOperator(IToken token);
 
     private readonly IList<SyntaxToken> _syntaxTokens;
     private TextRange _groupingRange;
@@ -39,15 +35,13 @@ namespace SeedLang.X {
 
     // Builds a binary expression.
     internal BinaryExpression BuildBinary(
-        ParserRuleContext leftContext, ParserRuleContext opContext, ParserRuleContext rightContext,
-        System.Func<ParserRuleContext, BinaryOperator> toOperator,
-        AbstractParseTreeVisitor<AstNode> visitor) {
+        ParserRuleContext leftContext, IToken opToken, BinaryOperator op,
+        ParserRuleContext rightContext, AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange range = _groupingRange;
       _groupingRange = null;
 
       AstNode left = visitor.Visit(leftContext);
       if (left is Expression leftExpr) {
-        IToken opToken = (opContext.GetChild(0) as ITerminalNode).Symbol;
         AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
         AstNode right = visitor.Visit(rightContext);
 
@@ -58,40 +52,37 @@ namespace SeedLang.X {
             range = CodeReferenceUtils.CombineRanges(left.Range as TextRange,
                                                      right.Range as TextRange);
           }
-          return Expression.Binary(leftExpr, toOperator(opContext), rightExpr, range);
+          return Expression.Binary(leftExpr, op, rightExpr, range);
         }
       }
       return null;
     }
 
     // Builds a comparison expression.
-    internal ComparisonExpression BuildComparison(ParserRuleContext left, ParserRuleContext op,
-                                                  ParserRuleContext right,
+    internal ComparisonExpression BuildComparison(ParserRuleContext left,
+                                                  ParserRuleContext[] rightPairs,
                                                   ToComparisonOperator toComparisonOperator,
-                                                  GetComparisonItems getComparisonItems,
                                                   AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange range = _groupingRange;
       _groupingRange = null;
 
       AstNode first = visitor.Visit(left);
       if (first is Expression firstExpr) {
+
         var ops = new List<ComparisonOperator>();
         var exprs = new List<Expression>();
-        ParserRuleContext opContext = op;
-        ParserRuleContext nextContext = right;
-        while (!(nextContext is null)) {
-          IToken opToken = (opContext.GetChild(0) as ITerminalNode).Symbol;
-          AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
-          ops.Add(toComparisonOperator(opContext));
-          bool isNextComparison = getComparisonItems(nextContext, out ParserRuleContext nextFirst,
-                                                     out opContext, out ParserRuleContext nextNext);
-          AstNode next = isNextComparison ? visitor.Visit(nextFirst) : visitor.Visit(nextContext);
-          if (next is Expression nextExpr) {
-            exprs.Add(nextExpr);
-          } else {
-            return null;
+        foreach (ParserRuleContext right in rightPairs) {
+          if (right.ChildCount == 2 && right.GetChild(0) is ITerminalNode opNode) {
+            IToken opToken = opNode.Symbol;
+            AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
+            ops.Add(toComparisonOperator(opToken));
+            AstNode next = visitor.Visit(right.GetChild(1));
+            if (next is Expression nextExpr) {
+              exprs.Add(nextExpr);
+            } else {
+              return null;
+            }
           }
-          nextContext = nextNext;
         }
         if (range is null) {
           Debug.Assert(first.Range is TextRange);
@@ -160,9 +151,9 @@ namespace SeedLang.X {
     }
 
     // Builds an assignment statement.
-    internal AssignmentStatement BuildAssignStatement(
-        IToken idToken, IToken equalToken, ParserRuleContext exprContext,
-        AbstractParseTreeVisitor<AstNode> visitor) {
+    internal AssignmentStatement BuildAssignment(IToken idToken, IToken equalToken,
+                                                 ParserRuleContext exprContext,
+                                                 AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange idRange = CodeReferenceUtils.RangeOfToken(idToken);
       var identifier = Expression.Identifier(idToken.Text, idRange);
       AddSyntaxToken(SyntaxType.Variable, idRange);

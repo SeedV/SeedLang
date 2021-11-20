@@ -31,6 +31,13 @@ namespace SeedLang.X.Tests {
     }
 
     [Theory]
+    [InlineData("id",
+
+                "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] IdentifierExpression (id)",
+
+                "Variable [Ln 1, Col 0 - Ln 1, Col 1]")]
+
     [InlineData("id = 1",
 
                 "[Ln 1, Col 0 - Ln 1, Col 5] AssignmentStatement\n" +
@@ -40,6 +47,17 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 1, Col 0 - Ln 1, Col 1]," +
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]")]
+
+    [InlineData("1 + 2",
+
+                "[Ln 1, Col 0 - Ln 1, Col 4] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 4] BinaryExpression (+)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
 
     [InlineData("1 + 2 * 3 - 40",
 

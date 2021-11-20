@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2021 The Aha001 Team.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *
+ * SeedPyhton grammar is referred and modified from:
+ * https://docs.python.org/3.10/reference/grammar.html
+*/
 
 grammar Common;
 
@@ -20,58 +23,80 @@ grammar Common;
   #pragma warning disable 3021
 }
 
+tokens {
+  INDENT,
+  DEDENT
+}
+
 /*
  * Parser rules
  */
 
-// TODO: there is too much limitation for direct left recursive syntax
-//       definition, may need change to classic syntax defintion.
-// TODO: add null and boolean constants (True and False).
-expression:
-  unaryOperator expression                      # unaryExpression
-  | expression mulDivOperator expression        # mulDivExpression
-  | expression addSubOperator expression        # addSubExpression
-  | expression (comparisonOperator expression)+ # comaprisonExpression
-  | IDENTIFIER                                  # identifier
-  | NUMBER                                      # number
-  | OPEN_PAREN expression CLOSE_PAREN           # grouping;
+star_expressions:
+  star_expression (COMMA star_expression)+ COMMA? # mltiple_star_expressions
+  | star_expression                               # single_star_expression;
+star_expression: expression;
 
+named_expression: expression;
+
+expressions:
+  expression (COMMA expression)+ COMMA? # mltiple_expressions
+  | expression                          # single_expression;
+
+expression: disjunction;
+
+disjunction:
+  conjunction (OR conjunction)+ # or
+  | conjunction                 # conjunction_as_disjunction;
+conjunction:
+  inversion (AND inversion)+ # and
+  | inversion                # inversion_as_conjunction;
+inversion:
+  NOT inversion # not_inversion
+  | comparison  # comparison_as_inversion;
 comparison:
-  expression (comparisonOperator expression)+;
+  bitwise_or compare_op_bitwise_or_pair+ # multiple_comparison
+  | bitwise_or                           # bitwise_or_as_comparison;
+compare_op_bitwise_or_pair:
+  EQ_EQUAL bitwise_or        # eq_equal
+  | NOT_EQUAL bitwise_or     # not_equal
+  | LESS_EQUAL bitwise_or    # less_equal
+  | LESS bitwise_or          # less
+  | GREATER_EQUAL bitwise_or # greater_equal
+  | GREATER bitwise_or       # greater;
 
-unaryOperator: SUB;
+bitwise_or: sum;
 
-mulDivOperator: MUL | DIV;
+sum:
+  sum ADD term         # add
+  | sum SUBSTRACT term # substract
+  | term               # term_as_sum;
+term:
+  term MULTIPLY factor       # multiply
+  | term DIVIDE factor       # divide
+  | term FLOOR_DIVIDE factor # floor_divide
+  | factor                   # factor_as_term;
+factor:
+  ADD factor         # pos_factor
+  | SUBSTRACT factor # nag_factor
+  | primary          # primary_as_factor;
+primary: atom;
 
-addSubOperator: ADD | SUB;
+atom:
+  NAME      # name
+  | 'True'  # true
+  | 'False' # false
+  | 'None'  # none
+  | NUMBER  # number
+  | group   # group_as_atom;
 
-comparisonOperator:
-  LESS
-  | GREATER
-  | LESSEQUAL
-  | GREATEREQUAL
-  | EQEQUAL
-  | NOTEQUAL;
+group: OPEN_PAREN named_expression CLOSE_PAREN;
 
 /*
  * Lexer rules
  */
 
-EQUAL: '=';
-
-ADD: '+';
-SUB: '-';
-MUL: '*';
-DIV: '/';
-
-LESS: '<';
-GREATER: '>';
-EQEQUAL: '==';
-GREATEREQUAL: '>=';
-LESSEQUAL: '<=';
-NOTEQUAL: '!=';
-
-IDENTIFIER: ID_START ID_CONTINUE*;
+NAME: ID_START ID_CONTINUE*;
 
 NUMBER: INTEGER | FLOAT_NUMBER;
 
@@ -83,12 +108,31 @@ DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
 
 FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
 
+AND: 'and';
+OR: 'or';
+NOT: 'not';
+
+EQ_EQUAL: '==';
+NOT_EQUAL: '!=';
+LESS_EQUAL: '<=';
+LESS: '<';
+GREATER_EQUAL: '>=';
+GREATER: '>';
+
+ADD: '+';
+SUBSTRACT: '-';
+MULTIPLY: '*';
+DIVIDE: '/';
+FLOOR_DIVIDE: '//';
+
 OPEN_PAREN: '(';
 CLOSE_PAREN: ')';
 OPEN_BRACK: '[';
 CLOSE_BRACK: ']';
 OPEN_BRACE: '{';
 CLOSE_BRACE: '}';
+
+COMMA: ',';
 
 NEWLINE: ( '\r'? '\n' | '\r' | '\f') SPACES?;
 

@@ -13,75 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * This is a derived work of https://github.com/bkiers/Python3-parser.
- * Here is the original license notice:
- *
- * The MIT License (MIT)
- *
- * Copyright (c) 2014 by Bart Kiers
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Project      : python3-parser; an ANTLR4 grammar for Python 3
- *                https://github.com/bkiers/python3-parser
- * Developed by : Bart Kiers, bart@big-o.nl
- */
+ * SeedPyhton grammar is referred and modified from:
+ * https://docs.python.org/3.10/reference/grammar.html
+*/
 
 grammar SeedPython;
 
 import Common;
 
-tokens {
-  INDENT,
-  DEDENT
-}
+file: statements? EOF;
+interactive: statement EOF;
 
-singleStatement: smallStatement EOF;
+statements: statement+;
+statement: compound_stmt | simple_stmts;
+simple_stmts:
+  simple_stmt (SEMICOLON simple_stmt)+ SEMICOLON? # multiple_simple_stmts
+  | simple_stmt                                   # single_simple_stmt;
+simple_stmt:
+  assignment         # assignment_placeholder
+  | star_expressions # expression_stmt
+  | return_stmt      # return_stmt_placeholder
+  | 'pass'           # pass
+  | 'break'          # break
+  | 'continue'       # continue;
+compound_stmt: if_stmt # if | while_stmt # while;
 
-fileInput: (NEWLINE | statement)* EOF;
+assignment: NAME EQUAL star_expressions;
 
-statement: simpleStatement | compoundStatement;
+if_stmt:
+  IF named_expression COLON block elif_stmt       # if_elif
+  | IF named_expression COLON block (else_block)? # if_else;
+elif_stmt:
+  ELIF named_expression COLON block elif_stmt       # elif_elif
+  | ELIF named_expression COLON block (else_block)? # elif_else;
+else_block: ELSE COLON block;
 
-simpleStatement:
-  smallStatement (';' smallStatement)* (';')?;
+while_stmt:
+  WHILE named_expression COLON block (else_block)?;
 
-smallStatement:
-  assignStatement
-  | expressionStatement
-  | flowStatement;
+return_stmt: RETURN star_expressions?;
 
-assignStatement: IDENTIFIER EQUAL expression;
-expressionStatement: expression;
-flowStatement: breakStatement | continueStatement;
-breakStatement: 'break';
-continueStatement: 'continue';
+block:
+  NEWLINE INDENT statements DEDENT # block_statements
+  | simple_stmts                   # block_simple_stmts;
 
-compoundStatement: ifStatement | whileStatement;
-ifStatement:
-  'if' comparison ':' suite (
-    'elif' comparison ':' suite
-  )* ('else' ':' suite)?;
-whileStatement: 'while' comparison ':' suite;
+/*
+ * Lexer rules
+ */
 
-suite:
-  simpleStatement
-  | NEWLINE INDENT statement+ DEDENT;
+IF: 'if';
+ELIF: 'elif';
+ELSE: 'else';
+WHILE: 'while';
+RETURN: 'return';
+
+EQUAL: '=';
+COLON: ':';
+SEMICOLON: ';';

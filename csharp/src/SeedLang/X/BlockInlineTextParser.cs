@@ -29,10 +29,10 @@ namespace SeedLang.Block {
     // The dictionary that maps from token types of SeedBlock to syntax token types.
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
       { SeedBlockInlineTextParser.NUMBER, SyntaxType.Number },
-      { SeedBlockInlineTextParser.ADD, SyntaxType.Operator },
-      { SeedBlockInlineTextParser.SUB, SyntaxType.Operator },
-      { SeedBlockInlineTextParser.MUL, SyntaxType.Operator },
-      { SeedBlockInlineTextParser.DIV, SyntaxType.Operator },
+      // { SeedBlockInlineTextParser.ADD, SyntaxType.Operator },
+      // { SeedBlockInlineTextParser.SUB, SyntaxType.Operator },
+      // { SeedBlockInlineTextParser.MUL, SyntaxType.Operator },
+      // { SeedBlockInlineTextParser.DIV, SyntaxType.Operator },
       { SeedBlockInlineTextParser.OPEN_PAREN, SyntaxType.Parenthesis },
       { SeedBlockInlineTextParser.CLOSE_PAREN, SyntaxType.Parenthesis },
       { SeedBlockInlineTextParser.UNKNOWN_CHAR, SyntaxType.Unknown },

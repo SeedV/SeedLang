@@ -28,13 +28,22 @@ namespace SeedLang.Block {
   internal class BlockInlineTextParser : BaseParser {
     // The dictionary that maps from token types of SeedBlock to syntax token types.
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
-      { SeedBlockInlineTextParser.NUMBER, SyntaxType.Number },
-      // { SeedBlockInlineTextParser.ADD, SyntaxType.Operator },
-      // { SeedBlockInlineTextParser.SUB, SyntaxType.Operator },
-      // { SeedBlockInlineTextParser.MUL, SyntaxType.Operator },
-      // { SeedBlockInlineTextParser.DIV, SyntaxType.Operator },
-      { SeedBlockInlineTextParser.OPEN_PAREN, SyntaxType.Parenthesis },
-      { SeedBlockInlineTextParser.CLOSE_PAREN, SyntaxType.Parenthesis },
+      { SeedBlockInlineTextParser.NAME, SyntaxType.Variable},
+      { SeedBlockInlineTextParser.NUMBER, SyntaxType.Number},
+      { SeedBlockInlineTextParser.ADD, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.SUBTRACT, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.MULTIPLY, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.DIVIDE, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.FLOOR_DIVIDE, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.EQUAL, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.EQ_EQUAL, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.NOT_EQUAL, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.LESS_EQUAL, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.LESS, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.GREATER_EQUAL, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.GREATER, SyntaxType.Operator},
+      { SeedBlockInlineTextParser.OPEN_PAREN, SyntaxType.Parenthesis},
+      { SeedBlockInlineTextParser.CLOSE_PAREN, SyntaxType.Parenthesis},
       { SeedBlockInlineTextParser.UNKNOWN_CHAR, SyntaxType.Unknown },
     };
 
@@ -53,9 +62,9 @@ namespace SeedLang.Block {
       return new BlockInlineTextVisitor(tokens);
     }
 
-    protected override ParserRuleContext SingleStatement(Parser parser) {
+    protected override ParserRuleContext Program(Parser parser) {
       Debug.Assert(parser is SeedBlockInlineTextParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedBlockInlineTextParser).singleStatement();
+      return (parser as SeedBlockInlineTextParser).expressionStatement();
     }
   }
 }

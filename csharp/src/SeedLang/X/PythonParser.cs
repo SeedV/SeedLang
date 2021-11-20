@@ -26,11 +26,18 @@ namespace SeedLang.X {
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
       { SeedPythonParser.NAME, SyntaxType.Variable},
       { SeedPythonParser.NUMBER, SyntaxType.Number},
-      // { SeedPythonParser.ADD, SyntaxType.Operator},
-      // { SeedPythonParser.SUB, SyntaxType.Operator},
-      // { SeedPythonParser.MUL, SyntaxType.Operator},
-      // { SeedPythonParser.DIV, SyntaxType.Operator},
-      // { SeedPythonParser.EQUAL, SyntaxType.Operator},
+      { SeedPythonParser.ADD, SyntaxType.Operator},
+      { SeedPythonParser.SUBTRACT, SyntaxType.Operator},
+      { SeedPythonParser.MULTIPLY, SyntaxType.Operator},
+      { SeedPythonParser.DIVIDE, SyntaxType.Operator},
+      { SeedPythonParser.FLOOR_DIVIDE, SyntaxType.Operator},
+      { SeedPythonParser.EQUAL, SyntaxType.Operator},
+      { SeedPythonParser.EQ_EQUAL, SyntaxType.Operator},
+      { SeedPythonParser.NOT_EQUAL, SyntaxType.Operator},
+      { SeedPythonParser.LESS_EQUAL, SyntaxType.Operator},
+      { SeedPythonParser.LESS, SyntaxType.Operator},
+      { SeedPythonParser.GREATER_EQUAL, SyntaxType.Operator},
+      { SeedPythonParser.GREATER, SyntaxType.Operator},
       { SeedPythonParser.OPEN_PAREN, SyntaxType.Parenthesis},
       { SeedPythonParser.CLOSE_PAREN, SyntaxType.Parenthesis},
       { SeedPythonParser.UNKNOWN_CHAR, SyntaxType.Unknown },
@@ -51,9 +58,9 @@ namespace SeedLang.X {
       return new PythonVisitor(tokens);
     }
 
-    protected override ParserRuleContext SingleStatement(Parser parser) {
+    protected override ParserRuleContext Program(Parser parser) {
       Debug.Assert(parser is SeedPythonParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedPythonParser).interactive();
+      return (parser as SeedPythonParser).program();
     }
   }
 }

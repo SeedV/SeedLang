@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
@@ -37,9 +36,96 @@ namespace SeedLang.Block {
       _helper = new VisitorHelper(tokens);
     }
 
-    public override AstNode VisitSingleStatement(
-        [NotNull] SeedBlockInlineTextParser.SingleStatementContext context) {
-      return Visit(context.expressionStatement());
+    public override AstNode VisitExpressionStatement(
+        [NotNull] SeedBlockInlineTextParser.ExpressionStatementContext context) {
+      return Visit(context.expression());
+    }
+
+    public override AstNode VisitMultiple_comparison(
+        [NotNull] SeedBlockInlineTextParser.Multiple_comparisonContext context) {
+      return _helper.BuildComparison(context.bitwise_or(), context.compare_op_bitwise_or_pair(),
+                                     ToComparisonOperator, this);
+    }
+
+    public override AstNode VisitAdd([NotNull] SeedBlockInlineTextParser.AddContext context) {
+      return _helper.BuildBinary(context.sum(), context.ADD().Symbol, BinaryOperator.Add,
+                                 context.term(), this);
+    }
+
+    public override AstNode VisitSubtract(
+        [NotNull] SeedBlockInlineTextParser.SubtractContext context) {
+      return _helper.BuildBinary(context.sum(), context.SUBTRACT().Symbol, BinaryOperator.Subtract,
+                                 context.term(), this);
+    }
+
+    public override AstNode VisitDivide([NotNull] SeedBlockInlineTextParser.DivideContext context) {
+      return _helper.BuildBinary(context.term(), context.DIVIDE().Symbol, BinaryOperator.Divide,
+                                 context.factor(), this);
+    }
+
+    public override AstNode VisitMultiply(
+        [NotNull] SeedBlockInlineTextParser.MultiplyContext context) {
+      return _helper.BuildBinary(context.term(), context.MULTIPLY().Symbol, BinaryOperator.Multiply,
+                                 context.factor(), this);
+    }
+
+    public override AstNode VisitPos_factor(
+        [NotNull] SeedBlockInlineTextParser.Pos_factorContext context) {
+      return _helper.BuildUnary(context.ADD().Symbol, UnaryOperator.Positive, context.factor(),
+                                this);
+    }
+
+    public override AstNode VisitNag_factor(
+        [NotNull] SeedBlockInlineTextParser.Nag_factorContext context) {
+      return _helper.BuildUnary(context.SUBTRACT().Symbol, UnaryOperator.Negative,
+                                context.factor(), this);
+    }
+
+    public override AstNode VisitName([NotNull] SeedBlockInlineTextParser.NameContext context) {
+      return _helper.BuildIdentifier(context.NAME().Symbol);
+    }
+
+    public override AstNode VisitTrue([NotNull] SeedBlockInlineTextParser.TrueContext context) {
+      // TODO: return a true constant expresssion.
+      return null;
+    }
+
+    public override AstNode VisitFalse([NotNull] SeedBlockInlineTextParser.FalseContext context) {
+      // TODO: return a false constant expresssion.
+      return null;
+    }
+
+    public override AstNode VisitNone([NotNull] SeedBlockInlineTextParser.NoneContext context) {
+      // TODO: return a none constant expresssion.
+      return null;
+    }
+
+    public override AstNode VisitNumber([NotNull] SeedBlockInlineTextParser.NumberContext context) {
+      return _helper.BuildNumber(context.NUMBER().Symbol);
+    }
+
+    public override AstNode VisitGroup([NotNull] SeedBlockInlineTextParser.GroupContext context) {
+      return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.named_expression(),
+                                   context.CLOSE_PAREN().Symbol, this);
+    }
+
+    private static ComparisonOperator ToComparisonOperator(IToken token) {
+      switch (token.Type) {
+        case SeedBlockInlineTextParser.LESS:
+          return ComparisonOperator.Less;
+        case SeedBlockInlineTextParser.GREATER:
+          return ComparisonOperator.Greater;
+        case SeedBlockInlineTextParser.LESS_EQUAL:
+          return ComparisonOperator.LessEqual;
+        case SeedBlockInlineTextParser.GREATER_EQUAL:
+          return ComparisonOperator.GreaterEqual;
+        case SeedBlockInlineTextParser.EQ_EQUAL:
+          return ComparisonOperator.EqEqual;
+        case SeedBlockInlineTextParser.NOT_EQUAL:
+          return ComparisonOperator.NotEqual;
+        default:
+          throw new NotImplementedException($"Unsupported comparison operator: {token.Type}.");
+      }
     }
   }
 }

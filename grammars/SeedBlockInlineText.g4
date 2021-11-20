@@ -18,6 +18,4 @@ grammar SeedBlockInlineText;
 
 import Common;
 
-singleStatement: expressionStatement EOF;
-
-expressionStatement: expression;
+expressionStatement: expression EOF;

@@ -21,8 +21,7 @@ grammar SeedPython;
 
 import Common;
 
-file: statements? EOF;
-interactive: statement EOF;
+program: statements? EOF;
 
 statements: statement+;
 statement: compound_stmt | simple_stmts;
@@ -67,6 +66,5 @@ ELSE: 'else';
 WHILE: 'while';
 RETURN: 'return';
 
-EQUAL: '=';
 COLON: ':';
 SEMICOLON: ';';

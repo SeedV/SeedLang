@@ -1,4 +1,3 @@
-using System.Linq;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,14 +34,13 @@ namespace SeedLang.X {
       _helper = new VisitorHelper(tokens);
     }
 
-    public override AstNode VisitFile([NotNull] SeedPythonParser.FileContext context) {
-      // TODO: implement it.
-      return VisitChildren(context);
-    }
-
-    public override AstNode VisitInteractive(
-        [NotNull] SeedPythonParser.InteractiveContext context) {
-      return Visit(context.statement());
+    public override AstNode VisitProgram([NotNull] SeedPythonParser.ProgramContext context) {
+      ParserRuleContext statements = context.statements();
+      if (statements is null) {
+        // TODO: return a null block AST node.
+        return null;
+      }
+      return Visit(statements);
     }
 
     public override AstNode VisitExpression_stmt(
@@ -62,38 +60,33 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitAdd([NotNull] SeedPythonParser.AddContext context) {
-      IToken opToken = (context.GetChild(1) as ITerminalNode).Symbol;
-      return _helper.BuildBinary(context.sum(), opToken, BinaryOperator.Add, context.term(),
-                                 this);
+      return _helper.BuildBinary(context.sum(), context.ADD().Symbol, BinaryOperator.Add,
+                                 context.term(), this);
     }
 
-    public override AstNode VisitSubstract([NotNull] SeedPythonParser.SubstractContext context) {
-      IToken opToken = (context.GetChild(1) as ITerminalNode).Symbol;
-      return _helper.BuildBinary(context.sum(), opToken, BinaryOperator.Subtract, context.term(),
-                                 this);
+    public override AstNode VisitSubtract([NotNull] SeedPythonParser.SubtractContext context) {
+      return _helper.BuildBinary(context.sum(), context.SUBTRACT().Symbol, BinaryOperator.Subtract,
+                                 context.term(), this);
     }
 
     public override AstNode VisitDivide([NotNull] SeedPythonParser.DivideContext context) {
-      IToken opToken = (context.GetChild(1) as ITerminalNode).Symbol;
-      return _helper.BuildBinary(context.term(), opToken, BinaryOperator.Divide, context.factor(),
-                                 this);
+      return _helper.BuildBinary(context.term(), context.DIVIDE().Symbol, BinaryOperator.Divide,
+                                 context.factor(), this);
     }
 
     public override AstNode VisitMultiply([NotNull] SeedPythonParser.MultiplyContext context) {
-      IToken opToken = (context.GetChild(1) as ITerminalNode).Symbol;
-      return _helper.BuildBinary(context.term(), opToken, BinaryOperator.Multiply, context.factor(),
-                                 this);
+      return _helper.BuildBinary(context.term(), context.MULTIPLY().Symbol, BinaryOperator.Multiply,
+                                 context.factor(), this);
     }
 
     public override AstNode VisitPos_factor([NotNull] SeedPythonParser.Pos_factorContext context) {
-      // TODO
-      IToken opToken = (context.GetChild(0) as ITerminalNode).Symbol;
-      return _helper.BuildUnary(opToken, context.factor(), this);
+      return _helper.BuildUnary(context.ADD().Symbol, UnaryOperator.Positive, context.factor(),
+                                this);
     }
 
     public override AstNode VisitNag_factor([NotNull] SeedPythonParser.Nag_factorContext context) {
-      IToken opToken = (context.GetChild(0) as ITerminalNode).Symbol;
-      return _helper.BuildUnary(opToken, context.factor(), this);
+      return _helper.BuildUnary(context.SUBTRACT().Symbol, UnaryOperator.Negative, context.factor(),
+                                this);
     }
 
     public override AstNode VisitName([NotNull] SeedPythonParser.NameContext context) {
@@ -101,17 +94,17 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitTrue([NotNull] SeedPythonParser.TrueContext context) {
-      // TODO:
+      // TODO: return a true constant expresssion.
       return null;
     }
 
     public override AstNode VisitFalse([NotNull] SeedPythonParser.FalseContext context) {
-      // TODO:
+      // TODO: return a false constant expresssion.
       return null;
     }
 
     public override AstNode VisitNone([NotNull] SeedPythonParser.NoneContext context) {
-      // TODO:
+      // TODO: return a none constant expresssion.
       return null;
     }
 
@@ -119,12 +112,6 @@ namespace SeedLang.X {
       return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
-    // Visits a grouping expression.
-    //
-    // There is no corresponding grouping AST node. The order of the expression node in the AST tree
-    // represents the grouping structure.
-    // The parser still calls this method with null references or an invalid terminal node when
-    // syntax errors happen. Returns a null AST node in this situation.
     public override AstNode VisitGroup([NotNull] SeedPythonParser.GroupContext context) {
       return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.named_expression(),
                                    context.CLOSE_PAREN().Symbol, this);
@@ -145,7 +132,8 @@ namespace SeedLang.X {
         case SeedPythonParser.NOT_EQUAL:
           return ComparisonOperator.NotEqual;
         default:
-          throw new NotImplementedException($"Unsupported comparison operator token: {token.Type}.");
+          throw new NotImplementedException(
+              $"Unsupported comparison operator token: {token.Type}.");
       }
     }
   }

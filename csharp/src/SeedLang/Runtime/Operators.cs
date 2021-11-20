@@ -36,6 +36,7 @@ namespace SeedLang.Runtime {
 
   // The operators of unary expressions.
   public enum UnaryOperator {
+    Positive,
     Negative,
   }
 }

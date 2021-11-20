@@ -68,18 +68,18 @@ compare_op_bitwise_or_pair:
 bitwise_or: sum;
 
 sum:
-  sum ADD term         # add
-  | sum SUBSTRACT term # substract
-  | term               # term_as_sum;
+  sum ADD term        # add
+  | sum SUBTRACT term # subtract
+  | term              # term_as_sum;
 term:
   term MULTIPLY factor       # multiply
   | term DIVIDE factor       # divide
   | term FLOOR_DIVIDE factor # floor_divide
   | factor                   # factor_as_term;
 factor:
-  ADD factor         # pos_factor
-  | SUBSTRACT factor # nag_factor
-  | primary          # primary_as_factor;
+  ADD factor        # pos_factor
+  | SUBTRACT factor # nag_factor
+  | primary         # primary_as_factor;
 primary: atom;
 
 atom:
@@ -112,6 +112,8 @@ AND: 'and';
 OR: 'or';
 NOT: 'not';
 
+EQUAL: '=';
+
 EQ_EQUAL: '==';
 NOT_EQUAL: '!=';
 LESS_EQUAL: '<=';
@@ -120,7 +122,7 @@ GREATER_EQUAL: '>=';
 GREATER: '>';
 
 ADD: '+';
-SUBSTRACT: '-';
+SUBTRACT: '-';
 MULTIPLY: '*';
 DIVIDE: '/';
 FLOOR_DIVIDE: '//';

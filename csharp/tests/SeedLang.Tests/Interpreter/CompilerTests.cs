@@ -23,8 +23,8 @@ namespace SeedLang.Interpreter.Tests {
     private static TextRange _testTextRange => new TextRange(0, 1, 2, 3);
 
     [Fact]
-    public void TestCompileNumber() {
-      var number = Expression.Number(1, _testTextRange);
+    public void TestCompileNumberConstant() {
+      var number = Expression.NumberConstant(1, _testTextRange);
       var expr = Statement.Expression(number, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(expr);
@@ -38,8 +38,8 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileBinary() {
-      var left = Expression.Number(1, _testTextRange);
-      var right = Expression.Number(2, _testTextRange);
+      var left = Expression.NumberConstant(1, _testTextRange);
+      var right = Expression.NumberConstant(2, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
       var expr = Statement.Expression(binary, _testTextRange);
       var compiler = new Compiler();
@@ -54,9 +54,9 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileComplexBinary() {
-      var left = Expression.Number(1, _testTextRange);
-      var number2 = Expression.Number(2, _testTextRange);
-      var number3 = Expression.Number(3, _testTextRange);
+      var left = Expression.NumberConstant(1, _testTextRange);
+      var number2 = Expression.NumberConstant(2, _testTextRange);
+      var number3 = Expression.NumberConstant(3, _testTextRange);
       var right = Expression.Binary(number2, BinaryOperator.Add, number3, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Subtract, right, _testTextRange);
       var expr = Statement.Expression(binary, _testTextRange);
@@ -73,9 +73,9 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileBinaryWithSameConstants() {
-      var left = Expression.Number(1, _testTextRange);
-      var number1 = Expression.Number(1, _testTextRange);
-      var number2 = Expression.Number(2, _testTextRange);
+      var left = Expression.NumberConstant(1, _testTextRange);
+      var number1 = Expression.NumberConstant(1, _testTextRange);
+      var number2 = Expression.NumberConstant(2, _testTextRange);
       var right = Expression.Binary(number1, BinaryOperator.Add, number2, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Subtract, right, _testTextRange);
       var expr = Statement.Expression(binary, _testTextRange);
@@ -92,7 +92,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileUnary() {
-      var number = Expression.Number(1, _testTextRange);
+      var number = Expression.NumberConstant(1, _testTextRange);
       var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
       var expr = Statement.Expression(unary, _testTextRange);
       var compiler = new Compiler();
@@ -106,9 +106,9 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestCompileAssignNumber() {
+    public void TestCompileAssignNumberConstant() {
       var identifier = Expression.Identifier("name", _testTextRange);
-      var number = Expression.Number(1, _testTextRange);
+      var number = Expression.NumberConstant(1, _testTextRange);
       var assignment = Statement.Assignment(identifier, number, _testTextRange);
       var compiler = new Compiler();
       var chunk = compiler.Compile(assignment);
@@ -123,8 +123,8 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestCompileAssignBinary() {
       var identifier = Expression.Identifier("name", _testTextRange);
-      var left = Expression.Number(1, _testTextRange);
-      var right = Expression.Number(2, _testTextRange);
+      var left = Expression.NumberConstant(1, _testTextRange);
+      var right = Expression.NumberConstant(2, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
       var assignment = Statement.Assignment(identifier, binary, _testTextRange);
       var compiler = new Compiler();

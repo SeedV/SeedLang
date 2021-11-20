@@ -27,8 +27,8 @@ namespace SeedLang.Benchmark {
     private readonly VM _vm;
 
     public BinaryExpressionBenchmark() {
-      var left = Expression.Number(1, NewTextRange());
-      var right = Expression.Number(2, NewTextRange());
+      var left = Expression.NumberConstant(1, NewTextRange());
+      var right = Expression.NumberConstant(2, NewTextRange());
       var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRange());
       _expressionStatement = Statement.Expression(binary, NewTextRange());
 

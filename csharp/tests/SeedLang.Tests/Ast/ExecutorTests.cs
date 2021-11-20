@@ -46,8 +46,8 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteBinaryExpression() {
-      var left = Expression.Number(1, NewTextRange());
-      var right = Expression.Number(2, NewTextRange());
+      var left = Expression.NumberConstant(1, NewTextRange());
+      var right = Expression.NumberConstant(2, NewTextRange());
       var binary = Expression.Binary(left, BinaryOperator.Add, right, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
@@ -61,8 +61,8 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteComparisonExpression() {
-      var first = Expression.Number(1, NewTextRange());
-      var second = Expression.Number(2, NewTextRange());
+      var first = Expression.NumberConstant(1, NewTextRange());
+      var second = Expression.NumberConstant(2, NewTextRange());
       var ops1 = new ComparisonOperator[] { ComparisonOperator.Less };
       var ops2 = new ComparisonOperator[] { ComparisonOperator.Greater };
       var exprs = new Expression[] { second };
@@ -89,9 +89,9 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteMultipleComparisonExpression() {
-      var first = Expression.Number(1, NewTextRange());
-      var second = Expression.Number(2, NewTextRange());
-      var third = Expression.Number(3, NewTextRange());
+      var first = Expression.NumberConstant(1, NewTextRange());
+      var second = Expression.NumberConstant(2, NewTextRange());
+      var third = Expression.NumberConstant(3, NewTextRange());
       var ops1 = new ComparisonOperator[] { ComparisonOperator.Less, ComparisonOperator.Less };
       var ops2 = new ComparisonOperator[] { ComparisonOperator.Greater, ComparisonOperator.Less };
       var ops3 = new ComparisonOperator[] { ComparisonOperator.Less, ComparisonOperator.Greater };
@@ -129,8 +129,8 @@ namespace SeedLang.Ast.Tests {
     [Fact]
     public void TestExecuteUnaryExpression() {
       string name = "id";
-      var number = Expression.Number(1, NewTextRange());
-      var unary = Expression.Unary(UnaryOperator.Negative, number, NewTextRange());
+      var numberConstant = Expression.NumberConstant(1, NewTextRange());
+      var unary = Expression.Unary(UnaryOperator.Negative, numberConstant, NewTextRange());
       var identifier = Expression.Identifier(name, NewTextRange());
       var assignment = Statement.Assignment(identifier, unary, NewTextRange());
 
@@ -145,8 +145,8 @@ namespace SeedLang.Ast.Tests {
     public void TestExecuteAssignmentStatement() {
       string name = "id";
       var identifier = Expression.Identifier(name, NewTextRange());
-      var number = Expression.Number(1, NewTextRange());
-      var assignment = Statement.Assignment(identifier, number, NewTextRange());
+      var numberConstant = Expression.NumberConstant(1, NewTextRange());
+      var assignment = Statement.Assignment(identifier, numberConstant, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       executor.Run(assignment);
@@ -157,11 +157,11 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteExpressionStatement() {
-      var number1 = Expression.Number(1, NewTextRange());
-      var number2 = Expression.Number(2, NewTextRange());
-      var number3 = Expression.Number(3, NewTextRange());
-      var left = Expression.Binary(number1, BinaryOperator.Add, number2, NewTextRange());
-      var binary = Expression.Binary(left, BinaryOperator.Multiply, number3, NewTextRange());
+      var numberConstant1 = Expression.NumberConstant(1, NewTextRange());
+      var numberConstant2 = Expression.NumberConstant(2, NewTextRange());
+      var numberConstant3 = Expression.NumberConstant(3, NewTextRange());
+      var left = Expression.Binary(numberConstant1, BinaryOperator.Add, numberConstant2, NewTextRange());
+      var binary = Expression.Binary(left, BinaryOperator.Multiply, numberConstant3, NewTextRange());
       var expr = Statement.Expression(binary, NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
@@ -175,11 +175,11 @@ namespace SeedLang.Ast.Tests {
       (var executor, var visualizer) = NewExecutorWithVisualizer();
 
       var identifier = Expression.Identifier("a", NewTextRange());
-      var number = Expression.Number(2, NewTextRange());
-      var assignment = Statement.Assignment(identifier, number, NewTextRange());
+      var numberConstant = Expression.NumberConstant(2, NewTextRange());
+      var assignment = Statement.Assignment(identifier, numberConstant, NewTextRange());
       executor.Run(assignment);
 
-      var right = Expression.Number(3, NewTextRange());
+      var right = Expression.NumberConstant(3, NewTextRange());
       var binary = Expression.Binary(identifier, BinaryOperator.Multiply, right, NewTextRange());
       var expr = Statement.Expression(binary, NewTextRange());
       executor.Run(expr);
@@ -189,13 +189,13 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteDivideByZero() {
-      var binary1 = Expression.Binary(Expression.Number(1, NewTextRange()),
+      var binary1 = Expression.Binary(Expression.NumberConstant(1, NewTextRange()),
                                       BinaryOperator.Divide,
-                                      Expression.Number(0, NewTextRange()),
+                                      Expression.NumberConstant(0, NewTextRange()),
                                       NewTextRange());
-      var binary2 = Expression.Binary(Expression.Number(0, NewTextRange()),
+      var binary2 = Expression.Binary(Expression.NumberConstant(0, NewTextRange()),
                                       BinaryOperator.Divide,
-                                      Expression.Number(0, NewTextRange()),
+                                      Expression.NumberConstant(0, NewTextRange()),
                                       NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
@@ -208,18 +208,18 @@ namespace SeedLang.Ast.Tests {
     [Fact]
     public void TestExecuteOverflow() {
       var exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.Number(double.PositiveInfinity, NewTextRange()));
+          Expression.NumberConstant(double.PositiveInfinity, NewTextRange()));
       Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
       exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.Number(double.NegativeInfinity, NewTextRange()));
+          Expression.NumberConstant(double.NegativeInfinity, NewTextRange()));
       Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
       exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.Number(double.NaN, NewTextRange()));
+          Expression.NumberConstant(double.NaN, NewTextRange()));
       Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
 
-      var binary = Expression.Binary(Expression.Number(7.997e307, NewTextRange()),
+      var binary = Expression.Binary(Expression.NumberConstant(7.997e307, NewTextRange()),
                                      BinaryOperator.Add,
-                                     Expression.Number(9.985e307, NewTextRange()),
+                                     Expression.NumberConstant(9.985e307, NewTextRange()),
                                      NewTextRange());
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();

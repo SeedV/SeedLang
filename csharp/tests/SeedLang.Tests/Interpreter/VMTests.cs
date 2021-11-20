@@ -53,8 +53,8 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestBinaryExpressionStatement() {
-      var left = Expression.Number(1, _testTextRange);
-      var right = Expression.Number(2, _testTextRange);
+      var left = Expression.NumberConstant(1, _testTextRange);
+      var right = Expression.NumberConstant(2, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
       var expr = Statement.Expression(binary, _testTextRange);
       var compiler = new Compiler();
@@ -76,7 +76,7 @@ namespace SeedLang.Interpreter.Tests {
       (var vm, var visualizer) = NewVMWithVisualizer();
 
       var identifier = Expression.Identifier("name", _testTextRange);
-      var number = Expression.Number(1, _testTextRange);
+      var number = Expression.NumberConstant(1, _testTextRange);
       var assignment = Statement.Assignment(identifier, number, _testTextRange);
       Chunk chunk = compiler.Compile(assignment);
       vm.Run(chunk);
@@ -94,7 +94,7 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
 
-      var number = Expression.Number(1, _testTextRange);
+      var number = Expression.NumberConstant(1, _testTextRange);
       var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
       var expr = Statement.Expression(unary, _testTextRange);
       Chunk chunk = compiler.Compile(expr);
@@ -103,8 +103,8 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(-1, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);
 
-      var left = Expression.Number(1, _testTextRange);
-      var right = Expression.Number(2, _testTextRange);
+      var left = Expression.NumberConstant(1, _testTextRange);
+      var right = Expression.NumberConstant(2, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
       unary = Expression.Unary(UnaryOperator.Negative, binary, _testTextRange);
       expr = Statement.Expression(unary, _testTextRange);

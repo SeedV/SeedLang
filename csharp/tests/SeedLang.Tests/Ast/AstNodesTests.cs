@@ -36,8 +36,8 @@ namespace SeedLang.Ast.Tests {
       }
 
       private void AddBinaryExpression() {
-        var left = Expression.Number(1, _textRange);
-        var right = Expression.Number(2, _textRange);
+        var left = Expression.NumberConstant(1, _textRange);
+        var right = Expression.NumberConstant(2, _textRange);
         var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
         var expectedOutput = $"{_textRange} BinaryExpression (+)\n" +
                              $"  {_textRange} NumberConstantExpression (1)\n" +
@@ -46,9 +46,9 @@ namespace SeedLang.Ast.Tests {
       }
 
       private void AddComparisonExpression() {
-        var first = Expression.Number(1, _textRange);
-        var second = Expression.Number(2, _textRange);
-        var third = Expression.Number(3, _textRange);
+        var first = Expression.NumberConstant(1, _textRange);
+        var second = Expression.NumberConstant(2, _textRange);
+        var third = Expression.NumberConstant(3, _textRange);
         var ops = new ComparisonOperator[] { ComparisonOperator.Less, ComparisonOperator.Greater };
         var exprs = new Expression[] { second, third };
         var comparison = Expression.Comparison(first, ops, exprs, _textRange);
@@ -68,21 +68,21 @@ namespace SeedLang.Ast.Tests {
 
       private void AddNumberConstantExpression() {
         double value = 1.5;
-        var number = Expression.Number(value, _blockRange);
+        var numberConstant = Expression.NumberConstant(value, _blockRange);
         var expectedOutput = $"{_blockRange} NumberConstantExpression ({value})";
-        Add(number, expectedOutput);
+        Add(numberConstant, expectedOutput);
       }
 
       private void AddStringConstantExpression() {
         string strValue = "test string";
-        var str = Expression.String(strValue, _textRange);
+        var str = Expression.StringConstant(strValue, _textRange);
         var expectedOutput = $"{_textRange} StringConstantExpression ({strValue})";
         Add(str, expectedOutput);
       }
 
       private void AddUnaryExpression() {
-        var number = Expression.Number(1, _textRange);
-        var unary = Expression.Unary(UnaryOperator.Negative, number, _textRange);
+        var numberConstant = Expression.NumberConstant(1, _textRange);
+        var unary = Expression.Unary(UnaryOperator.Negative, numberConstant, _textRange);
         var expectedOutput = $"{_textRange} UnaryExpression (-)\n" +
                              $"  {_textRange} NumberConstantExpression (1)";
         Add(unary, expectedOutput);
@@ -90,7 +90,7 @@ namespace SeedLang.Ast.Tests {
 
       private void AddAssignmentStatement() {
         var identifier = Expression.Identifier("id", _textRange);
-        var expr = Expression.Number(1, _textRange);
+        var expr = Expression.NumberConstant(1, _textRange);
         var assignment = Statement.Assignment(identifier, expr, _textRange);
         var expectedOutput = $"{_textRange} AssignmentStatement\n" +
                              $"  {_textRange} IdentifierExpression (id)\n" +
@@ -99,9 +99,9 @@ namespace SeedLang.Ast.Tests {
       }
 
       private void AddExpressionStatement() {
-        var one = Expression.Number(1, _textRange);
-        var two = Expression.Number(2, _textRange);
-        var three = Expression.Number(3, _textRange);
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var three = Expression.NumberConstant(3, _textRange);
         var left = Expression.Binary(one, BinaryOperator.Add, two, _textRange);
         var binary = Expression.Binary(left, BinaryOperator.Multiply, three, _textRange);
         var expr = Statement.Expression(binary, _textRange);

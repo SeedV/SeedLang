@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +23,12 @@ namespace SeedLang.Runtime {
     FloorDivide,
     Power,
     Modulus,
+  }
+
+  public enum BooleanOperator {
+    And,
+    Or,
+    Not,
   }
 
   // The operators of comparison expressions.

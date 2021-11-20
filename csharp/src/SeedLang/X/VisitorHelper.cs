@@ -144,13 +144,13 @@ namespace SeedLang.X {
     // Builds a number constant expresssion.
     internal NumberConstantExpression BuildNumber(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Number);
-      return Expression.Number(token.Text, range);
+      return Expression.NumberConstant(token.Text, range);
     }
 
     // Builds a string constant expresssion.
     internal StringConstantExpression BuildString(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.String);
-      return Expression.String(token.Text, range);
+      return Expression.StringConstant(token.Text, range);
     }
 
     // Builds an assignment statement.

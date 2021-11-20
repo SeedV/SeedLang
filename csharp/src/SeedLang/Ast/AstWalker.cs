@@ -37,20 +37,29 @@ namespace SeedLang.Ast {
         case BinaryExpression binary:
           Visit(binary);
           break;
+        case BooleanExpression boolean:
+          Visit(boolean);
+          break;
         case ComparisonExpression comparison:
           Visit(comparison);
+          break;
+        case UnaryExpression unary:
+          Visit(unary);
           break;
         case IdentifierExpression identifier:
           Visit(identifier);
           break;
-        case NumberConstantExpression number:
-          Visit(number);
+        case BooleanConstantExpression booleanConstant:
+          Visit(booleanConstant);
           break;
-        case StringConstantExpression str:
-          Visit(str);
+        case NoneConstantExpression noneConstant:
+          Visit(noneConstant);
           break;
-        case UnaryExpression unary:
-          Visit(unary);
+        case NumberConstantExpression numberConstant:
+          Visit(numberConstant);
+          break;
+        case StringConstantExpression stringConstant:
+          Visit(stringConstant);
           break;
         default:
           throw new NotImplementedException(
@@ -74,19 +83,16 @@ namespace SeedLang.Ast {
     }
 
     protected abstract void Visit(BinaryExpression binary);
-
+    protected abstract void Visit(BooleanExpression boolean);
     protected abstract void Visit(ComparisonExpression comparison);
-
-    protected abstract void Visit(IdentifierExpression identifier);
-
-    protected abstract void Visit(NumberConstantExpression number);
-
-    protected abstract void Visit(StringConstantExpression str);
-
     protected abstract void Visit(UnaryExpression unary);
+    protected abstract void Visit(IdentifierExpression identifier);
+    protected abstract void Visit(BooleanConstantExpression booleanConstant);
+    protected abstract void Visit(NoneConstantExpression noneConstant);
+    protected abstract void Visit(NumberConstantExpression numberConstant);
+    protected abstract void Visit(StringConstantExpression stringConstant);
 
     protected abstract void Visit(AssignmentStatement assignment);
-
     protected abstract void Visit(ExpressionStatement expr);
   }
 }

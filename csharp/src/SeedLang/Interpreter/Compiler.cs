@@ -75,27 +75,6 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    // TODO: implement comparison expressions visiting.
-    protected override void Visit(ComparisonExpression comparison) {
-    }
-
-    protected override void Visit(IdentifierExpression identifier) {
-      uint variableNameId = _constantCache.IdOfConstant(identifier.Name);
-      _chunk.Emit(Opcode.GETGLOB, _expressionInfo.ResultRegister, variableNameId, identifier.Range);
-    }
-
-    protected override void Visit(NumberConstantExpression number) {
-      _expressionInfo.ResultConstId = _constantCache.IdOfConstant(number.Value);
-      if (!_expressionInfo.CanHandleConstSubExpr) {
-        _chunk.Emit(Opcode.LOADK, _expressionInfo.ResultRegister, _expressionInfo.ResultConstId,
-                    number.Range);
-      }
-    }
-
-    protected override void Visit(StringConstantExpression str) {
-      throw new NotImplementedException();
-    }
-
     protected override void Visit(UnaryExpression unary) {
       uint resultRegister = _expressionInfo.ResultRegister;
       bool needAllocateRegister = NeedAllocateRegister(unary.Expr);
@@ -110,6 +89,39 @@ namespace SeedLang.Interpreter {
       if (needAllocateRegister) {
         _registerAllocator.DeallocateVariable();
       }
+    }
+
+    protected override void Visit(BooleanExpression boolean) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(ComparisonExpression comparison) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(IdentifierExpression identifier) {
+      uint variableNameId = _constantCache.IdOfConstant(identifier.Name);
+      _chunk.Emit(Opcode.GETGLOB, _expressionInfo.ResultRegister, variableNameId, identifier.Range);
+    }
+
+    protected override void Visit(NoneConstantExpression noneConstant) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(BooleanConstantExpression booleanConstant) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(NumberConstantExpression numberConstant) {
+      _expressionInfo.ResultConstId = _constantCache.IdOfConstant(numberConstant.Value);
+      if (!_expressionInfo.CanHandleConstSubExpr) {
+        _chunk.Emit(Opcode.LOADK, _expressionInfo.ResultRegister, _expressionInfo.ResultConstId,
+                    numberConstant.Range);
+      }
+    }
+
+    protected override void Visit(StringConstantExpression stringConstant) {
+      throw new NotImplementedException();
     }
 
     protected override void Visit(AssignmentStatement assignment) {

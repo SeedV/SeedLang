@@ -40,6 +40,20 @@ namespace SeedLang.Ast {
       }
     }
 
+    // Returns the internal string representation of boolean operators.
+    internal static string Symbol(this BooleanOperator op) {
+      switch (op) {
+        case BooleanOperator.And:
+          return "and";
+        case BooleanOperator.Or:
+          return "or";
+        case BooleanOperator.Not:
+          return "not";
+        default:
+          throw new NotImplementedException($"Unsupported boolean operator: {op}.");
+      }
+    }
+
     // Returns the internal string representation of comparison operators.
     internal static string Symbol(this ComparisonOperator op) {
       switch (op) {
@@ -63,6 +77,8 @@ namespace SeedLang.Ast {
     // Returns the internal string representation of unary operators.
     internal static string Symbol(this UnaryOperator op) {
       switch (op) {
+        case UnaryOperator.Positive:
+          return "+";
         case UnaryOperator.Negative:
           return "-";
         default:
@@ -95,6 +111,15 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(BooleanExpression boolean) {
+      Enter(boolean);
+      _out.Append($" ({boolean.Op.Symbol()})");
+      foreach (Expression expr in boolean.Exprs) {
+        Visit(expr);
+      }
+      Exit();
+    }
+
     protected override void Visit(ComparisonExpression comparison) {
       Enter(comparison);
       Visit(comparison.First);
@@ -105,28 +130,39 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(UnaryExpression unary) {
+      Enter(unary);
+      _out.Append($" ({unary.Op.Symbol()})");
+      Visit(unary.Expr);
+      Exit();
+    }
+
     protected override void Visit(IdentifierExpression identifier) {
       Enter(identifier);
       _out.Append($" ({identifier.Name})");
       Exit();
     }
 
-    protected override void Visit(NumberConstantExpression number) {
-      Enter(number);
-      _out.Append($" ({number.Value})");
+    protected override void Visit(BooleanConstantExpression booleanConstant) {
+      Enter(booleanConstant);
+      _out.Append($" ({booleanConstant.Value})");
       Exit();
     }
 
-    protected override void Visit(StringConstantExpression str) {
-      Enter(str);
-      _out.Append($" ({str.Value})");
+    protected override void Visit(NoneConstantExpression noneConstant) {
+      Enter(noneConstant);
       Exit();
     }
 
-    protected override void Visit(UnaryExpression unary) {
-      Enter(unary);
-      _out.Append($" ({unary.Op.Symbol()})");
-      Visit(unary.Expr);
+    protected override void Visit(NumberConstantExpression numberConstant) {
+      Enter(numberConstant);
+      _out.Append($" ({numberConstant.Value})");
+      Exit();
+    }
+
+    protected override void Visit(StringConstantExpression stringConstant) {
+      Enter(stringConstant);
+      _out.Append($" ({stringConstant.Value})");
       Exit();
     }
 
@@ -137,9 +173,9 @@ namespace SeedLang.Ast {
       Exit();
     }
 
-    protected override void Visit(ExpressionStatement eval) {
-      Enter(eval);
-      Visit(eval.Expr);
+    protected override void Visit(ExpressionStatement expr) {
+      Enter(expr);
+      Visit(expr.Expr);
       Exit();
     }
 

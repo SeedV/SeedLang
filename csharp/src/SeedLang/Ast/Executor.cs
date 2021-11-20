@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -73,6 +74,10 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(BooleanExpression boolean) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(ComparisonExpression comparison) {
       Visit(comparison.First);
       IValue first = _expressionResult;
@@ -117,29 +122,37 @@ namespace SeedLang.Ast {
       }
     }
 
-    protected override void Visit(IdentifierExpression identifier) {
-      _expressionResult = _globals.GetVariable(identifier.Name);
-    }
-
-    protected override void Visit(NumberConstantExpression number) {
-      try {
-        _expressionResult = new NumberValue(number.Value);
-      } catch (DiagnosticException ex) {
-        throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
-                                      ex.Diagnostic.Module, number.Range,
-                                      ex.Diagnostic.MessageId);
-      }
-    }
-
-    protected override void Visit(StringConstantExpression str) {
-      _expressionResult = new StringValue(str.Value);
-    }
-
     protected override void Visit(UnaryExpression unary) {
       Visit(unary.Expr);
       if (unary.Op == UnaryOperator.Negative) {
         _expressionResult = new NumberValue(_expressionResult.Number * -1);
       }
+    }
+
+    protected override void Visit(IdentifierExpression identifier) {
+      _expressionResult = _globals.GetVariable(identifier.Name);
+    }
+
+    protected override void Visit(BooleanConstantExpression booleanConstant) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(NoneConstantExpression noneConstant) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(NumberConstantExpression numberConstant) {
+      try {
+        _expressionResult = new NumberValue(numberConstant.Value);
+      } catch (DiagnosticException ex) {
+        throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
+                                      ex.Diagnostic.Module, numberConstant.Range,
+                                      ex.Diagnostic.MessageId);
+      }
+    }
+
+    protected override void Visit(StringConstantExpression stringConstant) {
+      _expressionResult = new StringValue(stringConstant.Value);
     }
 
     protected override void Visit(AssignmentStatement assignment) {

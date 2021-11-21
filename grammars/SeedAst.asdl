@@ -34,7 +34,7 @@ module SeedAst {
     | StringConstantExpression(string value, Range range)
 
   BinaryOperator = Add | Subtract | Multiply | Divide | FloorDivide
-  BooleanOperator = And | Or | Not
+  BooleanOperator = And | Or
   ComparisonOperator = Less | LessEqual | Greater | GreaterEqual | EqEqual | NotEqual
-  UnaryOperator = Positive | Nagetive
+  UnaryOperator = Positive | Nagetive | Not
 }

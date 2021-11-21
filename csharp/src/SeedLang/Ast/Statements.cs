@@ -34,13 +34,13 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create an if statement.
-    internal static IfStatement If(Expression test, BlockStatement thenBody,
-                                   BlockStatement elseBody, Range range) {
+    internal static IfStatement If(Expression test, Statement thenBody, Statement elseBody,
+                                   Range range) {
       return new IfStatement(test, thenBody, elseBody, range);
     }
 
     // The factory method to create an while statement.
-    internal static WhileStatement While(Expression test, BlockStatement body, Range range) {
+    internal static WhileStatement While(Expression test, Statement body, Range range) {
       return new WhileStatement(test, body, range);
     }
 
@@ -77,11 +77,11 @@ namespace SeedLang.Ast {
 
   internal class IfStatement : Statement {
     public Expression Test { get; }
-    public BlockStatement ThenBody { get; }
-    public BlockStatement ElseBody { get; }
+    public Statement ThenBody { get; }
+    public Statement ElseBody { get; }
 
-    internal IfStatement(Expression test, BlockStatement thenBody, BlockStatement elseBody,
-                         Range range) : base(range) {
+    internal IfStatement(Expression test, Statement thenBody, Statement elseBody, Range range) :
+        base(range) {
       Test = test;
       ThenBody = thenBody;
       ElseBody = elseBody;
@@ -90,9 +90,9 @@ namespace SeedLang.Ast {
 
   internal class WhileStatement : Statement {
     public Expression Test { get; }
-    public BlockStatement Body { get; }
+    public Statement Body { get; }
 
-    internal WhileStatement(Expression test, BlockStatement body, Range range) : base(range) {
+    internal WhileStatement(Expression test, Statement body, Range range) : base(range) {
       Test = test;
       Body = body;
     }

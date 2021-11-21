@@ -21,8 +21,6 @@ namespace SeedLang.Ast.Tests {
     internal class TestData : TheoryData<AstNode, string> {
       private static TextRange _textRange => new TextRange(0, 1, 2, 3);
 
-      private static BlockRange _blockRange => new BlockRange(new BlockPosition("id"));
-
       public TestData() {
         AddBinaryExpression();
         AddBooleanExpression();
@@ -106,24 +104,24 @@ namespace SeedLang.Ast.Tests {
       }
 
       private void AddBooleanConstantExpression() {
-        var falseConstant = Expression.BooleanConstant(false, _blockRange);
-        var expectedFalseOutput = $"{_blockRange} BooleanConstantExpression (False)";
+        var falseConstant = Expression.BooleanConstant(false, _textRange);
+        var expectedFalseOutput = $"{_textRange} BooleanConstantExpression (False)";
         Add(falseConstant, expectedFalseOutput);
-        var trueConstant = Expression.BooleanConstant(true, _blockRange);
-        var expectedTrueOutput = $"{_blockRange} BooleanConstantExpression (True)";
+        var trueConstant = Expression.BooleanConstant(true, _textRange);
+        var expectedTrueOutput = $"{_textRange} BooleanConstantExpression (True)";
         Add(trueConstant, expectedTrueOutput);
       }
 
       private void AddNoneConstantExpression() {
-        var noneConstant = Expression.NoneConstant(_blockRange);
-        var expectedTrueOutput = $"{_blockRange} NoneConstantExpression";
+        var noneConstant = Expression.NoneConstant(_textRange);
+        var expectedTrueOutput = $"{_textRange} NoneConstantExpression";
         Add(noneConstant, expectedTrueOutput);
       }
 
       private void AddNumberConstantExpression() {
         double value = 1.5;
-        var numberConstant = Expression.NumberConstant(value, _blockRange);
-        var expectedOutput = $"{_blockRange} NumberConstantExpression ({value})";
+        var numberConstant = Expression.NumberConstant(value, _textRange);
+        var expectedOutput = $"{_textRange} NumberConstantExpression ({value})";
         Add(numberConstant, expectedOutput);
       }
 
@@ -137,8 +135,8 @@ namespace SeedLang.Ast.Tests {
 
     [Theory]
     [ClassData(typeof(TestData))]
-    internal void TestAstNodes(AstNode node, string expectedOutput) {
-      Assert.Equal(expectedOutput, node.ToString());
+    internal void TestExpression(Expression expression, string expectedOutput) {
+      Assert.Equal(expectedOutput, expression.ToString());
     }
   }
 }

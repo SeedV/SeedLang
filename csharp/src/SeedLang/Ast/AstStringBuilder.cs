@@ -173,9 +173,32 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(BlockStatement block) {
+      Enter(block);
+      foreach (var statement in block.Statements) {
+        Visit(statement);
+      }
+      Exit();
+    }
+
     protected override void Visit(ExpressionStatement expr) {
       Enter(expr);
       Visit(expr.Expr);
+      Exit();
+    }
+
+    protected override void Visit(IfStatement @if) {
+      Enter(@if);
+      Visit(@if.Test);
+      Visit(@if.ThenBody);
+      Visit(@if.ElseBody);
+      Exit();
+    }
+
+    protected override void Visit(WhileStatement @while) {
+      Enter(@while);
+      Visit(@while.Test);
+      Visit(@while.Body);
       Exit();
     }
 

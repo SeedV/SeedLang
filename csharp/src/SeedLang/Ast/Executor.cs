@@ -162,12 +162,24 @@ namespace SeedLang.Ast {
       _visualizerCenter.AssignmentPublisher.Notify(ae);
     }
 
+    protected override void Visit(BlockStatement block) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(ExpressionStatement expr) {
       Visit(expr.Expr);
       if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
         var ee = new EvalEvent(_expressionResult, expr.Range);
         _visualizerCenter.EvalPublisher.Notify(ee);
       }
+    }
+
+    protected override void Visit(IfStatement @if) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(WhileStatement @while) {
+      throw new NotImplementedException();
     }
   }
 }

@@ -18,8 +18,8 @@ module SeedAst {
   Statement = AssignmentStatement(IdentifierExpression identifier, Expression expr, Range range)
     | BlockStatement(Statement* statements)
     | ExpressionStatement(Expression expr, Range range)
-    | IfStatement(Expression test, BlockStatement thenBody, BlockStatement elseBody, Range range)
-    | WhileStatement(Expression test, BlockStatement body, Range range)
+    | IfStatement(Expression test, Statement thenBody, Statement elseBody, Range range)
+    | WhileStatement(Expression test, Statement body, Range range)
 
   Expression = BinaryExpression(Expression left, BinaryOperator op, Expression right, Range range)
     | BooleanExpression(BooleanOperator op, Expression* exprs, Range range)

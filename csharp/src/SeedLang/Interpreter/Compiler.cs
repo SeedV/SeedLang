@@ -134,6 +134,10 @@ namespace SeedLang.Interpreter {
       _registerAllocator.DeallocateVariable();
     }
 
+    protected override void Visit(BlockStatement block) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(ExpressionStatement expr) {
       uint register = _registerAllocator.AllocateTempVariable();
       _expressionInfo.CanHandleConstSubExpr = false;
@@ -141,6 +145,14 @@ namespace SeedLang.Interpreter {
       Visit(expr.Expr);
       _chunk.Emit(Opcode.EVAL, register, expr.Range);
       _registerAllocator.DeallocateVariable();
+    }
+
+    protected override void Visit(IfStatement @if) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(WhileStatement @while) {
+      throw new NotImplementedException();
     }
 
     private static bool NeedAllocateRegister(Expression expression) {

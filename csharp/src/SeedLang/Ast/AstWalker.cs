@@ -73,8 +73,17 @@ namespace SeedLang.Ast {
         case AssignmentStatement assignment:
           Visit(assignment);
           break;
+        case BlockStatement block:
+          Visit(block);
+          break;
         case ExpressionStatement expr:
           Visit(expr);
+          break;
+        case IfStatement @if:
+          Visit(@if);
+          break;
+        case WhileStatement @while:
+          Visit(@while);
           break;
         default:
           throw new NotImplementedException(
@@ -93,6 +102,9 @@ namespace SeedLang.Ast {
     protected abstract void Visit(StringConstantExpression stringConstant);
 
     protected abstract void Visit(AssignmentStatement assignment);
+    protected abstract void Visit(BlockStatement block);
     protected abstract void Visit(ExpressionStatement expr);
+    protected abstract void Visit(IfStatement @if);
+    protected abstract void Visit(WhileStatement @while);
   }
 }

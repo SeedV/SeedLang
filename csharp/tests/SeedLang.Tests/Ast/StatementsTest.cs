@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using Xunit;
@@ -19,46 +20,86 @@ using Xunit;
 namespace SeedLang.Ast.Tests {
   public class StatementsTests {
     internal class TestData : TheoryData<AstNode, string> {
-      private static TextRange _textRange => new TextRange(0, 1, 2, 3);
-
       private static BlockRange _blockRange => new BlockRange(new BlockPosition("id"));
 
       public TestData() {
         AddAssignmentStatement();
+        AddEmptyBlockStatement();
         AddExpressionStatement();
+        AddIfStatement();
+        AddWhileStatement();
       }
 
       private void AddAssignmentStatement() {
-        var identifier = Expression.Identifier("id", _textRange);
-        var expr = Expression.NumberConstant(1, _textRange);
-        var assignment = Statement.Assignment(identifier, expr, _textRange);
-        var expectedOutput = $"{_textRange} AssignmentStatement\n" +
-                             $"  {_textRange} IdentifierExpression (id)\n" +
-                             $"  {_textRange} NumberConstantExpression (1)";
+        var identifier = Expression.Identifier("id", _blockRange);
+        var expr = Expression.NumberConstant(1, _blockRange);
+        var assignment = Statement.Assignment(identifier, expr, _blockRange);
+        var expectedOutput = $"{_blockRange} AssignmentStatement\n" +
+                             $"  {_blockRange} IdentifierExpression (id)\n" +
+                             $"  {_blockRange} NumberConstantExpression (1)";
         Add(assignment, expectedOutput);
       }
 
+      private void AddEmptyBlockStatement() {
+        var block = Statement.Block(Array.Empty<Statement>(), _blockRange);
+        var expectedOutput = $"{_blockRange} BlockStatement";
+        Add(block, expectedOutput);
+      }
+
       private void AddExpressionStatement() {
-        var one = Expression.NumberConstant(1, _textRange);
-        var two = Expression.NumberConstant(2, _textRange);
-        var three = Expression.NumberConstant(3, _textRange);
-        var left = Expression.Binary(one, BinaryOperator.Add, two, _textRange);
-        var binary = Expression.Binary(left, BinaryOperator.Multiply, three, _textRange);
-        var expr = Statement.Expression(binary, _textRange);
-        var expectedOutput = $"{_textRange} ExpressionStatement\n" +
-                             $"  {_textRange} BinaryExpression (*)\n" +
-                             $"    {_textRange} BinaryExpression (+)\n" +
-                             $"      {_textRange} NumberConstantExpression (1)\n" +
-                             $"      {_textRange} NumberConstantExpression (2)\n" +
-                             $"    {_textRange} NumberConstantExpression (3)";
+        var one = Expression.NumberConstant(1, _blockRange);
+        var two = Expression.NumberConstant(2, _blockRange);
+        var three = Expression.NumberConstant(3, _blockRange);
+        var left = Expression.Binary(one, BinaryOperator.Add, two, _blockRange);
+        var binary = Expression.Binary(left, BinaryOperator.Multiply, three, _blockRange);
+        var expr = Statement.Expression(binary, _blockRange);
+        var expectedOutput = $"{_blockRange} ExpressionStatement\n" +
+                             $"  {_blockRange} BinaryExpression (*)\n" +
+                             $"    {_blockRange} BinaryExpression (+)\n" +
+                             $"      {_blockRange} NumberConstantExpression (1)\n" +
+                             $"      {_blockRange} NumberConstantExpression (2)\n" +
+                             $"    {_blockRange} NumberConstantExpression (3)";
         Add(expr, expectedOutput);
+      }
+
+      private void AddIfStatement() {
+        var test = Expression.BooleanConstant(false, _blockRange);
+        var identifier = Expression.Identifier("id", _blockRange);
+        var one = Expression.NumberConstant(1, _blockRange);
+        var two = Expression.NumberConstant(2, _blockRange);
+        var thenBody = Statement.Assignment(identifier, one, _blockRange);
+        var elseBody = Statement.Assignment(identifier, two, _blockRange);
+        var @if = Statement.If(test, thenBody, elseBody, _blockRange);
+        var expectedOutput = $"{_blockRange} IfStatement\n" +
+                             $"  {_blockRange} BooleanConstantExpression (False)\n" +
+                             $"  {_blockRange} AssignmentStatement\n" +
+                             $"    {_blockRange} IdentifierExpression (id)\n" +
+                             $"    {_blockRange} NumberConstantExpression (1)\n" +
+                             $"  {_blockRange} AssignmentStatement\n" +
+                             $"    {_blockRange} IdentifierExpression (id)\n" +
+                             $"    {_blockRange} NumberConstantExpression (2)";
+        Add(@if, expectedOutput);
+      }
+
+      private void AddWhileStatement() {
+        var test = Expression.BooleanConstant(true, _blockRange);
+        var identifier = Expression.Identifier("id", _blockRange);
+        var one = Expression.NumberConstant(1, _blockRange);
+        var body = Statement.Assignment(identifier, one, _blockRange);
+        var @while = Statement.While(test, body, _blockRange);
+        var expectedOutput = $"{_blockRange} WhileStatement\n" +
+                             $"  {_blockRange} BooleanConstantExpression (True)\n" +
+                             $"  {_blockRange} AssignmentStatement\n" +
+                             $"    {_blockRange} IdentifierExpression (id)\n" +
+                             $"    {_blockRange} NumberConstantExpression (1)";
+        Add(@while, expectedOutput);
       }
     }
 
     [Theory]
     [ClassData(typeof(TestData))]
-    internal void TestAstNodes(AstNode node, string expectedOutput) {
-      Assert.Equal(expectedOutput, node.ToString());
+    internal void TestStatement(Statement statement, string expectedOutput) {
+      Assert.Equal(expectedOutput, statement.ToString());
     }
   }
 }

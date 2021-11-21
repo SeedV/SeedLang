@@ -45,12 +45,12 @@ namespace SeedLang.X {
 
     public override AstNode VisitExpression_stmt(
         [NotNull] SeedPythonParser.Expression_stmtContext context) {
-      return VisitorHelper.BuildExpressionStatement(context.star_expressions(), this);
+      return VisitorHelper.BuildExpressionStatement(context.expressions(), this);
     }
 
     public override AstNode VisitAssignment([NotNull] SeedPythonParser.AssignmentContext context) {
       return _helper.BuildAssignment(context.NAME().Symbol, context.EQUAL().Symbol,
-                                     context.star_expressions(), this);
+                                     context.expression(), this);
     }
 
     public override AstNode VisitMultiple_comparison(
@@ -113,7 +113,7 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitGroup([NotNull] SeedPythonParser.GroupContext context) {
-      return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.named_expression(),
+      return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expression(),
                                    context.CLOSE_PAREN().Symbol, this);
     }
 

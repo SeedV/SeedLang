@@ -105,7 +105,7 @@ namespace SeedLang.Block {
     }
 
     public override AstNode VisitGroup([NotNull] SeedBlockInlineTextParser.GroupContext context) {
-      return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.named_expression(),
+      return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expression(),
                                    context.CLOSE_PAREN().Symbol, this);
     }
 

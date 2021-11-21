@@ -63,14 +63,14 @@ namespace SeedLang.Ast.Tests {
 
     private void AssignmentEventToString(StringBuilder sb) {
       if (!(_assignEvent is null)) {
-        sb.AppendLine($"{_assignEvent.Range} {_assignEvent.Identifier} = {_assignEvent.Value}");
+        sb.Append($"{_assignEvent.Range} {_assignEvent.Identifier} = {_assignEvent.Value}\n");
       }
     }
 
     private void BinaryEventToString(StringBuilder sb) {
       if (!(_binaryEvent is null)) {
         sb.Append($"{_binaryEvent.Range} {_binaryEvent.Left} {_binaryEvent.Op} ");
-        sb.AppendLine($"{_binaryEvent.Right} = {_binaryEvent.Result}");
+        sb.Append($"{_binaryEvent.Right} = {_binaryEvent.Result}\n");
       }
     }
 
@@ -83,7 +83,7 @@ namespace SeedLang.Ast.Tests {
           string valueStr = value is null ? "?" : value.ToString();
           sb.Append($"{_booleanEvent.Op} {valueStr} ");
         }
-        sb.AppendLine($"= {_booleanEvent.Result}");
+        sb.Append($"= {_booleanEvent.Result}\n");
       }
     }
 
@@ -95,22 +95,21 @@ namespace SeedLang.Ast.Tests {
           string valueStr = value is null ? "?" : value.ToString();
           sb.Append($"{_comparisonEvent.Ops[i]} {valueStr} ");
         }
-        sb.AppendLine($"= {_comparisonEvent.Result}");
+        sb.Append($"= {_comparisonEvent.Result}\n");
       }
     }
 
     private void EvalEventToString(StringBuilder sb) {
       if (!(_evalEvent is null)) {
-        sb.AppendLine($"{_evalEvent.Range} Eval {_evalEvent.Value}");
+        sb.Append($"{_evalEvent.Range} Eval {_evalEvent.Value}\n");
       }
     }
 
     private void UnaryEventToString(StringBuilder sb) {
       if (!(_unaryEvent is null)) {
         sb.Append($"{_unaryEvent.Range} {_unaryEvent.Op} {_unaryEvent.Value} ");
-        sb.AppendLine($"= {_unaryEvent.Result}");
+        sb.Append($"= {_unaryEvent.Result}\n");
       }
     }
   }
 }
-

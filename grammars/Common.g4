@@ -32,15 +32,8 @@ tokens {
  * Parser rules
  */
 
-star_expressions:
-  star_expression (COMMA star_expression)+ COMMA? # mltiple_star_expressions
-  | star_expression                               # single_star_expression;
-star_expression: expression;
-
-named_expression: expression;
-
 expressions:
-  expression (COMMA expression)+ COMMA? # mltiple_expressions
+  expression (COMMA expression)+ COMMA? # multiple_expressions
   | expression                          # single_expression;
 
 expression: disjunction;
@@ -65,6 +58,7 @@ compare_op_bitwise_or_pair:
   | GREATER_EQUAL bitwise_or # greater_equal
   | GREATER bitwise_or       # greater;
 
+// TODO: add bitwise parsing rule
 bitwise_or: sum;
 
 sum:
@@ -90,7 +84,7 @@ atom:
   | NUMBER  # number
   | group   # group_as_atom;
 
-group: OPEN_PAREN named_expression CLOSE_PAREN;
+group: OPEN_PAREN expression CLOSE_PAREN;
 
 /*
  * Lexer rules

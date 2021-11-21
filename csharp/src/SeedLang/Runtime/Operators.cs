@@ -28,7 +28,6 @@ namespace SeedLang.Runtime {
   public enum BooleanOperator {
     And,
     Or,
-    Not,
   }
 
   // The operators of comparison expressions.
@@ -45,5 +44,6 @@ namespace SeedLang.Runtime {
   public enum UnaryOperator {
     Positive,
     Negative,
+    Not,
   }
 }

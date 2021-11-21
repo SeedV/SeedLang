@@ -69,7 +69,7 @@ namespace SeedLang.Shell {
         }
         Console.Write($"{ce.First} ");
         for (int i = 0; i < ce.Ops.Length; ++i) {
-          string exprString = ce.Exprs[i] is IValue value ? value.String : "?";
+          string exprString = ce.Values[i] is IValue value ? value.String : "?";
           Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {exprString} ");
         }
         Console.WriteLine($"= {ce.Result}");

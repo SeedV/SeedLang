@@ -99,6 +99,7 @@ namespace SeedLang.Ast {
     public Expression[] Exprs { get; }
 
     internal BooleanExpression(BooleanOperator op, Expression[] exprs, Range range) : base(range) {
+      Debug.Assert(exprs.Length > 1);
       Op = op;
       Exprs = exprs;
     }

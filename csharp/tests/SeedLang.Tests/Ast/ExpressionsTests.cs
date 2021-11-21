@@ -18,7 +18,7 @@ using Xunit;
 
 namespace SeedLang.Ast.Tests {
   public class ExpressionsTests {
-    internal class TestData : TheoryData<AstNode, string> {
+    internal class TestData : TheoryData<Expression, string> {
       private static TextRange _textRange => new TextRange(0, 1, 2, 3);
 
       public TestData() {
@@ -60,17 +60,14 @@ namespace SeedLang.Ast.Tests {
           Expression.BooleanConstant(false, _textRange),
           Expression.BooleanConstant(true, _textRange),
         }, _textRange);
-        var right = Expression.Boolean(BooleanOperator.Not, new Expression[] {
-          Expression.BooleanConstant(false, _textRange),
-        }, _textRange);
+        var right = Expression.BooleanConstant(false, _textRange);
         var boolean = Expression.Boolean(BooleanOperator.Or, new Expression[] { left, right },
                                          _textRange);
         var expectedOutput = $"{_textRange} BooleanExpression (or)\n" +
                              $"  {_textRange} BooleanExpression (and)\n" +
                              $"    {_textRange} BooleanConstantExpression (False)\n" +
                              $"    {_textRange} BooleanConstantExpression (True)\n" +
-                             $"  {_textRange} BooleanExpression (not)\n" +
-                             $"    {_textRange} BooleanConstantExpression (False)";
+                             $"  {_textRange} BooleanConstantExpression (False)";
         Add(boolean, expectedOutput);
       }
 

@@ -47,8 +47,6 @@ namespace SeedLang.Ast {
           return "and";
         case BooleanOperator.Or:
           return "or";
-        case BooleanOperator.Not:
-          return "not";
         default:
           throw new NotImplementedException($"Unsupported boolean operator: {op}.");
       }

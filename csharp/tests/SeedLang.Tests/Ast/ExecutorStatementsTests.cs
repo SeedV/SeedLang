@@ -17,7 +17,7 @@ using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {
-  public class ExecutorTests {
+  public class ExecutorStatementsTests {
     private class MockupVisualizer : IVisualizer<AssignmentEvent>,
                                      IVisualizer<BinaryEvent>,
                                      IVisualizer<ComparisonEvent>,
@@ -75,14 +75,14 @@ namespace SeedLang.Ast.Tests {
       Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
       Assert.Equal(ops1, visualizer.ComparisonEvent.Ops);
       var expectedExprs = new IValue[] { new NumberValue(2) };
-      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Values);
       Assert.Equal(new BooleanValue(true), visualizer.ComparisonEvent.Result);
       Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
 
       executor.Run(comparison2);
       Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
       Assert.Equal(ops2, visualizer.ComparisonEvent.Ops);
-      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Values);
       Assert.Equal(new BooleanValue(false), visualizer.ComparisonEvent.Result);
       Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
     }
@@ -106,7 +106,7 @@ namespace SeedLang.Ast.Tests {
       Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
       Assert.Equal(ops1, visualizer.ComparisonEvent.Ops);
       var expectedExprs = new IValue[] { new NumberValue(2), new NumberValue(3) };
-      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Values);
       Assert.Equal(new BooleanValue(true), visualizer.ComparisonEvent.Result);
       Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
 
@@ -114,14 +114,14 @@ namespace SeedLang.Ast.Tests {
       Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
       Assert.Equal(ops2, visualizer.ComparisonEvent.Ops);
       var expectedShortCircuitExprs = new IValue[] { new NumberValue(2), null };
-      Assert.Equal(expectedShortCircuitExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(expectedShortCircuitExprs, visualizer.ComparisonEvent.Values);
       Assert.Equal(new BooleanValue(false), visualizer.ComparisonEvent.Result);
       Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
 
       executor.Run(comparison3);
       Assert.Equal(new NumberValue(1), visualizer.ComparisonEvent.First);
       Assert.Equal(ops3, visualizer.ComparisonEvent.Ops);
-      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Exprs);
+      Assert.Equal(expectedExprs, visualizer.ComparisonEvent.Values);
       Assert.Equal(new BooleanValue(false), visualizer.ComparisonEvent.Result);
       Assert.Equal(NewTextRange(), visualizer.ComparisonEvent.Range);
     }

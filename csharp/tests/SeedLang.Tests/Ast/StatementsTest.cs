@@ -19,7 +19,7 @@ using Xunit;
 
 namespace SeedLang.Ast.Tests {
   public class StatementsTests {
-    internal class TestData : TheoryData<AstNode, string> {
+    internal class TestData : TheoryData<Statement, string> {
       private static BlockRange _blockRange => new BlockRange(new BlockPosition("id"));
 
       public TestData() {

@@ -41,49 +41,75 @@ namespace SeedLang.Runtime {
     }
   }
 
+  // An event which is triggered when a boolean expression is evaluated.
+  //
+  // Not all the expressions are evaluated due to short circuit. The values without evaluated are
+  // filled as null.
+  public class BooleanEvent : AbstractEvent {
+    public BooleanOperator Op { get; }
+    public IValue[] Values { get; }
+    public IValue Result { get; }
+
+    public BooleanEvent(BooleanOperator op, IValue[] values, IValue result, Range range) :
+        base(range) {
+      Debug.Assert(values.Length > 1);
+      Op = op;
+      Values = values;
+      Result = result;
+    }
+  }
+
   // An event which is triggered when a comparison expression is evaluated.
   //
   // The length Exprs is as same as Ops. But not all the expressions are evaluated due to short
-  // circuit. They are filled as null in the corresponding positions of Exprs.
+  // circuit. The values without evaluated are filled as null.
   public class ComparisonEvent : AbstractEvent {
     public IValue First { get; }
     public ComparisonOperator[] Ops { get; }
-    public IValue[] Exprs { get; }
+    public IValue[] Values { get; }
     public IValue Result { get; }
 
-    public ComparisonEvent(IValue first, ComparisonOperator[] ops, IValue[] exprs, IValue result,
+    public ComparisonEvent(IValue first, ComparisonOperator[] ops, IValue[] values, IValue result,
                            Range range) : base(range) {
-      Debug.Assert(ops.Length > 0 && ops.Length == exprs.Length);
+      Debug.Assert(ops.Length > 0 && ops.Length == values.Length);
       First = first;
-      Exprs = exprs;
+      Values = values;
       Ops = ops;
       Result = result;
     }
   }
 
+  // An event which is triggered when an unary expression is executed.
+  public class UnaryEvent : AbstractEvent {
+    public UnaryOperator Op { get; }
+    public IValue Value { get; }
+    public IValue Result { get; }
+
+    public UnaryEvent(UnaryOperator op, IValue value, IValue result, Range range) :
+        base(range) {
+      Op = op;
+      Value = value;
+      Result = result;
+    }
+  }
+
   // An event which is triggered when an assignment statement is executed.
-  public class AssignmentEvent {
+  public class AssignmentEvent : AbstractEvent {
     public string Identifier { get; }
     public IValue Value { get; }
-    // The source code range of the assignment statement.
-    public Range Range { get; }
 
-    public AssignmentEvent(string identifier, IValue value, Range range) {
+    public AssignmentEvent(string identifier, IValue value, Range range) : base(range) {
       Identifier = identifier;
       Value = value;
-      Range = range;
     }
   }
 
   // An event which is triggered when an expression statement is executed.
-  public class EvalEvent {
+  public class EvalEvent : AbstractEvent {
     public IValue Value { get; }
-    // The source code range of the eval statement.
-    public Range Range { get; }
 
-    public EvalEvent(IValue value, Range range) {
+    public EvalEvent(IValue value, Range range) : base(range) {
       Value = value;
-      Range = range;
     }
   }
 }

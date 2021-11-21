@@ -21,7 +21,7 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNullValue() {
-      var @null = new NullValue();
+      var @null = new NoneValue();
       Assert.False(@null.Boolean);
       Assert.Equal(0, @null.Number);
       Assert.Equal("", @null.String);
@@ -82,17 +82,17 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestValueEquality() {
       Assert.True(null as IValue == null);
-      Assert.False(new NullValue() == null);
+      Assert.False(new NoneValue() == null);
       Assert.False(new BooleanValue(false) == null);
       Assert.False(new NumberValue(0) == null);
       Assert.False(new StringValue("") == null);
 
-      Assert.NotEqual<IValue>(new NullValue(), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new NullValue(), new NumberValue(0));
-      Assert.NotEqual<IValue>(new NullValue(), new StringValue(""));
-      Assert.Equal(new NullValue(), new NullValue());
+      Assert.NotEqual<IValue>(new NoneValue(), new BooleanValue(false));
+      Assert.NotEqual<IValue>(new NoneValue(), new NumberValue(0));
+      Assert.NotEqual<IValue>(new NoneValue(), new StringValue(""));
+      Assert.Equal(new NoneValue(), new NoneValue());
 
-      Assert.NotEqual<IValue>(new BooleanValue(false), new NullValue());
+      Assert.NotEqual<IValue>(new BooleanValue(false), new NoneValue());
       Assert.NotEqual<IValue>(new BooleanValue(false), new StringValue(""));
       Assert.Equal(new BooleanValue(false), new BooleanValue(false));
       Assert.Equal(new BooleanValue(true), new BooleanValue(true));
@@ -105,7 +105,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal<IValue>(new BooleanValue(false), new NumberValue(0));
       Assert.Equal<IValue>(new BooleanValue(true), new NumberValue(1));
 
-      Assert.NotEqual<IValue>(new NumberValue(0), new NullValue());
+      Assert.NotEqual<IValue>(new NumberValue(0), new NoneValue());
       Assert.NotEqual<IValue>(new NumberValue(0), new StringValue(""));
 
       Assert.NotEqual<IValue>(new NumberValue(1), new BooleanValue(false));
@@ -115,7 +115,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal<IValue>(new NumberValue(0), new BooleanValue(false));
       Assert.Equal<IValue>(new NumberValue(1), new BooleanValue(true));
 
-      Assert.NotEqual<IValue>(new StringValue(""), new NullValue());
+      Assert.NotEqual<IValue>(new StringValue(""), new NoneValue());
       Assert.NotEqual<IValue>(new StringValue(""), new BooleanValue(false));
       Assert.NotEqual<IValue>(new StringValue(""), new NumberValue(0));
       Assert.NotEqual<IValue>(new StringValue("0"), new StringValue("1"));

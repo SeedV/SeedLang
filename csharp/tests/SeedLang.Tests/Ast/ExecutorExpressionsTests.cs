@@ -50,19 +50,19 @@ namespace SeedLang.Ast.Tests {
         var @false = Expression.BooleanConstant(false, _textRange);
         var andFalse = Expression.Boolean(BooleanOperator.And, new Expression[] { @false, @true },
                                           _textRange);
-        var expectedAndFalseOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] False And ? = False\n";
+        var expectedAndFalseOutput = $"{_textRange} False And ? = False\n";
         Add(andFalse, expectedAndFalseOutput);
         var andTrue = Expression.Boolean(BooleanOperator.And, new Expression[] { @true, @true },
                                          _textRange);
-        var expectedAndTrueOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] True And True = True\n";
+        var expectedAndTrueOutput = $"{_textRange} True And True = True\n";
         Add(andTrue, expectedAndTrueOutput);
         var orFalse = Expression.Boolean(BooleanOperator.Or, new Expression[] { @false, @false },
                                          _textRange);
-        var expectedOrFalseOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] False Or False = False\n";
+        var expectedOrFalseOutput = $"{_textRange} False Or False = False\n";
         Add(orFalse, expectedOrFalseOutput);
         var orTrue = Expression.Boolean(BooleanOperator.Or, new Expression[] { @true, @false },
                                         _textRange);
-        var expectedOrTrueOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] True Or ? = True\n";
+        var expectedOrTrueOutput = $"{_textRange} True Or ? = True\n";
         Add(orTrue, expectedOrTrueOutput);
       }
 
@@ -72,11 +72,11 @@ namespace SeedLang.Ast.Tests {
         var less = new ComparisonOperator[] { ComparisonOperator.Less };
         var exprs = new Expression[] { second };
         var comparisonLess = Expression.Comparison(first, less, exprs, _textRange);
-        var expectedLessOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] 1 Less 2 = True\n";
+        var expectedLessOutput = $"{_textRange} 1 Less 2 = True\n";
         Add(comparisonLess, expectedLessOutput);
         var greater = new ComparisonOperator[] { ComparisonOperator.Greater };
         var comparisonGreater = Expression.Comparison(first, greater, exprs, _textRange);
-        var expectedGreaterOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] 1 Greater 2 = False\n";
+        var expectedGreaterOutput = $"{_textRange} 1 Greater 2 = False\n";
         Add(comparisonGreater, expectedGreaterOutput);
 
         var third = Expression.NumberConstant(3, _textRange);
@@ -85,27 +85,27 @@ namespace SeedLang.Ast.Tests {
         var ops3 = new ComparisonOperator[] { ComparisonOperator.Less, ComparisonOperator.Greater };
         exprs = new Expression[] { second, third };
         var comparison1 = Expression.Comparison(first, ops1, exprs, _textRange);
-        var expectedOutput1 = $"[Ln 0, Col 1 - Ln 2, Col 3] 1 Less 2 Less 3 = True\n";
+        var expectedOutput1 = $"{_textRange} 1 Less 2 Less 3 = True\n";
         Add(comparison1, expectedOutput1);
         var comparison2 = Expression.Comparison(first, ops2, exprs, _textRange);
-        var expectedOutput2 = $"[Ln 0, Col 1 - Ln 2, Col 3] 1 Greater 2 Less ? = False\n";
+        var expectedOutput2 = $"{_textRange} 1 Greater 2 Less ? = False\n";
         Add(comparison2, expectedOutput2);
         var comparison3 = Expression.Comparison(first, ops3, exprs, _textRange);
-        var expectedOutput3 = $"[Ln 0, Col 1 - Ln 2, Col 3] 1 Less 2 Greater 3 = False\n";
+        var expectedOutput3 = $"{_textRange} 1 Less 2 Greater 3 = False\n";
         Add(comparison3, expectedOutput3);
       }
 
       private void AddUnary() {
         var number = Expression.NumberConstant(1, _textRange);
         var positive = Expression.Unary(UnaryOperator.Positive, number, _textRange);
-        var expectedPositiveOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] Positive 1 = 1\n";
+        var expectedPositiveOutput = $"{_textRange} Positive 1 = 1\n";
         Add(positive, expectedPositiveOutput);
         var negative = Expression.Unary(UnaryOperator.Negative, number, _textRange);
-        var expectedOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] Negative 1 = -1\n";
+        var expectedOutput = $"{_textRange} Negative 1 = -1\n";
         Add(negative, expectedOutput);
         var boolean = Expression.BooleanConstant(true, _textRange);
         var not = Expression.Unary(UnaryOperator.Not, boolean, _textRange);
-        var expectedNotOutput = $"[Ln 0, Col 1 - Ln 2, Col 3] Not True = False\n";
+        var expectedNotOutput = $"{_textRange} Not True = False\n";
         Add(not, expectedNotOutput);
       }
     }

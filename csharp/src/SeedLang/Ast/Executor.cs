@@ -182,7 +182,9 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(BlockStatement block) {
-      throw new NotImplementedException();
+      foreach (Statement statement in block.Statements) {
+        Visit(statement);
+      }
     }
 
     protected override void Visit(ExpressionStatement expr) {
@@ -194,11 +196,23 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(IfStatement @if) {
-      throw new NotImplementedException();
+      Visit(@if.Test);
+      if (_expressionResult.Boolean) {
+        Visit(@if.ThenBody);
+      } else {
+        Visit(@if.ElseBody);
+      }
     }
 
     protected override void Visit(WhileStatement @while) {
-      throw new NotImplementedException();
+      while (true) {
+        Visit(@while.Test);
+        if (_expressionResult.Boolean) {
+          Visit(@while.Body);
+        } else {
+          break;
+        }
+      }
     }
   }
 }

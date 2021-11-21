@@ -18,16 +18,14 @@ using Xunit;
 
 namespace SeedLang.Ast.Tests {
   public class ExecutorErrorTests {
+    private static TextRange _textRange => new TextRange(0, 1, 2, 3);
+
     [Fact]
     public void TestExecuteDivideByZero() {
-      var binary1 = Expression.Binary(Expression.NumberConstant(1, NewTextRange()),
-                                      BinaryOperator.Divide,
-                                      Expression.NumberConstant(0, NewTextRange()),
-                                      NewTextRange());
-      var binary2 = Expression.Binary(Expression.NumberConstant(0, NewTextRange()),
-                                      BinaryOperator.Divide,
-                                      Expression.NumberConstant(0, NewTextRange()),
-                                      NewTextRange());
+      var zero = Expression.NumberConstant(0, _textRange);
+      var one = Expression.NumberConstant(1, _textRange);
+      var binary1 = Expression.Binary(one, BinaryOperator.Divide, zero, _textRange);
+      var binary2 = Expression.Binary(zero, BinaryOperator.Divide, zero, _textRange);
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       var exception1 = Assert.Throws<DiagnosticException>(() => executor.Run(binary1));
@@ -39,27 +37,23 @@ namespace SeedLang.Ast.Tests {
     [Fact]
     public void TestExecuteOverflow() {
       var exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.NumberConstant(double.PositiveInfinity, NewTextRange()));
+          Expression.NumberConstant(double.PositiveInfinity, _textRange));
       Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
       exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.NumberConstant(double.NegativeInfinity, NewTextRange()));
+          Expression.NumberConstant(double.NegativeInfinity, _textRange));
       Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
       exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.NumberConstant(double.NaN, NewTextRange()));
+          Expression.NumberConstant(double.NaN, _textRange));
       Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
 
-      var binary = Expression.Binary(Expression.NumberConstant(7.997e307, NewTextRange()),
+      var binary = Expression.Binary(Expression.NumberConstant(7.997e307, _textRange),
                                      BinaryOperator.Add,
-                                     Expression.NumberConstant(9.985e307, NewTextRange()),
-                                     NewTextRange());
+                                     Expression.NumberConstant(9.985e307, _textRange),
+                                     _textRange);
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       exception = Assert.Throws<DiagnosticException>(() => executor.Run(binary));
       Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
-    }
-
-    private static TextRange NewTextRange() {
-      return new TextRange(0, 1, 2, 3);
     }
 
     private static (Executor, MockupVisualizer) NewExecutorWithVisualizer() {

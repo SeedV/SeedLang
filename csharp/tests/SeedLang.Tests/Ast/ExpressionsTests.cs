@@ -49,7 +49,7 @@ namespace SeedLang.Ast.Tests {
           Expression.BooleanConstant(false, _textRange),
           Expression.BooleanConstant(true, _textRange),
         }, _textRange);
-        var expectedOutput = $"{_textRange} BooleanExpression (and)\n" +
+        var expectedOutput = $"{_textRange} BooleanExpression (And)\n" +
                              $"  {_textRange} BooleanConstantExpression (False)\n" +
                              $"  {_textRange} BooleanConstantExpression (True)";
         Add(boolean, expectedOutput);
@@ -63,8 +63,8 @@ namespace SeedLang.Ast.Tests {
         var right = Expression.BooleanConstant(false, _textRange);
         var boolean = Expression.Boolean(BooleanOperator.Or, new Expression[] { left, right },
                                          _textRange);
-        var expectedOutput = $"{_textRange} BooleanExpression (or)\n" +
-                             $"  {_textRange} BooleanExpression (and)\n" +
+        var expectedOutput = $"{_textRange} BooleanExpression (Or)\n" +
+                             $"  {_textRange} BooleanExpression (And)\n" +
                              $"    {_textRange} BooleanConstantExpression (False)\n" +
                              $"    {_textRange} BooleanConstantExpression (True)\n" +
                              $"  {_textRange} BooleanConstantExpression (False)";

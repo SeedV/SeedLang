@@ -31,6 +31,13 @@ namespace SeedLang.X.Tests {
     }
 
     [Theory]
+    [InlineData("id",
+
+                "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] IdentifierExpression (id)",
+
+                "Variable [Ln 1, Col 0 - Ln 1, Col 1]")]
+
     [InlineData("id = 1",
 
                 "[Ln 1, Col 0 - Ln 1, Col 5] AssignmentStatement\n" +
@@ -40,6 +47,17 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 1, Col 0 - Ln 1, Col 1]," +
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]")]
+
+    [InlineData("1 + 2",
+
+                "[Ln 1, Col 0 - Ln 1, Col 4] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 4] BinaryExpression (+)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
 
     [InlineData("1 + 2 * 3 - 40",
 
@@ -136,73 +154,6 @@ namespace SeedLang.X.Tests {
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
       Assert.Equal(expectedAst, node.ToString());
-      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
-    }
-
-    // TODO: add test cases for other syntax errors after grammar is more complex.
-    [Theory]
-    [InlineData("1.2 =",
-                "SyntaxErrorUnwantedToken '=' <EOF>",
-
-                "Number [Ln 1, Col 0 - Ln 1, Col 2]," +
-                "Operator [Ln 1, Col 4 - Ln 1, Col 4]")]
-
-    [InlineData("1 +",
-                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
-
-                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Operator [Ln 1, Col 2 - Ln 1, Col 2]")]
-
-    [InlineData("1 + (",
-                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
-
-                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]")]
-
-    [InlineData("1 + ((",
-                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
-
-                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
-
-    [InlineData("1 + (((",
-                "SyntaxErrorInputMismatch '<EOF>' {'-', IDENTIFIER, NUMBER, '('}",
-
-                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Parenthesis [Ln 1, Col 6 - Ln 1, Col 6]")]
-
-    [InlineData("1 + (2 - 1",
-                "SyntaxErrorMissingToken '<EOF>' ')'",
-
-                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Number [Ln 1, Col 9 - Ln 1, Col 9]")]
-
-    [InlineData("1 + ))",
-                "SyntaxErrorInputMismatch ')' {'-', IDENTIFIER, NUMBER, '('}",
-
-                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
-    public void TestParseSingleSyntaxError(string input, string errorMessage,
-                                           string expectedTokens) {
-      Assert.False(_parser.Parse(input, "", _collection, out AstNode node,
-                                 out IReadOnlyList<SyntaxToken> tokens));
-      Assert.Null(node);
-      Assert.Single(_collection.Diagnostics);
-      Assert.Equal(SystemReporters.SeedX, _collection.Diagnostics[0].Reporter);
-      Assert.Equal(Severity.Fatal, _collection.Diagnostics[0].Severity);
-      Assert.Equal(errorMessage, _collection.Diagnostics[0].LocalizedMessage);
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }

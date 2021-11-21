@@ -33,7 +33,7 @@ namespace SeedLang.X {
     internal bool Validate(string source, string module, DiagnosticCollection collection) {
       int diagnosticCount = collection.Diagnostics.Count;
       Parser parser = SetupParser(source, module, collection);
-      SingleStatement(parser);
+      Program(parser);
       return collection.Diagnostics.Count == diagnosticCount;
     }
 
@@ -47,7 +47,7 @@ namespace SeedLang.X {
       var tokenList = new List<SyntaxToken>();
       tokens = tokenList;
       AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
-      node = visitor.Visit(SingleStatement(parser));
+      node = visitor.Visit(Program(parser));
       if (collection.Diagnostics.Count > diagnosticCount) {
         ParseMissingSyntaxTokens(source, tokenList);
         node = null;
@@ -62,9 +62,9 @@ namespace SeedLang.X {
 
     protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens);
 
-    // Returns the parser rule context of the single statement. This method must be implemented by
-    // the derived class.
-    protected virtual ParserRuleContext SingleStatement(Parser parser) {
+    // Returns the parser rule context of a program. This method must be implemented by the derived
+    // class.
+    protected virtual ParserRuleContext Program(Parser parser) {
       throw new NotImplementedException();
     }
 

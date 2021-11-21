@@ -137,8 +137,9 @@ namespace SeedLang.Ast {
 
     protected override void Visit(UnaryExpression unary) {
       Visit(unary.Expr);
-      // TODO: handle other unary operators, and add an unary event for visualization if needed.
-      _expressionResult = new NumberValue(_expressionResult.Number * -1);
+      if (unary.Op == UnaryOperator.Negative) {
+        _expressionResult = new NumberValue(_expressionResult.Number * -1);
+      }
     }
 
     protected override void Visit(AssignmentStatement assignment) {

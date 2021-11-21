@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
@@ -37,135 +36,95 @@ namespace SeedLang.Block {
       _helper = new VisitorHelper(tokens);
     }
 
-    // Visits an unary expression.
-    public override AstNode VisitUnaryExpression(
-        [NotNull] SeedBlockInlineTextParser.UnaryExpressionContext context) {
-      if (context.expression() is SeedBlockInlineTextParser.ExpressionContext expr) {
-        IToken op = (context.unaryOperator().GetChild(0) as ITerminalNode).Symbol;
-        return _helper.BuildUnary(op, expr, this);
-      }
+    public override AstNode VisitExpressionStatement(
+        [NotNull] SeedBlockInlineTextParser.ExpressionStatementContext context) {
+      return Visit(context.expression());
+    }
+
+    public override AstNode VisitMultiple_comparison(
+        [NotNull] SeedBlockInlineTextParser.Multiple_comparisonContext context) {
+      return _helper.BuildComparison(context.bitwise_or(), context.compare_op_bitwise_or_pair(),
+                                     ToComparisonOperator, this);
+    }
+
+    public override AstNode VisitAdd([NotNull] SeedBlockInlineTextParser.AddContext context) {
+      return _helper.BuildBinary(context.sum(), context.ADD().Symbol, BinaryOperator.Add,
+                                 context.term(), this);
+    }
+
+    public override AstNode VisitSubtract(
+        [NotNull] SeedBlockInlineTextParser.SubtractContext context) {
+      return _helper.BuildBinary(context.sum(), context.SUBTRACT().Symbol, BinaryOperator.Subtract,
+                                 context.term(), this);
+    }
+
+    public override AstNode VisitDivide([NotNull] SeedBlockInlineTextParser.DivideContext context) {
+      return _helper.BuildBinary(context.term(), context.DIVIDE().Symbol, BinaryOperator.Divide,
+                                 context.factor(), this);
+    }
+
+    public override AstNode VisitMultiply(
+        [NotNull] SeedBlockInlineTextParser.MultiplyContext context) {
+      return _helper.BuildBinary(context.term(), context.MULTIPLY().Symbol, BinaryOperator.Multiply,
+                                 context.factor(), this);
+    }
+
+    public override AstNode VisitPos_factor(
+        [NotNull] SeedBlockInlineTextParser.Pos_factorContext context) {
+      return _helper.BuildUnary(context.ADD().Symbol, UnaryOperator.Positive, context.factor(),
+                                this);
+    }
+
+    public override AstNode VisitNag_factor(
+        [NotNull] SeedBlockInlineTextParser.Nag_factorContext context) {
+      return _helper.BuildUnary(context.SUBTRACT().Symbol, UnaryOperator.Negative,
+                                context.factor(), this);
+    }
+
+    public override AstNode VisitName([NotNull] SeedBlockInlineTextParser.NameContext context) {
+      return _helper.BuildIdentifier(context.NAME().Symbol);
+    }
+
+    public override AstNode VisitTrue([NotNull] SeedBlockInlineTextParser.TrueContext context) {
+      // TODO: return a true constant expresssion.
       return null;
     }
 
-    // Visits a multiply or divide binary expression.
-    //
-    // There should be 2 child expression contexts (left and right) in MulDivExpressionContext.
-    public override AstNode VisitMulDivExpression(
-        [NotNull] SeedBlockInlineTextParser.MulDivExpressionContext context) {
-      if (context.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
-          exprs.Length == 2) {
-        ParserRuleContext op = context.mulDivOperator();
-        return _helper.BuildBinary(exprs[0], op, exprs[1], ToBinaryOperator, this);
-      }
+    public override AstNode VisitFalse([NotNull] SeedBlockInlineTextParser.FalseContext context) {
+      // TODO: return a false constant expresssion.
       return null;
     }
 
-    // Visits an add or subtract binary expression.
-    //
-    // There should be 2 child expression contexts (left and right) in AddSubExpressionContext.
-    public override AstNode VisitAddSubExpression(
-        [NotNull] SeedBlockInlineTextParser.AddSubExpressionContext context) {
-      if (context.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
-          exprs.Length == 2) {
-        ParserRuleContext op = context.addSubOperator();
-        return _helper.BuildBinary(exprs[0], op, exprs[1], ToBinaryOperator, this);
-      }
+    public override AstNode VisitNone([NotNull] SeedBlockInlineTextParser.NoneContext context) {
+      // TODO: return a none constant expresssion.
       return null;
     }
 
-    // Visits a comparison expression.
-    public override AstNode VisitComaprisonExpression(
-        [NotNull] SeedBlockInlineTextParser.ComaprisonExpressionContext context) {
-      if (GetComparisonItems(context, out ParserRuleContext left, out ParserRuleContext op,
-                             out ParserRuleContext right)) {
-        return _helper.BuildComparison(left, op, right, ToComparisonOperator, GetComparisonItems,
-                                       this);
-      }
-      return null;
-    }
-
-    // Visits an identifier.
-    public override AstNode VisitIdentifier(
-        [NotNull] SeedBlockInlineTextParser.IdentifierContext context) {
-      return _helper.BuildIdentifier(context.IDENTIFIER().Symbol);
-    }
-
-    // Visits a number expression.
     public override AstNode VisitNumber([NotNull] SeedBlockInlineTextParser.NumberContext context) {
       return _helper.BuildNumber(context.NUMBER().Symbol);
     }
 
-    // Visits a grouping expression.
-    //
-    // There is no corresponding grouping AST node. The order of the expression node in the AST tree
-    // represents the grouping structure.
-    // The parser still calls this method with null references or an invalid terminal node when
-    // syntax errors happen. Returns a null AST node in this situation.
-    public override AstNode VisitGrouping(
-        [NotNull] SeedBlockInlineTextParser.GroupingContext context) {
-      if (context.expression() is SeedBlockInlineTextParser.ExpressionContext expr &&
-          context.CLOSE_PAREN() is ITerminalNode closeParen && closeParen.Symbol.TokenIndex >= 0) {
-        return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, expr, closeParen.Symbol, this);
-      }
-      return null;
+    public override AstNode VisitGroup([NotNull] SeedBlockInlineTextParser.GroupContext context) {
+      return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expression(),
+                                   context.CLOSE_PAREN().Symbol, this);
     }
 
-    public override AstNode VisitSingleStatement(
-        [NotNull] SeedBlockInlineTextParser.SingleStatementContext context) {
-      return Visit(context.expressionStatement());
-    }
-
-    private static bool GetComparisonItems(ParserRuleContext context, out ParserRuleContext left,
-                                           out ParserRuleContext op, out ParserRuleContext right) {
-      if (context is SeedBlockInlineTextParser.ComaprisonExpressionContext comparison) {
-        if (comparison.expression() is SeedBlockInlineTextParser.ExpressionContext[] exprs &&
-            comparison.comparisonOperator() is
-                SeedBlockInlineTextParser.ComparisonOperatorContext[] ops &&
-            ops.Length == 1 && exprs.Length == 2) {
-          left = exprs[0];
-          op = ops[0];
-          right = exprs[1];
-          return true;
-        }
-      }
-      left = op = right = null;
-      return false;
-    }
-
-    private static BinaryOperator ToBinaryOperator(ParserRuleContext context) {
-      Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
-      int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
-      switch (tokenType) {
-        case SeedBlockInlineTextParser.ADD:
-          return BinaryOperator.Add;
-        case SeedBlockInlineTextParser.SUB:
-          return BinaryOperator.Subtract;
-        case SeedBlockInlineTextParser.MUL:
-          return BinaryOperator.Multiply;
-        case SeedBlockInlineTextParser.DIV:
-          return BinaryOperator.Divide;
-        default:
-          throw new NotImplementedException($"Unsupported comparison operator token: {tokenType}.");
-      }
-    }
-    private static ComparisonOperator ToComparisonOperator(ParserRuleContext context) {
-      Debug.Assert(context.ChildCount == 1 && context.GetChild(0) is ITerminalNode);
-      int tokenType = (context.GetChild(0) as ITerminalNode).Symbol.Type;
-      switch (tokenType) {
+    private static ComparisonOperator ToComparisonOperator(IToken token) {
+      switch (token.Type) {
         case SeedBlockInlineTextParser.LESS:
           return ComparisonOperator.Less;
         case SeedBlockInlineTextParser.GREATER:
           return ComparisonOperator.Greater;
-        case SeedBlockInlineTextParser.LESSEQUAL:
+        case SeedBlockInlineTextParser.LESS_EQUAL:
           return ComparisonOperator.LessEqual;
-        case SeedBlockInlineTextParser.GREATEREQUAL:
+        case SeedBlockInlineTextParser.GREATER_EQUAL:
           return ComparisonOperator.GreaterEqual;
-        case SeedBlockInlineTextParser.EQEQUAL:
+        case SeedBlockInlineTextParser.EQ_EQUAL:
           return ComparisonOperator.EqEqual;
-        case SeedBlockInlineTextParser.NOTEQUAL:
+        case SeedBlockInlineTextParser.NOT_EQUAL:
           return ComparisonOperator.NotEqual;
         default:
-          throw new NotImplementedException($"Unsupported comparison operator token: {tokenType}.");
+          throw new NotImplementedException($"Unsupported comparison operator: {token.Type}.");
       }
     }
   }

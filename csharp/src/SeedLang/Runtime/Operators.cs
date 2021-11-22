@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,11 @@ namespace SeedLang.Runtime {
     Modulus,
   }
 
+  public enum BooleanOperator {
+    And,
+    Or,
+  }
+
   // The operators of comparison expressions.
   public enum ComparisonOperator {
     Less,
@@ -38,5 +44,6 @@ namespace SeedLang.Runtime {
   public enum UnaryOperator {
     Positive,
     Negative,
+    Not,
   }
 }

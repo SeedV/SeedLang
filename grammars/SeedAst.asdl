@@ -12,19 +12,28 @@
 -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
---
 
--- ASDL's 4 builtin types are:
--- identifier, int, string, constant
+module SeedAst {
+  Statement = AssignmentStatement(IdentifierExpression identifier, Expression expr, Range range)
+    | BlockStatement(Statement* statements)
+    | ExpressionStatement(Expression expr, Range range)
+    | IfStatement(Expression test, Statement thenBody, Statement elseBody, Range range)
+    | WhileStatement(Expression test, Statement body, Range range)
 
-module SeedAst
-{
-    stmt = Assign(identifier variable, expr value)
-        | Eval(expr value)
+  Expression = BinaryExpression(Expression left, BinaryOperator op, Expression right, Range range)
+    | BooleanExpression(BooleanOperator op, Expression* exprs, Range range)
+    | ComparisonExpression(Expression first, ComparisonOperator* ops, Expression* exprs, Range range)
+    | UnaryExpression(UnaryOperator op, Expression expr, Range range)
 
-    expr = Binary(expr left, operator op, expr right)
-        | Variable(identifier name)
-        | Constant(constant value)
+    | IdentifierExpression(string name, Range range)
 
-    operator = Add | Sub | Mul | Div
+    | BooleanConstantExpression(bool valuem , Range range)
+    | NoneConstantExpression(Range range)
+    | NumberConstantExpression(doubel value, Range range)
+    | StringConstantExpression(string value, Range range)
+
+  BinaryOperator = Add | Subtract | Multiply | Divide | FloorDivide
+  BooleanOperator = And | Or
+  ComparisonOperator = Less | LessEqual | Greater | GreaterEqual | EqEqual | NotEqual
+  UnaryOperator = Positive | Nagetive | Not
 }

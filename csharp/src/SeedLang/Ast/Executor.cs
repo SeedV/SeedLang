@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -24,7 +25,7 @@ namespace SeedLang.Ast {
 
     // The global environment to store names and values of global variables.
     private readonly GlobalEnvironment<IValue> _globals =
-        new GlobalEnvironment<IValue>(new NullValue());
+        new GlobalEnvironment<IValue>(new NoneValue());
 
     // The result of current executed expression.
     private IValue _expressionResult;
@@ -59,7 +60,7 @@ namespace SeedLang.Ast {
             _expressionResult = new NumberValue(ValueHelper.Divide(left, right));
             break;
           default:
-            throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
+            throw new NotImplementedException($"Unsupported binary operator: {binary.Op}");
         }
       } catch (DiagnosticException ex) {
         // Throws a new diagnostic exception with more information.
@@ -73,36 +74,52 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(BooleanExpression boolean) {
+      var values = new IValue[boolean.Exprs.Length];
+      bool shortCircuitCondition = boolean.Op == BooleanOperator.Or;
+      for (int i = 0; i < boolean.Exprs.Length; ++i) {
+        Visit(boolean.Exprs[i]);
+        values[i] = _expressionResult;
+        if (_expressionResult.Boolean == shortCircuitCondition) {
+          break;
+        }
+      }
+      if (!_visualizerCenter.BooleanPublisher.IsEmpty()) {
+        var be = new BooleanEvent(boolean.Op, values, _expressionResult, boolean.Range);
+        _visualizerCenter.BooleanPublisher.Notify(be);
+      }
+    }
+
     protected override void Visit(ComparisonExpression comparison) {
       Visit(comparison.First);
       IValue first = _expressionResult;
-      var exprs = new IValue[comparison.Exprs.Length];
+      var values = new IValue[comparison.Exprs.Length];
       bool currentResult = true;
       for (int i = 0; i < comparison.Ops.Length; ++i) {
         Visit(comparison.Exprs[i]);
-        exprs[i] = _expressionResult;
-        IValue left = i > 0 ? exprs[i - 1] : first;
+        values[i] = _expressionResult;
+        IValue left = i > 0 ? values[i - 1] : first;
         switch (comparison.Ops[i]) {
           case ComparisonOperator.Less:
-            currentResult = ValueHelper.Less(left, exprs[i]);
+            currentResult = ValueHelper.Less(left, values[i]);
             break;
           case ComparisonOperator.Greater:
-            currentResult = ValueHelper.Great(left, exprs[i]);
+            currentResult = ValueHelper.Great(left, values[i]);
             break;
           case ComparisonOperator.LessEqual:
-            currentResult = ValueHelper.LessEqual(left, exprs[i]);
+            currentResult = ValueHelper.LessEqual(left, values[i]);
             break;
           case ComparisonOperator.GreaterEqual:
-            currentResult = ValueHelper.GreatEqual(left, exprs[i]);
+            currentResult = ValueHelper.GreatEqual(left, values[i]);
             break;
           case ComparisonOperator.EqEqual:
-            currentResult = left.Equals(exprs[i]);
+            currentResult = left.Equals(values[i]);
             break;
           case ComparisonOperator.NotEqual:
-            currentResult = !left.Equals(exprs[i]);
+            currentResult = !left.Equals(values[i]);
             break;
           default:
-            throw new System.NotImplementedException(
+            throw new NotImplementedException(
                 $"Unsupported comparison operator: {comparison.Ops[i]}");
         }
         if (!currentResult) {
@@ -111,9 +128,23 @@ namespace SeedLang.Ast {
       }
       _expressionResult = new BooleanValue(currentResult);
       if (!_visualizerCenter.ComparisonPublisher.IsEmpty()) {
-        var ce = new ComparisonEvent(first, comparison.Ops, exprs, _expressionResult,
+        var ce = new ComparisonEvent(first, comparison.Ops, values, _expressionResult,
                                      comparison.Range);
         _visualizerCenter.ComparisonPublisher.Notify(ce);
+      }
+    }
+
+    protected override void Visit(UnaryExpression unary) {
+      Visit(unary.Expr);
+      IValue result = _expressionResult;
+      if (unary.Op == UnaryOperator.Negative) {
+        _expressionResult = new NumberValue(result.Number * -1);
+      } else if (unary.Op == UnaryOperator.Not) {
+        _expressionResult = new BooleanValue(!result.Boolean);
+      }
+      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
+        var ue = new UnaryEvent(unary.Op, result, _expressionResult, unary.Range);
+        _visualizerCenter.UnaryPublisher.Notify(ue);
       }
     }
 
@@ -121,25 +152,26 @@ namespace SeedLang.Ast {
       _expressionResult = _globals.GetVariable(identifier.Name);
     }
 
-    protected override void Visit(NumberConstantExpression number) {
+    protected override void Visit(BooleanConstantExpression booleanConstant) {
+      _expressionResult = new BooleanValue(booleanConstant.Value);
+    }
+
+    protected override void Visit(NoneConstantExpression noneConstant) {
+      _expressionResult = new NoneValue();
+    }
+
+    protected override void Visit(NumberConstantExpression numberConstant) {
       try {
-        _expressionResult = new NumberValue(number.Value);
+        _expressionResult = new NumberValue(numberConstant.Value);
       } catch (DiagnosticException ex) {
         throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
-                                      ex.Diagnostic.Module, number.Range,
+                                      ex.Diagnostic.Module, numberConstant.Range,
                                       ex.Diagnostic.MessageId);
       }
     }
 
-    protected override void Visit(StringConstantExpression str) {
-      _expressionResult = new StringValue(str.Value);
-    }
-
-    protected override void Visit(UnaryExpression unary) {
-      Visit(unary.Expr);
-      if (unary.Op == UnaryOperator.Negative) {
-        _expressionResult = new NumberValue(_expressionResult.Number * -1);
-      }
+    protected override void Visit(StringConstantExpression stringConstant) {
+      _expressionResult = new StringValue(stringConstant.Value);
     }
 
     protected override void Visit(AssignmentStatement assignment) {
@@ -149,11 +181,37 @@ namespace SeedLang.Ast {
       _visualizerCenter.AssignmentPublisher.Notify(ae);
     }
 
+    protected override void Visit(BlockStatement block) {
+      foreach (Statement statement in block.Statements) {
+        Visit(statement);
+      }
+    }
+
     protected override void Visit(ExpressionStatement expr) {
       Visit(expr.Expr);
       if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
         var ee = new EvalEvent(_expressionResult, expr.Range);
         _visualizerCenter.EvalPublisher.Notify(ee);
+      }
+    }
+
+    protected override void Visit(IfStatement @if) {
+      Visit(@if.Test);
+      if (_expressionResult.Boolean) {
+        Visit(@if.ThenBody);
+      } else {
+        Visit(@if.ElseBody);
+      }
+    }
+
+    protected override void Visit(WhileStatement @while) {
+      while (true) {
+        Visit(@while.Test);
+        if (_expressionResult.Boolean) {
+          Visit(@while.Body);
+        } else {
+          break;
+        }
       }
     }
   }

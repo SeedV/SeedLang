@@ -30,13 +30,13 @@ namespace SeedLang.Runtime {
   }
 
   // An immutable null value class.
-  internal class NullValue : IValue, IEquatable<IValue> {
+  internal class NoneValue : IValue, IEquatable<IValue> {
     public ValueType Type => ValueType.Null;
     public bool Boolean => false;
     public double Number => 0;
     public string String => "";
 
-    public static bool operator ==(NullValue lhs, NullValue rhs) {
+    public static bool operator ==(NoneValue lhs, NoneValue rhs) {
       if (lhs is null) {
         if (rhs is null) {
           return true;
@@ -46,7 +46,7 @@ namespace SeedLang.Runtime {
       return lhs.Equals(rhs);
     }
 
-    public static bool operator !=(NullValue lhs, NullValue rhs) {
+    public static bool operator !=(NoneValue lhs, NoneValue rhs) {
       return !(lhs == rhs);
     }
 

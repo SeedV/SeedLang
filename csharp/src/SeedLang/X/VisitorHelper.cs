@@ -141,14 +141,20 @@ namespace SeedLang.X {
       return Expression.Identifier(token.Text, range);
     }
 
+    // Builds a boolean costant expression.
+    internal BooleanConstantExpression BuildBooleanConstant(IToken token, bool value) {
+      TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Boolean);
+      return Expression.BooleanConstant(value, range);
+    }
+
     // Builds a number constant expresssion.
-    internal NumberConstantExpression BuildNumber(IToken token) {
+    internal NumberConstantExpression BuildNumberConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Number);
       return Expression.NumberConstant(token.Text, range);
     }
 
     // Builds a string constant expresssion.
-    internal StringConstantExpression BuildString(IToken token) {
+    internal StringConstantExpression BuildStringConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.String);
       return Expression.StringConstant(token.Text, range);
     }
@@ -175,6 +181,23 @@ namespace SeedLang.X {
         ParserRuleContext exprContext, AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(exprContext) is Expression expr) {
         return Statement.Expression(expr, expr.Range);
+      }
+      return null;
+    }
+
+    // Builds a while statement.
+    internal WhileStatement BuildWhile(IToken whileToken, ParserRuleContext exprContext,
+                                       IToken colon, ParserRuleContext blockContext,
+                                       AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange whileRange = CodeReferenceUtils.RangeOfToken(whileToken);
+      AddSyntaxToken(SyntaxType.Keyword, whileRange);
+      if (visitor.Visit(exprContext) is Expression expr) {
+        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colon));
+        if (visitor.Visit(blockContext) is Statement block) {
+          Debug.Assert(block.Range is TextRange);
+          TextRange range = CodeReferenceUtils.CombineRanges(whileRange, block.Range as TextRange);
+          return Statement.While(expr, block, range);
+        }
       }
       return null;
     }

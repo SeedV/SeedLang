@@ -77,12 +77,12 @@ factor:
 primary: atom;
 
 atom:
-  NAME      # name
-  | 'True'  # true
-  | 'False' # false
-  | 'None'  # none
-  | NUMBER  # number
-  | group   # group_as_atom;
+  NAME     # name
+  | TRUE   # true
+  | FALSE  # false
+  | NONE   # none
+  | NUMBER # number
+  | group  # group_as_atom;
 
 group: OPEN_PAREN expression CLOSE_PAREN;
 
@@ -90,17 +90,9 @@ group: OPEN_PAREN expression CLOSE_PAREN;
  * Lexer rules
  */
 
-NAME: ID_START ID_CONTINUE*;
-
-NUMBER: INTEGER | FLOAT_NUMBER;
-
-STRING: '"' .*? '"';
-
-INTEGER: DECIMAL_INTEGER;
-
-DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
-
-FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
+TRUE: 'True';
+FALSE: 'False';
+NONE: 'None';
 
 AND: 'and';
 OR: 'or';
@@ -129,6 +121,18 @@ OPEN_BRACE: '{';
 CLOSE_BRACE: '}';
 
 COMMA: ',';
+
+NAME: ID_START ID_CONTINUE*;
+
+NUMBER: INTEGER | FLOAT_NUMBER;
+
+STRING: '"' .*? '"';
+
+INTEGER: DECIMAL_INTEGER;
+
+DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
+
+FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
 
 NEWLINE: ( '\r'? '\n' | '\r' | '\f') SPACES?;
 

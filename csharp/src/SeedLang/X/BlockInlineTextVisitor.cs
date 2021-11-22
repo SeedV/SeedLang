@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
-using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -86,13 +85,11 @@ namespace SeedLang.Block {
     }
 
     public override AstNode VisitTrue([NotNull] SeedBlockInlineTextParser.TrueContext context) {
-      // TODO: return a true constant expresssion.
-      return null;
+      return _helper.BuildBooleanConstant(context.TRUE().Symbol, true);
     }
 
     public override AstNode VisitFalse([NotNull] SeedBlockInlineTextParser.FalseContext context) {
-      // TODO: return a false constant expresssion.
-      return null;
+      return _helper.BuildBooleanConstant(context.FALSE().Symbol, false);
     }
 
     public override AstNode VisitNone([NotNull] SeedBlockInlineTextParser.NoneContext context) {
@@ -101,7 +98,7 @@ namespace SeedLang.Block {
     }
 
     public override AstNode VisitNumber([NotNull] SeedBlockInlineTextParser.NumberContext context) {
-      return _helper.BuildNumber(context.NUMBER().Symbol);
+      return _helper.BuildNumberConstant(context.NUMBER().Symbol);
     }
 
     public override AstNode VisitGroup([NotNull] SeedBlockInlineTextParser.GroupContext context) {

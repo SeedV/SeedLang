@@ -31,6 +31,20 @@ namespace SeedLang.X.Tests {
     }
 
     [Theory]
+    [InlineData("True",
+
+                "[Ln 1, Col 0 - Ln 1, Col 3] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 3] BooleanConstantExpression (True)",
+
+                "Boolean [Ln 1, Col 0 - Ln 1, Col 3]")]
+
+    [InlineData("False",
+
+                "[Ln 1, Col 0 - Ln 1, Col 4] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 4] BooleanConstantExpression (False)",
+
+                "Boolean [Ln 1, Col 0 - Ln 1, Col 4]")]
+
     [InlineData("id",
 
                 "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
@@ -148,6 +162,21 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Operator [Ln 1, Col 10 - Ln 1, Col 11]," +
                 "Number [Ln 1, Col 13 - Ln 1, Col 13]")]
+
+    [InlineData("while True: x = 1",
+
+                "[Ln 1, Col 0 - Ln 1, Col 16] WhileStatement\n" +
+                "  [Ln 1, Col 6 - Ln 1, Col 9] BooleanConstantExpression (True)\n" +
+                "  [Ln 1, Col 12 - Ln 1, Col 16] AssignmentStatement\n" +
+                "    [Ln 1, Col 12 - Ln 1, Col 12] IdentifierExpression (x)\n" +
+                "    [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (1)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 4]," +
+                "Boolean [Ln 1, Col 6 - Ln 1, Col 9]," +
+                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Variable [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Operator [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Number [Ln 1, Col 16 - Ln 1, Col 16]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

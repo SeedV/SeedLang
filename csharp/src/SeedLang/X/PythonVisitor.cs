@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
-using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -51,6 +50,11 @@ namespace SeedLang.X {
     public override AstNode VisitAssignment([NotNull] SeedPythonParser.AssignmentContext context) {
       return _helper.BuildAssignment(context.NAME().Symbol, context.EQUAL().Symbol,
                                      context.expression(), this);
+    }
+
+    public override AstNode VisitWhile_stmt([NotNull] SeedPythonParser.While_stmtContext context) {
+      return _helper.BuildWhile(context.WHILE().Symbol, context.expression(),
+                                context.COLON().Symbol, context.block(), this);
     }
 
     public override AstNode VisitMultiple_comparison(
@@ -94,13 +98,11 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitTrue([NotNull] SeedPythonParser.TrueContext context) {
-      // TODO: return a true constant expresssion.
-      return null;
+      return _helper.BuildBooleanConstant(context.TRUE().Symbol, true);
     }
 
     public override AstNode VisitFalse([NotNull] SeedPythonParser.FalseContext context) {
-      // TODO: return a false constant expresssion.
-      return null;
+      return _helper.BuildBooleanConstant(context.FALSE().Symbol, false);
     }
 
     public override AstNode VisitNone([NotNull] SeedPythonParser.NoneContext context) {
@@ -109,7 +111,7 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {
-      return _helper.BuildNumber(context.NUMBER().Symbol);
+      return _helper.BuildNumberConstant(context.NUMBER().Symbol);
     }
 
     public override AstNode VisitGroup([NotNull] SeedPythonParser.GroupContext context) {

@@ -47,8 +47,7 @@ elif_stmt:
   | ELIF expression COLON block (else_block)? # elif_else;
 else_block: ELSE COLON block;
 
-while_stmt:
-  WHILE expression COLON block (else_block)?;
+while_stmt: WHILE expression COLON block;
 
 return_stmt: RETURN expressions?;
 

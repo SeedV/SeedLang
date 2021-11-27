@@ -19,9 +19,9 @@ using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.X.Tests {
-  public class BlockInlineTextParserTests {
+  public class SeedCalcTests {
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
-    private readonly SeedBlockInlineText _parser = new SeedBlockInlineText();
+    private readonly SeedCalc _parser = new SeedCalc();
 
     [Theory]
     [InlineData("0", true)]
@@ -142,7 +142,51 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]")]
-    public void TestBlockInlineTextParser(string input, string expected, string expectedTokens) {
+
+    [InlineData("2 - -(-1)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (-)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (2)\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 8] UnaryExpression (-)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 8] UnaryExpression (-)\n" +
+                "      [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (1)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Operator [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
+
+    [InlineData("1 + + 2 * - 3 - - 4 / 5",
+
+                "[Ln 1, Col 0 - Ln 1, Col 22] BinaryExpression (-)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 12] BinaryExpression (+)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 12] BinaryExpression (*)\n" +
+                "      [Ln 1, Col 4 - Ln 1, Col 6] UnaryExpression (+)\n" +
+                "        [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (2)\n" +
+                "      [Ln 1, Col 10 - Ln 1, Col 12] UnaryExpression (-)\n" +
+                "        [Ln 1, Col 12 - Ln 1, Col 12] NumberConstantExpression (3)\n" +
+                "  [Ln 1, Col 16 - Ln 1, Col 22] BinaryExpression (/)\n" +
+                "    [Ln 1, Col 16 - Ln 1, Col 18] UnaryExpression (-)\n" +
+                "      [Ln 1, Col 18 - Ln 1, Col 18] NumberConstantExpression (4)\n" +
+                "    [Ln 1, Col 22 - Ln 1, Col 22] NumberConstantExpression (5)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Operator [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Number [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Operator [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Operator [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Number [Ln 1, Col 18 - Ln 1, Col 18]," +
+                "Operator [Ln 1, Col 20 - Ln 1, Col 20]," +
+                "Number [Ln 1, Col 22 - Ln 1, Col 22]")]
+    public void TestSeedCalcParser(string input, string expected, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));
       Assert.NotNull(node);
@@ -153,15 +197,24 @@ namespace SeedLang.X.Tests {
 
     [Theory]
     [InlineData("-",
+                new string[] {
+                  "SyntaxErrorInputMismatch '<EOF>' {'(', NUMBER}",
+                },
 
                 "Operator [Ln 1, Col 0 - Ln 1, Col 0]")]
 
     [InlineData("3-",
+                new string[] {
+                  "SyntaxErrorInputMismatch '<EOF>' {'+', '-', '(', NUMBER}",
+                },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 1 - Ln 1, Col 1]")]
 
     [InlineData("3+4-",
+                new string[] {
+                  "SyntaxErrorInputMismatch '<EOF>' {'+', '-', '(', NUMBER}",
+                },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 1 - Ln 1, Col 1]," +
@@ -169,6 +222,10 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]")]
 
     [InlineData("3+--4-",
+                new string[] {
+                  "SyntaxErrorUnwantedToken '-' {'(', NUMBER}",
+                  "SyntaxErrorInputMismatch '<EOF>' {'+', '-', '(', NUMBER}",
+                },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 1 - Ln 1, Col 1]," +
@@ -178,6 +235,10 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 5 - Ln 1, Col 5]")]
 
     [InlineData("3++--4-",
+                new string[] {
+                  "SyntaxErrorInputMismatch '-' {'(', NUMBER}",
+                  "SyntaxErrorInputMismatch '<EOF>' {'+', '-', '(', NUMBER}",
+                },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 1 - Ln 1, Col 1]," +
@@ -188,23 +249,49 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 6 - Ln 1, Col 6]")]
 
     [InlineData(".",
+                new string[] {
+                  "SyntaxErrorInputMismatch '.' {'+', '-', '(', NUMBER}",
+                },
 
                 "Unknown [Ln 1, Col 0 - Ln 1, Col 0]")]
 
     [InlineData(".3.",
+                new string[] {
+                  "SyntaxErrorUnwantedToken '.' <EOF>",
+                },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +
                 "Unknown [Ln 1, Col 2 - Ln 1, Col 2]")]
 
     [InlineData(".3@",
+                new string[] {
+                  "SyntaxErrorUnwantedToken '@' <EOF>",
+                },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +
                 "Unknown [Ln 1, Col 2 - Ln 1, Col 2]")]
-    public void TestParsePartialOrInvalidExpressions(string input, string expectedTokens) {
-      var parser = new SeedBlockInlineText();
-      parser.Parse(input, "", _collection,
-                   out AstNode node, out IReadOnlyList<SyntaxToken> tokens);
+
+    [InlineData("3+++4",
+                new string[] {
+                  "SyntaxErrorUnwantedToken '+' {'(', NUMBER}",
+                },
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
+    public void TestParsePartialOrInvalidExpressions(string input, string[] errorMessages,
+                                                     string expectedTokens) {
+      Assert.False(_parser.Parse(input, "", _collection, out AstNode node,
+                   out IReadOnlyList<SyntaxToken> tokens));
       Assert.Null(node);
+      Assert.Equal(errorMessages.Length, _collection.Diagnostics.Count);
+      for (int i = 0; i < errorMessages.Length; ++i) {
+        Assert.Equal(SystemReporters.SeedX, _collection.Diagnostics[i].Reporter);
+        Assert.Equal(Severity.Fatal, _collection.Diagnostics[i].Severity);
+        Assert.Equal(errorMessages[i], _collection.Diagnostics[i].LocalizedMessage);
+      }
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }

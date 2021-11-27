@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Antlr4 Include="../../../grammars/SeedPython.g4">
+    <Antlr4 Include="../../../grammars/SeedBlockInlineText.g4">
         <Listener>false</Listener>
         <Visitor>true</Visitor>
         <GAtn>false</GAtn>
@@ -34,7 +34,15 @@
         <Error>true</Error>
         <LibPath>../../../grammars</LibPath>
     </Antlr4>
-    <Antlr4 Include="../../../grammars/SeedBlockInlineText.g4">
+    <Antlr4 Include="../../../grammars/SeedCalc.g4">
+        <Listener>false</Listener>
+        <Visitor>true</Visitor>
+        <GAtn>false</GAtn>
+        <Package>SeedLang.X</Package>
+        <Error>true</Error>
+        <LibPath>../../../grammars</LibPath>
+    </Antlr4>
+    <Antlr4 Include="../../../grammars/SeedPython.g4">
         <Listener>false</Listener>
         <Visitor>true</Visitor>
         <GAtn>false</GAtn>

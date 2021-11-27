@@ -74,6 +74,7 @@ namespace SeedLang.Common {
     SyntaxErrorFailedPredicate1,        // Semantic predicate failed syntax error.
     SyntaxErrorInputMismatch2,          // Input mismatch syntax error.
     SyntaxErrorMissingToken2,           // Missing token syntax error.
+    SyntaxErrorNestedUnary,             // Syntax error for SeedCalc. Nested unary is not allowed.
     SyntaxErrorNoViableAlternative1,    // No viable alternative path syntax error.
     SyntaxErrorUnwantedToken2,          // Unwanted token syntax error.
     TargetBlockIdNotExist1,             // Target block ID does not exist.

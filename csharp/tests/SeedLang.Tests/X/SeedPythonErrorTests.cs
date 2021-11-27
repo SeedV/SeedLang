@@ -19,9 +19,9 @@ using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.X.Tests {
-  public class PythonParserErrorTests {
+  public class SeedPythonErrorTests {
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
-    private readonly PythonParser _parser = new PythonParser();
+    private readonly SeedPython _parser = new SeedPython();
 
     [Theory]
     [InlineData("1.2 =",

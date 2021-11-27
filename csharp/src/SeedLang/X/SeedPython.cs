@@ -21,7 +21,7 @@ using SeedLang.Common;
 
 namespace SeedLang.X {
   // The parser of SeedPython language.
-  internal class PythonParser : BaseParser {
+  internal class SeedPython : BaseParser {
     // The dictionary that maps from token types of SeedPython to syntax token types.
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
       { SeedPythonParser.NAME, SyntaxType.Variable },
@@ -31,6 +31,8 @@ namespace SeedLang.X {
       { SeedPythonParser.MULTIPLY, SyntaxType.Operator },
       { SeedPythonParser.DIVIDE, SyntaxType.Operator },
       { SeedPythonParser.FLOOR_DIVIDE, SyntaxType.Operator },
+      { SeedPythonParser.POWER, SyntaxType.Operator },
+      { SeedPythonParser.MODULO, SyntaxType.Operator },
       { SeedPythonParser.EQUAL, SyntaxType.Operator },
       { SeedPythonParser.EQ_EQUAL, SyntaxType.Operator },
       { SeedPythonParser.NOT_EQUAL, SyntaxType.Operator },
@@ -56,7 +58,7 @@ namespace SeedLang.X {
     }
 
     protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens) {
-      return new PythonVisitor(tokens);
+      return new SeedPythonVisitor(tokens);
     }
 
     protected override ParserRuleContext Program(Parser parser) {

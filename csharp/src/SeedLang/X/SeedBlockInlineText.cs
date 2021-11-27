@@ -18,14 +18,10 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
 using SeedLang.Common;
-using SeedLang.X;
 
-namespace SeedLang.Block {
+namespace SeedLang.X {
   // The parser to parse a block inline text of SeedBlock programs.
-  //
-  // The BlockInlineTextParser uses generated ANTLR4 SeedBlockInlineTextParser to parse the inline
-  // text of block programs.
-  internal class BlockInlineTextParser : BaseParser {
+  internal class SeedBlockInlineText : BaseParser {
     // The dictionary that maps from token types of SeedBlock to syntax token types.
     private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
       { SeedBlockInlineTextParser.NAME, SyntaxType.Variable},
@@ -59,7 +55,7 @@ namespace SeedLang.Block {
     }
 
     protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens) {
-      return new BlockInlineTextVisitor(tokens);
+      return new SeedBlockInlineTextVisitor(tokens);
     }
 
     protected override ParserRuleContext Program(Parser parser) {

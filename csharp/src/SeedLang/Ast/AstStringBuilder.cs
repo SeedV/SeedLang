@@ -33,7 +33,7 @@ namespace SeedLang.Ast {
           return "//";
         case BinaryOperator.Power:
           return "**";
-        case BinaryOperator.Modulus:
+        case BinaryOperator.Modulo:
           return "%";
         default:
           throw new NotImplementedException($"Unsupported binary operator: {op}.");

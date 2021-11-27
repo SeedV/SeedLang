@@ -92,6 +92,33 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 10 - Ln 1, Col 10]," +
                 "Number [Ln 1, Col 12 - Ln 1, Col 13]")]
 
+    [InlineData("1 + 2 // 3 - 40 % 5 ** 2 \n",
+
+                "[Ln 1, Col 0 - Ln 1, Col 23] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 23] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 9] BinaryExpression (+)\n" +
+                "      [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 4 - Ln 1, Col 9] BinaryExpression (//)\n" +
+                "        [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
+                "        [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (3)\n" +
+                "    [Ln 1, Col 13 - Ln 1, Col 23] BinaryExpression (%)\n" +
+                "      [Ln 1, Col 13 - Ln 1, Col 14] NumberConstantExpression (40)\n" +
+                "      [Ln 1, Col 18 - Ln 1, Col 23] BinaryExpression (**)\n" +
+                "        [Ln 1, Col 18 - Ln 1, Col 18] NumberConstantExpression (5)\n" +
+                "        [Ln 1, Col 23 - Ln 1, Col 23] NumberConstantExpression (2)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Operator [Ln 1, Col 6 - Ln 1, Col 7]," +
+                "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Operator [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Number [Ln 1, Col 13 - Ln 1, Col 14]," +
+                "Operator [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Number [Ln 1, Col 18 - Ln 1, Col 18]," +
+                "Operator [Ln 1, Col 20 - Ln 1, Col 21]," +
+                "Number [Ln 1, Col 23 - Ln 1, Col 23]")]
+
     [InlineData("(1 + (2)) - (x) - -3\n",
 
                 "[Ln 1, Col 0 - Ln 1, Col 19] ExpressionStatement\n" +

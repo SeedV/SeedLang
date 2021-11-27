@@ -88,14 +88,30 @@ namespace SeedLang.X {
                                  context.factor(), this);
     }
 
-    public override AstNode VisitPos_factor([NotNull] SeedPythonParser.Pos_factorContext context) {
+    public override AstNode VisitFloor_divide(
+        [NotNull] SeedPythonParser.Floor_divideContext context) {
+      return _helper.BuildBinary(context.term(), context.FLOOR_DIVIDE().Symbol,
+                                 BinaryOperator.FloorDivide, context.factor(), this);
+    }
+
+    public override AstNode VisitModulo([NotNull] SeedPythonParser.ModuloContext context) {
+      return _helper.BuildBinary(context.term(), context.MODULO().Symbol, BinaryOperator.Modulo,
+                                 context.factor(), this);
+    }
+
+    public override AstNode VisitPositive([NotNull] SeedPythonParser.PositiveContext context) {
       return _helper.BuildUnary(context.ADD().Symbol, UnaryOperator.Positive, context.factor(),
                                 this);
     }
 
-    public override AstNode VisitNag_factor([NotNull] SeedPythonParser.Nag_factorContext context) {
+    public override AstNode VisitNegative([NotNull] SeedPythonParser.NegativeContext context) {
       return _helper.BuildUnary(context.SUBTRACT().Symbol, UnaryOperator.Negative, context.factor(),
                                 this);
+    }
+
+    public override AstNode VisitPower([NotNull] SeedPythonParser.PowerContext context) {
+      return _helper.BuildBinary(context.primary(), context.POWER().Symbol, BinaryOperator.Power,
+                                 context.factor(), this);
     }
 
     public override AstNode VisitName([NotNull] SeedPythonParser.NameContext context) {

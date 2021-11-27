@@ -68,16 +68,32 @@ namespace SeedLang.Block {
                                  context.factor(), this);
     }
 
-    public override AstNode VisitPos_factor(
-        [NotNull] SeedBlockInlineTextParser.Pos_factorContext context) {
+    public override AstNode VisitFloor_divide(
+        [NotNull] SeedBlockInlineTextParser.Floor_divideContext context) {
+      return _helper.BuildBinary(context.term(), context.FLOOR_DIVIDE().Symbol,
+                                 BinaryOperator.FloorDivide, context.factor(), this);
+    }
+
+    public override AstNode VisitModulo([NotNull] SeedBlockInlineTextParser.ModuloContext context) {
+      return _helper.BuildBinary(context.term(), context.MODULO().Symbol, BinaryOperator.Modulo,
+                                 context.factor(), this);
+    }
+
+    public override AstNode VisitPositive(
+        [NotNull] SeedBlockInlineTextParser.PositiveContext context) {
       return _helper.BuildUnary(context.ADD().Symbol, UnaryOperator.Positive, context.factor(),
                                 this);
     }
 
-    public override AstNode VisitNag_factor(
-        [NotNull] SeedBlockInlineTextParser.Nag_factorContext context) {
+    public override AstNode VisitNegative(
+        [NotNull] SeedBlockInlineTextParser.NegativeContext context) {
       return _helper.BuildUnary(context.SUBTRACT().Symbol, UnaryOperator.Negative,
                                 context.factor(), this);
+    }
+
+    public override AstNode VisitPower([NotNull] SeedBlockInlineTextParser.PowerContext context) {
+      return _helper.BuildBinary(context.primary(), context.POWER().Symbol, BinaryOperator.Power,
+                                 context.factor(), this);
     }
 
     public override AstNode VisitName([NotNull] SeedBlockInlineTextParser.NameContext context) {

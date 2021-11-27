@@ -45,7 +45,7 @@ conjunction:
   inversion (AND inversion)+ # and
   | inversion                # inversion_as_conjunction;
 inversion:
-  NOT inversion # not_inversion
+  NOT inversion # not
   | comparison  # comparison_as_inversion;
 comparison:
   bitwise_or compare_op_bitwise_or_pair+ # multiple_comparison
@@ -69,13 +69,14 @@ term:
   term MULTIPLY factor       # multiply
   | term DIVIDE factor       # divide
   | term FLOOR_DIVIDE factor # floor_divide
+  | term MODULO factor       # modulo
   | factor                   # factor_as_term;
 factor:
-  ADD factor        # pos_factor
-  | SUBTRACT factor # nag_factor
-  | primary         # primary_as_factor;
+  ADD factor             # positive
+  | SUBTRACT factor      # negative
+  | primary POWER factor # power
+  | primary              # primary_as_factor;
 primary: atom;
-
 atom:
   NAME     # name
   | TRUE   # true
@@ -112,6 +113,8 @@ SUBTRACT: '-';
 MULTIPLY: '*';
 DIVIDE: '/';
 FLOOR_DIVIDE: '//';
+POWER: '**';
+MODULO: '%';
 
 OPEN_PAREN: '(';
 CLOSE_PAREN: ')';

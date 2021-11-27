@@ -19,7 +19,7 @@ using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.X.Tests {
-  public class BlockInlineTextParserTests {
+  public class SeedBlockInlineTextTests {
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
     private readonly SeedBlockInlineText _parser = new SeedBlockInlineText();
 

@@ -44,7 +44,6 @@ namespace SeedLang.Ast {
       IValue left = _expressionResult;
       Visit(binary.Right);
       IValue right = _expressionResult;
-      // TODO: handle other operators.
       try {
         switch (binary.Op) {
           case BinaryOperator.Add:

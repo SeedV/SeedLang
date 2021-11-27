@@ -42,6 +42,11 @@ namespace SeedLang.X {
       return Visit(statements);
     }
 
+    public override AstNode VisitSingle_simple_stmt(
+        [NotNull] SeedPythonParser.Single_simple_stmtContext context) {
+      return Visit(context.simple_stmt());
+    }
+
     public override AstNode VisitExpression_stmt(
         [NotNull] SeedPythonParser.Expression_stmtContext context) {
       return VisitorHelper.BuildExpressionStatement(context.expressions(), this);

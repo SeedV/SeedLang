@@ -25,26 +25,26 @@ namespace SeedLang.X.Tests {
 
     [Theory]
     [InlineData("1.2 =",
-                "SyntaxErrorUnwantedToken '=' <EOF>",
+                "SyntaxErrorNoViableAlternative '1.2='",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 2]," +
                 "Operator [Ln 1, Col 4 - Ln 1, Col 4]")]
 
     [InlineData("1 +",
-                "SyntaxErrorNoViableAlternative '+'",
+                "SyntaxErrorNoViableAlternative '1+'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]")]
 
     [InlineData("1 + (",
-                "SyntaxErrorNoViableAlternative '+('",
+                "SyntaxErrorNoViableAlternative '1+('",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]")]
 
     [InlineData("1 + ((",
-                "SyntaxErrorNoViableAlternative '+(('",
+                "SyntaxErrorNoViableAlternative '1+(('",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -52,7 +52,7 @@ namespace SeedLang.X.Tests {
                 "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
 
     [InlineData("1 + (((",
-                "SyntaxErrorNoViableAlternative '+((('",
+                "SyntaxErrorNoViableAlternative '1+((('",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -61,7 +61,7 @@ namespace SeedLang.X.Tests {
                 "Parenthesis [Ln 1, Col 6 - Ln 1, Col 6]")]
 
     [InlineData("1 + (2 - 1",
-                "SyntaxErrorNoViableAlternative '+(2-1'",
+                "SyntaxErrorNoViableAlternative '1+(2-1'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -71,7 +71,7 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 9 - Ln 1, Col 9]")]
 
     [InlineData("1 + ))",
-                "SyntaxErrorNoViableAlternative '+)'",
+                "SyntaxErrorNoViableAlternative '1+)'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -85,6 +85,16 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Operator [Ln 1, Col 6 - Ln 1, Col 7]")]
+
+    [InlineData("6(5 * 6)",
+                "SyntaxErrorNoViableAlternative '6('",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Parenthesis [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Number [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]")]
     public void TestParseSyntaxError(string input, string errorMessage, string expectedTokens) {
       Assert.False(_parser.Parse(input, "", _collection, out AstNode node,
                                  out IReadOnlyList<SyntaxToken> tokens));

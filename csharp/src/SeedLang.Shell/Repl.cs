@@ -119,7 +119,8 @@ namespace SeedLang.Shell {
         WriteSource(visualizer.Source, syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var runCollection = new DiagnosticCollection();
-        executor.Run(visualizer.Source, "", _language, _runType, runCollection);
+        string source = visualizer.Source + Environment.NewLine;
+        executor.Run(source, "", _language, _runType, runCollection);
         foreach (var diagnostic in runCollection.Diagnostics) {
           if (diagnostic.Range is TextRange range) {
             visualizer.WriteSourceWithHighlight(range);

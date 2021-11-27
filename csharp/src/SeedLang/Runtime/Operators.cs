@@ -22,7 +22,7 @@ namespace SeedLang.Runtime {
     Divide,
     FloorDivide,
     Power,
-    Modulus,
+    Modulo,
   }
 
   public enum BooleanOperator {

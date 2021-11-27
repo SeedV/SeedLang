@@ -59,6 +59,15 @@ namespace SeedLang.Ast {
           case BinaryOperator.Divide:
             _expressionResult = new NumberValue(ValueHelper.Divide(left, right));
             break;
+          case BinaryOperator.FloorDivide:
+            _expressionResult = new NumberValue(ValueHelper.FloorDivide(left, right));
+            break;
+          case BinaryOperator.Power:
+            _expressionResult = new NumberValue(ValueHelper.Power(left, right));
+            break;
+          case BinaryOperator.Modulo:
+            _expressionResult = new NumberValue(ValueHelper.Modulo(left, right));
+            break;
           default:
             throw new NotImplementedException($"Unsupported binary operator: {binary.Op}");
         }

@@ -36,7 +36,7 @@ namespace SeedLang.Shell {
             {BinaryOperator.Divide, "/"},
             {BinaryOperator.FloorDivide, "//"},
             {BinaryOperator.Power, "**"},
-            {BinaryOperator.Modulus, "%"},
+            {BinaryOperator.Modulo, "%"},
           };
 
       private readonly Dictionary<ComparisonOperator, string> _comparisonOperatorStrings =
@@ -110,7 +110,7 @@ namespace SeedLang.Shell {
       var executor = new Executor();
       executor.Register(visualizer);
       while (true) {
-        visualizer.Source = ReadLine.Read("> ");
+        visualizer.Source = ReadLine.Read("> ").Trim();
         if (visualizer.Source == "quit") {
           break;
         }

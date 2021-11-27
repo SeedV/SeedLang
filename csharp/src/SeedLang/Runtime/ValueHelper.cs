@@ -46,6 +46,28 @@ namespace SeedLang.Runtime {
       return result;
     }
 
+    internal static double FloorDivide<Value>(in Value lhs, in Value rhs) where Value : IValue {
+      if (rhs.Number == 0) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                      Message.RuntimeErrorDivideByZero);
+      }
+      double result = System.Math.Floor(lhs.Number / rhs.Number);
+      CheckOverflow(result);
+      return result;
+    }
+
+    internal static double Power<Value>(in Value lhs, in Value rhs) where Value : IValue {
+      double result = System.Math.Pow(lhs.Number, rhs.Number);
+      CheckOverflow(result);
+      return result;
+    }
+
+    internal static double Modulo<Value>(in Value lhs, in Value rhs) where Value : IValue {
+      double result = lhs.Number % rhs.Number;
+      CheckOverflow(result);
+      return result;
+    }
+
     internal static bool Less<Value>(in Value lhs, in Value rhs) where Value : IValue {
       return lhs.Number < rhs.Number;
     }

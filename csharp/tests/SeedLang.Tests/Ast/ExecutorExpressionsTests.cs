@@ -29,20 +29,29 @@ namespace SeedLang.Ast.Tests {
       }
 
       private void AddBinary() {
-        var left = Expression.NumberConstant(1, _textRange);
+        var left = Expression.NumberConstant(3, _textRange);
         var right = Expression.NumberConstant(2, _textRange);
         var add = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
-        var expectedAddOutput = $"{_textRange} 1 Add 2 = 3\n";
+        var expectedAddOutput = $"{_textRange} 3 Add 2 = 5\n";
         Add(add, expectedAddOutput);
         var sub = Expression.Binary(left, BinaryOperator.Subtract, right, _textRange);
-        var expectedSubOutput = $"{_textRange} 1 Subtract 2 = -1\n";
+        var expectedSubOutput = $"{_textRange} 3 Subtract 2 = 1\n";
         Add(sub, expectedSubOutput);
         var mul = Expression.Binary(left, BinaryOperator.Multiply, right, _textRange);
-        var expectedMulOutput = $"{_textRange} 1 Multiply 2 = 2\n";
+        var expectedMulOutput = $"{_textRange} 3 Multiply 2 = 6\n";
         Add(mul, expectedMulOutput);
         var div = Expression.Binary(left, BinaryOperator.Divide, right, _textRange);
-        var expectedDivOutput = $"{_textRange} 1 Divide 2 = 0.5\n";
+        var expectedDivOutput = $"{_textRange} 3 Divide 2 = 1.5\n";
         Add(div, expectedDivOutput);
+        var floorDiv = Expression.Binary(left, BinaryOperator.FloorDivide, right, _textRange);
+        var expectedFloorDivOutput = $"{_textRange} 3 FloorDivide 2 = 1\n";
+        Add(floorDiv, expectedFloorDivOutput);
+        var power = Expression.Binary(left, BinaryOperator.Power, right, _textRange);
+        var expectedPowerOutput = $"{_textRange} 3 Power 2 = 9\n";
+        Add(power, expectedPowerOutput);
+        var modulo = Expression.Binary(left, BinaryOperator.Modulo, right, _textRange);
+        var expectedModuloOutput = $"{_textRange} 3 Modulo 2 = 1\n";
+        Add(modulo, expectedModuloOutput);
       }
 
       private void AddBoolean() {

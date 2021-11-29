@@ -137,9 +137,9 @@ DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
 
 FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
 
-NEWLINE: ( '\r'? '\n' | '\r' | '\f') SPACES?;
+NEWLINE: ('\r'? '\n' | '\r' | '\f') SPACES?;
 
-SKIP_: ( SPACES | COMMENT | LINE_JOINING) -> skip;
+SKIP_: (SPACES | COMMENT | LINE_JOINING) -> skip;
 
 UNKNOWN_CHAR: .;
 

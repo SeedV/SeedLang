@@ -18,10 +18,10 @@ using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;
 
-namespace SeedLang.Block.Tests {
-  public class BlockInlineTextParserTests {
+namespace SeedLang.X.Tests {
+  public class SeedBlockInlineTextTests {
     private readonly DiagnosticCollection _collection = new DiagnosticCollection();
-    private readonly BlockInlineTextParser _parser = new BlockInlineTextParser();
+    private readonly SeedBlockInlineText _parser = new SeedBlockInlineText();
 
     [Theory]
     [InlineData("0", true)]
@@ -201,7 +201,7 @@ namespace SeedLang.Block.Tests {
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +
                 "Unknown [Ln 1, Col 2 - Ln 1, Col 2]")]
     public void TestParsePartialOrInvalidExpressions(string input, string expectedTokens) {
-      var parser = new BlockInlineTextParser();
+      var parser = new SeedBlockInlineText();
       parser.Parse(input, "", _collection,
                    out AstNode node, out IReadOnlyList<SyntaxToken> tokens);
       Assert.Null(node);

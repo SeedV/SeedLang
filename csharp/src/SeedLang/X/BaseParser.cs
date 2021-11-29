@@ -62,11 +62,8 @@ namespace SeedLang.X {
 
     protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens);
 
-    // Returns the parser rule context of a program. This method must be implemented by the derived
-    // class.
-    protected virtual ParserRuleContext Program(Parser parser) {
-      throw new NotImplementedException();
-    }
+    // Returns the parser rule context of a program.
+    protected abstract ParserRuleContext Program(Parser parser);
 
     protected Lexer SetupLexer(string source) {
       var inputStream = new AntlrInputStream(source);

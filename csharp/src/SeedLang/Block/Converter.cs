@@ -29,7 +29,7 @@ namespace SeedLang.Block {
                           Message.EmptyInlineText);
         return false;
       }
-      var parser = new BlockInlineTextParser();
+      var parser = new SeedBlockInlineText();
       return parser.Validate(text, "", collection);
     }
 
@@ -42,7 +42,7 @@ namespace SeedLang.Block {
                           Message.EmptyInlineText);
         return null;
       }
-      var parser = new BlockInlineTextParser();
+      var parser = new SeedBlockInlineText();
       if (!parser.Parse(text, "", collection, out _, out IReadOnlyList<SyntaxToken> tokens)) {
         return null;
       }
@@ -96,7 +96,7 @@ namespace SeedLang.Block {
         foreach (var rootBlock in module.RootBlockIterator) {
           // TODO: implement a visitor to parse other kinds of blocks.
           if (rootBlock is ExpressionBlock expressionBlock) {
-            var parser = new BlockInlineTextParser();
+            var parser = new SeedBlockInlineText();
             if (parser.Parse(expressionBlock.GetEditableText(), module.Name, collection,
                              out AstNode node, out IReadOnlyList<SyntaxToken> _)) {
               nodes.Add(node);

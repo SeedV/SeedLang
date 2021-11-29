@@ -19,19 +19,18 @@ using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
-using SeedLang.X;
 
-namespace SeedLang.Block {
+namespace SeedLang.X {
   // The visitor class to visit a block inline text of SeedBlock programs and generate the
   // corresponding AST tree.
   //
   // The default implement of SeedBlockInlineTextBaseVisitor is to visit all the children and return
-  // the result of the last one. BlockInlineTextVisitor overrides the method if the default
+  // the result of the last one. SeedBlockInlineTextVisitor overrides the method if the default
   // implement is not correct.
-  internal class BlockInlineTextVisitor : SeedBlockInlineTextBaseVisitor<AstNode> {
+  internal class SeedBlockInlineTextVisitor : SeedBlockInlineTextBaseVisitor<AstNode> {
     private readonly VisitorHelper _helper;
 
-    public BlockInlineTextVisitor(IList<SyntaxToken> tokens) {
+    public SeedBlockInlineTextVisitor(IList<SyntaxToken> tokens) {
       _helper = new VisitorHelper(tokens);
     }
 

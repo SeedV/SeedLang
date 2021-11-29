@@ -83,15 +83,19 @@ namespace SeedLang.Shell {
       }
 
       internal void WriteSourceWithHighlight(TextRange range) {
+        // Source doesn't include the trailing newline.
+        // TODO: Refactor the trailing newline logic.
         Debug.Assert(range.Start.Column >= 0 && range.Start.Column <= range.End.Column &&
-                     range.End.Column < Source.Length);
+                     range.End.Column < Source.Length + 1);
         Console.Write(Source.Substring(0, range.Start.Column));
         Console.BackgroundColor = ConsoleColor.DarkCyan;
         Console.ForegroundColor = ConsoleColor.Black;
-        int length = range.End.Column - range.Start.Column + 1;
+        int length = Math.Min(LengthOfRange(range), Source.Length - range.Start.Column);
         Console.Write(Source.Substring(range.Start.Column, length));
         Console.ResetColor();
-        Console.Write(Source.Substring(range.End.Column + 1));
+        if (range.End.Column < Source.Length) {
+          Console.Write(Source.Substring(range.End.Column + 1));
+        }
         Console.Write(": ");
       }
     }
@@ -119,7 +123,8 @@ namespace SeedLang.Shell {
         WriteSource(visualizer.Source, syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var runCollection = new DiagnosticCollection();
-        string source = visualizer.Source + Environment.NewLine;
+        string trailingNewline = _language != SeedXLanguage.SeedCalc ? Environment.NewLine : "";
+        string source = visualizer.Source + trailingNewline;
         executor.Run(source, "", _language, _runType, runCollection);
         foreach (var diagnostic in runCollection.Diagnostics) {
           if (diagnostic.Range is TextRange range) {
@@ -141,7 +146,8 @@ namespace SeedLang.Shell {
         if (Theme.SyntaxToThemeInfoMap.ContainsKey(token.Type)) {
           Console.ForegroundColor = Theme.SyntaxToThemeInfoMap[token.Type].ForegroundColor;
         }
-        Console.Write(source.Substring(token.Range.Start.Column, LengthOfRange(token.Range)));
+        int length = Math.Min(LengthOfRange(token.Range), source.Length - token.Range.Start.Column);
+        Console.Write(source.Substring(token.Range.Start.Column, length));
         startColumn = token.Range.End.Column + 1;
         Console.ResetColor();
       }

@@ -99,10 +99,12 @@ namespace SeedLang.Runtime {
 
     private static BaseParser MakeParser(SeedXLanguage language) {
       switch (language) {
-        case SeedXLanguage.BlockInlineText:
-          return new BlockInlineTextParser();
+        case SeedXLanguage.SeedBlockInlineText:
+          return new SeedBlockInlineText();
+        case SeedXLanguage.SeedCalc:
+          return new SeedCalc();
         case SeedXLanguage.SeedPython:
-          return new PythonParser();
+          return new SeedPython();
         default:
           throw new NotImplementedException($"Unsupported SeedX language: {language}.");
       }

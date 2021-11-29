@@ -24,12 +24,12 @@ namespace SeedLang.X {
   // The visitor class to visit a SeedPython parse tree and generate the corresponding AST tree.
   //
   // The default implement of SeedPythonBaseVisitor is to visit all the children and return the
-  // result of the last one. PythonVisitor overrides the method if the default implement is not
+  // result of the last one. SeedPythonVisitor overrides the method if the default implement is not
   // correct.
-  internal class PythonVisitor : SeedPythonBaseVisitor<AstNode> {
+  internal class SeedPythonVisitor : SeedPythonBaseVisitor<AstNode> {
     private readonly VisitorHelper _helper;
 
-    public PythonVisitor(IList<SyntaxToken> tokens) {
+    public SeedPythonVisitor(IList<SyntaxToken> tokens) {
       _helper = new VisitorHelper(tokens);
     }
 

@@ -34,7 +34,7 @@ namespace SeedLang.X {
       { SeedCalcParser.UNKNOWN_CHAR, SyntaxType.Unknown },
     };
 
-    // The dictionary that maps from token types of SeedPython to syntax token types.
+    // The dictionary that maps from token types of SeedCalc to syntax token types.
     protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
 
     protected override Lexer MakeLexer(ICharStream stream) {

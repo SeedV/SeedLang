@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Xunit;
@@ -88,20 +89,14 @@ namespace SeedLang.X.Tests {
                     @"[@-1,26:26='2',<39>,3:6]",
                     @"[@-1,0:0='\n',<44>,3:7]",
                     @"[@-1,0:0='',<48>,4:0]",})]
-
-    [InlineData("1.2 =",
-
-                new string[] {
-                  @"[@-1,0:2='1.2',<39>,1:0]",
-                  @"[@-1,4:4='=',<17>,1:4]",
-                  @"[@-1,0:0='\n',<44>,1:5]"})]
     public void TestScanTokens(string source, string[] expectedTokens) {
       var inputStream = new AntlrInputStream(source);
       var lexer = new SeedPythonDentLexer(inputStream);
       IList<IToken> tokens = lexer.GetAllTokens();
       Assert.Equal(expectedTokens.Length, tokens.Count);
       for (int i = 0; i < expectedTokens.Length; ++i) {
-        Assert.Equal(expectedTokens[i], tokens[i].ToString());
+        string expectedToken = expectedTokens[i].Replace("\n", Environment.NewLine);
+        Assert.Equal(expectedToken, tokens[i].ToString());
       }
     }
   }

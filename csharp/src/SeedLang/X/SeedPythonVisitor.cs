@@ -42,6 +42,15 @@ namespace SeedLang.X {
       return Visit(statements);
     }
 
+    public override AstNode VisitStatements([NotNull] SeedPythonParser.StatementsContext context) {
+      ParserRuleContext[] statements = context.statement();
+      if (statements.Length == 1) {
+        return Visit(statements[0]);
+      }
+      return VisitorHelper.BuildBlock(context.statement(), this);
+    }
+
+
     public override AstNode VisitSingle_simple_stmt(
         [NotNull] SeedPythonParser.Single_simple_stmtContext context) {
       return Visit(context.simple_stmt());
@@ -62,8 +71,13 @@ namespace SeedLang.X {
                                 context.COLON().Symbol, context.block(), this);
     }
 
+    public override AstNode VisitBlock_statements(
+        [NotNull] SeedPythonParser.Block_statementsContext context) {
+      return Visit(context.statements());
+    }
+
     public override AstNode VisitMultiple_comparison(
-      [NotNull] SeedPythonParser.Multiple_comparisonContext context) {
+        [NotNull] SeedPythonParser.Multiple_comparisonContext context) {
       return _helper.BuildComparison(context.bitwise_or(), context.compare_op_bitwise_or_pair(),
                                      ToComparisonOperator, this);
     }

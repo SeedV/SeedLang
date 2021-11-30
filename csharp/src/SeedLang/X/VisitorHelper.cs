@@ -176,6 +176,21 @@ namespace SeedLang.X {
       return null;
     }
 
+    internal static BlockStatement BuildBlock(ParserRuleContext[] statementContexts,
+                                       AbstractParseTreeVisitor<AstNode> visitor) {
+      var statements = new Statement[statementContexts.Length];
+      for (int i = 0; i < statementContexts.Length; ++i) {
+        statements[i] = visitor.Visit(statementContexts[i]) as Statement;
+      }
+      Debug.Assert(statements.Length > 0);
+      Statement first = statements[0];
+      Statement last = statements[statements.Length - 1];
+      Debug.Assert(first.Range is TextRange && last.Range is TextRange);
+      Range range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
+                                                     last.Range as TextRange);
+      return new BlockStatement(statements, range);
+    }
+
     // Builds an expression statement.
     internal static ExpressionStatement BuildExpressionStatement(
         ParserRuleContext exprContext, AbstractParseTreeVisitor<AstNode> visitor) {

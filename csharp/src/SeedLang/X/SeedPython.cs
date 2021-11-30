@@ -50,7 +50,7 @@ namespace SeedLang.X {
     protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
 
     protected override Lexer MakeLexer(ICharStream stream) {
-      return new SeedPythonLexer(stream);
+      return new SeedPythonDentLexer(stream);
     }
 
     protected override Parser MakeParser(ITokenStream stream) {

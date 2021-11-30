@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -47,12 +46,13 @@ namespace SeedLang.X {
       var tokenList = new List<SyntaxToken>();
       tokens = tokenList;
       AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
-      node = visitor.Visit(Program(parser));
+      ParserRuleContext program = Program(parser);
       if (collection.Diagnostics.Count > diagnosticCount) {
         ParseMissingSyntaxTokens(source, tokenList);
         node = null;
         return false;
       }
+      node = visitor.Visit(program);
       return true;
     }
 

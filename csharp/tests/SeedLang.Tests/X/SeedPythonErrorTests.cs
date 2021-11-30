@@ -31,20 +31,20 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 4 - Ln 1, Col 4]")]
 
     [InlineData("1 +",
-                "SyntaxErrorNoViableAlternative '1+'",
+                @"SyntaxErrorNoViableAlternative '1+\n'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]")]
 
     [InlineData("1 + (",
-                "SyntaxErrorNoViableAlternative '1+('",
+                @"SyntaxErrorNoViableAlternative '1+(\n'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]")]
 
     [InlineData("1 + ((",
-                "SyntaxErrorNoViableAlternative '1+(('",
+                @"SyntaxErrorNoViableAlternative '1+((\n'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -52,7 +52,7 @@ namespace SeedLang.X.Tests {
                 "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
 
     [InlineData("1 + (((",
-                "SyntaxErrorNoViableAlternative '1+((('",
+                @"SyntaxErrorNoViableAlternative '1+(((\n'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -61,7 +61,7 @@ namespace SeedLang.X.Tests {
                 "Parenthesis [Ln 1, Col 6 - Ln 1, Col 6]")]
 
     [InlineData("1 + (2 - 1",
-                "SyntaxErrorNoViableAlternative '1+(2-1'",
+                @"SyntaxErrorNoViableAlternative '1+(2-1\n'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -79,7 +79,7 @@ namespace SeedLang.X.Tests {
                 "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
 
     [InlineData("1 < 2 >=",
-                "SyntaxErrorNoViableAlternative '1<2>='",
+                @"SyntaxErrorNoViableAlternative '1<2>=\n'",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +

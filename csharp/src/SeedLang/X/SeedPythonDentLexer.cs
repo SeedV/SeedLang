@@ -14,92 +14,150 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 
 namespace SeedLang.X {
   internal class SeedPythonDentLexer : SeedPythonLexer {
-    // A linked list where extra tokens are added in.
+    // A linked list to store multiple tokens.
     private readonly LinkedList<IToken> _tokens = new LinkedList<IToken>();
     // The stack that keeps track of the indentation level.
     private readonly Stack<int> _indents = new Stack<int>();
     // The amount of opened braces, brackets and parenthesis.
     private int _opened = 0;
-    // The most recently produced token.
-    private IToken _lastToken = null;
+    private bool _firstToken = true;
 
     public SeedPythonDentLexer(ICharStream input) : base(input) {
     }
 
-    public override void Emit(IToken token) {
-      Token = token;
-      _tokens.AddLast(token);
-    }
-
     public override IToken NextToken() {
-      // Check if the end-of-file is ahead and there are still some DEDENTs expected.
-      if (InputStream.LA(1) == Eof && _indents.Count != 0) {
-        // Remove any trailing EOF tokens from our buffer.
-        LinkedListNode<IToken> node = _tokens.First;
-        while (node != null) {
-          LinkedListNode<IToken> next = node.Next;
-          if (node.Value.Type == Eof) {
-            _tokens.Remove(node);
-          }
-          node = next;
-        }
-        // First emit an extra line break that serves as the end of the statement.
-        Emit(CommonToken(SeedPythonParser.NEWLINE, "\n"));
-        // Now emit as many DEDENT tokens as needed.
-        while (_indents.Count != 0) {
-          Emit(CreateDedent());
-          _indents.Pop();
-        }
-        // Put the EOF back on the token stream.
-        Emit(CommonToken(SeedPythonParser.Eof, "<EOF>"));
+      if (TryPopFirstToken(out IToken first)) {
+        return first;
       }
-
-      IToken nextToken = base.NextToken();
-      switch (nextToken.Type) {
+      IToken currentToken = base.NextToken();
+      if (_firstToken) {
+        _firstToken = false;
+        HandleFirstToken(currentToken);
+      }
+      switch (currentToken.Type) {
         case SeedPythonParser.NEWLINE:
-          OnNewLine();
+          HandleNewline(currentToken);
           break;
         case SeedPythonParser.OPEN_PAREN:
         case SeedPythonParser.OPEN_BRACE:
         case SeedPythonParser.OPEN_BRACK:
+          EmitToken(currentToken);
           _opened++;
           break;
         case SeedPythonParser.CLOSE_PAREN:
         case SeedPythonParser.CLOSE_BRACE:
         case SeedPythonParser.CLOSE_BRACK:
+          EmitToken(currentToken);
           _opened--;
           break;
+        case SeedPythonParser.Eof:
+          HandleEof(currentToken);
+          break;
+        default:
+          EmitToken(currentToken);
+          break;
       }
-      if (nextToken.Channel == DefaultTokenChannel) {
-        // Keep track of the last token on the default channel.
-        _lastToken = nextToken;
-      }
+      return PopFirstToken();
+    }
 
-      if (_tokens.Count == 0) {
-        return nextToken;
+    private void HandleFirstToken(IToken firstToken) {
+      if (firstToken.StartIndex > 0) {
+        string spaces = (InputStream as ICharStream).GetText(new Interval(0, firstToken.StartIndex - 1));
+        int indent = GetIndentationCount(spaces);
+        _indents.Push(indent);
+        EmitToken(new CommonToken(SeedPythonParser.NEWLINE, "\n") { Line = 1, Column = 0 });
+        EmitToken(CommonToken(SeedPythonParser.INDENT, 0, firstToken.StartIndex - 1, 0, 0));
+      }
+    }
+
+    private void HandleNewline(IToken newlineToken) {
+      int spacesStart = 0;
+      while (spacesStart < Text.Length && IsNewline(Text[spacesStart])) {
+        spacesStart++;
+      }
+      // Strips newlines inside open clauses except if we are near EOF. Keeps NEWLINEs near EOF to
+      // satisfy the final newline needed by the interactive rule used by the REPL.
+      int next = InputStream.LA(1);
+      int nextNext = InputStream.LA(2);
+      if (_opened > 0 || (nextNext != -1 && (IsNewline((char)next) || next == '#'))) {
+        // If we're inside a list or on a blank line, ignore all indents, dedents and line breaks.
+        Skip();
       } else {
-        IToken first = _tokens.First.Value;
-        _tokens.RemoveFirst();
-        return first;
+        int indent = GetIndentationCount(Text.Substring(spacesStart));
+        int previous = _indents.Count == 0 ? 0 : _indents.Peek();
+        if (indent == previous) {
+          // Adds newline token.
+          _tokens.AddLast(newlineToken);
+        } else if (indent > previous) {
+          _indents.Push(indent);
+          EmitToken(CommonToken(SeedPythonParser.NEWLINE,
+                                newlineToken.StartIndex, newlineToken.StartIndex + spacesStart - 1,
+                                newlineToken.Line, newlineToken.Column));
+          EmitToken(CommonToken(SeedPythonParser.INDENT,
+                                newlineToken.StartIndex + spacesStart, newlineToken.StopIndex,
+                                newlineToken.Line + 1, 0));
+        } else {
+          EmitToken(CommonToken(SeedPythonParser.NEWLINE,
+                                newlineToken.StartIndex, newlineToken.StartIndex + spacesStart - 1,
+                                newlineToken.Line, newlineToken.Column));
+          while (_indents.Count > 0 && _indents.Peek() > indent) {
+            EmitToken(CreateDedent(newlineToken.Line + 1));
+            _indents.Pop();
+          }
+        }
       }
     }
 
-    private CommonToken CommonToken(int type, string text) {
-      int stop = CharIndex - 1;
-      int start = text.Length == 0 ? stop : CharIndex - text.Length;
-      var source = Tuple.Create((ITokenSource)this, (ICharStream)InputStream);
-      return new CommonToken(source, type, DefaultTokenChannel, start, stop);
+    private void HandleEof(IToken eofToken) {
+      // First emit an extra line break that serves as the end of the statement.
+      EmitToken(new CommonToken(SeedPythonParser.NEWLINE, "\n") { Line = eofToken.Line, Column = eofToken.Column });
+      // Now emit as many DEDENT tokens as needed.
+      while (_indents.Count != 0) {
+        _tokens.AddLast(CreateDedent(eofToken.Line + 1));
+        _indents.Pop();
+      }
+      // Put the EOF back on the token stream.
+      EmitToken(eofToken);
     }
 
-    private IToken CreateDedent() {
-      var dedent = CommonToken(SeedPythonParser.DEDENT, "");
-      dedent.Line = _lastToken.Line;
-      return dedent;
+    private bool TryPopFirstToken(out IToken first) {
+      if (_tokens.Count == 0) {
+        first = null;
+        return false;
+      }
+      first = PopFirstToken();
+      return true;
+    }
+
+    private IToken PopFirstToken() {
+      IToken first = _tokens.First.Value;
+      _tokens.RemoveFirst();
+      return first;
+    }
+
+    private static bool IsNewline(char ch) {
+      return ch == '\r' || ch == '\n' || ch == '\f';
+    }
+
+    private void EmitToken(IToken token) {
+      _tokens.AddLast(token);
+    }
+
+    private CommonToken CommonToken(int type, int start, int stop, int line, int column) {
+      var source = Tuple.Create((ITokenSource)this, (ICharStream)InputStream);
+      return new CommonToken(source, type, DefaultTokenChannel, start, stop) {
+        Line = line,
+        Column = column,
+      };
+    }
+
+    private static IToken CreateDedent(int line) {
+      return new CommonToken(SeedPythonParser.DEDENT, "") { Line = line, Column = 0 };
     }
 
     // Calculates the indentation of the provided spaces, taking the
@@ -116,42 +174,6 @@ namespace SeedLang.X {
         count += ch == '\t' ? 8 - (count % 8) : 1;
       }
       return count;
-    }
-
-    private bool AtStartOfInput() {
-      return Column == 0 && Line == 1;
-    }
-
-    private void OnNewLine() {
-      var newLine = new Regex("[^\r\n\f]+").Replace(Text, "");
-      var spaces = new Regex("[\r\n\f]+").Replace(Text, "");
-      // Strip newlines inside open clauses except if we are near EOF. We keep NEWLINEs near EOF to
-      // satisfy the final newline needed by the single_put rule used by the REPL.
-      int next = InputStream.LA(1);
-      int nextNext = InputStream.LA(2);
-      if (_opened > 0 ||
-          (nextNext != -1 && (next == '\r' || next == '\n' || next == '\f' || next == '#'))) {
-        // If we're inside a list or on a blank line, ignore all indents, dedents and line breaks.
-        Skip();
-      } else {
-        _tokens.RemoveFirst();
-        Emit(CommonToken(SeedPythonParser.NEWLINE, newLine));
-        int indent = GetIndentationCount(spaces);
-        int previous = _indents.Count == 0 ? 0 : _indents.Peek();
-        if (indent == previous) {
-          // skip indents of the same size as the present indent-size
-          Skip();
-        } else if (indent > previous) {
-          _indents.Push(indent);
-          Emit(CommonToken(SeedPythonParser.INDENT, spaces));
-        } else {
-          // Possibly emit more than 1 DEDENT token.
-          while (_indents.Count != 0 && _indents.Peek() > indent) {
-            Emit(CreateDedent());
-            _indents.Pop();
-          }
-        }
-      }
     }
   }
 }

@@ -176,8 +176,9 @@ namespace SeedLang.X {
       return null;
     }
 
+    // Builds an block statement.
     internal static BlockStatement BuildBlock(ParserRuleContext[] statementContexts,
-                                       AbstractParseTreeVisitor<AstNode> visitor) {
+                                              AbstractParseTreeVisitor<AstNode> visitor) {
       var statements = new Statement[statementContexts.Length];
       for (int i = 0; i < statementContexts.Length; ++i) {
         statements[i] = visitor.Visit(statementContexts[i]) as Statement;

@@ -47,9 +47,8 @@ namespace SeedLang.X {
       if (statements.Length == 1) {
         return Visit(statements[0]);
       }
-      return VisitorHelper.BuildBlock(context.statement(), this);
+      return VisitorHelper.BuildBlock(statements, this);
     }
-
 
     public override AstNode VisitSingle_simple_stmt(
         [NotNull] SeedPythonParser.Single_simple_stmtContext context) {

@@ -18,13 +18,19 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 
 namespace SeedLang.X {
+  // A lexer can scan and inject indent and dedent tokens for SeedPython language.
+  //
+  // The indent and dedent tokens cannot be expressed as ANTLR4 grammar. The newline and spaces need
+  // be scanned to generate indent and dedent tokens.
   internal class SeedPythonDentLexer : SeedPythonLexer {
-    // A linked list to store multiple tokens.
+    // A linked list to store multiple tokens, because the original ANTLR4 lexer can only generate
+    // one token at the same time.
     private readonly LinkedList<IToken> _tokens = new LinkedList<IToken>();
     // The stack that keeps track of the indentation level.
     private readonly Stack<int> _indents = new Stack<int>();
     // The amount of opened braces, brackets and parenthesis.
     private int _opened = 0;
+    // A flag to indicate that current token is the first token to be generated.
     private bool _firstToken = true;
 
     public SeedPythonDentLexer(ICharStream input) : base(input) {
@@ -65,9 +71,27 @@ namespace SeedLang.X {
       return PopFirstToken();
     }
 
+    private static IToken CreateDedent(int line) {
+      return new CommonToken(SeedPythonParser.DEDENT, "") { Line = line, Column = 0 };
+    }
+
+    // Calculates the indentation of the provided spaces, taking the following rules into account:
+    //
+    // Tabs are replaced (from left to right) by one to eight spaces such that the total number of
+    // characters up to and including the replacement is a multiple of eight.
+    // https://docs.python.org/3.10/reference/lexical_analysis.html#indentation
+    private static int GetIndentationCount(string spaces) {
+      int count = 0;
+      foreach (char ch in spaces.ToCharArray()) {
+        count += ch == '\t' ? 8 - (count % 8) : 1;
+      }
+      return count;
+    }
+
     private void HandleFirstToken(IToken firstToken) {
       if (firstToken.StartIndex > 0) {
-        string spaces = (InputStream as ICharStream).GetText(new Interval(0, firstToken.StartIndex - 1));
+        var interval = new Interval(0, firstToken.StartIndex - 1);
+        string spaces = (InputStream as ICharStream).GetText(interval);
         int indent = GetIndentationCount(spaces);
         _indents.Push(indent);
         EmitToken(new CommonToken(SeedPythonParser.NEWLINE, "\n") { Line = 1, Column = 0 });
@@ -85,14 +109,13 @@ namespace SeedLang.X {
       int next = InputStream.LA(1);
       int nextNext = InputStream.LA(2);
       if (_opened > 0 || (nextNext != -1 && (IsNewline((char)next) || next == '#'))) {
-        // If we're inside a list or on a blank line, ignore all indents, dedents and line breaks.
+        // Ignores all indents, dedents and line breaks when inside a list or on a blank line.
         Skip();
       } else {
         int indent = GetIndentationCount(Text.Substring(spacesStart));
         int previous = _indents.Count == 0 ? 0 : _indents.Peek();
         if (indent == previous) {
-          // Adds newline token.
-          _tokens.AddLast(newlineToken);
+          EmitToken(newlineToken);
         } else if (indent > previous) {
           _indents.Push(indent);
           EmitToken(CommonToken(SeedPythonParser.NEWLINE,
@@ -114,14 +137,16 @@ namespace SeedLang.X {
     }
 
     private void HandleEof(IToken eofToken) {
-      // First emit an extra line break that serves as the end of the statement.
-      EmitToken(new CommonToken(SeedPythonParser.NEWLINE, "\n") { Line = eofToken.Line, Column = eofToken.Column });
-      // Now emit as many DEDENT tokens as needed.
+      // Emits an extra line break that serves as the end of the statement.
+      EmitToken(new CommonToken(SeedPythonParser.NEWLINE, "\n") {
+        Line = eofToken.Line,
+        Column = eofToken.Column,
+      });
+      // Emits as many dedent tokens as needed.
       while (_indents.Count != 0) {
-        _tokens.AddLast(CreateDedent(eofToken.Line + 1));
+        EmitToken(CreateDedent(eofToken.Line + 1));
         _indents.Pop();
       }
-      // Put the EOF back on the token stream.
       EmitToken(eofToken);
     }
 
@@ -154,26 +179,6 @@ namespace SeedLang.X {
         Line = line,
         Column = column,
       };
-    }
-
-    private static IToken CreateDedent(int line) {
-      return new CommonToken(SeedPythonParser.DEDENT, "") { Line = line, Column = 0 };
-    }
-
-    // Calculates the indentation of the provided spaces, taking the
-    // following rules into account:
-    //
-    // "Tabs are replaced (from left to right) by one to eight spaces
-    //  such that the total number of characters up to and including
-    //  the replacement is a multiple of eight [...]"
-    //
-    //  -- https://docs.python.org/3.1/reference/lexical_analysis.html#indentation
-    private static int GetIndentationCount(string spaces) {
-      int count = 0;
-      foreach (char ch in spaces.ToCharArray()) {
-        count += ch == '\t' ? 8 - (count % 8) : 1;
-      }
-      return count;
     }
   }
 }

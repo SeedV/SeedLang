@@ -114,7 +114,7 @@ namespace SeedLang.Shell {
       var executor = new Executor();
       executor.Register(visualizer);
       while (true) {
-        // TODO: handle multiple-line source code input
+        // TODO: handle multiple-line source code input.
         visualizer.Source = ReadLine.Read(">>> ");
         if (visualizer.Source == "quit") {
           break;

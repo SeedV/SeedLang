@@ -71,31 +71,14 @@ namespace SeedLang.X {
       return PopFirstToken();
     }
 
-    private static IToken CreateDedent(int line) {
-      return new CommonToken(SeedPythonParser.DEDENT, "") { Line = line, Column = 0 };
-    }
-
-    // Calculates the indentation of the provided spaces, taking the following rules into account:
-    //
-    // Tabs are replaced (from left to right) by one to eight spaces such that the total number of
-    // characters up to and including the replacement is a multiple of eight.
-    // https://docs.python.org/3.10/reference/lexical_analysis.html#indentation
-    private static int GetIndentationCount(string spaces) {
-      int count = 0;
-      foreach (char ch in spaces.ToCharArray()) {
-        count += ch == '\t' ? 8 - (count % 8) : 1;
-      }
-      return count;
-    }
-
     private void HandleFirstToken(IToken firstToken) {
       if (firstToken.StartIndex > 0) {
         var interval = new Interval(0, firstToken.StartIndex - 1);
         string spaces = (InputStream as ICharStream).GetText(interval);
         int indent = GetIndentationCount(spaces);
         _indents.Push(indent);
-        EmitToken(new CommonToken(SeedPythonParser.NEWLINE, "\n") { Line = 1, Column = 0 });
-        EmitToken(CommonToken(SeedPythonParser.INDENT, 0, firstToken.StartIndex - 1, 0, 0));
+        EmitToken(CommonToken(SeedPythonParser.NEWLINE, 0, 0, 1, 0, "\n"));
+        EmitToken(CommonToken(SeedPythonParser.INDENT, 0, firstToken.StartIndex - 1, 1, 0, spaces));
       }
     }
 
@@ -121,15 +104,15 @@ namespace SeedLang.X {
           EmitToken(CommonToken(SeedPythonParser.NEWLINE,
                                 newlineToken.StartIndex, newlineToken.StartIndex + spacesStart - 1,
                                 newlineToken.Line, newlineToken.Column));
-          EmitToken(CommonToken(SeedPythonParser.INDENT,
-                                newlineToken.StartIndex + spacesStart, newlineToken.StopIndex,
-                                newlineToken.Line + 1, 0));
+          EmitToken(CommonToken(SeedPythonParser.INDENT, newlineToken.StartIndex + spacesStart,
+                                newlineToken.StopIndex, newlineToken.Line + 1, 0));
         } else {
           EmitToken(CommonToken(SeedPythonParser.NEWLINE,
                                 newlineToken.StartIndex, newlineToken.StartIndex + spacesStart - 1,
                                 newlineToken.Line, newlineToken.Column));
           while (_indents.Count > 0 && _indents.Peek() > indent) {
-            EmitToken(CreateDedent(newlineToken.Line + 1));
+            EmitToken(CommonToken(SeedPythonParser.DEDENT, newlineToken.StartIndex + spacesStart,
+                                  newlineToken.StopIndex, newlineToken.Line + 1, 0));
             _indents.Pop();
           }
         }
@@ -138,13 +121,12 @@ namespace SeedLang.X {
 
     private void HandleEof(IToken eofToken) {
       // Emits an extra line break that serves as the end of the statement.
-      EmitToken(new CommonToken(SeedPythonParser.NEWLINE, "\n") {
-        Line = eofToken.Line,
-        Column = eofToken.Column,
-      });
+      EmitToken(CommonToken(SeedPythonParser.NEWLINE, eofToken.StartIndex, eofToken.StartIndex,
+                            Environment.NewLine));
       // Emits as many dedent tokens as needed.
       while (_indents.Count != 0) {
-        EmitToken(CreateDedent(eofToken.Line + 1));
+        EmitToken(CommonToken(SeedPythonParser.DEDENT, eofToken.StartIndex, eofToken.StartIndex,
+                              eofToken.Line + 1, 0, ""));
         _indents.Pop();
       }
       EmitToken(eofToken);
@@ -173,12 +155,43 @@ namespace SeedLang.X {
       _tokens.AddLast(token);
     }
 
-    private CommonToken CommonToken(int type, int start, int stop, int line, int column) {
+    private CommonToken CommonToken(int type, int start, int stop) {
       var source = Tuple.Create((ITokenSource)this, (ICharStream)InputStream);
-      return new CommonToken(source, type, DefaultTokenChannel, start, stop) {
-        Line = line,
-        Column = column,
-      };
+      return new CommonToken(source, type, DefaultTokenChannel, start, stop);
+    }
+
+    private CommonToken CommonToken(int type, int start, int stop, string text) {
+      CommonToken token = CommonToken(type, start, stop);
+      token.Text = text;
+      return token;
+    }
+
+    private CommonToken CommonToken(int type, int start, int stop, int line, int column) {
+      CommonToken token = CommonToken(type, start, stop);
+      token.Line = line;
+      token.Column = column;
+      return token;
+    }
+
+    private CommonToken CommonToken(int type, int start, int stop, int line, int column,
+                                    string text) {
+      CommonToken token = CommonToken(type, start, stop, text);
+      token.Line = line;
+      token.Column = column;
+      return token;
+    }
+
+    // Calculates the indentation of the provided spaces, taking the following rules into account:
+    //
+    // Tabs are replaced (from left to right) by one to eight spaces such that the total number of
+    // characters up to and including the replacement is a multiple of eight.
+    // https://docs.python.org/3.10/reference/lexical_analysis.html#indentation
+    private static int GetIndentationCount(string spaces) {
+      int count = 0;
+      foreach (char ch in spaces.ToCharArray()) {
+        count += ch == '\t' ? 8 - (count % 8) : 1;
+      }
+      return count;
     }
   }
 }

@@ -43,6 +43,8 @@ namespace SeedLang.X {
       { SeedPythonParser.OPEN_PAREN, SyntaxType.Parenthesis },
       { SeedPythonParser.CLOSE_PAREN, SyntaxType.Parenthesis },
       { SeedPythonParser.COLON, SyntaxType.Symbol },
+      { SeedPythonParser.WHILE, SyntaxType.Keyword },
+      { SeedPythonParser.TRUE, SyntaxType.Keyword },
       { SeedPythonParser.UNKNOWN_CHAR, SyntaxType.Unknown },
     };
 

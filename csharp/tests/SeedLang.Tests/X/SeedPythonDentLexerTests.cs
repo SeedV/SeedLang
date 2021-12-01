@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Antlr4.Runtime;
 using Xunit;
 
@@ -102,7 +102,10 @@ namespace SeedLang.X.Tests {
       IList<IToken> tokens = lexer.GetAllTokens();
       Assert.Equal(expectedTokens.Length, tokens.Count);
       for (int i = 0; i < expectedTokens.Length; ++i) {
-        Assert.Equal(expectedTokens[i], tokens[i].ToString());
+        string expectedToken = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                               expectedTokens[i].Replace(@"\n", @"\r\n") :
+                               expectedTokens[i];
+        Assert.Equal(expectedToken, tokens[i].ToString());
       }
     }
   }

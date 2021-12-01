@@ -21,6 +21,11 @@ grammar SeedPython;
 
 import Common;
 
+tokens {
+  INDENT,
+  DEDENT
+}
+
 program: statements? EOF;
 
 statements: statement+;

@@ -23,11 +23,6 @@ grammar Common;
   #pragma warning disable 3021
 }
 
-tokens {
-  INDENT,
-  DEDENT
-}
-
 /*
  * Parser rules
  */

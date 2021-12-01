@@ -114,7 +114,8 @@ namespace SeedLang.Shell {
       var executor = new Executor();
       executor.Register(visualizer);
       while (true) {
-        visualizer.Source = ReadLine.Read("> ").Trim();
+        // TODO: handle multiple-line source code input.
+        visualizer.Source = ReadLine.Read(">>> ");
         if (visualizer.Source == "quit") {
           break;
         }
@@ -123,9 +124,7 @@ namespace SeedLang.Shell {
         WriteSource(visualizer.Source, syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var runCollection = new DiagnosticCollection();
-        string trailingNewline = _language != SeedXLanguage.SeedCalc ? Environment.NewLine : "";
-        string source = visualizer.Source + trailingNewline;
-        executor.Run(source, "", _language, _runType, runCollection);
+        executor.Run(visualizer.Source, "", _language, _runType, runCollection);
         foreach (var diagnostic in runCollection.Diagnostics) {
           if (diagnostic.Range is TextRange range) {
             visualizer.WriteSourceWithHighlight(range);

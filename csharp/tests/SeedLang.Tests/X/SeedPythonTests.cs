@@ -24,35 +24,35 @@ namespace SeedLang.X.Tests {
     private readonly SeedPython _parser = new SeedPython();
 
     [Theory]
-    [InlineData("1 + 2 * 3 - 4\n", true)]
+    [InlineData("1 + 2 * 3 - 4", true)]
     [InlineData("1 +", false)]
     public void TestValidateExpressionStatement(string input, bool result) {
       Assert.Equal(result, _parser.Validate(input, "", _collection));
     }
 
     [Theory]
-    [InlineData("True\n",
+    [InlineData("True",
 
                 "[Ln 1, Col 0 - Ln 1, Col 3] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 3] BooleanConstantExpression (True)",
 
                 "Boolean [Ln 1, Col 0 - Ln 1, Col 3]")]
 
-    [InlineData("False\n",
+    [InlineData("False",
 
                 "[Ln 1, Col 0 - Ln 1, Col 4] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 4] BooleanConstantExpression (False)",
 
                 "Boolean [Ln 1, Col 0 - Ln 1, Col 4]")]
 
-    [InlineData("id\n",
+    [InlineData("id",
 
                 "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 1] IdentifierExpression (id)",
 
                 "Variable [Ln 1, Col 0 - Ln 1, Col 1]")]
 
-    [InlineData("id = 1\n",
+    [InlineData("id = 1",
 
                 "[Ln 1, Col 0 - Ln 1, Col 5] AssignmentStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 1] IdentifierExpression (id)\n" +
@@ -62,7 +62,7 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]")]
 
-    [InlineData("1 + 2\n",
+    [InlineData("1 + 2",
 
                 "[Ln 1, Col 0 - Ln 1, Col 4] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 4] BinaryExpression (+)\n" +
@@ -73,7 +73,7 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
 
-    [InlineData("1 + 2 * 3 - 40\n",
+    [InlineData("1 + 2 * 3 - 40",
 
                 "[Ln 1, Col 0 - Ln 1, Col 13] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 13] BinaryExpression (-)\n" +
@@ -92,7 +92,7 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 10 - Ln 1, Col 10]," +
                 "Number [Ln 1, Col 12 - Ln 1, Col 13]")]
 
-    [InlineData("1 + 2 // 3 - 40 % 5 ** 2 \n",
+    [InlineData("1 + 2 // 3 - 40 % 5 ** 2 ",
 
                 "[Ln 1, Col 0 - Ln 1, Col 23] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 23] BinaryExpression (-)\n" +
@@ -119,7 +119,7 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 20 - Ln 1, Col 21]," +
                 "Number [Ln 1, Col 23 - Ln 1, Col 23]")]
 
-    [InlineData("(1 + (2)) - (x) - -3\n",
+    [InlineData("(1 + (2)) - (x) - -3",
 
                 "[Ln 1, Col 0 - Ln 1, Col 19] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 19] BinaryExpression (-)\n" +
@@ -146,7 +146,7 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 18 - Ln 1, Col 18]," +
                 "Number [Ln 1, Col 19 - Ln 1, Col 19]")]
 
-    [InlineData("(1 + 2) * (( 3 - -4 ))\n",
+    [InlineData("(1 + 2) * (( 3 - -4 ))",
 
                 "[Ln 1, Col 0 - Ln 1, Col 21] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 21] BinaryExpression (*)\n" +
@@ -173,7 +173,7 @@ namespace SeedLang.X.Tests {
                 "Parenthesis [Ln 1, Col 20 - Ln 1, Col 20]," +
                 "Parenthesis [Ln 1, Col 21 - Ln 1, Col 21]")]
 
-    [InlineData("1 < 2 > 3 <= 4\n",
+    [InlineData("1 < 2 > 3 <= 4",
 
                 "[Ln 1, Col 0 - Ln 1, Col 13] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 13] ComparisonExpression\n" +
@@ -190,7 +190,7 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 10 - Ln 1, Col 11]," +
                 "Number [Ln 1, Col 13 - Ln 1, Col 13]")]
 
-    [InlineData("while True: x = 1\n",
+    [InlineData("while True: x = 1",
 
                 "[Ln 1, Col 0 - Ln 1, Col 16] WhileStatement\n" +
                 "  [Ln 1, Col 6 - Ln 1, Col 9] BooleanConstantExpression (True)\n" +
@@ -204,6 +204,30 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 1, Col 12 - Ln 1, Col 12]," +
                 "Operator [Ln 1, Col 14 - Ln 1, Col 14]," +
                 "Number [Ln 1, Col 16 - Ln 1, Col 16]")]
+
+    [InlineData(@"while True:
+                    x = 1
+                    y = 2",
+
+                "[Ln 1, Col 0 - Ln 3, Col 24] WhileStatement\n" +
+                "  [Ln 1, Col 6 - Ln 1, Col 9] BooleanConstantExpression (True)\n" +
+                "  [Ln 2, Col 20 - Ln 3, Col 24] BlockStatement\n" +
+                "    [Ln 2, Col 20 - Ln 2, Col 24] AssignmentStatement\n" +
+                "      [Ln 2, Col 20 - Ln 2, Col 20] IdentifierExpression (x)\n" +
+                "      [Ln 2, Col 24 - Ln 2, Col 24] NumberConstantExpression (1)\n" +
+                "    [Ln 3, Col 20 - Ln 3, Col 24] AssignmentStatement\n" +
+                "      [Ln 3, Col 20 - Ln 3, Col 20] IdentifierExpression (y)\n" +
+                "      [Ln 3, Col 24 - Ln 3, Col 24] NumberConstantExpression (2)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 4]," +
+                "Boolean [Ln 1, Col 6 - Ln 1, Col 9]," +
+                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Variable [Ln 2, Col 20 - Ln 2, Col 20]," +
+                "Operator [Ln 2, Col 22 - Ln 2, Col 22]," +
+                "Number [Ln 2, Col 24 - Ln 2, Col 24]," +
+                "Variable [Ln 3, Col 20 - Ln 3, Col 20]," +
+                "Operator [Ln 3, Col 22 - Ln 3, Col 22]," +
+                "Number [Ln 3, Col 24 - Ln 3, Col 24]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

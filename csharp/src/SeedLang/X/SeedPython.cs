@@ -43,6 +43,8 @@ namespace SeedLang.X {
       { SeedPythonParser.OPEN_PAREN, SyntaxType.Parenthesis },
       { SeedPythonParser.CLOSE_PAREN, SyntaxType.Parenthesis },
       { SeedPythonParser.COLON, SyntaxType.Symbol },
+      { SeedPythonParser.WHILE, SyntaxType.Keyword },
+      { SeedPythonParser.TRUE, SyntaxType.Keyword },
       { SeedPythonParser.UNKNOWN_CHAR, SyntaxType.Unknown },
     };
 
@@ -50,7 +52,7 @@ namespace SeedLang.X {
     protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
 
     protected override Lexer MakeLexer(ICharStream stream) {
-      return new SeedPythonLexer(stream);
+      return new SeedPythonDentLexer(stream);
     }
 
     protected override Parser MakeParser(ITokenStream stream) {

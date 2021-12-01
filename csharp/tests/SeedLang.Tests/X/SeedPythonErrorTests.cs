@@ -131,8 +131,9 @@ namespace SeedLang.X.Tests {
       for (int i = 0; i < errorMessages.Length; ++i) {
         Assert.Equal(SystemReporters.SeedX, _collection.Diagnostics[i].Reporter);
         Assert.Equal(Severity.Fatal, _collection.Diagnostics[i].Severity);
-        Assert.Equal(errorMessages[i].Replace("\n", Environment.NewLine),
-                     _collection.Diagnostics[i].LocalizedMessage);
+        string errorMessage = Environment.NewLine == "\n" ? errorMessages[i] :
+                                                            errorMessages[i].Replace("\n", "\r\n");
+        Assert.Equal(errorMessage, _collection.Diagnostics[i].LocalizedMessage);
       }
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }

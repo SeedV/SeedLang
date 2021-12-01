@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SeedLang.Ast;
@@ -130,7 +131,8 @@ namespace SeedLang.X.Tests {
       for (int i = 0; i < errorMessages.Length; ++i) {
         Assert.Equal(SystemReporters.SeedX, _collection.Diagnostics[i].Reporter);
         Assert.Equal(Severity.Fatal, _collection.Diagnostics[i].Severity);
-        Assert.Equal(errorMessages[i], _collection.Diagnostics[i].LocalizedMessage);
+        Assert.Equal(errorMessages[i].Replace("\n", Environment.NewLine),
+                     _collection.Diagnostics[i].LocalizedMessage);
       }
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }

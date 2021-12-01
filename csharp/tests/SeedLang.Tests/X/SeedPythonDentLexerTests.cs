@@ -102,7 +102,9 @@ namespace SeedLang.X.Tests {
       IList<IToken> tokens = lexer.GetAllTokens();
       Assert.Equal(expectedTokens.Length, tokens.Count);
       for (int i = 0; i < expectedTokens.Length; ++i) {
-        string expectedToken = expectedTokens[i].Replace("\n", Environment.NewLine);
+        string expectedToken = Environment.NewLine == "\n" ?
+                                                      expectedTokens[i] :
+                                                      expectedTokens[i].Replace(@"\n", @"\r\n");
         Assert.Equal(expectedToken, tokens[i].ToString());
       }
     }

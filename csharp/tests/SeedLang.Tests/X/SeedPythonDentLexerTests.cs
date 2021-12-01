@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Antlr4.Runtime;
 using Xunit;
 
@@ -102,7 +101,8 @@ namespace SeedLang.X.Tests {
       IList<IToken> tokens = lexer.GetAllTokens();
       Assert.Equal(expectedTokens.Length, tokens.Count);
       for (int i = 0; i < expectedTokens.Length; ++i) {
-        Assert.Equal(expectedTokens[i], tokens[i].ToString());
+        string token = tokens[i].ToString().Replace(@"\r\n", @"\n");
+        Assert.Equal(expectedTokens[i], token);
       }
     }
   }

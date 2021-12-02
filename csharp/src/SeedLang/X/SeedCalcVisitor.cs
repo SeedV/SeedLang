@@ -32,7 +32,7 @@ namespace SeedLang.X {
 
     public override AstNode VisitExpressionStatement(
         [NotNull] SeedCalcParser.ExpressionStatementContext context) {
-      return Visit(context.expression());
+      return VisitorHelper.BuildExpressionStatement(context.expression(), this);
     }
 
     public override AstNode VisitAdd([NotNull] SeedCalcParser.AddContext context) {

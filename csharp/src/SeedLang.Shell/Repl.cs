@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -26,7 +25,7 @@ namespace SeedLang.Shell {
                                IVisualizer<ComparisonEvent>,
                                IVisualizer<EvalEvent> {
       // Current executed source code.
-      public string Source { get; set; }
+      public SourceCode SourceCode { get; } = new SourceCode();
 
       private readonly Dictionary<BinaryOperator, string> _binaryOperatorStrings =
           new Dictionary<BinaryOperator, string>() {
@@ -51,21 +50,21 @@ namespace SeedLang.Shell {
 
       public void On(AssignmentEvent ae) {
         if (ae.Range is TextRange range) {
-          WriteSourceWithHighlight(range);
+          SourceCode.WriteSourceWithHighlight(range);
         }
         Console.WriteLine($"{ae.Identifier} = {ae.Value}");
       }
 
       public void On(BinaryEvent be) {
         if (be.Range is TextRange range) {
-          WriteSourceWithHighlight(range);
+          SourceCode.WriteSourceWithHighlight(range);
         }
         Console.WriteLine($"{be.Left} {_binaryOperatorStrings[be.Op]} {be.Right} = {be.Result}");
       }
 
       public void On(ComparisonEvent ce) {
         if (ce.Range is TextRange range) {
-          WriteSourceWithHighlight(range);
+          SourceCode.WriteSourceWithHighlight(range);
         }
         Console.Write($"{ce.First} ");
         for (int i = 0; i < ce.Ops.Length; ++i) {
@@ -77,27 +76,11 @@ namespace SeedLang.Shell {
 
       public void On(EvalEvent ee) {
         if (ee.Range is TextRange range) {
-          WriteSourceWithHighlight(range);
+          SourceCode.WriteSourceWithHighlight(range);
         }
         Console.WriteLine($"Eval result: {ee.Value}");
       }
 
-      internal void WriteSourceWithHighlight(TextRange range) {
-        // Source doesn't include the trailing newline.
-        // TODO: Refactor the trailing newline logic.
-        Debug.Assert(range.Start.Column >= 0 && range.Start.Column <= range.End.Column &&
-                     range.End.Column < Source.Length + 1);
-        Console.Write(Source.Substring(0, range.Start.Column));
-        Console.BackgroundColor = ConsoleColor.DarkCyan;
-        Console.ForegroundColor = ConsoleColor.Black;
-        int length = Math.Min(LengthOfRange(range), Source.Length - range.Start.Column);
-        Console.Write(Source.Substring(range.Start.Column, length));
-        Console.ResetColor();
-        if (range.End.Column < Source.Length) {
-          Console.Write(Source.Substring(range.End.Column + 1));
-        }
-        Console.Write(": ");
-      }
     }
 
     private readonly SeedXLanguage _language;
@@ -114,50 +97,25 @@ namespace SeedLang.Shell {
       var executor = new Executor();
       executor.Register(visualizer);
       while (true) {
-        // TODO: handle multiple-line source code input.
-        visualizer.Source = ReadLine.Read(">>> ");
-        if (visualizer.Source == "quit") {
+        visualizer.SourceCode.Source = ReadLine.Read(">>> ");
+        if (visualizer.SourceCode.Source == "quit") {
           break;
         }
-        IReadOnlyList<SyntaxToken> syntaxTokens = Executor.ParseSyntaxTokens(visualizer.Source, "",
-                                                                             _language);
-        WriteSource(visualizer.Source, syntaxTokens);
+        IReadOnlyList<SyntaxToken> syntaxTokens =
+            Executor.ParseSyntaxTokens(visualizer.SourceCode.Source, "", _language);
+        visualizer.SourceCode.WriteSourceWithSyntaxTokens(syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var runCollection = new DiagnosticCollection();
-        executor.Run(visualizer.Source, "", _language, _runType, runCollection);
+        executor.Run(visualizer.SourceCode.Source, "", _language, _runType, runCollection);
         foreach (var diagnostic in runCollection.Diagnostics) {
           if (diagnostic.Range is TextRange range) {
-            visualizer.WriteSourceWithHighlight(range);
+            visualizer.SourceCode.WriteSourceWithHighlight(range);
           }
           Console.WriteLine(diagnostic);
         }
         Console.WriteLine();
       }
       executor.Unregister(visualizer);
-    }
-
-    private static void WriteSource(string source, IReadOnlyList<SyntaxToken> syntaxTokens) {
-      Console.ResetColor();
-      Console.WriteLine("---------- Source ----------");
-      int startColumn = 0;
-      foreach (SyntaxToken token in syntaxTokens) {
-        Console.Write(source.Substring(startColumn, token.Range.Start.Column - startColumn));
-        if (Theme.SyntaxToThemeInfoMap.ContainsKey(token.Type)) {
-          Console.ForegroundColor = Theme.SyntaxToThemeInfoMap[token.Type].ForegroundColor;
-        }
-        int length = Math.Min(LengthOfRange(token.Range), source.Length - token.Range.Start.Column);
-        Console.Write(source.Substring(token.Range.Start.Column, length));
-        startColumn = token.Range.End.Column + 1;
-        Console.ResetColor();
-      }
-      Console.Write(source.Substring(startColumn, source.Length - startColumn));
-      Console.WriteLine();
-      Console.WriteLine();
-    }
-
-    private static int LengthOfRange(TextRange range) {
-      // TODO: need support multiple-line source code?
-      return range.End.Column - range.Start.Column + 1;
     }
   }
 }

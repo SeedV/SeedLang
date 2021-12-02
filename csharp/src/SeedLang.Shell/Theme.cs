@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,7 @@ using System.Collections.Generic;
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using SeedLang.Common;
 
 namespace SeedLang.Shell {

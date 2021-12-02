@@ -41,35 +41,65 @@ namespace SeedLang.X.Tests {
 
     [Theory]
     [InlineData("0",
-                "[Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (0)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 0] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (0)",
+
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
     [InlineData("0.",
-                "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
+
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
     [InlineData(".0",
-                "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
+
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
+
     [InlineData(".5",
-                "[Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0.5)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0.5)",
+
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
+
     [InlineData("1.5",
-                "[Ln 1, Col 0 - Ln 1, Col 2] NumberConstantExpression (1.5)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 2] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 2] NumberConstantExpression (1.5)",
+
                 "Number [Ln 1, Col 0 - Ln 1, Col 2]")]
+
     [InlineData("1e3",
-                "[Ln 1, Col 0 - Ln 1, Col 2] NumberConstantExpression (1000)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 2] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 2] NumberConstantExpression (1000)",
+
                 "Number [Ln 1, Col 0 - Ln 1, Col 2]")]
+
     [InlineData("1e+20",
-                "[Ln 1, Col 0 - Ln 1, Col 4] NumberConstantExpression (1E+20)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 4] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 4] NumberConstantExpression (1E+20)",
+
                 "Number [Ln 1, Col 0 - Ln 1, Col 4]")]
+
     [InlineData("1e-5",
-                "[Ln 1, Col 0 - Ln 1, Col 3] NumberConstantExpression (1E-05)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 3] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 3] NumberConstantExpression (1E-05)",
+
                 "Number [Ln 1, Col 0 - Ln 1, Col 3]")]
 
     [InlineData("1 + 2",
 
-                "[Ln 1, Col 0 - Ln 1, Col 4] BinaryExpression (+)\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
-                "  [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)",
+                "[Ln 1, Col 0 - Ln 1, Col 4] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 4] BinaryExpression (+)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -77,11 +107,12 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 - 2 * 3",
 
-                "[Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (-)\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
-                "  [Ln 1, Col 4 - Ln 1, Col 8] BinaryExpression (*)\n" +
-                "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
-                "    [Ln 1, Col 8 - Ln 1, Col 8] NumberConstantExpression (3)",
+                "[Ln 1, Col 0 - Ln 1, Col 8] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 8] BinaryExpression (*)\n" +
+                "      [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
+                "      [Ln 1, Col 8 - Ln 1, Col 8] NumberConstantExpression (3)",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -91,11 +122,12 @@ namespace SeedLang.X.Tests {
 
     [InlineData("(1 + 2) / 3",
 
-                "[Ln 1, Col 0 - Ln 1, Col 10] BinaryExpression (/)\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (+)\n" +
-                "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
-                "    [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (2)\n" +
-                "  [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (3)",
+                "[Ln 1, Col 0 - Ln 1, Col 10] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 10] BinaryExpression (/)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (+)\n" +
+                "      [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (3)",
 
                 "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
@@ -107,10 +139,11 @@ namespace SeedLang.X.Tests {
 
     [InlineData("-1 + 2",
 
-                "[Ln 1, Col 0 - Ln 1, Col 5] BinaryExpression (+)\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 1] UnaryExpression (-)\n" +
-                "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
-                "  [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (2)",
+                "[Ln 1, Col 0 - Ln 1, Col 5] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 5] BinaryExpression (+)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 1] UnaryExpression (-)\n" +
+                "      [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (2)",
 
                 "Operator [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
@@ -119,10 +152,11 @@ namespace SeedLang.X.Tests {
 
     [InlineData("-(1 + 2)",
 
-                "[Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (-)\n" +
-                "  [Ln 1, Col 1 - Ln 1, Col 7] BinaryExpression (+)\n" +
-                "    [Ln 1, Col 2 - Ln 1, Col 2] NumberConstantExpression (1)\n" +
-                "    [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (2)",
+                "[Ln 1, Col 0 - Ln 1, Col 7] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (-)\n" +
+                "    [Ln 1, Col 1 - Ln 1, Col 7] BinaryExpression (+)\n" +
+                "      [Ln 1, Col 2 - Ln 1, Col 2] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (2)",
 
                 "Operator [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Parenthesis [Ln 1, Col 1 - Ln 1, Col 1]," +
@@ -133,10 +167,11 @@ namespace SeedLang.X.Tests {
 
     [InlineData("2 - - 1",
 
-                "[Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (-)\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (2)\n" +
-                "  [Ln 1, Col 4 - Ln 1, Col 6] UnaryExpression (-)\n" +
-                "    [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)",
+                "[Ln 1, Col 0 - Ln 1, Col 6] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 6] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 6] UnaryExpression (-)\n" +
+                "      [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -145,11 +180,12 @@ namespace SeedLang.X.Tests {
 
     [InlineData("2 - -(-1)",
 
-                "[Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (-)\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (2)\n" +
-                "  [Ln 1, Col 4 - Ln 1, Col 8] UnaryExpression (-)\n" +
-                "    [Ln 1, Col 5 - Ln 1, Col 8] UnaryExpression (-)\n" +
-                "      [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (1)",
+                "[Ln 1, Col 0 - Ln 1, Col 8] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 8] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 8] UnaryExpression (-)\n" +
+                "      [Ln 1, Col 5 - Ln 1, Col 8] UnaryExpression (-)\n" +
+                "        [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (1)",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
@@ -161,18 +197,19 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + + 2 * - 3 - - 4 / 5",
 
-                "[Ln 1, Col 0 - Ln 1, Col 22] BinaryExpression (-)\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 12] BinaryExpression (+)\n" +
-                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
-                "    [Ln 1, Col 4 - Ln 1, Col 12] BinaryExpression (*)\n" +
-                "      [Ln 1, Col 4 - Ln 1, Col 6] UnaryExpression (+)\n" +
-                "        [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (2)\n" +
-                "      [Ln 1, Col 10 - Ln 1, Col 12] UnaryExpression (-)\n" +
-                "        [Ln 1, Col 12 - Ln 1, Col 12] NumberConstantExpression (3)\n" +
-                "  [Ln 1, Col 16 - Ln 1, Col 22] BinaryExpression (/)\n" +
-                "    [Ln 1, Col 16 - Ln 1, Col 18] UnaryExpression (-)\n" +
-                "      [Ln 1, Col 18 - Ln 1, Col 18] NumberConstantExpression (4)\n" +
-                "    [Ln 1, Col 22 - Ln 1, Col 22] NumberConstantExpression (5)",
+                "[Ln 1, Col 0 - Ln 1, Col 22] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 22] BinaryExpression (-)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 12] BinaryExpression (+)\n" +
+                "      [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 4 - Ln 1, Col 12] BinaryExpression (*)\n" +
+                "        [Ln 1, Col 4 - Ln 1, Col 6] UnaryExpression (+)\n" +
+                "          [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (2)\n" +
+                "        [Ln 1, Col 10 - Ln 1, Col 12] UnaryExpression (-)\n" +
+                "          [Ln 1, Col 12 - Ln 1, Col 12] NumberConstantExpression (3)\n" +
+                "    [Ln 1, Col 16 - Ln 1, Col 22] BinaryExpression (/)\n" +
+                "      [Ln 1, Col 16 - Ln 1, Col 18] UnaryExpression (-)\n" +
+                "        [Ln 1, Col 18 - Ln 1, Col 18] NumberConstantExpression (4)\n" +
+                "      [Ln 1, Col 22 - Ln 1, Col 22] NumberConstantExpression (5)",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +

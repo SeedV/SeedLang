@@ -13,11 +13,19 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using CommandLine;
 using CommandLine.Text;
 using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
+  internal enum VisualizerType {
+    Assignment,
+    Binary,
+    Comparison,
+    Eval,
+  }
+
   internal class Program {
     internal class Options {
       [Option('l', "language", Required = false, Default = SeedXLanguage.SeedPython,
@@ -26,19 +34,24 @@ namespace SeedLang.Shell {
 
       [Option('t', "type", Required = false, Default = RunType.Ast, HelpText = "Run type.")]
       public RunType RunType { get; set; }
+
+      [Option('v', "visualizers", Required = false,
+              Default = new VisualizerType[] { VisualizerType.Eval },
+              HelpText = "Enabled Visualizers")]
+      public IEnumerable<VisualizerType> VisualizerTypes { get; set; }
     }
 
     static void Main(string[] args) {
-      var parser = new CommandLine.Parser(with => with.HelpWriter = null);
+      var parser = new Parser(with => with.HelpWriter = null);
       var result = parser.ParseArguments<Options>(args);
       var helpText = HelpText.AutoBuild(result, h => {
         h.AddEnumValuesToHelpText = true;
         return HelpText.DefaultParsingErrorsHandler(result, h);
       }, e => e);
       result.WithParsed(options => {
-        Console.Error.WriteLine(helpText.Heading);
-        Console.Error.WriteLine(helpText.Copyright);
-        Console.Error.WriteLine();
+        Console.WriteLine(helpText.Heading);
+        Console.WriteLine(helpText.Copyright);
+        Console.WriteLine();
         Run(options);
       }).WithNotParsed(errors => {
         Console.Error.WriteLine(helpText);
@@ -46,7 +59,7 @@ namespace SeedLang.Shell {
     }
 
     private static void Run(Options options) {
-      var repl = new Repl(options.Language, options.RunType);
+      var repl = new Repl(options.Language, options.RunType, options.VisualizerTypes);
       repl.Execute();
     }
   }

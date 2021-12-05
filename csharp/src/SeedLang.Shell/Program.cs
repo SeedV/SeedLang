@@ -19,11 +19,13 @@ using CommandLine.Text;
 using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
+  // The visualizer type. Uses All to enable all visualizers.
   internal enum VisualizerType {
     Assignment,
     Binary,
     Comparison,
     Eval,
+    All,
   }
 
   internal class Program {
@@ -37,7 +39,7 @@ namespace SeedLang.Shell {
 
       [Option('v', "visualizers", Required = false,
               Default = new VisualizerType[] { VisualizerType.Eval },
-              HelpText = "Enabled Visualizers")]
+              HelpText = "The Visualizers need to be enabled.")]
       public IEnumerable<VisualizerType> VisualizerTypes { get; set; }
     }
 

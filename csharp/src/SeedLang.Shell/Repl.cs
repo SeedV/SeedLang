@@ -37,12 +37,11 @@ namespace SeedLang.Shell {
       var executor = new Executor();
       _visualizerManager.RegisterToExecutor(executor);
       while (true) {
-        _source.Source = ReadLine.Read(">>> ");
+        _source.Read();
         if (_source.Source == "quit") {
           break;
         }
-        IReadOnlyList<SyntaxToken> syntaxTokens =
-            Executor.ParseSyntaxTokens(_source.Source, "", _language);
+        var syntaxTokens = Executor.ParseSyntaxTokens(_source.Source, "", _language);
         _source.WriteSourceWithSyntaxTokens(syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var runCollection = new DiagnosticCollection();
@@ -51,7 +50,7 @@ namespace SeedLang.Shell {
           if (diagnostic.Range is TextRange range) {
             _source.WriteSourceWithHighlight(range);
           }
-          Console.WriteLine(diagnostic);
+          Console.WriteLine($": {diagnostic}");
         }
         Console.WriteLine();
       }

@@ -1,3 +1,4 @@
+using System.Reflection;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +15,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
+  // A class to manage all the visualizers.
   internal class VisualizerManager {
+    // The visualizer for a specified event.
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
       private readonly Action<TextRange> _writeSourceWithHighlight;
       private readonly Action<AbstractEvent> _writeEvent;
@@ -28,10 +32,12 @@ namespace SeedLang.Shell {
         _writeSourceWithHighlight = writeSourceWithHighlight;
         _writeEvent = writeEvent;
       }
+
       public void On(Event e) {
         if (e.Range is TextRange range) {
           _writeSourceWithHighlight(range);
         }
+        Console.WriteLine();
         _writeEvent(e);
       }
     }
@@ -65,7 +71,11 @@ namespace SeedLang.Shell {
 
     internal VisualizerManager(SourceCode source, IEnumerable<VisualizerType> visualizerTypes) {
       _source = source;
-      foreach (VisualizerType type in visualizerTypes) {
+      // Generates an array with all visualizer types if All is included in the visualizerTypes.
+      var visualizers = Enumerable.Contains(visualizerTypes, VisualizerType.All) ?
+                        Enum.GetValues(typeof(VisualizerType)) :
+                        visualizerTypes.ToArray();
+      foreach (VisualizerType type in visualizers) {
         switch (type) {
           case VisualizerType.Assignment:
             _assignmentVisualizer = new Visualizer<AssignmentEvent>(
@@ -82,6 +92,9 @@ namespace SeedLang.Shell {
           case VisualizerType.Eval:
             _evalVisualizer = new Visualizer<EvalEvent>(_source.WriteSourceWithHighlight,
                                                         WriteEvent);
+            break;
+          case VisualizerType.All:
+            // Ignores.
             break;
           default:
             throw new NotImplementedException($"Unsupported visualizer type: {type}.");
@@ -118,27 +131,32 @@ namespace SeedLang.Shell {
     }
 
     private void WriteEvent(AbstractEvent e) {
+      Console.BackgroundColor = ConsoleColor.White;
+      Console.ForegroundColor = ConsoleColor.Black;
       switch (e) {
         case AssignmentEvent ae:
-          Console.WriteLine($"{ae.Identifier} = {ae.Value}");
+          Console.Write($"Assignment: {ae.Identifier} = {ae.Value}");
           break;
         case BinaryEvent be:
-          Console.WriteLine($"{be.Left} {_binaryOperatorStrings[be.Op]} {be.Right} = {be.Result}");
+          var op = _binaryOperatorStrings[be.Op];
+          Console.Write($"Binary: {be.Left} {op} {be.Right} = {be.Result}");
           break;
         case ComparisonEvent ce:
-          Console.Write($"{ce.First} ");
+          Console.Write($"Comparison: {ce.First} ");
           for (int i = 0; i < ce.Ops.Length; ++i) {
             string exprString = ce.Values[i] is IValue value ? value.String : "?";
             Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {exprString} ");
           }
-          Console.WriteLine($"= {ce.Result}");
+          Console.Write($"= {ce.Result}");
           break;
         case EvalEvent ee:
-          Console.WriteLine($"Eval result: {ee.Value}");
+          Console.Write($"Eval result: {ee.Value}");
           break;
         default:
           throw new NotImplementedException($"Unsupported event: {e}");
       }
+      Console.ResetColor();
+      Console.WriteLine();
     }
   }
 }

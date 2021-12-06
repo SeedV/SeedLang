@@ -95,6 +95,14 @@ namespace SeedLang.X.Tests {
                   @"[@-1,0:4='while',<7>,1:0]",
                   @"[@-1,6:9='True',<11>,1:6]",
                   @"[@-1,10:10='\n',<44>,1:10]",})]
+
+    [InlineData("1 + 2\n",
+
+                new string[] {
+                  @"[@-1,0:0='1',<39>,1:0]",
+                  @"[@-1,2:2='+',<24>,1:2]",
+                  @"[@-1,4:4='2',<39>,1:4]",
+                  @"[@-1,5:5='\n',<44>,1:5]",})]
     public void TestScanTokens(string source, string[] expectedTokens) {
       var inputStream = new AntlrInputStream(source);
       var lexer = new SeedPythonDentLexer(inputStream);

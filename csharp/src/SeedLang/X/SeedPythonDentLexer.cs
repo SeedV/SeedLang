@@ -32,6 +32,8 @@ namespace SeedLang.X {
     private int _opened = 0;
     // A flag to indicate that current token is the first token to be generated.
     private bool _firstToken = true;
+    // A flag to indicate if an extra trailing newline is needed before EOF.
+    private bool _addTrailingNewline = true;
 
     public SeedPythonDentLexer(ICharStream input) : base(input) {
     }
@@ -40,35 +42,46 @@ namespace SeedLang.X {
       if (TryPopFirstToken(out IToken first)) {
         return first;
       }
-      IToken currentToken = base.NextToken();
-      if (_firstToken) {
-        _firstToken = false;
-        HandleFirstToken(currentToken);
-      }
-      switch (currentToken.Type) {
-        case SeedPythonParser.NEWLINE:
-          HandleNewline(currentToken);
-          break;
-        case SeedPythonParser.OPEN_PAREN:
-        case SeedPythonParser.OPEN_BRACE:
-        case SeedPythonParser.OPEN_BRACK:
-          EmitToken(currentToken);
-          _opened++;
-          break;
-        case SeedPythonParser.CLOSE_PAREN:
-        case SeedPythonParser.CLOSE_BRACE:
-        case SeedPythonParser.CLOSE_BRACK:
-          EmitToken(currentToken);
-          _opened--;
-          break;
-        case SeedPythonParser.Eof:
-          HandleEof(currentToken);
-          break;
-        default:
-          EmitToken(currentToken);
-          break;
+      while (_tokens.Count == 0) {
+        IToken currentToken = base.NextToken();
+        if (_firstToken) {
+          _firstToken = false;
+          HandleFirstToken(currentToken);
+        }
+        switch (currentToken.Type) {
+          case SeedPythonParser.NEWLINE:
+            HandleNewline(currentToken);
+            break;
+          case SeedPythonParser.OPEN_PAREN:
+          case SeedPythonParser.OPEN_BRACE:
+          case SeedPythonParser.OPEN_BRACK:
+            EmitToken(currentToken);
+            _opened++;
+            break;
+          case SeedPythonParser.CLOSE_PAREN:
+          case SeedPythonParser.CLOSE_BRACE:
+          case SeedPythonParser.CLOSE_BRACK:
+            EmitToken(currentToken);
+            _opened--;
+            break;
+          case SeedPythonParser.Eof:
+            HandleEof(currentToken);
+            break;
+          default:
+            EmitToken(currentToken);
+            break;
+        }
       }
       return PopFirstToken();
+    }
+
+    public override void Reset() {
+      base.Reset();
+      _tokens.Clear();
+      _indents.Clear();
+      _opened = 0;
+      _firstToken = true;
+      _addTrailingNewline = true;
     }
 
     private void HandleFirstToken(IToken firstToken) {
@@ -87,14 +100,12 @@ namespace SeedLang.X {
       while (spacesStart < Text.Length && IsNewline(Text[spacesStart])) {
         spacesStart++;
       }
-      // Strips newlines inside open clauses except if we are near EOF. Keeps NEWLINEs near EOF to
-      // satisfy the final newline needed by the interactive rule used by the REPL.
       int next = InputStream.LA(1);
-      int nextNext = InputStream.LA(2);
-      if (_opened > 0 || (nextNext != -1 && (IsNewline((char)next) || next == '#'))) {
-        // Ignores all indents, dedents and line breaks when inside a list or on a blank line.
-        Skip();
-      } else {
+      if (next == SeedPythonParser.Eof) {
+        _addTrailingNewline = false;
+      }
+      // Ignores all indents, dedents and line breaks when inside brackets or on a blank line.
+      if (_opened == 0 && next != '#' && !IsNewline((char)next)) {
         int indent = GetIndentationCount(Text.Substring(spacesStart));
         int previous = _indents.Count == 0 ? 0 : _indents.Peek();
         if (indent == previous) {
@@ -120,14 +131,16 @@ namespace SeedLang.X {
     }
 
     private void HandleEof(IToken eofToken) {
-      // Emits an extra line break that serves as the end of the statement.
-      EmitToken(CommonToken(SeedPythonParser.NEWLINE, eofToken.StartIndex, eofToken.StartIndex,
-                            Environment.NewLine));
-      // Emits as many dedent tokens as needed.
-      while (_indents.Count != 0) {
-        EmitToken(CommonToken(SeedPythonParser.DEDENT, eofToken.StartIndex, eofToken.StartIndex,
-                              eofToken.Line + 1, 0, ""));
-        _indents.Pop();
+      if (_addTrailingNewline) {
+        // Emits an extra line break that serves as the end of the statement.
+        EmitToken(CommonToken(SeedPythonParser.NEWLINE, eofToken.StartIndex, eofToken.StartIndex,
+                              Environment.NewLine));
+        // Emits as many dedent tokens as needed.
+        while (_indents.Count != 0) {
+          EmitToken(CommonToken(SeedPythonParser.DEDENT, eofToken.StartIndex, eofToken.StartIndex,
+                                eofToken.Line + 1, 0, ""));
+          _indents.Pop();
+        }
       }
       EmitToken(eofToken);
     }

@@ -20,102 +20,41 @@ using SeedLang.Runtime;
 namespace SeedLang.Shell {
   // A Read-Evaluate-Print-Loop class to execute SeedX programs interactively.
   internal sealed class Repl {
-    private class Visualizer : IVisualizer<AssignmentEvent>,
-                               IVisualizer<BinaryEvent>,
-                               IVisualizer<ComparisonEvent>,
-                               IVisualizer<EvalEvent> {
-      // Current executed source code.
-      public SourceCode SourceCode { get; } = new SourceCode();
-
-      private readonly Dictionary<BinaryOperator, string> _binaryOperatorStrings =
-          new Dictionary<BinaryOperator, string>() {
-            {BinaryOperator.Add, "+"},
-            {BinaryOperator.Subtract, "-"},
-            {BinaryOperator.Multiply, "*"},
-            {BinaryOperator.Divide, "/"},
-            {BinaryOperator.FloorDivide, "//"},
-            {BinaryOperator.Power, "**"},
-            {BinaryOperator.Modulo, "%"},
-          };
-
-      private readonly Dictionary<ComparisonOperator, string> _comparisonOperatorStrings =
-          new Dictionary<ComparisonOperator, string>() {
-            {ComparisonOperator.Less, "<"},
-            {ComparisonOperator.Greater, ">"},
-            {ComparisonOperator.LessEqual, "<="},
-            {ComparisonOperator.GreaterEqual, ">="},
-            {ComparisonOperator.EqEqual, "=="},
-            {ComparisonOperator.NotEqual, "!="},
-          };
-
-      public void On(AssignmentEvent ae) {
-        if (ae.Range is TextRange range) {
-          SourceCode.WriteSourceWithHighlight(range);
-        }
-        Console.WriteLine($"{ae.Identifier} = {ae.Value}");
-      }
-
-      public void On(BinaryEvent be) {
-        if (be.Range is TextRange range) {
-          SourceCode.WriteSourceWithHighlight(range);
-        }
-        Console.WriteLine($"{be.Left} {_binaryOperatorStrings[be.Op]} {be.Right} = {be.Result}");
-      }
-
-      public void On(ComparisonEvent ce) {
-        if (ce.Range is TextRange range) {
-          SourceCode.WriteSourceWithHighlight(range);
-        }
-        Console.Write($"{ce.First} ");
-        for (int i = 0; i < ce.Ops.Length; ++i) {
-          string exprString = ce.Values[i] is IValue value ? value.String : "?";
-          Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {exprString} ");
-        }
-        Console.WriteLine($"= {ce.Result}");
-      }
-
-      public void On(EvalEvent ee) {
-        if (ee.Range is TextRange range) {
-          SourceCode.WriteSourceWithHighlight(range);
-        }
-        Console.WriteLine($"Eval result: {ee.Value}");
-      }
-
-    }
-
     private readonly SeedXLanguage _language;
     private readonly RunType _runType;
+    private readonly VisualizerManager _visualizerManager;
+    private readonly SourceCode _source = new SourceCode();
 
-    internal Repl(SeedXLanguage language, RunType runType) {
+    internal Repl(SeedXLanguage language, RunType runType,
+                  IEnumerable<VisualizerType> visualizerTypes) {
       _language = language;
       _runType = runType;
+      _visualizerManager = new VisualizerManager(_source, visualizerTypes);
     }
 
     internal void Execute() {
       ReadLine.HistoryEnabled = true;
-      var visualizer = new Visualizer();
       var executor = new Executor();
-      executor.Register(visualizer);
+      _visualizerManager.RegisterToExecutor(executor);
       while (true) {
-        visualizer.SourceCode.Source = ReadLine.Read(">>> ");
-        if (visualizer.SourceCode.Source == "quit") {
+        _source.Read();
+        if (_source.Source == "quit") {
           break;
         }
-        IReadOnlyList<SyntaxToken> syntaxTokens =
-            Executor.ParseSyntaxTokens(visualizer.SourceCode.Source, "", _language);
-        visualizer.SourceCode.WriteSourceWithSyntaxTokens(syntaxTokens);
+        var syntaxTokens = Executor.ParseSyntaxTokens(_source.Source, "", _language);
+        _source.WriteSourceWithSyntaxTokens(syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var runCollection = new DiagnosticCollection();
-        executor.Run(visualizer.SourceCode.Source, "", _language, _runType, runCollection);
+        executor.Run(_source.Source, "", _language, _runType, runCollection);
         foreach (var diagnostic in runCollection.Diagnostics) {
           if (diagnostic.Range is TextRange range) {
-            visualizer.SourceCode.WriteSourceWithHighlight(range);
+            _source.WriteSourceWithHighlight(range);
           }
-          Console.WriteLine(diagnostic);
+          Console.WriteLine($": {diagnostic}");
         }
         Console.WriteLine();
       }
-      executor.Unregister(visualizer);
+      _visualizerManager.UnregisterFromExecutor(executor);
     }
   }
 }

@@ -201,7 +201,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Build an if statement for if ... elif statements.
+    // Builds an if statement for if ... elif statements.
     internal AstNode BuildIfElif(IToken ifToken, ParserRuleContext exprContext, IToken colonToken,
                                  ParserRuleContext blockContext, ParserRuleContext elifContext,
                                  AbstractParseTreeVisitor<AstNode> visitor) {

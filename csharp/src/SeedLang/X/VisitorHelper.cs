@@ -236,7 +236,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Build an else block statement
+    // Builds an else block statement
     internal Statement BuildElse(IToken elseToken, IToken colonToken,
                                  ParserRuleContext blockContext,
                                  AbstractParseTreeVisitor<AstNode> visitor) {

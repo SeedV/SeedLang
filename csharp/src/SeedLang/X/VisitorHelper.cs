@@ -217,7 +217,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Build an if statement for if ... else statements.
+    // Builds an if statement for if ... else statements.
     internal IfStatement BuildIfElse(IToken ifToken, ParserRuleContext exprContext,
                                      IToken colonToken, ParserRuleContext blockContext,
                                      ParserRuleContext elseBlockContext,

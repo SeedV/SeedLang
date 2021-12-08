@@ -65,6 +65,33 @@ namespace SeedLang.X {
                                      context.expression(), this);
     }
 
+    public override AstNode VisitIf_elif([NotNull] SeedPythonParser.If_elifContext context) {
+      return _helper.BuildIfElif(context.IF().Symbol, context.expression(), context.COLON().Symbol,
+                                 context.block(), context.elif_stmt(), this);
+    }
+
+    public override AstNode VisitIf_else([NotNull] SeedPythonParser.If_elseContext context) {
+      return _helper.BuildIfElse(context.IF().Symbol, context.expression(), context.COLON().Symbol,
+                                 context.block(), context.else_block(), this);
+    }
+
+    public override AstNode VisitElif_elif([NotNull] SeedPythonParser.Elif_elifContext context) {
+      return _helper.BuildIfElif(context.ELIF().Symbol, context.expression(),
+                                 context.COLON().Symbol, context.block(), context.elif_stmt(),
+                                 this);
+    }
+
+    public override AstNode VisitElif_else([NotNull] SeedPythonParser.Elif_elseContext context) {
+      return _helper.BuildIfElse(context.ELIF().Symbol, context.expression(),
+                                 context.COLON().Symbol, context.block(), context.else_block(),
+                                 this);
+    }
+
+    public override AstNode VisitElse_block([NotNull] SeedPythonParser.Else_blockContext context) {
+      return _helper.BuildElse(context.ELSE().Symbol, context.COLON().Symbol, context.block(),
+                               this);
+    }
+
     public override AstNode VisitWhile_stmt([NotNull] SeedPythonParser.While_stmtContext context) {
       return _helper.BuildWhile(context.WHILE().Symbol, context.expression(),
                                 context.COLON().Symbol, context.block(), this);

@@ -201,14 +201,58 @@ namespace SeedLang.X {
       return null;
     }
 
+    // Builds an if statement for if ... elif statements.
+    internal AstNode BuildIfElif(IToken ifToken, ParserRuleContext exprContext, IToken colonToken,
+                                 ParserRuleContext blockContext, ParserRuleContext elifContext,
+                                 AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange ifRange = CodeReferenceUtils.RangeOfToken(ifToken);
+      AddSyntaxToken(SyntaxType.Keyword, ifRange);
+      if (visitor.Visit(exprContext) is Expression expr) {
+        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+        if (visitor.Visit(blockContext) is Statement block && visitor.Visit(elifContext) is Statement elif) {
+          TextRange range = CodeReferenceUtils.CombineRanges(ifRange, elif.Range as TextRange);
+          return Statement.If(expr, block, elif, range);
+        }
+      }
+      return null;
+    }
+
+    // Builds an if statement for if ... else statements.
+    internal IfStatement BuildIfElse(IToken ifToken, ParserRuleContext exprContext,
+                                     IToken colonToken, ParserRuleContext blockContext,
+                                     ParserRuleContext elseBlockContext,
+                                     AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange ifRange = CodeReferenceUtils.RangeOfToken(ifToken);
+      AddSyntaxToken(SyntaxType.Keyword, ifRange);
+      if (visitor.Visit(exprContext) is Expression expr) {
+        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+        if (visitor.Visit(blockContext) is Statement block) {
+          AstNode elseBlock = elseBlockContext is null ? null : visitor.Visit(elseBlockContext);
+          TextRange range = CodeReferenceUtils.CombineRanges(
+              ifRange, elseBlock is null ? block.Range as TextRange : elseBlock.Range as TextRange);
+          return Statement.If(expr, block, elseBlock as Statement, range);
+        }
+      }
+      return null;
+    }
+
+    // Builds an else block statement
+    internal Statement BuildElse(IToken elseToken, IToken colonToken,
+                                 ParserRuleContext blockContext,
+                                 AbstractParseTreeVisitor<AstNode> visitor) {
+      AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(elseToken));
+      AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+      return visitor.Visit(blockContext) as Statement;
+    }
+
     // Builds a while statement.
     internal WhileStatement BuildWhile(IToken whileToken, ParserRuleContext exprContext,
-                                       IToken colon, ParserRuleContext blockContext,
+                                       IToken colonToken, ParserRuleContext blockContext,
                                        AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange whileRange = CodeReferenceUtils.RangeOfToken(whileToken);
       AddSyntaxToken(SyntaxType.Keyword, whileRange);
       if (visitor.Visit(exprContext) is Expression expr) {
-        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colon));
+        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
         if (visitor.Visit(blockContext) is Statement block) {
           Debug.Assert(block.Range is TextRange);
           TextRange range = CodeReferenceUtils.CombineRanges(whileRange, block.Range as TextRange);

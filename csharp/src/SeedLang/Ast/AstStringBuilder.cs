@@ -191,7 +191,9 @@ namespace SeedLang.Ast {
       Enter(@if);
       Visit(@if.Test);
       Visit(@if.ThenBody);
-      Visit(@if.ElseBody);
+      if (!(@if.ElseBody is null)) {
+        Visit(@if.ElseBody);
+      }
       Exit();
     }
 

@@ -18,6 +18,7 @@ namespace SeedLang.Common {
   public enum SyntaxType {
     Boolean,
     Keyword,
+    None,
     Number,
     Operator,
     Parenthesis,

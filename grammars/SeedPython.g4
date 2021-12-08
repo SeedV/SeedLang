@@ -31,8 +31,7 @@ program: statements? EOF;
 statements: statement+;
 statement: compound_stmt | simple_stmts;
 simple_stmts:
-  simple_stmt (SEMICOLON simple_stmt)+ SEMICOLON? NEWLINE # multiple_simple_stmts
-  | simple_stmt NEWLINE                                   # single_simple_stmt;
+  simple_stmt (SEMICOLON simple_stmt)* SEMICOLON? NEWLINE;
 simple_stmt:
   assignment    # assignment_placeholder
   | expressions # expression_stmt

@@ -39,10 +39,14 @@ namespace SeedLang.X {
       return Visit(context.expression());
     }
 
-    public override AstNode VisitMultiple_comparison(
-        [NotNull] SeedBlockInlineTextParser.Multiple_comparisonContext context) {
-      return _helper.BuildComparison(context.bitwise_or(), context.compare_op_bitwise_or_pair(),
-                                     ToComparisonOperator, this);
+    public override AstNode VisitComparison(
+        [NotNull] SeedBlockInlineTextParser.ComparisonContext context) {
+      ParserRuleContext leftContext = context.bitwise_or();
+      ParserRuleContext[] rightContexts = context.compare_op_bitwise_or_pair();
+      if (rightContexts.Length > 0) {
+        return _helper.BuildComparison(leftContext, rightContexts, ToComparisonOperator, this);
+      }
+      return Visit(leftContext);
     }
 
     public override AstNode VisitAdd([NotNull] SeedBlockInlineTextParser.AddContext context) {

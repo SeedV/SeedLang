@@ -78,6 +78,7 @@ namespace SeedLang.Ast {
   internal class IfStatement : Statement {
     public Expression Test { get; }
     public Statement ThenBody { get; }
+    // The else body of if statements, could be null.
     public Statement ElseBody { get; }
 
     internal IfStatement(Expression test, Statement thenBody, Statement elseBody, Range range) :

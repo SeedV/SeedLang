@@ -34,7 +34,7 @@ namespace SeedLang.Runtime {
     public ValueType Type => ValueType.Null;
     public bool Boolean => false;
     public double Number => 0;
-    public string String => "";
+    public string String => "None";
 
     public static bool operator ==(NoneValue lhs, NoneValue rhs) {
       if (lhs is null) {

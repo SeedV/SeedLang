@@ -208,7 +208,9 @@ namespace SeedLang.Ast {
       if (_expressionResult.Boolean) {
         Visit(@if.ThenBody);
       } else {
-        Visit(@if.ElseBody);
+        if (!(@if.ElseBody is null)) {
+          Visit(@if.ElseBody);
+        }
       }
     }
 

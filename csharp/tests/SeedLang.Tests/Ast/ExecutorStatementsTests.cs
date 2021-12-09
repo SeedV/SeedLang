@@ -26,6 +26,7 @@ namespace SeedLang.Ast.Tests {
         AddBlock();
         AddExpression();
         AddIf();
+        AddIfElse();
         AddWhile();
       }
 
@@ -66,6 +67,17 @@ namespace SeedLang.Ast.Tests {
       }
 
       private void AddIf() {
+        var @true = Expression.BooleanConstant(true, _textRange);
+        var @false = Expression.BooleanConstant(false, _textRange);
+        var one = Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange);
+        var ifTrue = Statement.If(@true, one, null, _textRange);
+        var expectedTrueOutput = $"{_textRange} Eval 1\n";
+        Add(ifTrue, expectedTrueOutput);
+        var ifFalse = Statement.If(@false, one, null, _textRange);
+        Add(ifFalse, "");
+      }
+
+      private void AddIfElse() {
         var @true = Expression.BooleanConstant(true, _textRange);
         var @false = Expression.BooleanConstant(false, _textRange);
         var one = Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange);

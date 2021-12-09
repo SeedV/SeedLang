@@ -26,7 +26,7 @@ namespace SeedLang.X.Tests {
     [Theory]
     [InlineData("1.2 =",
                 new string[] {
-                  "SyntaxErrorNoViableAlternative '1.2='",
+                  "SyntaxErrorUnwantedToken '=' {';', NEWLINE}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 2]," +
@@ -104,7 +104,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("6(5 * 6)",
                 new string[] {
-                  "SyntaxErrorNoViableAlternative '6('",
+                  "SyntaxErrorInputMismatch '(' {';', NEWLINE}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +

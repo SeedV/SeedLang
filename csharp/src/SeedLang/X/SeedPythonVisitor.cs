@@ -50,9 +50,13 @@ namespace SeedLang.X {
       return VisitorHelper.BuildBlock(statements, this);
     }
 
-    public override AstNode VisitSingle_simple_stmt(
-        [NotNull] SeedPythonParser.Single_simple_stmtContext context) {
-      return Visit(context.simple_stmt());
+    public override AstNode VisitSimple_stmts(
+        [NotNull] SeedPythonParser.Simple_stmtsContext context) {
+      ParserRuleContext[] statements = context.simple_stmt();
+      if (statements.Length == 1) {
+        return Visit(statements[0]);
+      }
+      return _helper.BuildSimpleStatements(statements, context.SEMICOLON(), this);
     }
 
     public override AstNode VisitExpression_stmt(
@@ -102,10 +106,35 @@ namespace SeedLang.X {
       return Visit(context.statements());
     }
 
-    public override AstNode VisitMultiple_comparison(
-        [NotNull] SeedPythonParser.Multiple_comparisonContext context) {
-      return _helper.BuildComparison(context.bitwise_or(), context.compare_op_bitwise_or_pair(),
-                                     ToComparisonOperator, this);
+    public override AstNode VisitDisjunction(
+        [NotNull] SeedPythonParser.DisjunctionContext context) {
+      ParserRuleContext[] operands = context.conjunction();
+      if (operands.Length == 1) {
+        return Visit(operands[0]);
+      }
+      return _helper.BuildAndOr(BooleanOperator.Or, operands, context.OR(), this);
+    }
+
+    public override AstNode VisitConjunction(
+        [NotNull] SeedPythonParser.ConjunctionContext context) {
+      ParserRuleContext[] operands = context.inversion();
+      if (operands.Length == 1) {
+        return Visit(operands[0]);
+      }
+      return _helper.BuildAndOr(BooleanOperator.And, operands, context.AND(), this);
+    }
+
+    public override AstNode VisitNot([NotNull] SeedPythonParser.NotContext context) {
+      return _helper.BuildUnary(context.NOT().Symbol, UnaryOperator.Not, context.inversion(), this);
+    }
+
+    public override AstNode VisitComparison([NotNull] SeedPythonParser.ComparisonContext context) {
+      ParserRuleContext leftContext = context.bitwise_or();
+      ParserRuleContext[] rightContexts = context.compare_op_bitwise_or_pair();
+      if (rightContexts.Length > 0) {
+        return _helper.BuildComparison(leftContext, rightContexts, ToComparisonOperator, this);
+      }
+      return Visit(leftContext);
     }
 
     public override AstNode VisitAdd([NotNull] SeedPythonParser.AddContext context) {
@@ -167,8 +196,7 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitNone([NotNull] SeedPythonParser.NoneContext context) {
-      // TODO: return a none constant expresssion.
-      return null;
+      return _helper.BuildNoneConstant(context.NONE().Symbol);
     }
 
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {

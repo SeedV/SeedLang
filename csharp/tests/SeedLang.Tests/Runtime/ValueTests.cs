@@ -20,12 +20,12 @@ namespace SeedLang.Runtime.Tests {
     private readonly string _expectedTrueString = "True";
 
     [Fact]
-    public void TestNullValue() {
-      var @null = new NoneValue();
-      Assert.False(@null.Boolean);
-      Assert.Equal(0, @null.Number);
-      Assert.Equal("", @null.String);
-      Assert.Equal("", @null.ToString());
+    public void TestNoneValue() {
+      var none = new NoneValue();
+      Assert.False(none.Boolean);
+      Assert.Equal(0, none.Number);
+      Assert.Equal("None", none.String);
+      Assert.Equal("None", none.ToString());
     }
 
     [Fact]

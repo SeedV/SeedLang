@@ -14,7 +14,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
@@ -59,25 +58,26 @@ namespace SeedLang.X {
     }
 
     // Builds a comparison expression.
-    internal ComparisonExpression BuildComparison(ParserRuleContext left,
-                                                  ParserRuleContext[] rightPairs,
+    internal ComparisonExpression BuildComparison(ParserRuleContext leftContext,
+                                                  ParserRuleContext[] rightContexts,
                                                   ToComparisonOperator toComparisonOperator,
                                                   AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange range = _groupingRange;
       _groupingRange = null;
 
-      AstNode first = visitor.Visit(left);
-      if (first is Expression firstExpr) {
-        var ops = new List<ComparisonOperator>();
-        var exprs = new List<Expression>();
-        foreach (ParserRuleContext rightContext in rightPairs) {
-          if (rightContext.ChildCount == 2 && rightContext.GetChild(0) is ITerminalNode opNode) {
+      AstNode left = visitor.Visit(leftContext);
+      if (left is Expression leftExpr) {
+        var ops = new ComparisonOperator[rightContexts.Length];
+        var exprs = new Expression[rightContexts.Length];
+        for (int i = 0; i < rightContexts.Length; i++) {
+          if (rightContexts[i].ChildCount == 2 &&
+              rightContexts[i].GetChild(0) is ITerminalNode opNode) {
             IToken opToken = opNode.Symbol;
             AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
-            ops.Add(toComparisonOperator(opToken));
-            AstNode right = visitor.Visit(rightContext.GetChild(1));
+            ops[i] = toComparisonOperator(opToken);
+            AstNode right = visitor.Visit(rightContexts[i].GetChild(1));
             if (right is Expression rightExpr) {
-              exprs.Add(rightExpr);
+              exprs[i] = rightExpr;
             } else {
               return null;
             }
@@ -86,12 +86,40 @@ namespace SeedLang.X {
           }
         }
         if (range is null) {
-          Debug.Assert(first.Range is TextRange);
-          Debug.Assert(exprs.Last().Range is TextRange);
-          range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
-                                                   exprs.Last().Range as TextRange);
+          Expression last = exprs[exprs.Length - 1];
+          Debug.Assert(left.Range is TextRange);
+          Debug.Assert(last.Range is TextRange);
+          range = CodeReferenceUtils.CombineRanges(left.Range as TextRange,
+                                                   last.Range as TextRange);
         }
-        return Expression.Comparison(firstExpr, ops.ToArray(), exprs.ToArray(), range);
+        return Expression.Comparison(leftExpr, ops, exprs, range);
+      }
+      return null;
+    }
+
+    // Builds a boolean expression.
+    internal AstNode BuildAndOr(BooleanOperator op, ParserRuleContext[] operandContexts,
+                                ITerminalNode[] orNodes,
+                                AbstractParseTreeVisitor<AstNode> visitor) {
+      Debug.Assert(orNodes.Length > 0 && operandContexts.Length == orNodes.Length + 1);
+      var exprs = new Expression[operandContexts.Length];
+      if (visitor.Visit(operandContexts[0]) is Expression first) {
+        exprs[0] = first;
+        for (int i = 0; i < orNodes.Length; i++) {
+          TextRange orRange = CodeReferenceUtils.RangeOfToken(orNodes[i].Symbol);
+          AddSyntaxToken(SyntaxType.Operator, orRange);
+          if (visitor.Visit(operandContexts[i + 1]) is Expression expr) {
+            exprs[i + 1] = expr;
+          } else {
+            return null;
+          }
+        }
+        Expression last = exprs[exprs.Length - 1];
+        Debug.Assert(first.Range is TextRange);
+        Debug.Assert(last.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
+                                                           last.Range as TextRange);
+        return Expression.Boolean(op, exprs, range);
       }
       return null;
     }
@@ -147,6 +175,12 @@ namespace SeedLang.X {
       return Expression.BooleanConstant(value, range);
     }
 
+    // Builds a none costant expression.
+    internal NoneConstantExpression BuildNoneConstant(IToken token) {
+      TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.None);
+      return Expression.NoneConstant(range);
+    }
+
     // Builds a number constant expresssion.
     internal NumberConstantExpression BuildNumberConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Number);
@@ -180,16 +214,10 @@ namespace SeedLang.X {
     internal static BlockStatement BuildBlock(ParserRuleContext[] statementContexts,
                                               AbstractParseTreeVisitor<AstNode> visitor) {
       var statements = new Statement[statementContexts.Length];
-      for (int i = 0; i < statementContexts.Length; ++i) {
+      for (int i = 0; i < statementContexts.Length; i++) {
         statements[i] = visitor.Visit(statementContexts[i]) as Statement;
       }
-      Debug.Assert(statements.Length > 0);
-      Statement first = statements[0];
-      Statement last = statements[statements.Length - 1];
-      Debug.Assert(first.Range is TextRange && last.Range is TextRange);
-      Range range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
-                                                     last.Range as TextRange);
-      return new BlockStatement(statements, range);
+      return BuildBlock(statements);
     }
 
     // Builds an expression statement.
@@ -209,7 +237,8 @@ namespace SeedLang.X {
       AddSyntaxToken(SyntaxType.Keyword, ifRange);
       if (visitor.Visit(exprContext) is Expression expr) {
         AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
-        if (visitor.Visit(blockContext) is Statement block && visitor.Visit(elifContext) is Statement elif) {
+        if (visitor.Visit(blockContext) is Statement block &&
+            visitor.Visit(elifContext) is Statement elif) {
           TextRange range = CodeReferenceUtils.CombineRanges(ifRange, elif.Range as TextRange);
           return Statement.If(expr, block, elif, range);
         }
@@ -245,6 +274,23 @@ namespace SeedLang.X {
       return visitor.Visit(blockContext) as Statement;
     }
 
+    // Builds a block for simple statements.
+    internal BlockStatement BuildSimpleStatements(ParserRuleContext[] statementContexts,
+                                                  ITerminalNode[] semicolonNodes,
+                                                  AbstractParseTreeVisitor<AstNode> visitor) {
+      Debug.Assert(statementContexts.Length == semicolonNodes.Length + 1 ||
+                   statementContexts.Length == semicolonNodes.Length);
+      var statements = new Statement[statementContexts.Length];
+      for (int i = 0; i < statementContexts.Length; i++) {
+        statements[i] = visitor.Visit(statementContexts[i]) as Statement;
+        if (i < semicolonNodes.Length) {
+          TextRange semicolonRange = CodeReferenceUtils.RangeOfToken(semicolonNodes[i].Symbol);
+          AddSyntaxToken(SyntaxType.Symbol, semicolonRange);
+        }
+      }
+      return BuildBlock(statements);
+    }
+
     // Builds a while statement.
     internal WhileStatement BuildWhile(IToken whileToken, ParserRuleContext exprContext,
                                        IToken colonToken, ParserRuleContext blockContext,
@@ -260,6 +306,16 @@ namespace SeedLang.X {
         }
       }
       return null;
+    }
+
+    private static BlockStatement BuildBlock(Statement[] statements) {
+      Debug.Assert(statements.Length > 0);
+      Statement first = statements[0];
+      Statement last = statements[statements.Length - 1];
+      Debug.Assert(first.Range is TextRange && last.Range is TextRange);
+      Range range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
+                                                     last.Range as TextRange);
+      return new BlockStatement(statements, range);
     }
 
     private TextRange HandleConstantOrVariableExpression(IToken token, SyntaxType type) {

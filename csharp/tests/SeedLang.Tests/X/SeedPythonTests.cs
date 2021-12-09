@@ -31,6 +31,13 @@ namespace SeedLang.X.Tests {
     }
 
     [Theory]
+    [InlineData("None",
+
+                "[Ln 1, Col 0 - Ln 1, Col 3] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 3] NoneConstantExpression",
+
+                "None [Ln 1, Col 0 - Ln 1, Col 3]")]
+
     [InlineData("True",
 
                 "[Ln 1, Col 0 - Ln 1, Col 3] ExpressionStatement\n" +
@@ -190,6 +197,37 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 10 - Ln 1, Col 11]," +
                 "Number [Ln 1, Col 13 - Ln 1, Col 13]")]
 
+    [InlineData("True and False and True or False and True",
+
+                "[Ln 1, Col 0 - Ln 1, Col 40] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 40] BooleanExpression (Or)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 22] BooleanExpression (And)\n" +
+                "      [Ln 1, Col 0 - Ln 1, Col 3] BooleanConstantExpression (True)\n" +
+                "      [Ln 1, Col 9 - Ln 1, Col 13] BooleanConstantExpression (False)\n" +
+                "      [Ln 1, Col 19 - Ln 1, Col 22] BooleanConstantExpression (True)\n" +
+                "    [Ln 1, Col 27 - Ln 1, Col 40] BooleanExpression (And)\n" +
+                "      [Ln 1, Col 27 - Ln 1, Col 31] BooleanConstantExpression (False)\n" +
+                "      [Ln 1, Col 37 - Ln 1, Col 40] BooleanConstantExpression (True)",
+
+                "Boolean [Ln 1, Col 0 - Ln 1, Col 3]," +
+                "Operator [Ln 1, Col 5 - Ln 1, Col 7]," +
+                "Boolean [Ln 1, Col 9 - Ln 1, Col 13]," +
+                "Operator [Ln 1, Col 15 - Ln 1, Col 17]," +
+                "Boolean [Ln 1, Col 19 - Ln 1, Col 22]," +
+                "Operator [Ln 1, Col 24 - Ln 1, Col 25]," +
+                "Boolean [Ln 1, Col 27 - Ln 1, Col 31]," +
+                "Operator [Ln 1, Col 33 - Ln 1, Col 35]," +
+                "Boolean [Ln 1, Col 37 - Ln 1, Col 40]")]
+
+    [InlineData("not True",
+
+                "[Ln 1, Col 0 - Ln 1, Col 7] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (Not)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 7] BooleanConstantExpression (True)",
+
+                "Operator [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Boolean [Ln 1, Col 4 - Ln 1, Col 7]")]
+
     [InlineData("if 1 < 2: x = 1",
 
                 "[Ln 1, Col 0 - Ln 1, Col 14] IfStatement\n" +
@@ -329,6 +367,53 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 3, Col 2 - Ln 3, Col 2]," +
                 "Operator [Ln 3, Col 4 - Ln 3, Col 4]," +
                 "Number [Ln 3, Col 6 - Ln 3, Col 6]")]
+
+    [InlineData("while True: x = 1; y = 2",
+
+                "[Ln 1, Col 0 - Ln 1, Col 23] WhileStatement\n" +
+                "  [Ln 1, Col 6 - Ln 1, Col 9] BooleanConstantExpression (True)\n" +
+                "  [Ln 1, Col 12 - Ln 1, Col 23] BlockStatement\n" +
+                "    [Ln 1, Col 12 - Ln 1, Col 16] AssignmentStatement\n" +
+                "      [Ln 1, Col 12 - Ln 1, Col 12] IdentifierExpression (x)\n" +
+                "      [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 19 - Ln 1, Col 23] AssignmentStatement\n" +
+                "      [Ln 1, Col 19 - Ln 1, Col 19] IdentifierExpression (y)\n" +
+                "      [Ln 1, Col 23 - Ln 1, Col 23] NumberConstantExpression (2)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 4]," +
+                "Boolean [Ln 1, Col 6 - Ln 1, Col 9]," +
+                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Variable [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Operator [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Number [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Symbol [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "Variable [Ln 1, Col 19 - Ln 1, Col 19]," +
+                "Operator [Ln 1, Col 21 - Ln 1, Col 21]," +
+                "Number [Ln 1, Col 23 - Ln 1, Col 23]")]
+
+    [InlineData("while True: x = 1; y = 2;",
+
+                "[Ln 1, Col 0 - Ln 1, Col 23] WhileStatement\n" +
+                "  [Ln 1, Col 6 - Ln 1, Col 9] BooleanConstantExpression (True)\n" +
+                "  [Ln 1, Col 12 - Ln 1, Col 23] BlockStatement\n" +
+                "    [Ln 1, Col 12 - Ln 1, Col 16] AssignmentStatement\n" +
+                "      [Ln 1, Col 12 - Ln 1, Col 12] IdentifierExpression (x)\n" +
+                "      [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 19 - Ln 1, Col 23] AssignmentStatement\n" +
+                "      [Ln 1, Col 19 - Ln 1, Col 19] IdentifierExpression (y)\n" +
+                "      [Ln 1, Col 23 - Ln 1, Col 23] NumberConstantExpression (2)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 4]," +
+                "Boolean [Ln 1, Col 6 - Ln 1, Col 9]," +
+                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Variable [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Operator [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Number [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Symbol [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "Variable [Ln 1, Col 19 - Ln 1, Col 19]," +
+                "Operator [Ln 1, Col 21 - Ln 1, Col 21]," +
+                "Number [Ln 1, Col 23 - Ln 1, Col 23]," +
+                "Symbol [Ln 1, Col 24 - Ln 1, Col 24]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

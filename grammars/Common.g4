@@ -33,18 +33,12 @@ expressions:
 
 expression: disjunction;
 
-disjunction:
-  conjunction (OR conjunction)+ # or
-  | conjunction                 # conjunction_as_disjunction;
-conjunction:
-  inversion (AND inversion)+ # and
-  | inversion                # inversion_as_conjunction;
+disjunction: conjunction (OR conjunction)*;
+conjunction: inversion (AND inversion)*;
 inversion:
   NOT inversion # not
   | comparison  # comparison_as_inversion;
-comparison:
-  bitwise_or compare_op_bitwise_or_pair+ # multiple_comparison
-  | bitwise_or                           # bitwise_or_as_comparison;
+comparison: bitwise_or compare_op_bitwise_or_pair*;
 compare_op_bitwise_or_pair:
   EQ_EQUAL bitwise_or        # eq_equal
   | NOT_EQUAL bitwise_or     # not_equal

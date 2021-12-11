@@ -14,10 +14,9 @@
 
 using System;
 using System.Collections.Generic;
-using SeedLang.Runtime;
 using Xunit;
 
-namespace SeedLang.Interpreter.Tests {
+namespace SeedLang.Runtime.Tests {
   public class ValueTests {
     private readonly string _expectedFalseString = "False";
     private readonly string _expectedTrueString = "True";

@@ -54,11 +54,11 @@ namespace SeedLang.Interpreter {
               HandleBinary(instr, _chunk.Ranges[pc]);
               break;
             case Opcode.UNM:
-              _registers[instr.A] = new Value(-ValueOfRK(instr.B).Number);
+              _registers[instr.A] = Value.Number(-ValueOfRK(instr.B).AsNumber());
               break;
             case Opcode.EVAL:
               if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-                var ee = new EvalEvent(_registers[instr.A], _chunk.Ranges[pc]);
+                var ee = new EvalEvent(new ValueWrapper(_registers[instr.A]), _chunk.Ranges[pc]);
                 _visualizerCenter.EvalPublisher.Notify(ee);
               }
               break;
@@ -84,7 +84,7 @@ namespace SeedLang.Interpreter {
       var name = _chunk.ValueOfConstId(instr.Bx).ToString();
       _globals.SetVariable(name, _registers[instr.A]);
       if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var ae = new AssignmentEvent(name, _registers[instr.A], range);
+        var ae = new AssignmentEvent(name, new ValueWrapper(_registers[instr.A]), range);
         _visualizerCenter.AssignmentPublisher.Notify(ae);
       }
     }
@@ -112,9 +112,10 @@ namespace SeedLang.Interpreter {
           result = ValueHelper.Divide(left, right);
           break;
       }
-      _registers[instr.A] = new Value(result);
+      _registers[instr.A] = Value.Number(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var be = new BinaryEvent(left, op, right, _registers[instr.A], range);
+        var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
+                                 new ValueWrapper(_registers[instr.A]), range);
         _visualizerCenter.BinaryPublisher.Notify(be);
       }
     }

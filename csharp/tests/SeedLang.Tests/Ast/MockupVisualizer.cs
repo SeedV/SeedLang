@@ -1,4 +1,3 @@
-using System.Text;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,7 @@ using System.Text;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast.Tests {

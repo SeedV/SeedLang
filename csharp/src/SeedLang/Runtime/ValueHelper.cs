@@ -16,72 +16,72 @@ using System.Diagnostics;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
-  // A helper class to do value operations. The generic parameter Value could be IValue or VMValue.
+  // A helper class to do value operations.
   internal static class ValueHelper {
-    internal static double Add<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      double result = lhs.Number + rhs.Number;
+    internal static double Add(in Value lhs, in Value rhs) {
+      double result = lhs.AsNumber() + rhs.AsNumber();
       CheckOverflow(result);
       return result;
     }
 
-    internal static double Subtract<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      double result = lhs.Number - rhs.Number;
+    internal static double Subtract(in Value lhs, in Value rhs) {
+      double result = lhs.AsNumber() - rhs.AsNumber();
       CheckOverflow(result);
       return result;
     }
 
-    internal static double Multiply<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      double result = lhs.Number * rhs.Number;
+    internal static double Multiply(in Value lhs, in Value rhs) {
+      double result = lhs.AsNumber() * rhs.AsNumber();
       CheckOverflow(result);
       return result;
     }
 
-    internal static double Divide<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      if (rhs.Number == 0) {
+    internal static double Divide(in Value lhs, in Value rhs) {
+      if (rhs.AsNumber() == 0) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
                                       Message.RuntimeErrorDivideByZero);
       }
-      double result = lhs.Number / rhs.Number;
+      double result = lhs.AsNumber() / rhs.AsNumber();
       CheckOverflow(result);
       return result;
     }
 
-    internal static double FloorDivide<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      if (rhs.Number == 0) {
+    internal static double FloorDivide(in Value lhs, in Value rhs) {
+      if (rhs.AsNumber() == 0) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
                                       Message.RuntimeErrorDivideByZero);
       }
-      double result = System.Math.Floor(lhs.Number / rhs.Number);
+      double result = System.Math.Floor(lhs.AsNumber() / rhs.AsNumber());
       CheckOverflow(result);
       return result;
     }
 
-    internal static double Power<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      double result = System.Math.Pow(lhs.Number, rhs.Number);
+    internal static double Power(in Value lhs, in Value rhs) {
+      double result = System.Math.Pow(lhs.AsNumber(), rhs.AsNumber());
       CheckOverflow(result);
       return result;
     }
 
-    internal static double Modulo<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      double result = lhs.Number % rhs.Number;
+    internal static double Modulo(in Value lhs, in Value rhs) {
+      double result = lhs.AsNumber() % rhs.AsNumber();
       CheckOverflow(result);
       return result;
     }
 
-    internal static bool Less<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      return lhs.Number < rhs.Number;
+    internal static bool Less(in Value lhs, in Value rhs) {
+      return lhs.AsNumber() < rhs.AsNumber();
     }
 
-    internal static bool Great<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      return lhs.Number > rhs.Number;
+    internal static bool Great(in Value lhs, in Value rhs) {
+      return lhs.AsNumber() > rhs.AsNumber();
     }
 
-    internal static bool LessEqual<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      return lhs.Number <= rhs.Number;
+    internal static bool LessEqual(in Value lhs, in Value rhs) {
+      return lhs.AsNumber() <= rhs.AsNumber();
     }
 
-    internal static bool GreatEqual<Value>(in Value lhs, in Value rhs) where Value : IValue {
-      return lhs.Number >= rhs.Number;
+    internal static bool GreatEqual(in Value lhs, in Value rhs) {
+      return lhs.AsNumber() >= rhs.AsNumber();
     }
 
     internal static double BooleanToNumber(bool value) {

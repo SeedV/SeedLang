@@ -27,10 +27,13 @@ namespace SeedLang.Runtime.Tests {
     public bool IsBoolean => false;
     public bool IsNumber => true;
     public bool IsString => false;
+    public bool IsList => false;
 
     public bool Boolean => false;
     public double Number => 0;
     public string String => "false";
+    public int Count => 0;
+    public IValue this[int index] => new ValueWrapper(Value.None());
   }
 
   internal class MockupBinaryVisualizer : IVisualizer<BinaryEvent> {

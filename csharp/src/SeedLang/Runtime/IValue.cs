@@ -18,9 +18,12 @@ namespace SeedLang.Runtime {
     bool IsBoolean { get; }
     bool IsNumber { get; }
     bool IsString { get; }
+    bool IsList { get; }
 
     bool Boolean { get; }
     double Number { get; }
     string String { get; }
+    int Count { get; }
+    IValue this[int index] { get; }
   }
 }

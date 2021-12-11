@@ -30,7 +30,7 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {
-        Constants.Add(new Value(number));
+        Constants.Add(Value.Number(number));
         _numbers[number] = IdOfLastConst();
       }
       return _numbers[number];
@@ -40,7 +40,7 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(string str) {
       if (!_strings.ContainsKey(str)) {
-        Constants.Add(new Value(str));
+        Constants.Add(Value.String(str));
         _strings[str] = IdOfLastConst();
       }
       return _strings[str];

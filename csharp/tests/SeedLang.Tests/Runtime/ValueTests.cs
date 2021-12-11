@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Runtime;
 using Xunit;
 
-namespace SeedLang.Runtime.Tests {
+namespace SeedLang.Interpreter.Tests {
   public class ValueTests {
     private readonly string _expectedFalseString = "False";
     private readonly string _expectedTrueString = "True";
 
     [Fact]
     public void TestNoneValue() {
-      var none = new NoneValue();
+      var none = new Value();
       Assert.False(none.Boolean);
       Assert.Equal(0, none.Number);
       Assert.Equal("None", none.String);
@@ -30,13 +31,13 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestBooleanValue() {
-      var boolean = new BooleanValue(false);
+      var boolean = new Value(false);
       Assert.False(boolean.Boolean);
       Assert.Equal(0, boolean.Number);
       Assert.Equal(_expectedFalseString, boolean.String);
       Assert.Equal(_expectedFalseString, boolean.ToString());
 
-      boolean = new BooleanValue(true);
+      boolean = new Value(true);
       Assert.True(boolean.Boolean);
       Assert.Equal(1, boolean.Number);
       Assert.Equal(_expectedTrueString, boolean.String);
@@ -45,13 +46,13 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNumberValue() {
-      var number = new NumberValue(1);
+      var number = new Value(1);
       Assert.True(number.Boolean);
       Assert.Equal(1, number.Number);
       Assert.Equal("1", number.String);
       Assert.Equal("1", number.ToString());
 
-      number = new NumberValue(2.5);
+      number = new Value(2.5);
       Assert.True(number.Boolean);
       Assert.Equal(2.5, number.Number);
       Assert.Equal("2.5", number.String);
@@ -60,19 +61,19 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestStringValue() {
-      var str = new StringValue("");
+      var str = new Value("");
       Assert.False(str.Boolean);
       Assert.Equal(0, str.Number);
       Assert.Equal("", str.String);
       Assert.Equal("", str.ToString());
 
-      str = new StringValue(_expectedFalseString);
+      str = new Value(_expectedFalseString);
       Assert.True(str.Boolean);
       Assert.Equal(0, str.Number);
       Assert.Equal(_expectedFalseString, str.String);
       Assert.Equal(_expectedFalseString, str.ToString());
 
-      str = new StringValue(_expectedTrueString);
+      str = new Value(_expectedTrueString);
       Assert.True(str.Boolean);
       Assert.Equal(0, str.Number);
       Assert.Equal(_expectedTrueString, str.String);
@@ -80,46 +81,40 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestValueEquality() {
-      Assert.True(null as IValue == null);
-      Assert.False(new NoneValue() == null);
-      Assert.False(new BooleanValue(false) == null);
-      Assert.False(new NumberValue(0) == null);
-      Assert.False(new StringValue("") == null);
+    public void TestVMValueEquality() {
+      Assert.NotEqual(new Value(), new Value(false));
+      Assert.NotEqual(new Value(), new Value(0));
+      Assert.NotEqual(new Value(), new Value(""));
+      Assert.Equal(new Value(), new Value());
 
-      Assert.NotEqual<IValue>(new NoneValue(), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new NoneValue(), new NumberValue(0));
-      Assert.NotEqual<IValue>(new NoneValue(), new StringValue(""));
-      Assert.Equal(new NoneValue(), new NoneValue());
+      Assert.NotEqual(new Value(false), new Value());
+      Assert.NotEqual(new Value(false), new Value(""));
+      Assert.Equal(new Value(false), new Value(false));
+      Assert.Equal(new Value(true), new Value(true));
+      Assert.NotEqual(new Value(false), new Value(true));
 
-      Assert.NotEqual<IValue>(new BooleanValue(false), new NoneValue());
-      Assert.NotEqual<IValue>(new BooleanValue(false), new StringValue(""));
-      Assert.Equal(new BooleanValue(false), new BooleanValue(false));
-      Assert.Equal(new BooleanValue(true), new BooleanValue(true));
-      Assert.NotEqual(new BooleanValue(false), new BooleanValue(true));
+      Assert.NotEqual(new Value(false), new Value(1));
+      Assert.NotEqual(new Value(false), new Value(2));
+      Assert.NotEqual(new Value(true), new Value(0));
+      Assert.NotEqual(new Value(true), new Value(2));
+      Assert.Equal(new Value(false), new Value(0));
+      Assert.Equal(new Value(true), new Value(1));
 
-      Assert.NotEqual<IValue>(new BooleanValue(false), new NumberValue(1));
-      Assert.NotEqual<IValue>(new BooleanValue(false), new NumberValue(2));
-      Assert.NotEqual<IValue>(new BooleanValue(true), new NumberValue(0));
-      Assert.NotEqual<IValue>(new BooleanValue(true), new NumberValue(2));
-      Assert.Equal<IValue>(new BooleanValue(false), new NumberValue(0));
-      Assert.Equal<IValue>(new BooleanValue(true), new NumberValue(1));
+      Assert.NotEqual(new Value(0), new Value());
+      Assert.NotEqual(new Value(0), new Value(""));
 
-      Assert.NotEqual<IValue>(new NumberValue(0), new NoneValue());
-      Assert.NotEqual<IValue>(new NumberValue(0), new StringValue(""));
+      Assert.NotEqual(new Value(1), new Value(false));
+      Assert.NotEqual(new Value(2), new Value(false));
+      Assert.NotEqual(new Value(0), new Value(true));
+      Assert.NotEqual(new Value(2), new Value(true));
+      Assert.Equal(new Value(0), new Value(false));
+      Assert.Equal(new Value(1), new Value(true));
 
-      Assert.NotEqual<IValue>(new NumberValue(1), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new NumberValue(2), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new NumberValue(0), new BooleanValue(true));
-      Assert.NotEqual<IValue>(new NumberValue(2), new BooleanValue(true));
-      Assert.Equal<IValue>(new NumberValue(0), new BooleanValue(false));
-      Assert.Equal<IValue>(new NumberValue(1), new BooleanValue(true));
-
-      Assert.NotEqual<IValue>(new StringValue(""), new NoneValue());
-      Assert.NotEqual<IValue>(new StringValue(""), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new StringValue(""), new NumberValue(0));
-      Assert.NotEqual<IValue>(new StringValue("0"), new StringValue("1"));
-      Assert.Equal<IValue>(new StringValue("1"), new StringValue("1"));
+      Assert.NotEqual(new Value(""), new Value());
+      Assert.NotEqual(new Value(""), new Value(false));
+      Assert.NotEqual(new Value(""), new Value(0));
+      Assert.NotEqual(new Value("0"), new Value("1"));
+      Assert.Equal(new Value("1"), new Value("1"));
     }
   }
 }

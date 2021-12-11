@@ -23,12 +23,13 @@ namespace SeedLang.Runtime.Tests {
                                          MockupMultipleVisualizer>;
 
   internal class MockupValue : IValue {
-    public ValueType Type => ValueType.Number;
+    public bool IsNone => false;
+    public bool IsBoolean => false;
+    public bool IsNumber => true;
+    public bool IsString => false;
 
     public bool Boolean => false;
-
     public double Number => 0;
-
     public string String => "false";
   }
 

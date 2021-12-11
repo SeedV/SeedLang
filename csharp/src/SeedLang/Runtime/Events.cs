@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Common;
 
@@ -47,12 +48,12 @@ namespace SeedLang.Runtime {
   // filled as null.
   public class BooleanEvent : AbstractEvent {
     public BooleanOperator Op { get; }
-    public IValue[] Values { get; }
+    public IReadOnlyList<IValue> Values { get; }
     public IValue Result { get; }
 
-    public BooleanEvent(BooleanOperator op, IValue[] values, IValue result, Range range) :
-        base(range) {
-      Debug.Assert(values.Length > 1);
+    public BooleanEvent(BooleanOperator op, IReadOnlyList<IValue> values, IValue result,
+                        Range range) : base(range) {
+      Debug.Assert(values.Count > 1);
       Op = op;
       Values = values;
       Result = result;
@@ -61,17 +62,17 @@ namespace SeedLang.Runtime {
 
   // An event which is triggered when a comparison expression is evaluated.
   //
-  // The length Exprs is as same as Ops. But not all the expressions are evaluated due to short
+  // The count of values is as same as Ops. But not all the expressions are evaluated due to short
   // circuit. The values without evaluated are filled as null.
   public class ComparisonEvent : AbstractEvent {
     public IValue First { get; }
-    public ComparisonOperator[] Ops { get; }
-    public IValue[] Values { get; }
+    public IReadOnlyList<ComparisonOperator> Ops { get; }
+    public IReadOnlyList<IValue> Values { get; }
     public IValue Result { get; }
 
-    public ComparisonEvent(IValue first, ComparisonOperator[] ops, IValue[] values, IValue result,
-                           Range range) : base(range) {
-      Debug.Assert(ops.Length > 0 && ops.Length == values.Length);
+    public ComparisonEvent(IValue first, IReadOnlyList<ComparisonOperator> ops,
+                           IReadOnlyList<IValue> values, IValue result, Range range) : base(range) {
+      Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
       First = first;
       Values = values;
       Ops = ops;

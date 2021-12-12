@@ -124,6 +124,14 @@ namespace SeedLang.Interpreter {
       throw new NotImplementedException();
     }
 
+    protected override void Visit(ListExpression list) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(SubscriptExpression subscript) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(AssignmentStatement assignment) {
       uint resultRegister = _registerAllocator.AllocateTempVariable();
       _expressionInfo.CanHandleConstSubExpr = false;

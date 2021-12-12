@@ -186,6 +186,14 @@ namespace SeedLang.Ast {
       _expressionResult = Value.String(stringConstant.Value);
     }
 
+    protected override void Visit(ListExpression list) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(SubscriptExpression subscript) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(AssignmentStatement assignment) {
       Visit(assignment.Expr);
       _globals.SetVariable(assignment.Identifier.Name, _expressionResult);

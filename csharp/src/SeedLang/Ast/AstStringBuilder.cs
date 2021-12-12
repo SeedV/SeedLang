@@ -166,6 +166,21 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(ListExpression list) {
+      Enter(list);
+      foreach (Expression expr in list.Exprs) {
+        Visit(expr);
+      }
+      Exit();
+    }
+
+    protected override void Visit(SubscriptExpression subscript) {
+      Enter(subscript);
+      Visit(subscript.Expr);
+      Visit(subscript.Index);
+      Exit();
+    }
+
     protected override void Visit(AssignmentStatement assignment) {
       Enter(assignment);
       Visit(assignment.Identifier);

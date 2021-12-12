@@ -32,6 +32,8 @@ namespace SeedLang.Ast.Tests {
         AddNoneConstantExpression();
         AddNumberConstantExpression();
         AddStringConstantExpression();
+        AddListExpression();
+        AddSubscriptExpression();
       }
 
       private void AddBinaryExpression() {
@@ -127,6 +129,31 @@ namespace SeedLang.Ast.Tests {
         var str = Expression.StringConstant(strValue, _textRange);
         var expectedOutput = $"{_textRange} StringConstantExpression ({strValue})";
         Add(str, expectedOutput);
+      }
+
+      private void AddListExpression() {
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var three = Expression.NumberConstant(3, _textRange);
+        var list = Expression.List(new Expression[] { one, two, three }, _textRange);
+        var expectedOutput = $"{_textRange} ListExpression\n" +
+                             $"  {_textRange} NumberConstantExpression (1)\n" +
+                             $"  {_textRange} NumberConstantExpression (2)\n" +
+                             $"  {_textRange} NumberConstantExpression (3)";
+        Add(list, expectedOutput);
+      }
+
+      private void AddSubscriptExpression() {
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var list = Expression.List(new Expression[] { one, two }, _textRange);
+        var subscript = Expression.Subscript(list, one, _textRange);
+        var expectedOutput = $"{_textRange} SubscriptExpression\n" +
+                             $"  {_textRange} ListExpression\n" +
+                             $"    {_textRange} NumberConstantExpression (1)\n" +
+                             $"    {_textRange} NumberConstantExpression (2)\n" +
+                             $"  {_textRange} NumberConstantExpression (1)";
+        Add(subscript, expectedOutput);
       }
     }
 

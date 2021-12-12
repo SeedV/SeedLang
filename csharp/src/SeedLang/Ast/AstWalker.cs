@@ -61,6 +61,12 @@ namespace SeedLang.Ast {
         case StringConstantExpression stringConstant:
           Visit(stringConstant);
           break;
+        case ListExpression list:
+          Visit(list);
+          break;
+        case SubscriptExpression subscript:
+          Visit(subscript);
+          break;
         default:
           throw new NotImplementedException(
               $"Not implemented expression type: {expression.GetType()}");
@@ -100,6 +106,8 @@ namespace SeedLang.Ast {
     protected abstract void Visit(NoneConstantExpression noneConstant);
     protected abstract void Visit(NumberConstantExpression numberConstant);
     protected abstract void Visit(StringConstantExpression stringConstant);
+    protected abstract void Visit(ListExpression list);
+    protected abstract void Visit(SubscriptExpression subscript);
 
     protected abstract void Visit(AssignmentStatement assignment);
     protected abstract void Visit(BlockStatement block);

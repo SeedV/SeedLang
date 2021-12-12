@@ -12,26 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
+using SeedLang.Runtime;
 
-namespace SeedLang.Runtime {
-  internal class GlobalEnvironment {
-    private readonly Dictionary<string, Value> _globals = new Dictionary<string, Value>();
-    private readonly Value _defaultValue;
-
-    internal GlobalEnvironment(in Value defaultValue) {
-      _defaultValue = defaultValue;
-    }
-
-    internal void SetVariable(string name, in Value value) {
-      _globals[name] = value;
-    }
-
-    internal Value GetVariable(string name) {
-      if (!_globals.ContainsKey(name)) {
-        _globals[name] = _defaultValue;
-      }
-      return _globals[name];
+namespace SeedLang.Benchmark {
+  public class SumBenchmark {
+    [Benchmark]
+    public void BenchmarkAstRun() {
+      var executor = new Executor();
+      string source = @"sum = 0
+i = 1
+while i <= 1000:
+  sum = sum + i
+  i = i + 1
+sum
+";
+      executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast);
     }
   }
 }

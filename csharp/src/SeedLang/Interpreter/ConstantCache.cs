@@ -14,13 +14,14 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // A cache class to cache the constant id of constants. It only adds the unique constant into the
   // constant list of the chunk.
   internal class ConstantCache {
     // A list to collect constatnt values during compilation.
-    public List<VMValue> Constants { get; } = new List<VMValue>();
+    public List<Value> Constants { get; } = new List<Value>();
 
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
@@ -29,7 +30,7 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {
-        Constants.Add(new VMValue(number));
+        Constants.Add(Value.Number(number));
         _numbers[number] = IdOfLastConst();
       }
       return _numbers[number];
@@ -39,7 +40,7 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(string str) {
       if (!_strings.ContainsKey(str)) {
-        Constants.Add(new VMValue(str));
+        Constants.Add(Value.String(str));
         _strings[str] = IdOfLastConst();
       }
       return _strings[str];

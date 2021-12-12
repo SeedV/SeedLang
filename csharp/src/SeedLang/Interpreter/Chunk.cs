@@ -15,6 +15,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Common;
+using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // A data structure to hold bytecode and constants generated from the AST tree by the compiler.
@@ -38,7 +39,7 @@ namespace SeedLang.Interpreter {
     private readonly List<Range> _ranges = new List<Range>();
 
     // The constant list to hold all the constants used in this chunk.
-    private VMValue[] _constants;
+    private Value[] _constants;
 
     internal void Emit(Opcode opcode, uint a, Range range = null) {
       _bytecode.Add(new Instruction(opcode, a));
@@ -56,7 +57,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Sets the constant list. It must be called by the compiler after compilation.
-    internal void SetConstants(VMValue[] constants) {
+    internal void SetConstants(Value[] constants) {
       _constants = constants;
     }
 
@@ -65,7 +66,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.
-    internal ref readonly VMValue ValueOfConstId(uint constId) {
+    internal ref readonly Value ValueOfConstId(uint constId) {
       return ref _constants[IndexOfConstId(constId)];
     }
 

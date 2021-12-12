@@ -1,4 +1,3 @@
-using System.Text;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,7 @@ using System.Text;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast.Tests {
@@ -78,9 +78,9 @@ namespace SeedLang.Ast.Tests {
       if (!(_booleanEvent is null)) {
         sb.Append($"{_booleanEvent.Range} ");
         sb.Append($"{_booleanEvent.Values[0]} ");
-        for (int i = 1; i < _booleanEvent.Values.Length; ++i) {
+        for (int i = 1; i < _booleanEvent.Values.Count; ++i) {
           IValue value = _booleanEvent.Values[i];
-          string valueStr = value is null ? "?" : value.ToString();
+          string valueStr = value.IsBoolean ? value.ToString() : "?";
           sb.Append($"{_booleanEvent.Op} {valueStr} ");
         }
         sb.Append($"= {_booleanEvent.Result}\n");
@@ -90,9 +90,9 @@ namespace SeedLang.Ast.Tests {
     private void ComparisonEventToString(StringBuilder sb) {
       if (!(_comparisonEvent is null)) {
         sb.Append($"{_comparisonEvent.Range} {_comparisonEvent.First} ");
-        for (int i = 0; i < _comparisonEvent.Ops.Length; ++i) {
+        for (int i = 0; i < _comparisonEvent.Ops.Count; ++i) {
           IValue value = _comparisonEvent.Values[i];
-          string valueStr = value is null ? "?" : value.ToString();
+          string valueStr = value.IsNumber ? value.ToString() : "?";
           sb.Append($"{_comparisonEvent.Ops[i]} {valueStr} ");
         }
         sb.Append($"= {_comparisonEvent.Result}\n");

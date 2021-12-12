@@ -12,24 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using BenchmarkDotNet.Attributes;
-using SeedLang.Interpreter;
-using SeedLang.Runtime;
+namespace SeedLang.Runtime {
+  public interface IValue {
+    bool IsNone { get; }
+    bool IsBoolean { get; }
+    bool IsNumber { get; }
+    bool IsString { get; }
+    bool IsList { get; }
 
-namespace SeedLang.Benchmark {
-  public class ValueBenchmark {
-    [Benchmark]
-    public void BenchmarkAddingTwoNumberValue() {
-      var left = new NumberValue(1);
-      var right = new NumberValue(2);
-      double _ = ValueHelper.Add(left, right);
-    }
-
-    [Benchmark]
-    public void BenchmarkAddingTwoVMValue() {
-      var left = new VMValue(1);
-      var right = new VMValue(2);
-      double _ = ValueHelper.Add(in left, in right);
-    }
+    bool Boolean { get; }
+    double Number { get; }
+    string String { get; }
+    int Count { get; }
+    IValue this[int index] { get; }
   }
 }

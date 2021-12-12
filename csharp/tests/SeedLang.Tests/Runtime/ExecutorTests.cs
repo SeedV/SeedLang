@@ -65,19 +65,20 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestRunPythonStatement() {
+    public void TestRunPythonSumProgram() {
       var executor = new Executor();
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
 
-      Assert.True(executor.Run("a = 1", "", SeedXLanguage.SeedPython, RunType.Ast));
-      Assert.True(executor.Run("b = 2", "", SeedXLanguage.SeedPython, RunType.Ast));
-      Assert.True(executor.Run("a + -b", "", SeedXLanguage.SeedPython, RunType.Ast));
-
-      Assert.Equal(1, visualizer.Left.Number);
-      Assert.Equal(BinaryOperator.Add, visualizer.Op);
-      Assert.Equal(-2, visualizer.Right.Number);
-      Assert.Equal(-1, visualizer.Result.Number);
+      string source = @"sum = 0
+i = 1
+while i <= 10:
+  sum = sum + i
+  i = i + 1
+sum
+";
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast));
+      Assert.Equal(55, visualizer.Result.Number);
     }
   }
 }

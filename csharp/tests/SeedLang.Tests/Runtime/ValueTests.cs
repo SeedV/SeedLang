@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -21,105 +23,144 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNoneValue() {
-      var none = new NoneValue();
-      Assert.False(none.Boolean);
-      Assert.Equal(0, none.Number);
-      Assert.Equal("None", none.String);
+      var none = Value.None();
+      Assert.True(none.IsNone());
+      Assert.False(none.AsBoolean());
+      Assert.Equal(0, none.AsNumber());
+      Assert.Equal("None", none.AsString());
       Assert.Equal("None", none.ToString());
+
+      Assert.Throws<NotImplementedException>(() => none.Count());
+      Assert.Throws<NotImplementedException>(() => none[0]);
     }
 
     [Fact]
     public void TestBooleanValue() {
-      var boolean = new BooleanValue(false);
-      Assert.False(boolean.Boolean);
-      Assert.Equal(0, boolean.Number);
-      Assert.Equal(_expectedFalseString, boolean.String);
+      var boolean = Value.Boolean(false);
+      Assert.True(boolean.IsBoolean());
+      Assert.False(boolean.AsBoolean());
+      Assert.Equal(0, boolean.AsNumber());
+      Assert.Equal(_expectedFalseString, boolean.AsString());
       Assert.Equal(_expectedFalseString, boolean.ToString());
 
-      boolean = new BooleanValue(true);
-      Assert.True(boolean.Boolean);
-      Assert.Equal(1, boolean.Number);
-      Assert.Equal(_expectedTrueString, boolean.String);
+      boolean = Value.Boolean(true);
+      Assert.True(boolean.IsBoolean());
+      Assert.True(boolean.AsBoolean());
+      Assert.Equal(1, boolean.AsNumber());
+      Assert.Equal(_expectedTrueString, boolean.AsString());
       Assert.Equal(_expectedTrueString, boolean.ToString());
+
+      Assert.Throws<NotImplementedException>(() => boolean.Count());
+      Assert.Throws<NotImplementedException>(() => boolean[0]);
     }
 
     [Fact]
     public void TestNumberValue() {
-      var number = new NumberValue(1);
-      Assert.True(number.Boolean);
-      Assert.Equal(1, number.Number);
-      Assert.Equal("1", number.String);
+      var number = Value.Number(1);
+      Assert.True(number.IsNumber());
+      Assert.True(number.AsBoolean());
+      Assert.Equal(1, number.AsNumber());
+      Assert.Equal("1", number.AsString());
       Assert.Equal("1", number.ToString());
 
-      number = new NumberValue(2.5);
-      Assert.True(number.Boolean);
-      Assert.Equal(2.5, number.Number);
-      Assert.Equal("2.5", number.String);
+      number = Value.Number(2.5);
+      Assert.True(number.IsNumber());
+      Assert.True(number.AsBoolean());
+      Assert.Equal(2.5, number.AsNumber());
+      Assert.Equal("2.5", number.AsString());
       Assert.Equal("2.5", number.ToString());
+
+      Assert.Throws<NotImplementedException>(() => number.Count());
+      Assert.Throws<NotImplementedException>(() => number[0]);
     }
 
     [Fact]
     public void TestStringValue() {
-      var str = new StringValue("");
-      Assert.False(str.Boolean);
-      Assert.Equal(0, str.Number);
-      Assert.Equal("", str.String);
+      var str = Value.String("");
+      Assert.True(str.IsString());
+      Assert.False(str.AsBoolean());
+      Assert.Equal(0, str.AsNumber());
+      Assert.Equal("", str.AsString());
       Assert.Equal("", str.ToString());
 
-      str = new StringValue(_expectedFalseString);
-      Assert.True(str.Boolean);
-      Assert.Equal(0, str.Number);
-      Assert.Equal(_expectedFalseString, str.String);
+      str = Value.String(_expectedFalseString);
+      Assert.True(str.IsString());
+      Assert.True(str.AsBoolean());
+      Assert.Equal(0, str.AsNumber());
+      Assert.Equal(_expectedFalseString, str.AsString());
       Assert.Equal(_expectedFalseString, str.ToString());
 
-      str = new StringValue(_expectedTrueString);
-      Assert.True(str.Boolean);
-      Assert.Equal(0, str.Number);
-      Assert.Equal(_expectedTrueString, str.String);
+      str = Value.String(_expectedTrueString);
+      Assert.True(str.IsString());
+      Assert.True(str.AsBoolean());
+      Assert.Equal(0, str.AsNumber());
+      Assert.Equal(_expectedTrueString, str.AsString());
       Assert.Equal(_expectedTrueString, str.ToString());
+
+      Assert.Equal(_expectedTrueString.Length, str.Count());
+      for (int i = 0; i < _expectedTrueString.Length; i++) {
+        Assert.Equal(_expectedTrueString[i].ToString(), str[i].AsString());
+      }
+    }
+
+    [Fact]
+    public void TestListValue() {
+      var values = new List<Value>() {
+        Value.Number(1),
+        Value.Number(2),
+        Value.Number(3),
+      };
+      var list = Value.List(values);
+      Assert.True(list.IsList());
+      Assert.Equal(3, list.Count());
+      Assert.True(list[0].IsNumber());
+      Assert.Equal(1, list[0].AsNumber());
+      Assert.True(list[1].IsNumber());
+      Assert.Equal(2, list[1].AsNumber());
+      Assert.True(list[2].IsNumber());
+      Assert.Equal(3, list[2].AsNumber());
+
+      string testString = "test";
+      list[1] = Value.String(testString);
+      Assert.True(list[1].IsString());
+      Assert.Equal(testString, list[1].AsString());
     }
 
     [Fact]
     public void TestValueEquality() {
-      Assert.True(null as IValue == null);
-      Assert.False(new NoneValue() == null);
-      Assert.False(new BooleanValue(false) == null);
-      Assert.False(new NumberValue(0) == null);
-      Assert.False(new StringValue("") == null);
+      Assert.NotEqual(Value.None(), Value.Boolean(false));
+      Assert.NotEqual(Value.None(), Value.Number(0));
+      Assert.NotEqual(Value.None(), Value.String(""));
+      Assert.Equal(Value.None(), Value.None());
 
-      Assert.NotEqual<IValue>(new NoneValue(), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new NoneValue(), new NumberValue(0));
-      Assert.NotEqual<IValue>(new NoneValue(), new StringValue(""));
-      Assert.Equal(new NoneValue(), new NoneValue());
+      Assert.NotEqual(Value.Boolean(false), Value.None());
+      Assert.NotEqual(Value.Boolean(false), Value.String(""));
+      Assert.Equal(Value.Boolean(false), Value.Boolean(false));
+      Assert.Equal(Value.Boolean(true), Value.Boolean(true));
+      Assert.NotEqual(Value.Boolean(false), Value.Boolean(true));
 
-      Assert.NotEqual<IValue>(new BooleanValue(false), new NoneValue());
-      Assert.NotEqual<IValue>(new BooleanValue(false), new StringValue(""));
-      Assert.Equal(new BooleanValue(false), new BooleanValue(false));
-      Assert.Equal(new BooleanValue(true), new BooleanValue(true));
-      Assert.NotEqual(new BooleanValue(false), new BooleanValue(true));
+      Assert.NotEqual(Value.Boolean(false), Value.Number(1));
+      Assert.NotEqual(Value.Boolean(false), Value.Number(2));
+      Assert.NotEqual(Value.Boolean(true), Value.Number(0));
+      Assert.NotEqual(Value.Boolean(true), Value.Number(2));
+      Assert.Equal(Value.Boolean(false), Value.Number(0));
+      Assert.Equal(Value.Boolean(true), Value.Number(1));
 
-      Assert.NotEqual<IValue>(new BooleanValue(false), new NumberValue(1));
-      Assert.NotEqual<IValue>(new BooleanValue(false), new NumberValue(2));
-      Assert.NotEqual<IValue>(new BooleanValue(true), new NumberValue(0));
-      Assert.NotEqual<IValue>(new BooleanValue(true), new NumberValue(2));
-      Assert.Equal<IValue>(new BooleanValue(false), new NumberValue(0));
-      Assert.Equal<IValue>(new BooleanValue(true), new NumberValue(1));
+      Assert.NotEqual(Value.Number(0), Value.None());
+      Assert.NotEqual(Value.Number(0), Value.String(""));
 
-      Assert.NotEqual<IValue>(new NumberValue(0), new NoneValue());
-      Assert.NotEqual<IValue>(new NumberValue(0), new StringValue(""));
+      Assert.NotEqual(Value.Number(1), Value.Boolean(false));
+      Assert.NotEqual(Value.Number(2), Value.Boolean(false));
+      Assert.NotEqual(Value.Number(0), Value.Boolean(true));
+      Assert.NotEqual(Value.Number(2), Value.Boolean(true));
+      Assert.Equal(Value.Number(0), Value.Boolean(false));
+      Assert.Equal(Value.Number(1), Value.Boolean(true));
 
-      Assert.NotEqual<IValue>(new NumberValue(1), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new NumberValue(2), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new NumberValue(0), new BooleanValue(true));
-      Assert.NotEqual<IValue>(new NumberValue(2), new BooleanValue(true));
-      Assert.Equal<IValue>(new NumberValue(0), new BooleanValue(false));
-      Assert.Equal<IValue>(new NumberValue(1), new BooleanValue(true));
-
-      Assert.NotEqual<IValue>(new StringValue(""), new NoneValue());
-      Assert.NotEqual<IValue>(new StringValue(""), new BooleanValue(false));
-      Assert.NotEqual<IValue>(new StringValue(""), new NumberValue(0));
-      Assert.NotEqual<IValue>(new StringValue("0"), new StringValue("1"));
-      Assert.Equal<IValue>(new StringValue("1"), new StringValue("1"));
+      Assert.NotEqual(Value.String(""), Value.None());
+      Assert.NotEqual(Value.String(""), Value.Boolean(false));
+      Assert.NotEqual(Value.String(""), Value.Number(0));
+      Assert.NotEqual(Value.String("0"), Value.String("1"));
+      Assert.Equal(Value.String("1"), Value.String("1"));
     }
   }
 }

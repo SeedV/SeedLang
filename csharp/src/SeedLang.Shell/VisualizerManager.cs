@@ -143,8 +143,8 @@ namespace SeedLang.Shell {
           break;
         case ComparisonEvent ce:
           Console.Write($"Comparison: {ce.First} ");
-          for (int i = 0; i < ce.Ops.Length; ++i) {
-            string exprString = ce.Values[i] is IValue value ? value.String : "?";
+          for (int i = 0; i < ce.Ops.Count; i++) {
+            string exprString = ce.Values[i].IsNumber ? ce.Values[i].String : "?";
             Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {exprString} ");
           }
           Console.Write($"= {ce.Result}");

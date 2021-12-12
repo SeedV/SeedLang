@@ -21,11 +21,10 @@ namespace SeedLang.Interpreter {
     private readonly VisualizerCenter _visualizerCenter;
 
     // The global environment to store names and values of global variables.
-    private readonly GlobalEnvironment<VMValue> _globals =
-        new GlobalEnvironment<VMValue>(new VMValue());
+    private readonly GlobalEnvironment _globals = new GlobalEnvironment(new Value());
 
     private Chunk _chunk;
-    private VMValue[] _registers;
+    private Value[] _registers;
 
     internal VM(VisualizerCenter visualizerCenter = null) {
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
@@ -33,7 +32,7 @@ namespace SeedLang.Interpreter {
 
     internal void Run(Chunk chunk) {
       _chunk = chunk;
-      _registers = new VMValue[_chunk.RegisterCount];
+      _registers = new Value[_chunk.RegisterCount];
       int pc = 0;
       while (pc < _chunk.Bytecode.Count) {
         Instruction instr = _chunk.Bytecode[pc];
@@ -55,11 +54,11 @@ namespace SeedLang.Interpreter {
               HandleBinary(instr, _chunk.Ranges[pc]);
               break;
             case Opcode.UNM:
-              _registers[instr.A] = new VMValue(-ValueOfRK(instr.B).Number);
+              _registers[instr.A] = Value.Number(-ValueOfRK(instr.B).AsNumber());
               break;
             case Opcode.EVAL:
               if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-                var ee = new EvalEvent(_registers[instr.A], _chunk.Ranges[pc]);
+                var ee = new EvalEvent(new ValueWrapper(_registers[instr.A]), _chunk.Ranges[pc]);
                 _visualizerCenter.EvalPublisher.Notify(ee);
               }
               break;
@@ -85,7 +84,7 @@ namespace SeedLang.Interpreter {
       var name = _chunk.ValueOfConstId(instr.Bx).ToString();
       _globals.SetVariable(name, _registers[instr.A]);
       if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var ae = new AssignmentEvent(name, _registers[instr.A], range);
+        var ae = new AssignmentEvent(name, new ValueWrapper(_registers[instr.A]), range);
         _visualizerCenter.AssignmentPublisher.Notify(ae);
       }
     }
@@ -93,8 +92,8 @@ namespace SeedLang.Interpreter {
     private void HandleBinary(Instruction instr, Range range) {
       BinaryOperator op = BinaryOperator.Add;
       double result = 0;
-      VMValue left = ValueOfRK(instr.B);
-      VMValue right = ValueOfRK(instr.C);
+      Value left = ValueOfRK(instr.B);
+      Value right = ValueOfRK(instr.C);
       switch (instr.Opcode) {
         case Opcode.ADD:
           op = BinaryOperator.Add;
@@ -113,16 +112,17 @@ namespace SeedLang.Interpreter {
           result = ValueHelper.Divide(left, right);
           break;
       }
-      _registers[instr.A] = new VMValue(result);
+      _registers[instr.A] = Value.Number(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var be = new BinaryEvent(left, op, right, _registers[instr.A], range);
+        var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
+                                 new ValueWrapper(_registers[instr.A]), range);
         _visualizerCenter.BinaryPublisher.Notify(be);
       }
     }
 
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to
     // avoid copying.
-    private ref readonly VMValue ValueOfRK(uint rkPos) {
+    private ref readonly Value ValueOfRK(uint rkPos) {
       if (rkPos < Chunk.MaxRegisterCount) {
         return ref _registers[rkPos];
       }
@@ -130,7 +130,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Loads the constant value of constId. Returns a readonly reference to avoid copying.
-    private ref readonly VMValue LoadConstantValue(uint constId) {
+    private ref readonly Value LoadConstantValue(uint constId) {
       return ref _chunk.ValueOfConstId(constId);
     }
   }

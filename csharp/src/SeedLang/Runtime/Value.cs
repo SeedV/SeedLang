@@ -102,7 +102,17 @@ namespace SeedLang.Runtime {
     }
 
     public override string ToString() {
-      return AsString();
+      switch (_type) {
+        case ValueType.None:
+        case ValueType.Boolean:
+        case ValueType.Number:
+          return AsString();
+        case ValueType.String:
+        case ValueType.List:
+          return _object.ToString();
+        default:
+          throw new NotImplementedException($"Unsupported value type: {_type}.");
+      }
     }
 
     internal static Value None() {

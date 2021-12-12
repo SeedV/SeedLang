@@ -14,6 +14,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
+using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   internal class HeapObject {
@@ -25,6 +27,10 @@ namespace SeedLang.Runtime {
 
     private HeapObject(List<Value> list) {
       _object = list;
+    }
+
+    public override string ToString() {
+      return AsString();
     }
 
     internal static HeapObject String(string str) {
@@ -40,7 +46,7 @@ namespace SeedLang.Runtime {
         case string str:
           return str;
         case List<Value> list:
-          return list.ToString();
+          return ToString(list);
         default:
           throw new NotImplementedException($"Unsupported heap object type: {_object}");
       }
@@ -61,8 +67,10 @@ namespace SeedLang.Runtime {
       get {
         switch (_object) {
           case string str:
+            CheckOutOfRange(index, str.Length);
             return Value.String(str[index].ToString());
           case List<Value> list:
+            CheckOutOfRange(index, list.Count);
             return list[index];
           default:
             throw new NotImplementedException($"Unsupported heap object type: {_object}");
@@ -73,12 +81,36 @@ namespace SeedLang.Runtime {
           case string _:
             throw new NotImplementedException("");
           case List<Value> list:
+            CheckOutOfRange(index, list.Count);
             list[index] = value;
             break;
           default:
             throw new NotImplementedException($"Unsupported heap object type: {_object}");
         }
       }
+    }
+
+    private static void CheckOutOfRange(int index, int length) {
+      if (index < 0 || index >= length) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorOutOfRange);
+      }
+    }
+
+    private static string ToString(IReadOnlyList<Value> values) {
+      var sb = new StringBuilder();
+      sb.Append('[');
+      bool first = true;
+      foreach (Value value in values) {
+        if (first) {
+          first = false;
+        } else {
+          sb.Append(", ");
+        }
+        sb.Append(value);
+      }
+      sb.Append(']');
+      return sb.ToString();
     }
   }
 }

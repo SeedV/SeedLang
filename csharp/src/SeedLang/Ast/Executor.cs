@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -187,11 +188,19 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(ListExpression list) {
-      throw new NotImplementedException();
+      var initialValues = new List<Value>();
+      foreach (Expression expr in list.Exprs) {
+        Visit(expr);
+        initialValues.Add(_expressionResult);
+      }
+      _expressionResult = Value.List(initialValues);
     }
 
     protected override void Visit(SubscriptExpression subscript) {
-      throw new NotImplementedException();
+      Visit(subscript.Expr);
+      Value list = _expressionResult;
+      Visit(subscript.Index);
+      _expressionResult = list[(int)_expressionResult.AsNumber()];
     }
 
     protected override void Visit(AssignmentStatement assignment) {

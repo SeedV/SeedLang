@@ -27,6 +27,8 @@ namespace SeedLang.Ast.Tests {
         AddExpression();
         AddIf();
         AddIfElse();
+        AddList();
+        AddSubscript();
         AddWhile();
       }
 
@@ -88,6 +90,27 @@ namespace SeedLang.Ast.Tests {
         var ifFalse = Statement.If(@false, one, two, _textRange);
         var expectedFalseOutput = $"{_textRange} Eval 2\n";
         Add(ifFalse, expectedFalseOutput);
+      }
+
+      private void AddList() {
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var three = Expression.NumberConstant(3, _textRange);
+        var list = Expression.List(new Expression[] { one, two, three }, _textRange);
+        var eval = Statement.Expression(list, _textRange);
+        var expectedOutput = $"{_textRange} Eval [1, 2, 3]\n";
+        Add(eval, expectedOutput);
+      }
+
+      private void AddSubscript() {
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var three = Expression.NumberConstant(3, _textRange);
+        var list = Expression.List(new Expression[] { one, two, three }, _textRange);
+        var subscript = Expression.Subscript(list, one, _textRange);
+        var eval = Statement.Expression(subscript, _textRange);
+        var expectedOutput = $"{_textRange} Eval 2\n";
+        Add(eval, expectedOutput);
       }
 
       private void AddWhile() {

@@ -121,7 +121,7 @@ namespace SeedLang.Runtime {
       // TODO: do we need separate NaN as another runtime error?
       if (double.IsInfinity(value) || double.IsNaN(value)) {
         throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", range,
-                                      Message.RuntimeOverflow);
+                                      Message.RuntimeErrorOverflow);
       }
     }
   }

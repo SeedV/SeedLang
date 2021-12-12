@@ -34,7 +34,8 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 +",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '1+\n'",
+                  @"SyntaxErrorInputMismatch '\n' " +
+                  @"{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -42,7 +43,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + (",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '1+(\n'",
+                  @"SyntaxErrorNoViableAlternative '(\n'",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -51,7 +52,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + ((",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '1+((\n'",
+                  @"SyntaxErrorNoViableAlternative '((\n'",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -61,7 +62,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + (((",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '1+(((\n'",
+                  @"SyntaxErrorNoViableAlternative '(((\n'",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -72,7 +73,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + (2 - 1",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '1+(2-1\n'",
+                  @"SyntaxErrorNoViableAlternative '(2-1\n'",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -84,7 +85,8 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + ))",
                 new string[] {
-                  "SyntaxErrorNoViableAlternative '1+)'",
+                  "SyntaxErrorInputMismatch ')' " +
+                  "{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -94,7 +96,8 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 < 2 >=",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '1<2>=\n'",
+                  @"SyntaxErrorInputMismatch '\n' " +
+                  @"{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +

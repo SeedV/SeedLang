@@ -26,6 +26,10 @@ tokens {
   DEDENT
 }
 
+/*
+ * Parser rules
+ */
+
 program: statements? EOF;
 
 statements: statement+;

@@ -208,6 +208,11 @@ namespace SeedLang.X {
                                    context.CLOSE_PAREN().Symbol, this);
     }
 
+    public override AstNode VisitList([NotNull] SeedPythonParser.ListContext context) {
+      return _helper.BuildList(context.OPEN_BRACK().Symbol, context.expressions().expression(),
+                               context.expressions().COMMA(), context.CLOSE_BRACK().Symbol, this);
+    }
+
     private static ComparisonOperator ToComparisonOperator(IToken token) {
       switch (token.Type) {
         case SeedPythonParser.LESS:

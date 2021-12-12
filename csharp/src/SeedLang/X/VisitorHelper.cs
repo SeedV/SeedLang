@@ -193,6 +193,32 @@ namespace SeedLang.X {
       return Expression.StringConstant(token.Text, range);
     }
 
+    // Builds a list expression.
+    internal ListExpression BuildList(IToken openBrackToken, ParserRuleContext[] exprContexts,
+                                      ITerminalNode[] commaNodes, IToken closeBrackToken,
+                                      AbstractParseTreeVisitor<AstNode> visitor) {
+      Debug.Assert(exprContexts.Length == commaNodes.Length ||
+                   exprContexts.Length == commaNodes.Length + 1);
+      TextRange openBrackRange = CodeReferenceUtils.RangeOfToken(openBrackToken);
+      AddSyntaxToken(SyntaxType.Bracket, openBrackRange);
+      var exprs = new Expression[exprContexts.Length];
+      for (int i = 0; i < exprContexts.Length; i++) {
+        if (visitor.Visit(exprContexts[i]) is Expression expr) {
+          exprs[i] = expr;
+          if (i < commaNodes.Length) {
+            TextRange commaRange = CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol);
+            AddSyntaxToken(SyntaxType.Symbol, commaRange);
+          }
+        } else {
+          return null;
+        }
+      }
+      TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
+      AddSyntaxToken(SyntaxType.Bracket, closeBrackRange);
+      TextRange range = CodeReferenceUtils.CombineRanges(openBrackRange, closeBrackRange);
+      return Expression.List(exprs, range);
+    }
+
     // Builds an assignment statement.
     internal AssignmentStatement BuildAssignment(IToken idToken, IToken equalToken,
                                                  ParserRuleContext exprContext,

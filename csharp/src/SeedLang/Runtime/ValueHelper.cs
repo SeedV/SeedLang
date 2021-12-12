@@ -63,6 +63,10 @@ namespace SeedLang.Runtime {
     }
 
     internal static double Modulo(in Value lhs, in Value rhs) {
+      if (rhs.AsNumber() == 0) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                      Message.RuntimeErrorDivideByZero);
+      }
       double result = lhs.AsNumber() % rhs.AsNumber();
       CheckOverflow(result);
       return result;

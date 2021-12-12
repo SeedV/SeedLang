@@ -16,23 +16,23 @@ using System;
 using System.Collections.Generic;
 
 namespace SeedLang.Runtime {
-  internal class BoxValue {
+  internal class HeapObject {
     private readonly object _object;
 
-    private BoxValue(string str) {
+    private HeapObject(string str) {
       _object = str;
     }
 
-    private BoxValue(List<Value> list) {
+    private HeapObject(List<Value> list) {
       _object = list;
     }
 
-    internal static BoxValue String(string str) {
-      return new BoxValue(str);
+    internal static HeapObject String(string str) {
+      return new HeapObject(str);
     }
 
-    internal static BoxValue List(List<Value> values) {
-      return new BoxValue(values);
+    internal static HeapObject List(List<Value> values) {
+      return new HeapObject(values);
     }
 
     internal string AsString() {

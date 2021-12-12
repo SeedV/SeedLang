@@ -34,26 +34,26 @@ namespace SeedLang.Runtime {
 
     private readonly ValueType _type;
     private readonly double _number;
-    private readonly BoxValue _box;
+    private readonly HeapObject _object;
 
     private Value(bool value) {
       _type = ValueType.Boolean;
       _number = ValueHelper.BooleanToNumber(value);
-      _box = null;
+      _object = null;
     }
 
     private Value(double value) {
       _type = ValueType.Number;
       _number = value;
-      _box = null;
+      _object = null;
     }
 
-    private Value(string value) : this(ValueType.String, BoxValue.String(value)) { }
+    private Value(string value) : this(ValueType.String, HeapObject.String(value)) { }
 
-    private Value(ValueType type, BoxValue box) {
+    private Value(ValueType type, HeapObject box) {
       _type = type;
       _number = 0;
-      _box = box;
+      _object = box;
     }
 
     public static bool operator ==(in Value lhs, in Value rhs) {
@@ -73,7 +73,7 @@ namespace SeedLang.Runtime {
           return (other._type == ValueType.Boolean || other._type == ValueType.Number) &&
                  _number == other._number;
         case ValueType.String:
-          return other._type == ValueType.String && _box.AsString() == other._box.AsString();
+          return other._type == ValueType.String && _object.AsString() == other._object.AsString();
         case ValueType.List:
           // TODO: implement equality check for list values.
           throw new NotImplementedException();
@@ -95,7 +95,7 @@ namespace SeedLang.Runtime {
           return (_type, _number).GetHashCode();
         case ValueType.String:
         case ValueType.List:
-          return (_type, _box).GetHashCode();
+          return (_type, _object).GetHashCode();
         default:
           throw new NotImplementedException($"Unsupported value type: {_type}.");
       }
@@ -122,7 +122,7 @@ namespace SeedLang.Runtime {
     }
 
     internal static Value List(List<Value> values) {
-      return new Value(ValueType.List, BoxValue.List(values));
+      return new Value(ValueType.List, HeapObject.List(values));
     }
 
     internal Value this[int index] {
@@ -135,13 +135,13 @@ namespace SeedLang.Runtime {
             throw new NotImplementedException();
           case ValueType.String:
           case ValueType.List:
-            return _box[index];
+            return _object[index];
           default:
             throw new NotImplementedException($"Unsupported value type: {_type}.");
         }
       }
       set {
-        _box[index] = value;
+        _object[index] = value;
       }
     }
 
@@ -159,7 +159,7 @@ namespace SeedLang.Runtime {
         case ValueType.Number:
           return ValueHelper.NumberToBoolean(_number);
         case ValueType.String:
-          return ValueHelper.StringToBoolean(_box.AsString());
+          return ValueHelper.StringToBoolean(_object.AsString());
         case ValueType.List:
           return Count() != 0;
         default:
@@ -175,7 +175,7 @@ namespace SeedLang.Runtime {
         case ValueType.Number:
           return _number;
         case ValueType.String:
-          return ValueHelper.StringToNumber(_box.AsString());
+          return ValueHelper.StringToNumber(_object.AsString());
         case ValueType.List:
           // TODO: throw runtime cast exceptions.
           throw new NotImplementedException();
@@ -193,7 +193,7 @@ namespace SeedLang.Runtime {
         case ValueType.Number:
           return ValueHelper.NumberToString(_number);
         case ValueType.String:
-          return _box.AsString();
+          return _object.AsString();
         case ValueType.List:
           // TODO: throw runtime cast exceptions.
           throw new NotImplementedException();
@@ -211,7 +211,7 @@ namespace SeedLang.Runtime {
           throw new NotImplementedException();
         case ValueType.String:
         case ValueType.List:
-          return _box.Count();
+          return _object.Count();
         default:
           throw new NotImplementedException($"Unsupported value type: {_type}.");
       }

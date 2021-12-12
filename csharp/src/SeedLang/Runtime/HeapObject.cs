@@ -42,7 +42,7 @@ namespace SeedLang.Runtime {
         case List<Value> list:
           return list.ToString();
         default:
-          throw new NotImplementedException($"Unsupported box type: {_object}");
+          throw new NotImplementedException($"Unsupported heap object type: {_object}");
       }
     }
 
@@ -53,7 +53,7 @@ namespace SeedLang.Runtime {
         case List<Value> list:
           return list.Count;
         default:
-          throw new NotImplementedException($"Unsupported box type: {_object}");
+          throw new NotImplementedException($"Unsupported heap object type: {_object}");
       }
     }
 
@@ -65,7 +65,7 @@ namespace SeedLang.Runtime {
           case List<Value> list:
             return list[index];
           default:
-            throw new NotImplementedException($"Unsupported box type: {_object}");
+            throw new NotImplementedException($"Unsupported heap object type: {_object}");
         }
       }
       set {
@@ -76,7 +76,7 @@ namespace SeedLang.Runtime {
             list[index] = value;
             break;
           default:
-            throw new NotImplementedException($"Unsupported box type: {_object}");
+            throw new NotImplementedException($"Unsupported heap object type: {_object}");
         }
       }
     }

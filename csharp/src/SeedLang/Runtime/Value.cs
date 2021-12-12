@@ -50,10 +50,10 @@ namespace SeedLang.Runtime {
 
     private Value(string value) : this(ValueType.String, HeapObject.String(value)) { }
 
-    private Value(ValueType type, HeapObject box) {
+    private Value(ValueType type, HeapObject obj) {
       _type = type;
       _number = 0;
-      _object = box;
+      _object = obj;
     }
 
     public static bool operator ==(in Value lhs, in Value rhs) {

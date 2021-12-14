@@ -81,7 +81,9 @@ list: OPEN_BRACK expressions? CLOSE_BRACK;
 
 /*
  * Lexer rules
- */ TRUE: 'True';
+ */
+
+TRUE: 'True';
 FALSE: 'False';
 NONE: 'None';
 

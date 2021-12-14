@@ -243,6 +243,27 @@ namespace SeedLang.X.Tests {
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "Bracket [Ln 1, Col 8 - Ln 1, Col 8]")]
+
+    [InlineData("[1, 2, 3][1]",
+
+                "[Ln 1, Col 0 - Ln 1, Col 11] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 11] SubscriptExpression\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 8] ListExpression\n" +
+                "      [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
+                "      [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)\n" +
+                "    [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)",
+
+                "Bracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Bracket [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Bracket [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Bracket [Ln 1, Col 11 - Ln 1, Col 11]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

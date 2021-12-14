@@ -137,9 +137,16 @@ namespace SeedLang.Interpreter {
       _expressionInfo.CanHandleConstSubExpr = false;
       _expressionInfo.ResultRegister = resultRegister;
       Visit(assignment.Expr);
-      uint variableNameId = _constantCache.IdOfConstant(assignment.Identifier.Name);
-      _chunk.Emit(Opcode.SETGLOB, resultRegister, variableNameId, assignment.Range);
-      _registerAllocator.DeallocateVariable();
+      switch (assignment.Target) {
+        case IdentifierExpression identifier:
+          uint variableNameId = _constantCache.IdOfConstant(identifier.Name);
+          _chunk.Emit(Opcode.SETGLOB, resultRegister, variableNameId, assignment.Range);
+          _registerAllocator.DeallocateVariable();
+          break;
+        case SubscriptExpression _:
+          // TODO: handle subscript assignment.
+          break;
+      }
     }
 
     protected override void Visit(BlockStatement block) {

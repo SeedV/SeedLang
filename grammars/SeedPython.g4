@@ -45,7 +45,12 @@ simple_stmt:
   | 'continue'  # continue;
 compound_stmt: if_stmt # if | while_stmt # while;
 
-assignment: NAME EQUAL expression;
+assignment: name_assignment | subscript_assignment;
+name_assignment: NAME EQUAL expression;
+subscript_assignment:
+  left_subscript EQUAL expression;
+left_subscript:
+  primary OPEN_BRACK expression CLOSE_BRACK;
 
 if_stmt:
   IF expression COLON block elif_stmt       # if_elif

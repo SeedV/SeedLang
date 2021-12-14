@@ -64,9 +64,23 @@ namespace SeedLang.X {
       return VisitorHelper.BuildExpressionStatement(context.expressions(), this);
     }
 
-    public override AstNode VisitAssignment([NotNull] SeedPythonParser.AssignmentContext context) {
+    public override AstNode VisitName_assignment(
+        [NotNull] SeedPythonParser.Name_assignmentContext context) {
       return _helper.BuildAssignment(context.NAME().Symbol, context.EQUAL().Symbol,
                                      context.expression(), this);
+    }
+
+    public override AstNode VisitSubscript_assignment(
+      [NotNull] SeedPythonParser.Subscript_assignmentContext context) {
+      var subscript = Visit(context.left_subscript()) as SubscriptExpression;
+      return _helper.BuildSubscriptAssignment(subscript, context.EQUAL().Symbol,
+                                              context.expression(), this);
+    }
+
+    public override AstNode VisitLeft_subscript(
+        [NotNull] SeedPythonParser.Left_subscriptContext context) {
+      return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
+                                    context.expression(), context.CLOSE_BRACK().Symbol, this);
     }
 
     public override AstNode VisitIf_elif([NotNull] SeedPythonParser.If_elifContext context) {
@@ -181,6 +195,11 @@ namespace SeedLang.X {
     public override AstNode VisitPower([NotNull] SeedPythonParser.PowerContext context) {
       return _helper.BuildBinary(context.primary(), context.POWER().Symbol, BinaryOperator.Power,
                                  context.factor(), this);
+    }
+
+    public override AstNode VisitSubscript([NotNull] SeedPythonParser.SubscriptContext context) {
+      return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
+                                    context.expression(), context.CLOSE_BRACK().Symbol, this);
     }
 
     public override AstNode VisitName([NotNull] SeedPythonParser.NameContext context) {

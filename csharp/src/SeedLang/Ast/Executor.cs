@@ -200,15 +200,32 @@ namespace SeedLang.Ast {
       Visit(subscript.Expr);
       Value list = _expressionResult;
       Visit(subscript.Index);
-      _expressionResult = list[(int)_expressionResult.AsNumber()];
+      try {
+        _expressionResult = list[(int)_expressionResult.AsNumber()];
+      } catch (DiagnosticException ex) {
+        throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
+                                      ex.Diagnostic.Module, subscript.Range,
+                                      ex.Diagnostic.MessageId);
+      }
     }
 
     protected override void Visit(AssignmentStatement assignment) {
       Visit(assignment.Expr);
-      _globals.SetVariable(assignment.Identifier.Name, _expressionResult);
-      var ae = new AssignmentEvent(assignment.Identifier.Name, new ValueWrapper(_expressionResult),
-                                   assignment.Range);
-      _visualizerCenter.AssignmentPublisher.Notify(ae);
+      switch (assignment.Target) {
+        case IdentifierExpression identifier:
+          _globals.SetVariable(identifier.Name, _expressionResult);
+          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(_expressionResult),
+                                       assignment.Range);
+          _visualizerCenter.AssignmentPublisher.Notify(ae);
+          break;
+        case SubscriptExpression subscript:
+          Value value = _expressionResult;
+          Visit(subscript.Expr);
+          Value list = _expressionResult;
+          Visit(subscript.Index);
+          list[(int)_expressionResult.AsNumber()] = value;
+          break;
+      }
     }
 
     protected override void Visit(BlockStatement block) {

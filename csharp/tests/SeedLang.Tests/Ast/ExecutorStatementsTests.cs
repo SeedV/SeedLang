@@ -29,6 +29,7 @@ namespace SeedLang.Ast.Tests {
         AddIfElse();
         AddList();
         AddSubscript();
+        AddSubscriptAssignment();
         AddWhile();
       }
 
@@ -111,6 +112,22 @@ namespace SeedLang.Ast.Tests {
         var eval = Statement.Expression(subscript, _textRange);
         var expectedOutput = $"{_textRange} Eval 2\n";
         Add(eval, expectedOutput);
+      }
+
+      private void AddSubscriptAssignment() {
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var three = Expression.NumberConstant(3, _textRange);
+        var list = Expression.List(new Expression[] { one, two, three }, _textRange);
+
+        var identifier = Expression.Identifier("a", _textRange);
+        var assignList = Statement.Assignment(identifier, list, _textRange);
+
+        var subscript = Expression.Subscript(identifier, one, _textRange);
+        var assignment = Statement.Assignment(subscript, three, _textRange);
+        var block = Statement.Block(new Statement[] { assignList, assignment }, _textRange);
+        var expectedOutput = $"{_textRange} a = [1, 3, 3]\n";
+        Add(block, expectedOutput);
       }
 
       private void AddWhile() {

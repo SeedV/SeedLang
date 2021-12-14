@@ -183,7 +183,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(AssignmentStatement assignment) {
       Enter(assignment);
-      Visit(assignment.Identifier);
+      Visit(assignment.Target);
       Visit(assignment.Expr);
       Exit();
     }

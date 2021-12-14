@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics;
 using SeedLang.Common;
 
 namespace SeedLang.Ast {
   // The base class of all statement nodes.
   internal abstract class Statement : AstNode {
     // The factory method to create an assignment statement.
-    internal static AssignmentStatement Assignment(IdentifierExpression identifier, Expression expr,
+    internal static AssignmentStatement Assignment(Expression target, Expression expr,
                                                    Range range) {
-      return new AssignmentStatement(identifier, expr, range);
+      return new AssignmentStatement(target, expr, range);
     }
 
     // The factory method to create a block statement.
@@ -49,12 +50,15 @@ namespace SeedLang.Ast {
   }
 
   internal class AssignmentStatement : Statement {
-    public IdentifierExpression Identifier { get; }
+    // The target of the assignment statement. It could be IdentifierExpression or
+    // SubscriptExpression.
+    public Expression Target { get; }
     public Expression Expr { get; }
 
-    internal AssignmentStatement(IdentifierExpression identifier, Expression expr,
-                                 Range range) : base(range) {
-      Identifier = identifier;
+    internal AssignmentStatement(Expression target, Expression expr, Range range) :
+        base(range) {
+      Debug.Assert(target is IdentifierExpression || target is SubscriptExpression);
+      Target = target;
       Expr = expr;
     }
   }

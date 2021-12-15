@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   // The value type used in the SeedLang core components.
@@ -141,8 +142,8 @@ namespace SeedLang.Runtime {
           case ValueType.None:
           case ValueType.Boolean:
           case ValueType.Number:
-            // TODO: throw runtime cast exceptions.
-            throw new NotImplementedException();
+            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                          Message.RuntimeErrorNotSubscriptable);
           case ValueType.String:
           case ValueType.List:
             return _object[index];

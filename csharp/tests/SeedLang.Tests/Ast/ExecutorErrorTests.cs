@@ -69,6 +69,17 @@ namespace SeedLang.Ast.Tests {
       Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
     }
 
+    [Fact]
+    public void TestExecuteNotSubscriptable() {
+      var one = Expression.NumberConstant(1, _textRange);
+      var two = Expression.NumberConstant(2, _textRange);
+      var subscript = Expression.Subscript(one, two, _textRange);
+
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      var exception = Assert.Throws<DiagnosticException>(() => executor.Run(subscript));
+      Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception.Diagnostic.MessageId);
+    }
+
     private static (Executor, MockupVisualizer) NewExecutorWithVisualizer() {
       var visualizer = new MockupVisualizer();
       var visualizerCenter = new VisualizerCenter();

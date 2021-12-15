@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -228,8 +229,16 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitList([NotNull] SeedPythonParser.ListContext context) {
-      return _helper.BuildList(context.OPEN_BRACK().Symbol, context.expressions().expression(),
-                               context.expressions().COMMA(), context.CLOSE_BRACK().Symbol, this);
+      // There isn't a corresponding AST node for the parse rule "expressions". Parses them by the
+      // BuildList function.
+      var exprContexts = Array.Empty<ParserRuleContext>();
+      ITerminalNode[] commaNodes = Array.Empty<ITerminalNode>();
+      if (!(context.expressions() is null)) {
+        exprContexts = context.expressions().expression();
+        commaNodes = context.expressions().COMMA();
+      }
+      return _helper.BuildList(context.OPEN_BRACK().Symbol, exprContexts, commaNodes,
+                               context.CLOSE_BRACK().Symbol, this);
     }
 
     private static ComparisonOperator ToComparisonOperator(IToken token) {

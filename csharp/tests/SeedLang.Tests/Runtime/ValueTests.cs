@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -31,7 +32,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal("None", none.ToString());
 
       Assert.Throws<NotImplementedException>(() => none.Count());
-      Assert.Throws<NotImplementedException>(() => none[0]);
+      Assert.Throws<DiagnosticException>(() => none[0]);
     }
 
     [Fact]
@@ -51,7 +52,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(_expectedTrueString, boolean.ToString());
 
       Assert.Throws<NotImplementedException>(() => boolean.Count());
-      Assert.Throws<NotImplementedException>(() => boolean[0]);
+      Assert.Throws<DiagnosticException>(() => boolean[0]);
     }
 
     [Fact]
@@ -71,7 +72,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal("2.5", number.ToString());
 
       Assert.Throws<NotImplementedException>(() => number.Count());
-      Assert.Throws<NotImplementedException>(() => number[0]);
+      Assert.Throws<DiagnosticException>(() => number[0]);
     }
 
     [Fact]

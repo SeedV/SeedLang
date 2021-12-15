@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   // The value type used in the SeedLang core components.
@@ -102,7 +103,17 @@ namespace SeedLang.Runtime {
     }
 
     public override string ToString() {
-      return AsString();
+      switch (_type) {
+        case ValueType.None:
+        case ValueType.Boolean:
+        case ValueType.Number:
+          return AsString();
+        case ValueType.String:
+        case ValueType.List:
+          return _object.ToString();
+        default:
+          throw new NotImplementedException($"Unsupported value type: {_type}.");
+      }
     }
 
     internal static Value None() {
@@ -125,14 +136,14 @@ namespace SeedLang.Runtime {
       return new Value(ValueType.List, HeapObject.List(values));
     }
 
-    internal Value this[int index] {
+    internal Value this[double index] {
       get {
         switch (_type) {
           case ValueType.None:
           case ValueType.Boolean:
           case ValueType.Number:
-            // TODO: throw runtime cast exceptions.
-            throw new NotImplementedException();
+            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                          Message.RuntimeErrorNotSubscriptable);
           case ValueType.String:
           case ValueType.List:
             return _object[index];

@@ -35,16 +35,29 @@ namespace SeedLang.Ast.Tests {
     }
 
     [Fact]
+    public void TestExecuteOutOfRange() {
+      var one = Expression.NumberConstant(1, _textRange);
+      var two = Expression.NumberConstant(2, _textRange);
+      var three = Expression.NumberConstant(3, _textRange);
+      var list = Expression.List(new Expression[] { one, two, three }, _textRange);
+      var subscript = Expression.Subscript(list, three, _textRange);
+      var eval = Statement.Expression(subscript, _textRange);
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      var exception = Assert.Throws<DiagnosticException>(() => executor.Run(eval));
+      Assert.Equal(Message.RuntimeErrorOutOfRange, exception.Diagnostic.MessageId);
+    }
+
+    [Fact]
     public void TestExecuteOverflow() {
       var exception = Assert.Throws<DiagnosticException>(() =>
           Expression.NumberConstant(double.PositiveInfinity, _textRange));
-      Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
+      Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
       exception = Assert.Throws<DiagnosticException>(() =>
           Expression.NumberConstant(double.NegativeInfinity, _textRange));
-      Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
+      Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
       exception = Assert.Throws<DiagnosticException>(() =>
           Expression.NumberConstant(double.NaN, _textRange));
-      Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
+      Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
 
       var binary = Expression.Binary(Expression.NumberConstant(7.997e307, _textRange),
                                      BinaryOperator.Add,
@@ -53,7 +66,31 @@ namespace SeedLang.Ast.Tests {
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       exception = Assert.Throws<DiagnosticException>(() => executor.Run(binary));
-      Assert.Equal(Message.RuntimeOverflow, exception.Diagnostic.MessageId);
+      Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
+    }
+
+    [Fact]
+    public void TestExecuteNotSubscriptable() {
+      var one = Expression.NumberConstant(1, _textRange);
+      var two = Expression.NumberConstant(2, _textRange);
+      var subscript = Expression.Subscript(one, two, _textRange);
+
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      var exception = Assert.Throws<DiagnosticException>(() => executor.Run(subscript));
+      Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception.Diagnostic.MessageId);
+    }
+
+    [Fact]
+    public void TestExecuteInvalidListIndex() {
+      var one = Expression.NumberConstant(1, _textRange);
+      var two = Expression.NumberConstant(2, _textRange);
+      var list = Expression.List(new Expression[] { one, two }, _textRange);
+      var index = Expression.NumberConstant(0.1, _textRange);
+      var subscript = Expression.Subscript(list, index, _textRange);
+
+      (var executor, var visualizer) = NewExecutorWithVisualizer();
+      var exception = Assert.Throws<DiagnosticException>(() => executor.Run(subscript));
+      Assert.Equal(Message.RuntimeErrorInvalidListIndex, exception.Diagnostic.MessageId);
     }
 
     private static (Executor, MockupVisualizer) NewExecutorWithVisualizer() {

@@ -70,7 +70,10 @@ namespace SeedLang.Common {
     InvalidOperatorName1,               // Invalid operator name.
     InvalidPrimitiveValue1,             // Invalid primitive value.
     RuntimeErrorDivideByZero,           // Divide by zero runtime error.
-    RuntimeOverflow,                    // Overflow runtime error.
+    RuntimeErrorInvalidListIndex,       // Invalid list index runtime error.
+    RuntimeErrorNotSubscriptable,       // Not subscriptable runtime error.
+    RuntimeErrorOutOfRange,             // Index out of range runtime error.
+    RuntimeErrorOverflow,               // Overflow runtime error.
     SyntaxErrorFailedPredicate1,        // Semantic predicate failed syntax error.
     SyntaxErrorInputMismatch2,          // Input mismatch syntax error.
     SyntaxErrorMissingToken2,           // Missing token syntax error.

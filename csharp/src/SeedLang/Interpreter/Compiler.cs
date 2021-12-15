@@ -124,14 +124,29 @@ namespace SeedLang.Interpreter {
       throw new NotImplementedException();
     }
 
+    protected override void Visit(ListExpression list) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(SubscriptExpression subscript) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(AssignmentStatement assignment) {
       uint resultRegister = _registerAllocator.AllocateTempVariable();
       _expressionInfo.CanHandleConstSubExpr = false;
       _expressionInfo.ResultRegister = resultRegister;
       Visit(assignment.Expr);
-      uint variableNameId = _constantCache.IdOfConstant(assignment.Identifier.Name);
-      _chunk.Emit(Opcode.SETGLOB, resultRegister, variableNameId, assignment.Range);
-      _registerAllocator.DeallocateVariable();
+      switch (assignment.Target) {
+        case IdentifierExpression identifier:
+          uint variableNameId = _constantCache.IdOfConstant(identifier.Name);
+          _chunk.Emit(Opcode.SETGLOB, resultRegister, variableNameId, assignment.Range);
+          _registerAllocator.DeallocateVariable();
+          break;
+        case SubscriptExpression _:
+          // TODO: handle subscript assignment.
+          break;
+      }
     }
 
     protected override void Visit(BlockStatement block) {

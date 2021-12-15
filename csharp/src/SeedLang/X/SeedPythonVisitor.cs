@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -64,9 +65,23 @@ namespace SeedLang.X {
       return VisitorHelper.BuildExpressionStatement(context.expressions(), this);
     }
 
-    public override AstNode VisitAssignment([NotNull] SeedPythonParser.AssignmentContext context) {
+    public override AstNode VisitName_assignment(
+        [NotNull] SeedPythonParser.Name_assignmentContext context) {
       return _helper.BuildAssignment(context.NAME().Symbol, context.EQUAL().Symbol,
                                      context.expression(), this);
+    }
+
+    public override AstNode VisitSubscript_assignment(
+      [NotNull] SeedPythonParser.Subscript_assignmentContext context) {
+      var subscript = Visit(context.left_subscript()) as SubscriptExpression;
+      return _helper.BuildSubscriptAssignment(subscript, context.EQUAL().Symbol,
+                                              context.expression(), this);
+    }
+
+    public override AstNode VisitLeft_subscript(
+        [NotNull] SeedPythonParser.Left_subscriptContext context) {
+      return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
+                                    context.expression(), context.CLOSE_BRACK().Symbol, this);
     }
 
     public override AstNode VisitIf_elif([NotNull] SeedPythonParser.If_elifContext context) {
@@ -183,6 +198,11 @@ namespace SeedLang.X {
                                  context.factor(), this);
     }
 
+    public override AstNode VisitSubscript([NotNull] SeedPythonParser.SubscriptContext context) {
+      return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
+                                    context.expression(), context.CLOSE_BRACK().Symbol, this);
+    }
+
     public override AstNode VisitName([NotNull] SeedPythonParser.NameContext context) {
       return _helper.BuildIdentifier(context.NAME().Symbol);
     }
@@ -206,6 +226,19 @@ namespace SeedLang.X {
     public override AstNode VisitGroup([NotNull] SeedPythonParser.GroupContext context) {
       return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expression(),
                                    context.CLOSE_PAREN().Symbol, this);
+    }
+
+    public override AstNode VisitList([NotNull] SeedPythonParser.ListContext context) {
+      // There isn't a corresponding AST node for the parse rule "expressions". Parses them by the
+      // BuildList function.
+      var exprContexts = Array.Empty<ParserRuleContext>();
+      ITerminalNode[] commaNodes = Array.Empty<ITerminalNode>();
+      if (!(context.expressions() is null)) {
+        exprContexts = context.expressions().expression();
+        commaNodes = context.expressions().COMMA();
+      }
+      return _helper.BuildList(context.OPEN_BRACK().Symbol, exprContexts, commaNodes,
+                               context.CLOSE_BRACK().Symbol, this);
     }
 
     private static ComparisonOperator ToComparisonOperator(IToken token) {

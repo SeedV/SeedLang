@@ -77,6 +77,16 @@ namespace SeedLang.Ast {
       return new StringConstantExpression(value, range);
     }
 
+    // The factory method to create a list expression.
+    internal static ListExpression List(Expression[] exprs, Range range) {
+      return new ListExpression(exprs, range);
+    }
+
+    // The factory method to create a subscript expression.
+    internal static SubscriptExpression Subscript(Expression expr, Expression index, Range range) {
+      return new SubscriptExpression(expr, index, range);
+    }
+
     internal Expression(Range range) : base(range) {
     }
   }
@@ -163,6 +173,24 @@ namespace SeedLang.Ast {
 
     internal StringConstantExpression(string value, Range range) : base(range) {
       Value = value;
+    }
+  }
+
+  internal class ListExpression : Expression {
+    public Expression[] Exprs { get; }
+
+    internal ListExpression(Expression[] exprs, Range range) : base(range) {
+      Exprs = exprs;
+    }
+  }
+
+  internal class SubscriptExpression : Expression {
+    public Expression Expr { get; }
+    public Expression Index { get; }
+
+    internal SubscriptExpression(Expression expr, Expression index, Range range) : base(range) {
+      Expr = expr;
+      Index = index;
     }
   }
 }

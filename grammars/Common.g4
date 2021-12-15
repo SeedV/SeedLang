@@ -27,9 +27,7 @@ grammar Common;
  * Parser rules
  */
 
-expressions:
-  expression (COMMA expression)+ COMMA? # multiple_expressions
-  | expression                          # single_expression;
+expressions: expression (COMMA expression)* COMMA?;
 
 expression: disjunction;
 
@@ -65,16 +63,21 @@ factor:
   | SUBTRACT factor      # negative
   | primary POWER factor # power
   | primary              # primary_as_factor;
-primary: atom;
+primary:
+  primary OPEN_BRACK expression CLOSE_BRACK # subscript
+  | atom                                    # atom_as_primary;
 atom:
   NAME     # name
   | TRUE   # true
   | FALSE  # false
   | NONE   # none
   | NUMBER # number
-  | group  # group_as_atom;
+  | group  # group_as_atom
+  | list   # list_as_atom;
 
 group: OPEN_PAREN expression CLOSE_PAREN;
+
+list: OPEN_BRACK expressions? CLOSE_BRACK;
 
 /*
  * Lexer rules

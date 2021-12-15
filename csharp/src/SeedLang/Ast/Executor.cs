@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -186,12 +187,45 @@ namespace SeedLang.Ast {
       _expressionResult = Value.String(stringConstant.Value);
     }
 
+    protected override void Visit(ListExpression list) {
+      var initialValues = new List<Value>();
+      foreach (Expression expr in list.Exprs) {
+        Visit(expr);
+        initialValues.Add(_expressionResult);
+      }
+      _expressionResult = Value.List(initialValues);
+    }
+
+    protected override void Visit(SubscriptExpression subscript) {
+      Visit(subscript.Expr);
+      Value list = _expressionResult;
+      Visit(subscript.Index);
+      try {
+        _expressionResult = list[_expressionResult.AsNumber()];
+      } catch (DiagnosticException ex) {
+        throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
+                                      ex.Diagnostic.Module, subscript.Range,
+                                      ex.Diagnostic.MessageId);
+      }
+    }
+
     protected override void Visit(AssignmentStatement assignment) {
       Visit(assignment.Expr);
-      _globals.SetVariable(assignment.Identifier.Name, _expressionResult);
-      var ae = new AssignmentEvent(assignment.Identifier.Name, new ValueWrapper(_expressionResult),
-                                   assignment.Range);
-      _visualizerCenter.AssignmentPublisher.Notify(ae);
+      switch (assignment.Target) {
+        case IdentifierExpression identifier:
+          _globals.SetVariable(identifier.Name, _expressionResult);
+          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(_expressionResult),
+                                       assignment.Range);
+          _visualizerCenter.AssignmentPublisher.Notify(ae);
+          break;
+        case SubscriptExpression subscript:
+          Value value = _expressionResult;
+          Visit(subscript.Expr);
+          Value list = _expressionResult;
+          Visit(subscript.Index);
+          list[_expressionResult.AsNumber()] = value;
+          break;
+      }
     }
 
     protected override void Visit(BlockStatement block) {

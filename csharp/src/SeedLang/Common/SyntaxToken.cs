@@ -17,6 +17,7 @@ namespace SeedLang.Common {
   // The type of syntax tokens parsed from source code.
   public enum SyntaxType {
     Boolean,
+    Bracket,
     Keyword,
     None,
     Number,

@@ -63,15 +63,13 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value this[int index] {
+    internal Value this[double index] {
       get {
         switch (_object) {
           case string str:
-            CheckOutOfRange(index, str.Length);
-            return Value.String(str[index].ToString());
+            return Value.String(str[ToIntIndex(index, str.Length)].ToString());
           case List<Value> list:
-            CheckOutOfRange(index, list.Count);
-            return list[index];
+            return list[ToIntIndex(index, list.Count)];
           default:
             throw new NotImplementedException($"Unsupported heap object type: {_object}");
         }
@@ -81,8 +79,7 @@ namespace SeedLang.Runtime {
           case string _:
             throw new NotImplementedException("");
           case List<Value> list:
-            CheckOutOfRange(index, list.Count);
-            list[index] = value;
+            list[ToIntIndex(index, list.Count)] = value;
             break;
           default:
             throw new NotImplementedException($"Unsupported heap object type: {_object}");
@@ -90,11 +87,16 @@ namespace SeedLang.Runtime {
       }
     }
 
-    private static void CheckOutOfRange(int index, int length) {
-      if (index < 0 || index >= length) {
+    private static int ToIntIndex(double index, int length) {
+      var intIndex = (int)index;
+      if (intIndex != index) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidListIndex);
+      } else if (intIndex < 0 || intIndex >= length) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorOutOfRange);
       }
+      return intIndex;
     }
 
     private static string ToString(IReadOnlyList<Value> values) {

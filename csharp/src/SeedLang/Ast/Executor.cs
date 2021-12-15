@@ -201,7 +201,7 @@ namespace SeedLang.Ast {
       Value list = _expressionResult;
       Visit(subscript.Index);
       try {
-        _expressionResult = list[(int)_expressionResult.AsNumber()];
+        _expressionResult = list[_expressionResult.AsNumber()];
       } catch (DiagnosticException ex) {
         throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
                                       ex.Diagnostic.Module, subscript.Range,
@@ -223,7 +223,7 @@ namespace SeedLang.Ast {
           Visit(subscript.Expr);
           Value list = _expressionResult;
           Visit(subscript.Index);
-          list[(int)_expressionResult.AsNumber()] = value;
+          list[_expressionResult.AsNumber()] = value;
           break;
       }
     }

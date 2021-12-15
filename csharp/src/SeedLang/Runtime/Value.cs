@@ -136,7 +136,7 @@ namespace SeedLang.Runtime {
       return new Value(ValueType.List, HeapObject.List(values));
     }
 
-    internal Value this[int index] {
+    internal Value this[double index] {
       get {
         switch (_type) {
           case ValueType.None:

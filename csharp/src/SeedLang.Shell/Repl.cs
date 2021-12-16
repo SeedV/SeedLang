@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -37,24 +38,43 @@ namespace SeedLang.Shell {
       var executor = new Executor();
       _visualizerManager.RegisterToExecutor(executor);
       while (true) {
-        _source.Read();
-        if (_source.Source == "quit") {
+        Read();
+        if (_source.Source == "quit" + Environment.NewLine) {
           break;
         }
         var syntaxTokens = Executor.ParseSyntaxTokens(_source.Source, "", _language);
         _source.WriteSourceWithSyntaxTokens(syntaxTokens);
         Console.WriteLine("---------- Run ----------");
-        var runCollection = new DiagnosticCollection();
-        executor.Run(_source.Source, "", _language, _runType, runCollection);
-        foreach (var diagnostic in runCollection.Diagnostics) {
+        var collection = new DiagnosticCollection();
+        executor.Run(_source.Source, "", _language, _runType, collection);
+        foreach (var diagnostic in collection.Diagnostics) {
           if (diagnostic.Range is TextRange range) {
             _source.WriteSourceWithHighlight(range);
           }
           Console.WriteLine($": {diagnostic}");
         }
-        Console.WriteLine();
       }
       _visualizerManager.UnregisterFromExecutor(executor);
+    }
+
+    // Reads the source code from console. Continues to read if there is a ':' character in the end
+    // of this line.
+    private void Read() {
+      _source.Reset();
+      string line = null;
+      while (string.IsNullOrEmpty(line)) {
+        line = ReadLine.Read(">>> ").TrimEnd();
+      }
+      _source.AddLine(line);
+      if (line.Last() == ':') {
+        while (true) {
+          line = ReadLine.Read("... ").TrimEnd();
+          if (string.IsNullOrEmpty(line)) {
+            break;
+          }
+          _source.AddLine(line);
+        }
+      }
     }
   }
 }

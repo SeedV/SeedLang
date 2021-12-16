@@ -15,42 +15,25 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Shell {
   // A class to handle source code input and output.
   internal class SourceCode {
-    public string Source { get; private set; }
+    public string Source { get; private set; } = "";
 
     // The starting index of each line in source code.
-    private readonly List<int> _lineStarts = new List<int>();
+    private readonly List<int> _lineStarts = new List<int>() { 0 };
 
-    // Reads the source code from console. Continues to read if there is a ':' character in the end
-    // of this line.
-    internal void Read() {
+    internal void AddLine(string line) {
+      Source += line + Environment.NewLine;
+      _lineStarts.Add(Source.Length);
+    }
+
+    internal void Reset() {
+      Source = "";
       _lineStarts.Clear();
       _lineStarts.Add(0);
-      var sb = new StringBuilder();
-      string line = null;
-      while (string.IsNullOrEmpty(line)) {
-        line = ReadLine.Read(">>> ").TrimEnd();
-      }
-      sb.Append(line);
-      if (line.Last() == ':') {
-        while (true) {
-          line = ReadLine.Read("... ").TrimEnd();
-          if (string.IsNullOrEmpty(line)) {
-            break;
-          }
-          sb.Append(Environment.NewLine);
-          _lineStarts.Add(sb.Length);
-          sb.Append(line);
-        }
-      }
-      _lineStarts.Add(sb.Length);
-      Source = sb.ToString();
     }
 
     internal void WriteSourceWithHighlight(TextRange range) {
@@ -86,7 +69,6 @@ namespace SeedLang.Shell {
         currentPos = new TextPosition(token.Range.End.Line, token.Range.End.Column + 1);
       }
       Console.Write(Source.Substring(_lineStarts[currentPos.Line - 1] + currentPos.Column));
-      Console.WriteLine();
       Console.WriteLine();
     }
 

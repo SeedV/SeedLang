@@ -32,6 +32,9 @@ module SeedAst {
     | NumberConstantExpression(doubel value, Range range)
     | StringConstantExpression(string value, Range range)
 
+    | ListExpression(Expression* exprs)
+    | SubscriptExpression(Expression expr, Expression index)
+
   BinaryOperator = Add | Subtract | Multiply | Divide | FloorDivide
   BooleanOperator = And | Or
   ComparisonOperator = Less | LessEqual | Greater | GreaterEqual | EqEqual | NotEqual

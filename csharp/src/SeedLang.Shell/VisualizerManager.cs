@@ -20,6 +20,15 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
+  // The visualizer type. Uses All to enable all visualizers.
+  internal enum VisualizerType {
+    Assignment,
+    Binary,
+    Comparison,
+    Eval,
+    All,
+  }
+
   // A class to manage all the visualizers.
   internal class VisualizerManager {
     // The visualizer for a specified event.
@@ -37,7 +46,6 @@ namespace SeedLang.Shell {
         if (e.Range is TextRange range) {
           _writeSourceWithHighlight(range);
         }
-        Console.WriteLine();
         _writeEvent(e);
       }
     }

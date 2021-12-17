@@ -14,20 +14,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using CommandLine;
 using CommandLine.Text;
+using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
-  // The visualizer type. Uses All to enable all visualizers.
-  internal enum VisualizerType {
-    Assignment,
-    Binary,
-    Comparison,
-    Eval,
-    All,
-  }
-
   internal class Program {
     internal class Options {
       [Option('l', "language", Required = false, Default = SeedXLanguage.SeedPython,
@@ -39,8 +32,12 @@ namespace SeedLang.Shell {
 
       [Option('v', "visualizers", Required = false,
               Default = new VisualizerType[] { VisualizerType.Eval },
-              HelpText = "The Visualizers need to be enabled.")]
+              HelpText = "The Visualizers to be enabled.")]
       public IEnumerable<VisualizerType> VisualizerTypes { get; set; }
+
+      [Option('f', "file", Required = false, Default = null,
+              HelpText = "Path of the file to be executed.")]
+      public string Filename { get; set; }
     }
 
     static void Main(string[] args) {
@@ -61,8 +58,37 @@ namespace SeedLang.Shell {
     }
 
     private static void Run(Options options) {
-      var repl = new Repl(options.Language, options.RunType, options.VisualizerTypes);
-      repl.Execute();
+      if (!string.IsNullOrEmpty(options.Filename)) {
+        RunFile(options.Filename, options.Language, options.RunType, options.VisualizerTypes);
+      } else {
+        var repl = new Repl(options.Language, options.RunType, options.VisualizerTypes);
+        repl.Execute();
+      }
+    }
+
+    private static void RunFile(string filename, SeedXLanguage language, RunType runType,
+                                IEnumerable<VisualizerType> visualizerTypes) {
+      var source = new SourceCode();
+      try {
+        foreach (string line in File.ReadLines(filename)) {
+          source.AddLine(line);
+        }
+      } catch (Exception ex) {
+        Console.WriteLine($"Read file error: {ex}.");
+        return;
+      }
+      var visualizerManager = new VisualizerManager(source, visualizerTypes);
+      var executor = new Executor();
+      visualizerManager.RegisterToExecutor(executor);
+      var collection = new DiagnosticCollection();
+      executor.Run(source.Source, "", language, runType, collection);
+      foreach (var diagnostic in collection.Diagnostics) {
+        if (diagnostic.Range is TextRange range) {
+          source.WriteSourceWithHighlight(range);
+        }
+        Console.WriteLine($": {diagnostic}");
+      }
+      visualizerManager.UnregisterFromExecutor(executor);
     }
   }
 }

@@ -74,10 +74,9 @@ namespace SeedLang.Runtime {
           return (other._type == ValueType.Boolean || other._type == ValueType.Number) &&
                  _number == other._number;
         case ValueType.String:
-          return other._type == ValueType.String && _object.AsString() == other._object.AsString();
+          return other._type == ValueType.String && _object.Equals(other._object);
         case ValueType.List:
-          // TODO: implement equality check for list values.
-          throw new NotImplementedException();
+          return other._type == ValueType.List && _object.Equals(other._object);
         default:
           throw new NotImplementedException($"Unsupported value type: {_type}.");
       }
@@ -204,10 +203,8 @@ namespace SeedLang.Runtime {
         case ValueType.Number:
           return ValueHelper.NumberToString(_number);
         case ValueType.String:
-          return _object.AsString();
         case ValueType.List:
-          // TODO: throw runtime cast exceptions.
-          throw new NotImplementedException();
+          return _object.AsString();
         default:
           throw new NotImplementedException($"Unsupported value type: {_type}.");
       }

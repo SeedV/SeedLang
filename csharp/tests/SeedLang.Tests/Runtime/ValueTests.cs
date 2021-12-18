@@ -171,10 +171,8 @@ namespace SeedLang.Runtime.Tests {
                       Value.List(new List<Value>() { Value.Number(2) }));
       Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }),
                       Value.List(new List<Value>() { Value.Number(1), Value.Number(2) }));
-      Assert.Equal(Value.List(new List<Value>() { Value.Number(1) }),
+      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }),
                    Value.List(new List<Value>() { Value.Number(1) }));
-      Assert.Equal(Value.List(new List<Value>() { Value.Number(1), Value.Number(2) }),
-                   Value.List(new List<Value>() { Value.Number(1), Value.Number(2) }));
     }
 
     [Fact]

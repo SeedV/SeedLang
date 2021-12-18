@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using SeedLang.Common;
 
@@ -60,14 +59,9 @@ namespace SeedLang.Runtime {
       if (GetType() != other.GetType()) {
         return false;
       }
-      switch (_object) {
-        case string _:
-          return _object == other._object;
-        case List<Value> list:
-          return list.SequenceEqual(other._object as List<Value>);
-        default:
-          throw new NotImplementedException(_unsupportedObjectTypeMessage);
-      }
+      // Compares contents for string types, and compares references for list types. This behavior
+      // is consistent with GetHashCode implementation.
+      return _object == other._object;
     }
 
     public override int GetHashCode() {

@@ -107,7 +107,8 @@ namespace SeedLang.X.Tests {
 
     [InlineData("6(5 * 6)",
                 new string[] {
-                  "SyntaxErrorInputMismatch '(' {';', NEWLINE}",
+                  "SyntaxErrorNoViableAlternative '6(5'",
+                  "SyntaxErrorUnwantedToken ')' {';', NEWLINE}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +

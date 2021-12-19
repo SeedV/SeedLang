@@ -35,9 +35,9 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a function statement.
-    internal static FunctionStatement Function(string name, string[] arguments, BlockStatement body,
+    internal static FunctionStatement Function(string name, string[] parameters, Statement body,
                                                Range range) {
-      return new FunctionStatement(name, arguments, body, range);
+      return new FunctionStatement(name, parameters, body, range);
     }
 
     // The factory method to create an if statement.
@@ -91,13 +91,13 @@ namespace SeedLang.Ast {
 
   internal class FunctionStatement : Statement {
     public string Name { get; }
-    public string[] Arguments { get; }
-    public BlockStatement Body { get; }
+    public string[] Parameters { get; }
+    public Statement Body { get; }
 
-    internal FunctionStatement(string name, string[] arguments, BlockStatement body, Range range) :
+    internal FunctionStatement(string name, string[] parameters, Statement body, Range range) :
         base(range) {
       Name = name;
-      Arguments = arguments;
+      Parameters = parameters;
       Body = body;
     }
   }

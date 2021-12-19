@@ -291,6 +291,35 @@ namespace SeedLang.X {
       return null;
     }
 
+    // Builds a function declearation statement.
+    internal AstNode BuildFunction(IToken defToken, IToken nameToken, IToken openParenToken,
+                                   ITerminalNode[] parameterNodes, ITerminalNode[] commaNodes,
+                                   IToken closeParenToken, IToken colonToken,
+                                   ParserRuleContext blockContext,
+                                   AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange defRange = CodeReferenceUtils.RangeOfToken(defToken);
+      AddSyntaxToken(SyntaxType.Keyword, defRange);
+      AddSyntaxToken(SyntaxType.Function, CodeReferenceUtils.RangeOfToken(nameToken));
+      AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
+      Debug.Assert(parameterNodes.Length == 0 && commaNodes.Length == 0 ||
+                   parameterNodes.Length == commaNodes.Length + 1);
+      var arguments = new string[parameterNodes.Length];
+      for (int i = 0; i < parameterNodes.Length; i++) {
+        arguments[i] = parameterNodes[i].Symbol.Text;
+        if (i < commaNodes.Length) {
+          AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
+        }
+      }
+      AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(closeParenToken));
+      AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+      if (visitor.Visit(blockContext) is Statement block) {
+        Debug.Assert(block.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(defRange, block.Range as TextRange);
+        return Statement.Function(nameToken.Text, arguments, block, range);
+      }
+      return null;
+    }
+
     // Builds an if statement for if ... elif statements.
     internal AstNode BuildIfElif(IToken ifToken, ParserRuleContext exprContext, IToken colonToken,
                                  ParserRuleContext blockContext, ParserRuleContext elifContext,

@@ -215,7 +215,7 @@ namespace SeedLang.Ast {
       Enter(function);
       _out.Append($" ({function.Name}:");
       bool firstArgument = true;
-      foreach (string argument in function.Arguments) {
+      foreach (string argument in function.Parameters) {
         if (!firstArgument) {
           _out.Append(',');
         }

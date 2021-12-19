@@ -116,8 +116,23 @@ namespace SeedLang.X {
                                 context.COLON().Symbol, context.block(), this);
     }
 
-    public override AstNode VisitBlock_statements(
-        [NotNull] SeedPythonParser.Block_statementsContext context) {
+    public override AstNode VisitFunction_def(
+        [NotNull] SeedPythonParser.Function_defContext context) {
+      SeedPythonParser.ParametersContext parameters = context.parameters();
+      var parameterNodes = Array.Empty<ITerminalNode>();
+      var commaNodes = Array.Empty<ITerminalNode>();
+      if (!(parameters is null)) {
+        parameterNodes = parameters.NAME();
+        commaNodes = parameters.COMMA();
+      }
+      return _helper.BuildFunction(context.DEF().Symbol, context.NAME().Symbol,
+                                   context.OPEN_PAREN().Symbol, parameterNodes, commaNodes,
+                                   context.CLOSE_PAREN().Symbol, context.COLON().Symbol,
+                                   context.block(), this);
+    }
+
+    public override AstNode VisitStatements_as_block(
+        [NotNull] SeedPythonParser.Statements_as_blockContext context) {
       return Visit(context.statements());
     }
 

@@ -227,33 +227,33 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 14 - Ln 1, Col 14]," +
                 "Number [Ln 1, Col 16 - Ln 1, Col 16]")]
 
-    [InlineData("def func(a, b):\n" +
+    [InlineData("def add(a, b):\n" +
                 "  return a + b",
 
-                "[Ln 1, Col 0 - Ln 2, Col 13] FunctionStatement (func: a, b)\n" +
+                "[Ln 1, Col 0 - Ln 2, Col 13] FunctionStatement (add: a, b)\n" +
                 "  [Ln 2, Col 2 - Ln 2, Col 13] ReturnStatement\n" +
                 "    [Ln 2, Col 9 - Ln 2, Col 13] BinaryExpression (+)\n" +
                 "      [Ln 2, Col 9 - Ln 2, Col 9] IdentifierExpression (a)\n" +
                 "      [Ln 2, Col 13 - Ln 2, Col 13] IdentifierExpression (b)",
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
-                "Function [Ln 1, Col 4 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Parameter [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Parameter [Ln 1, Col 12 - Ln 1, Col 12]," +
-                "Parenthesis [Ln 1, Col 13 - Ln 1, Col 13]," +
-                "Symbol [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Function [Ln 1, Col 4 - Ln 1, Col 6]," +
+                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parameter [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Symbol [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Parameter [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Symbol [Ln 1, Col 13 - Ln 1, Col 13]," +
                 "Keyword [Ln 2, Col 2 - Ln 2, Col 7]," +
                 "Variable [Ln 2, Col 9 - Ln 2, Col 9]," +
                 "Operator [Ln 2, Col 11 - Ln 2, Col 11]," +
                 "Variable [Ln 2, Col 13 - Ln 2, Col 13]")]
 
-    [InlineData("def func(a, b):\n" +
+    [InlineData("def add(a, b):\n" +
                 "  c = a + b\n" +
                 "  return c",
 
-                "[Ln 1, Col 0 - Ln 3, Col 9] FunctionStatement (func: a, b)\n" +
+                "[Ln 1, Col 0 - Ln 3, Col 9] FunctionStatement (add: a, b)\n" +
                 "  [Ln 2, Col 2 - Ln 3, Col 9] BlockStatement\n" +
                 "    [Ln 2, Col 2 - Ln 2, Col 10] AssignmentStatement\n" +
                 "      [Ln 2, Col 2 - Ln 2, Col 2] IdentifierExpression (c)\n" +
@@ -264,13 +264,13 @@ namespace SeedLang.X.Tests {
                 "      [Ln 3, Col 9 - Ln 3, Col 9] IdentifierExpression (c)",
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
-                "Function [Ln 1, Col 4 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Parameter [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Parameter [Ln 1, Col 12 - Ln 1, Col 12]," +
-                "Parenthesis [Ln 1, Col 13 - Ln 1, Col 13]," +
-                "Symbol [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Function [Ln 1, Col 4 - Ln 1, Col 6]," +
+                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parameter [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Symbol [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Parameter [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "Symbol [Ln 1, Col 13 - Ln 1, Col 13]," +
                 "Variable [Ln 2, Col 2 - Ln 2, Col 2]," +
                 "Operator [Ln 2, Col 4 - Ln 2, Col 4]," +
                 "Variable [Ln 2, Col 6 - Ln 2, Col 6]," +

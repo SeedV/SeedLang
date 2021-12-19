@@ -76,7 +76,7 @@ atom:
   | group  # group_as_atom
   | list   # list_as_atom;
 
-arguments: NAME (COMMA NAME)*;
+arguments: expression (COMMA expression)*;
 
 group: OPEN_PAREN expression CLOSE_PAREN;
 

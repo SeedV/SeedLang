@@ -183,7 +183,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(CallExpression call) {
       Enter(call);
-      Visit(call.Name);
+      Visit(call.Func);
       foreach (Expression argument in call.Arguments) {
         Visit(argument);
       }

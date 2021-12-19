@@ -218,6 +218,18 @@ namespace SeedLang.X {
                                  context.factor(), this);
     }
 
+    public override AstNode VisitCall([NotNull] SeedPythonParser.CallContext context) {
+      SeedPythonParser.ArgumentsContext arguments = context.arguments();
+      var exprContexts = Array.Empty<ParserRuleContext>();
+      var commaNodes = Array.Empty<ITerminalNode>();
+      if (!(arguments is null)) {
+        exprContexts = arguments.expression();
+        commaNodes = arguments.COMMA();
+      }
+      return _helper.BuildCall(context.primary(), context.OPEN_PAREN().Symbol, exprContexts,
+                               commaNodes, context.CLOSE_PAREN().Symbol, this);
+    }
+
     public override AstNode VisitSubscript([NotNull] SeedPythonParser.SubscriptContext context) {
       return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
                                     context.expression(), context.CLOSE_BRACK().Symbol, this);

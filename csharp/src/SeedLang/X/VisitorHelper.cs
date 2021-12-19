@@ -227,8 +227,7 @@ namespace SeedLang.X {
                                                 IToken closeBrackToken,
                                                 AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(primaryContext) is Expression primary) {
-        TextRange openBrackRange = CodeReferenceUtils.RangeOfToken(openBrackToken);
-        AddSyntaxToken(SyntaxType.Bracket, openBrackRange);
+        AddSyntaxToken(SyntaxType.Bracket, CodeReferenceUtils.RangeOfToken(openBrackToken));
         if (visitor.Visit(exprContext) is Expression expr) {
           TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
           AddSyntaxToken(SyntaxType.Bracket, closeBrackRange);
@@ -237,6 +236,35 @@ namespace SeedLang.X {
           TextRange range = CodeReferenceUtils.CombineRanges(primaryRange, closeBrackRange);
           return Expression.Subscript(primary, expr, range);
         }
+      }
+      return null;
+    }
+
+    // Builds a call expression.
+    internal CallExpression BuildCall(ParserRuleContext primaryContext, IToken openParenToken,
+                                      ParserRuleContext[] exprContexts, ITerminalNode[] commaNodes,
+                                      IToken closeParenToken,
+                                      AbstractParseTreeVisitor<AstNode> visitor) {
+      if (visitor.Visit(primaryContext) is Expression func) {
+        AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
+        Debug.Assert(exprContexts.Length == 0 && commaNodes.Length == 0 ||
+                     exprContexts.Length == commaNodes.Length + 1);
+        var exprs = new Expression[exprContexts.Length];
+        for (int i = 0; i < exprContexts.Length; i++) {
+          if (visitor.Visit(exprContexts[i]) is Expression expr) {
+            exprs[i] = expr;
+          }
+          if (i < commaNodes.Length) {
+            AddSyntaxToken(SyntaxType.Symbol,
+                           CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
+          }
+        }
+        TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
+        AddSyntaxToken(SyntaxType.Parenthesis, closeParenRange);
+        Debug.Assert(func.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(func.Range as TextRange,
+                                                           closeParenRange);
+        return Expression.Call(func, exprs, range);
       }
       return null;
     }

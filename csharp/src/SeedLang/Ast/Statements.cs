@@ -34,10 +34,21 @@ namespace SeedLang.Ast {
       return new ExpressionStatement(expr, range);
     }
 
+    // The factory method to create a function statement.
+    internal static FunctionStatement Function(string name, string[] arguments, BlockStatement body,
+                                               Range range) {
+      return new FunctionStatement(name, arguments, body, range);
+    }
+
     // The factory method to create an if statement.
     internal static IfStatement If(Expression test, Statement thenBody, Statement elseBody,
                                    Range range) {
       return new IfStatement(test, thenBody, elseBody, range);
+    }
+
+    // The factory method to create a return statement.
+    internal static ReturnStatement Return(Expression value, Range range) {
+      return new ReturnStatement(value, range);
     }
 
     // The factory method to create an while statement.
@@ -45,8 +56,7 @@ namespace SeedLang.Ast {
       return new WhileStatement(test, body, range);
     }
 
-    internal Statement(Range range) : base(range) {
-    }
+    internal Statement(Range range) : base(range) { }
   }
 
   internal class AssignmentStatement : Statement {
@@ -79,6 +89,19 @@ namespace SeedLang.Ast {
     }
   }
 
+  internal class FunctionStatement : Statement {
+    public string Name { get; }
+    public string[] Arguments { get; }
+    public BlockStatement Body { get; }
+
+    internal FunctionStatement(string name, string[] arguments, BlockStatement body, Range range) :
+        base(range) {
+      Name = name;
+      Arguments = arguments;
+      Body = body;
+    }
+  }
+
   internal class IfStatement : Statement {
     public Expression Test { get; }
     public Statement ThenBody { get; }
@@ -90,6 +113,14 @@ namespace SeedLang.Ast {
       Test = test;
       ThenBody = thenBody;
       ElseBody = elseBody;
+    }
+  }
+
+  internal class ReturnStatement : Statement {
+    public Expression Value { get; }
+
+    internal ReturnStatement(Expression value, Range range) : base(range) {
+      Value = value;
     }
   }
 

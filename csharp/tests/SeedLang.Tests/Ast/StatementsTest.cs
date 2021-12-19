@@ -26,7 +26,9 @@ namespace SeedLang.Ast.Tests {
         AddAssignmentStatement();
         AddEmptyBlockStatement();
         AddExpressionStatement();
+        AddFunctionStatement();
         AddIfStatement();
+        AddReturnStatement();
         AddWhileStatement();
       }
 
@@ -62,6 +64,15 @@ namespace SeedLang.Ast.Tests {
         Add(expr, expectedOutput);
       }
 
+      private void AddFunctionStatement() {
+        var arguments = new string[] { "arg1", "arg2", };
+        var body = Statement.Block(Array.Empty<Statement>(), _blockRange);
+        var function = Statement.Function("func", arguments, body, _blockRange);
+        var expectedOutput = $"{_blockRange} FunctionStatement (func: arg1, arg2)\n" +
+                             $"  {_blockRange} BlockStatement";
+        Add(function, expectedOutput);
+      }
+
       private void AddIfStatement() {
         var test = Expression.BooleanConstant(false, _blockRange);
         var identifier = Expression.Identifier("id", _blockRange);
@@ -79,6 +90,14 @@ namespace SeedLang.Ast.Tests {
                              $"    {_blockRange} IdentifierExpression (id)\n" +
                              $"    {_blockRange} NumberConstantExpression (2)";
         Add(@if, expectedOutput);
+      }
+
+      private void AddReturnStatement() {
+        var value = Expression.NumberConstant(1, _blockRange);
+        var ret = Statement.Return(value, _blockRange);
+        var expectedOutput = $"{_blockRange} ReturnStatement\n" +
+                             $"  {_blockRange} NumberConstantExpression (1)";
+        Add(ret, expectedOutput);
       }
 
       private void AddWhileStatement() {

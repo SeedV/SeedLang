@@ -13,27 +13,33 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+-- Each AST node has a Range member to indicate the block or text range of this node, which is ignored in following
+-- definitions.
 module SeedAst {
-  Statement = AssignmentStatement(IdentifierExpression identifier, Expression expr, Range range)
+  Statement = AssignmentStatement(IdentifierExpression identifier, Expression expr)
     | BlockStatement(Statement* statements)
-    | ExpressionStatement(Expression expr, Range range)
-    | IfStatement(Expression test, Statement thenBody, Statement elseBody, Range range)
-    | WhileStatement(Expression test, Statement body, Range range)
+    | ExpressionStatement(Expression expr)
+    | FunctionStatement(string name, IdentifierExpression* args, BlockStatement body)
+    | IfStatement(Expression test, Statement thenBody, Statement elseBody)
+    | ReturnStatement(Expression value)
+    | WhileStatement(Expression test, Statement body)
 
-  Expression = BinaryExpression(Expression left, BinaryOperator op, Expression right, Range range)
-    | BooleanExpression(BooleanOperator op, Expression* exprs, Range range)
-    | ComparisonExpression(Expression first, ComparisonOperator* ops, Expression* exprs, Range range)
-    | UnaryExpression(UnaryOperator op, Expression expr, Range range)
+  Expression = BinaryExpression(Expression left, BinaryOperator op, Expression right)
+    | BooleanExpression(BooleanOperator op, Expression* exprs)
+    | ComparisonExpression(Expression first, ComparisonOperator* ops, Expression* exprs)
+    | UnaryExpression(UnaryOperator op, Expression expr)
 
-    | IdentifierExpression(string name, Range range)
+    | IdentifierExpression(string name)
 
-    | BooleanConstantExpression(bool valuem , Range range)
-    | NoneConstantExpression(Range range)
-    | NumberConstantExpression(doubel value, Range range)
-    | StringConstantExpression(string value, Range range)
+    | BooleanConstantExpression(bool value)
+    | NoneConstantExpression()
+    | NumberConstantExpression(doubel value)
+    | StringConstantExpression(string value)
 
     | ListExpression(Expression* exprs)
     | SubscriptExpression(Expression expr, Expression index)
+
+    | CallExpression(string name, Expression* args)
 
   BinaryOperator = Add | Subtract | Multiply | Divide | FloorDivide
   BooleanOperator = And | Or

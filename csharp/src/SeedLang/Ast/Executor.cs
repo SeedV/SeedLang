@@ -209,6 +209,10 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(CallExpression call) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(AssignmentStatement assignment) {
       Visit(assignment.Expr);
       switch (assignment.Target) {
@@ -242,6 +246,10 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(FunctionStatement function) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(IfStatement @if) {
       Visit(@if.Test);
       if (_expressionResult.AsBoolean()) {
@@ -251,6 +259,10 @@ namespace SeedLang.Ast {
           Visit(@if.ElseBody);
         }
       }
+    }
+
+    protected override void Visit(ReturnStatement @return) {
+      throw new NotImplementedException();
     }
 
     protected override void Visit(WhileStatement @while) {

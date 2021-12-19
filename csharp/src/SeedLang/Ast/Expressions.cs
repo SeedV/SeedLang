@@ -87,8 +87,11 @@ namespace SeedLang.Ast {
       return new SubscriptExpression(expr, index, range);
     }
 
-    internal Expression(Range range) : base(range) {
+    internal static CallExpression Call(Expression name, Expression[] arguments, Range range) {
+      return new CallExpression(name, arguments, range);
     }
+
+    internal Expression(Range range) : base(range) { }
   }
 
   internal class BinaryExpression : Expression {
@@ -191,6 +194,16 @@ namespace SeedLang.Ast {
     internal SubscriptExpression(Expression expr, Expression index, Range range) : base(range) {
       Expr = expr;
       Index = index;
+    }
+  }
+
+  internal class CallExpression : Expression {
+    public Expression Name { get; }
+    public Expression[] Arguments { get; }
+
+    internal CallExpression(Expression name, Expression[] arguments, Range range) : base(range) {
+      Name = name;
+      Arguments = arguments;
     }
   }
 }

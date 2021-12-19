@@ -132,6 +132,10 @@ namespace SeedLang.Interpreter {
       throw new NotImplementedException();
     }
 
+    protected override void Visit(CallExpression call) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(AssignmentStatement assignment) {
       uint resultRegister = _registerAllocator.AllocateTempVariable();
       _expressionInfo.CanHandleConstSubExpr = false;
@@ -162,7 +166,15 @@ namespace SeedLang.Interpreter {
       _registerAllocator.DeallocateVariable();
     }
 
+    protected override void Visit(FunctionStatement function) {
+      throw new NotImplementedException();
+    }
+
     protected override void Visit(IfStatement @if) {
+      throw new NotImplementedException();
+    }
+
+    protected override void Visit(ReturnStatement @return) {
       throw new NotImplementedException();
     }
 

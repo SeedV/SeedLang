@@ -181,6 +181,15 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(CallExpression call) {
+      Enter(call);
+      Visit(call.Name);
+      foreach (Expression argument in call.Arguments) {
+        Visit(argument);
+      }
+      Exit();
+    }
+
     protected override void Visit(AssignmentStatement assignment) {
       Enter(assignment);
       Visit(assignment.Target);
@@ -202,6 +211,22 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(FunctionStatement function) {
+      Enter(function);
+      _out.Append($" ({function.Name}:");
+      bool firstArgument = true;
+      foreach (string argument in function.Arguments) {
+        if (!firstArgument) {
+          _out.Append(',');
+        }
+        firstArgument = false;
+        _out.Append($" {argument}");
+      }
+      _out.Append(')');
+      Visit(function.Body);
+      Exit();
+    }
+
     protected override void Visit(IfStatement @if) {
       Enter(@if);
       Visit(@if.Test);
@@ -209,6 +234,12 @@ namespace SeedLang.Ast {
       if (!(@if.ElseBody is null)) {
         Visit(@if.ElseBody);
       }
+      Exit();
+    }
+
+    protected override void Visit(ReturnStatement @return) {
+      Enter(@return);
+      Visit(@return.Value);
       Exit();
     }
 

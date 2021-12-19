@@ -155,6 +155,12 @@ namespace SeedLang.Ast.Tests {
                              $"  {_textRange} NumberConstantExpression (1)";
         Add(subscript, expectedOutput);
       }
+
+      private void AddCallExpression() {
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var name = Expression.Identifier("func", _textRange);
+      }
     }
 
     [Theory]

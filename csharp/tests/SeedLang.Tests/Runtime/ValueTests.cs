@@ -162,6 +162,31 @@ namespace SeedLang.Runtime.Tests {
       Assert.NotEqual(Value.String(""), Value.Number(0));
       Assert.NotEqual(Value.String("0"), Value.String("1"));
       Assert.Equal(Value.String("1"), Value.String("1"));
+
+      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }), Value.None());
+      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }), Value.Boolean(false));
+      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }), Value.Number(0));
+      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }), Value.String("1"));
+      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }),
+                      Value.List(new List<Value>() { Value.Number(2) }));
+      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }),
+                      Value.List(new List<Value>() { Value.Number(1), Value.Number(2) }));
+      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }),
+                      Value.List(new List<Value>() { Value.Number(1) }));
+      var list = new List<Value>() { Value.Number(1) };
+      Assert.Equal(Value.List(list), Value.List(list));
+    }
+
+    [Fact]
+    public void TestListWithReferenceCycle() {
+      var a = Value.List(new List<Value>() {
+        Value.Number(1),
+        Value.Number(2),
+      });
+      var b = Value.List(new List<Value>() { a });
+      a[1] = b;
+      Assert.Equal("[1, [[...]]]", a.ToString());
+      Assert.Equal("[[1, [...]]]", b.ToString());
     }
   }
 }

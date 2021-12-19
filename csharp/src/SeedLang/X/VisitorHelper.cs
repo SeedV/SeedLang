@@ -1,3 +1,4 @@
+using System.Reflection;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -292,11 +293,11 @@ namespace SeedLang.X {
     }
 
     // Builds a function declearation statement.
-    internal AstNode BuildFunction(IToken defToken, IToken nameToken, IToken openParenToken,
-                                   ITerminalNode[] parameterNodes, ITerminalNode[] commaNodes,
-                                   IToken closeParenToken, IToken colonToken,
-                                   ParserRuleContext blockContext,
-                                   AbstractParseTreeVisitor<AstNode> visitor) {
+    internal FunctionStatement BuildFunction(IToken defToken, IToken nameToken,
+                                             IToken openParenToken, ITerminalNode[] parameterNodes,
+                                             ITerminalNode[] commaNodes, IToken closeParenToken,
+                                             IToken colonToken, ParserRuleContext blockContext,
+                                             AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange defRange = CodeReferenceUtils.RangeOfToken(defToken);
       AddSyntaxToken(SyntaxType.Keyword, defRange);
       AddSyntaxToken(SyntaxType.Function, CodeReferenceUtils.RangeOfToken(nameToken));
@@ -305,6 +306,8 @@ namespace SeedLang.X {
                    parameterNodes.Length == commaNodes.Length + 1);
       var arguments = new string[parameterNodes.Length];
       for (int i = 0; i < parameterNodes.Length; i++) {
+        TextRange parameterRange = CodeReferenceUtils.RangeOfToken(parameterNodes[i].Symbol);
+        AddSyntaxToken(SyntaxType.Parameter, parameterRange);
         arguments[i] = parameterNodes[i].Symbol.Text;
         if (i < commaNodes.Length) {
           AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
@@ -363,6 +366,22 @@ namespace SeedLang.X {
       AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(elseToken));
       AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
       return visitor.Visit(blockContext) as Statement;
+    }
+
+    // Builds a return statement
+    internal ReturnStatement BuildReturn(IToken returnToken, ParserRuleContext exprContext,
+                                         AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange returnRange = CodeReferenceUtils.RangeOfToken(returnToken);
+      AddSyntaxToken(SyntaxType.Keyword, returnRange);
+      if (exprContext is null) {
+        return Statement.Return(null, returnRange);
+      }
+      if (visitor.Visit(exprContext) is Expression expr) {
+        Debug.Assert(expr.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(returnRange, expr.Range as TextRange);
+        return Statement.Return(expr, range);
+      }
+      return null;
     }
 
     // Builds a block for simple statements.

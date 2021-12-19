@@ -23,6 +23,7 @@ namespace SeedLang.Common {
     None,
     Number,
     Operator,
+    Parameter,
     Parenthesis,
     String,
     Symbol,

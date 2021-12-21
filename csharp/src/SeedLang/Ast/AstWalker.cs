@@ -67,6 +67,9 @@ namespace SeedLang.Ast {
         case SubscriptExpression subscript:
           Visit(subscript);
           break;
+        case CallExpression call:
+          Visit(call);
+          break;
         default:
           throw new NotImplementedException(
               $"Not implemented expression type: {expression.GetType()}");
@@ -85,8 +88,14 @@ namespace SeedLang.Ast {
         case ExpressionStatement expr:
           Visit(expr);
           break;
+        case FunctionStatement function:
+          Visit(function);
+          break;
         case IfStatement @if:
           Visit(@if);
+          break;
+        case ReturnStatement @return:
+          Visit(@return);
           break;
         case WhileStatement @while:
           Visit(@while);
@@ -108,11 +117,14 @@ namespace SeedLang.Ast {
     protected abstract void Visit(StringConstantExpression stringConstant);
     protected abstract void Visit(ListExpression list);
     protected abstract void Visit(SubscriptExpression subscript);
+    protected abstract void Visit(CallExpression call);
 
     protected abstract void Visit(AssignmentStatement assignment);
     protected abstract void Visit(BlockStatement block);
     protected abstract void Visit(ExpressionStatement expr);
+    protected abstract void Visit(FunctionStatement function);
     protected abstract void Visit(IfStatement @if);
+    protected abstract void Visit(ReturnStatement @return);
     protected abstract void Visit(WhileStatement @while);
   }
 }

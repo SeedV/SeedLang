@@ -116,8 +116,28 @@ namespace SeedLang.X {
                                 context.COLON().Symbol, context.block(), this);
     }
 
-    public override AstNode VisitBlock_statements(
-        [NotNull] SeedPythonParser.Block_statementsContext context) {
+    public override AstNode VisitFunction_def(
+        [NotNull] SeedPythonParser.Function_defContext context) {
+      SeedPythonParser.ParametersContext parameters = context.parameters();
+      var parameterNodes = Array.Empty<ITerminalNode>();
+      var commaNodes = Array.Empty<ITerminalNode>();
+      if (!(parameters is null)) {
+        parameterNodes = parameters.NAME();
+        commaNodes = parameters.COMMA();
+      }
+      return _helper.BuildFunction(context.DEF().Symbol, context.NAME().Symbol,
+                                   context.OPEN_PAREN().Symbol, parameterNodes, commaNodes,
+                                   context.CLOSE_PAREN().Symbol, context.COLON().Symbol,
+                                   context.block(), this);
+    }
+
+    public override AstNode VisitReturn_stmt(
+        [NotNull] SeedPythonParser.Return_stmtContext context) {
+      return _helper.BuildReturn(context.RETURN().Symbol, context.expression(), this);
+    }
+
+    public override AstNode VisitStatements_as_block(
+        [NotNull] SeedPythonParser.Statements_as_blockContext context) {
       return Visit(context.statements());
     }
 
@@ -196,6 +216,18 @@ namespace SeedLang.X {
     public override AstNode VisitPower([NotNull] SeedPythonParser.PowerContext context) {
       return _helper.BuildBinary(context.primary(), context.POWER().Symbol, BinaryOperator.Power,
                                  context.factor(), this);
+    }
+
+    public override AstNode VisitCall([NotNull] SeedPythonParser.CallContext context) {
+      SeedPythonParser.ArgumentsContext arguments = context.arguments();
+      var exprContexts = Array.Empty<ParserRuleContext>();
+      var commaNodes = Array.Empty<ITerminalNode>();
+      if (!(arguments is null)) {
+        exprContexts = arguments.expression();
+        commaNodes = arguments.COMMA();
+      }
+      return _helper.BuildCall(context.primary(), context.OPEN_PAREN().Symbol, exprContexts,
+                               commaNodes, context.CLOSE_PAREN().Symbol, this);
     }
 
     public override AstNode VisitSubscript([NotNull] SeedPythonParser.SubscriptContext context) {

@@ -34,6 +34,7 @@ namespace SeedLang.Ast.Tests {
         AddStringConstantExpression();
         AddListExpression();
         AddSubscriptExpression();
+        AddCallExpression();
       }
 
       private void AddBinaryExpression() {
@@ -154,6 +155,18 @@ namespace SeedLang.Ast.Tests {
                              $"    {_textRange} NumberConstantExpression (2)\n" +
                              $"  {_textRange} NumberConstantExpression (1)";
         Add(subscript, expectedOutput);
+      }
+
+      private void AddCallExpression() {
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var name = Expression.Identifier("func", _textRange);
+        var call = Expression.Call(name, new Expression[] { one, two }, _textRange);
+        var expectedOutput = $"{_textRange} CallExpression\n" +
+                             $"  {_textRange} IdentifierExpression (func)\n" +
+                             $"  {_textRange} NumberConstantExpression (1)\n" +
+                             $"  {_textRange} NumberConstantExpression (2)";
+        Add(call, expectedOutput);
       }
     }
 

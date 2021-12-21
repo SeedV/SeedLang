@@ -43,7 +43,7 @@ simple_stmt:
   | 'pass'      # pass
   | 'break'     # break
   | 'continue'  # continue;
-compound_stmt: if_stmt # if | while_stmt # while;
+compound_stmt: function_def | if_stmt | while_stmt;
 
 assignment: name_assignment | subscript_assignment;
 name_assignment: NAME EQUAL expression;
@@ -62,11 +62,16 @@ else_block: ELSE COLON block;
 
 while_stmt: WHILE expression COLON block;
 
-return_stmt: RETURN expressions?;
+function_def:
+  DEF NAME OPEN_PAREN parameters? CLOSE_PAREN COLON block;
+parameters: NAME (COMMA NAME)*;
+
+// TODO: return multiply values
+return_stmt: RETURN expression?;
 
 block:
-  NEWLINE INDENT statements DEDENT # block_statements
-  | simple_stmts                   # block_simple_stmts;
+  NEWLINE INDENT statements DEDENT # statements_as_block
+  | simple_stmts                   # simple_stmts_as_block;
 
 /*
  * Lexer rules
@@ -76,6 +81,7 @@ IF: 'if';
 ELIF: 'elif';
 ELSE: 'else';
 WHILE: 'while';
+DEF: 'def';
 RETURN: 'return';
 
 COLON: ':';

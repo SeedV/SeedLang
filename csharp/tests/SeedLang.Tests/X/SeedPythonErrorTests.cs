@@ -105,18 +105,6 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Operator [Ln 1, Col 6 - Ln 1, Col 7]")]
 
-    [InlineData("6(5 * 6)",
-                new string[] {
-                  "SyntaxErrorInputMismatch '(' {';', NEWLINE}",
-                },
-
-                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Parenthesis [Ln 1, Col 1 - Ln 1, Col 1]," +
-                "Number [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
-                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]")]
-
     [InlineData("while True",
                 new string[] {
                   @"SyntaxErrorMissingToken '\n' ':'",

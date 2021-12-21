@@ -1,3 +1,4 @@
+using System.Reflection;
 // Copyright 2021 The Aha001 Team.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -226,8 +227,7 @@ namespace SeedLang.X {
                                                 IToken closeBrackToken,
                                                 AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(primaryContext) is Expression primary) {
-        TextRange openBrackRange = CodeReferenceUtils.RangeOfToken(openBrackToken);
-        AddSyntaxToken(SyntaxType.Bracket, openBrackRange);
+        AddSyntaxToken(SyntaxType.Bracket, CodeReferenceUtils.RangeOfToken(openBrackToken));
         if (visitor.Visit(exprContext) is Expression expr) {
           TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
           AddSyntaxToken(SyntaxType.Bracket, closeBrackRange);
@@ -236,6 +236,35 @@ namespace SeedLang.X {
           TextRange range = CodeReferenceUtils.CombineRanges(primaryRange, closeBrackRange);
           return Expression.Subscript(primary, expr, range);
         }
+      }
+      return null;
+    }
+
+    // Builds a call expression.
+    internal CallExpression BuildCall(ParserRuleContext primaryContext, IToken openParenToken,
+                                      ParserRuleContext[] exprContexts, ITerminalNode[] commaNodes,
+                                      IToken closeParenToken,
+                                      AbstractParseTreeVisitor<AstNode> visitor) {
+      if (visitor.Visit(primaryContext) is Expression func) {
+        AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
+        Debug.Assert(exprContexts.Length == 0 && commaNodes.Length == 0 ||
+                     exprContexts.Length == commaNodes.Length + 1);
+        var exprs = new Expression[exprContexts.Length];
+        for (int i = 0; i < exprContexts.Length; i++) {
+          if (visitor.Visit(exprContexts[i]) is Expression expr) {
+            exprs[i] = expr;
+          }
+          if (i < commaNodes.Length) {
+            AddSyntaxToken(SyntaxType.Symbol,
+                           CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
+          }
+        }
+        TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
+        AddSyntaxToken(SyntaxType.Parenthesis, closeParenRange);
+        Debug.Assert(func.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(func.Range as TextRange,
+                                                           closeParenRange);
+        return Expression.Call(func, exprs, range);
       }
       return null;
     }
@@ -291,6 +320,37 @@ namespace SeedLang.X {
       return null;
     }
 
+    // Builds a function declearation statement.
+    internal FunctionStatement BuildFunction(IToken defToken, IToken nameToken,
+                                             IToken openParenToken, ITerminalNode[] parameterNodes,
+                                             ITerminalNode[] commaNodes, IToken closeParenToken,
+                                             IToken colonToken, ParserRuleContext blockContext,
+                                             AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange defRange = CodeReferenceUtils.RangeOfToken(defToken);
+      AddSyntaxToken(SyntaxType.Keyword, defRange);
+      AddSyntaxToken(SyntaxType.Function, CodeReferenceUtils.RangeOfToken(nameToken));
+      AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
+      Debug.Assert(parameterNodes.Length == 0 && commaNodes.Length == 0 ||
+                   parameterNodes.Length == commaNodes.Length + 1);
+      var arguments = new string[parameterNodes.Length];
+      for (int i = 0; i < parameterNodes.Length; i++) {
+        TextRange parameterRange = CodeReferenceUtils.RangeOfToken(parameterNodes[i].Symbol);
+        AddSyntaxToken(SyntaxType.Parameter, parameterRange);
+        arguments[i] = parameterNodes[i].Symbol.Text;
+        if (i < commaNodes.Length) {
+          AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
+        }
+      }
+      AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(closeParenToken));
+      AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+      if (visitor.Visit(blockContext) is Statement block) {
+        Debug.Assert(block.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(defRange, block.Range as TextRange);
+        return Statement.Function(nameToken.Text, arguments, block, range);
+      }
+      return null;
+    }
+
     // Builds an if statement for if ... elif statements.
     internal AstNode BuildIfElif(IToken ifToken, ParserRuleContext exprContext, IToken colonToken,
                                  ParserRuleContext blockContext, ParserRuleContext elifContext,
@@ -334,6 +394,22 @@ namespace SeedLang.X {
       AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(elseToken));
       AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
       return visitor.Visit(blockContext) as Statement;
+    }
+
+    // Builds a return statement
+    internal ReturnStatement BuildReturn(IToken returnToken, ParserRuleContext exprContext,
+                                         AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange returnRange = CodeReferenceUtils.RangeOfToken(returnToken);
+      AddSyntaxToken(SyntaxType.Keyword, returnRange);
+      if (exprContext is null) {
+        return Statement.Return(null, returnRange);
+      }
+      if (visitor.Visit(exprContext) is Expression expr) {
+        Debug.Assert(expr.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(returnRange, expr.Range as TextRange);
+        return Statement.Return(expr, range);
+      }
+      return null;
     }
 
     // Builds a block for simple statements.

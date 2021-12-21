@@ -64,8 +64,9 @@ factor:
   | primary POWER factor # power
   | primary              # primary_as_factor;
 primary:
-  primary OPEN_BRACK expression CLOSE_BRACK # subscript
-  | atom                                    # atom_as_primary;
+  primary OPEN_BRACK expression CLOSE_BRACK   # subscript
+  | primary OPEN_PAREN arguments? CLOSE_PAREN # call
+  | atom                                      # atom_as_primary;
 atom:
   NAME     # name
   | TRUE   # true
@@ -74,6 +75,8 @@ atom:
   | NUMBER # number
   | group  # group_as_atom
   | list   # list_as_atom;
+
+arguments: expression (COMMA expression)*;
 
 group: OPEN_PAREN expression CLOSE_PAREN;
 

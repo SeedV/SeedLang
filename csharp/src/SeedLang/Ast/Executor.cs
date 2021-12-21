@@ -31,6 +31,9 @@ namespace SeedLang.Ast {
     private Value _expressionResult;
 
     internal Executor(VisualizerCenter visualizerCenter = null) {
+      foreach (var func in NativeFunctions.Funcs) {
+        _globals.SetVariable(func.Name, Value.Function(func));
+      }
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
     }
 
@@ -210,7 +213,14 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(CallExpression call) {
-      throw new NotImplementedException();
+      Visit(call.Func);
+      Value func = _expressionResult;
+      var values = new Value[call.Arguments.Length];
+      for (int i = 0; i < call.Arguments.Length; i++) {
+        Visit(call.Arguments[i]);
+        values[i] = _expressionResult;
+      }
+      _expressionResult = func.Call(values);
     }
 
     protected override void Visit(AssignmentStatement assignment) {

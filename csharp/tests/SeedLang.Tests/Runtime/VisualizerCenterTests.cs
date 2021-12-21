@@ -28,6 +28,7 @@ namespace SeedLang.Runtime.Tests {
     public bool IsNumber => true;
     public bool IsString => false;
     public bool IsList => false;
+    public bool IsFunction => false;
 
     public bool Boolean => false;
     public double Number => 0;

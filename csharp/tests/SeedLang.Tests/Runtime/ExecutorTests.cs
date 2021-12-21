@@ -88,7 +88,7 @@ sum
       executor.Register(visualizer);
 
       string source = @"array = [64, 34, 25, 12, 22, 11, 90]
-n = 7
+n = len(array)
 i = 0
 while i < n:
   j = 0

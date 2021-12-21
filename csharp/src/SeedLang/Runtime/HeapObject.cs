@@ -31,6 +31,10 @@ namespace SeedLang.Runtime {
       _object = list;
     }
 
+    private HeapObject(IFunction func) {
+      _object = func;
+    }
+
     public static bool operator ==(HeapObject lhs, HeapObject rhs) {
       if (lhs is null) {
         if (rhs is null) {
@@ -59,7 +63,7 @@ namespace SeedLang.Runtime {
       if (GetType() != other.GetType()) {
         return false;
       }
-      // Compares contents for string types, and compares references for list types. This behavior
+      // Compares contents for string types, and compares references for other types. This behavior
       // is consistent with GetHashCode implementation.
       return _object == other._object;
     }
@@ -76,8 +80,12 @@ namespace SeedLang.Runtime {
       return new HeapObject(str);
     }
 
-    internal static HeapObject List(List<Value> values) {
-      return new HeapObject(values);
+    internal static HeapObject List(List<Value> list) {
+      return new HeapObject(list);
+    }
+
+    internal static HeapObject Function(IFunction value) {
+      return new HeapObject(value);
     }
 
     internal string AsString() {
@@ -86,6 +94,8 @@ namespace SeedLang.Runtime {
           return str;
         case List<Value> list:
           return ToString(list);
+        case IFunction func:
+          return func.ToString();
         default:
           throw new NotImplementedException(_unsupportedObjectTypeMessage);
       }
@@ -97,6 +107,9 @@ namespace SeedLang.Runtime {
           return str.Length;
         case List<Value> list:
           return list.Count;
+        case IFunction _:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotCountable);
         default:
           throw new NotImplementedException(_unsupportedObjectTypeMessage);
       }
@@ -109,6 +122,9 @@ namespace SeedLang.Runtime {
             return Value.String(str[ToIntIndex(index, str.Length)].ToString());
           case List<Value> list:
             return list[ToIntIndex(index, list.Count)];
+          case IFunction _:
+            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                          Message.RuntimeErrorNotSubscriptable);
           default:
             throw new NotImplementedException(_unsupportedObjectTypeMessage);
         }
@@ -116,13 +132,29 @@ namespace SeedLang.Runtime {
       set {
         switch (_object) {
           case string _:
-            throw new NotImplementedException("");
+            throw new NotImplementedException();
           case List<Value> list:
             list[ToIntIndex(index, list.Count)] = value;
             break;
+          case IFunction _:
+            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                          Message.RuntimeErrorNotSubscriptable);
           default:
             throw new NotImplementedException(_unsupportedObjectTypeMessage);
         }
+      }
+    }
+
+    internal Value Call(Value[] parameters) {
+      switch (_object) {
+        case string _:
+        case List<Value> _:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotCallable);
+        case IFunction func:
+          return func.Call(parameters);
+        default:
+          throw new NotImplementedException(_unsupportedObjectTypeMessage);
       }
     }
 

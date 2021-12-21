@@ -31,6 +31,7 @@ namespace SeedLang.Ast.Tests {
         AddSubscript();
         AddSubscriptAssignment();
         AddWhile();
+        AddNativeFunctionCall();
       }
 
       private void AddAssignment() {
@@ -154,6 +155,18 @@ namespace SeedLang.Ast.Tests {
                              $"{_textRange} 11 LessEqual 10 = False\n" +
                              $"{_textRange} Eval 55\n";
         Add(program, expectedOutput);
+      }
+
+      private void AddNativeFunctionCall() {
+        var one = Expression.NumberConstant(1, _textRange);
+        var two = Expression.NumberConstant(2, _textRange);
+        var three = Expression.NumberConstant(3, _textRange);
+        var list = Expression.List(new Expression[] { one, two, three }, _textRange);
+        var func = Expression.Identifier("len", _textRange);
+        var len = Expression.Call(func, new Expression[] { list }, _textRange);
+        var eval = Statement.Expression(len, _textRange);
+        var expectedOutput = $"{_textRange} Eval 3\n";
+        Add(eval, expectedOutput);
       }
     }
 

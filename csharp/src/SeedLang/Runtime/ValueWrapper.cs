@@ -27,6 +27,7 @@ namespace SeedLang.Runtime {
     public bool IsNumber => _value.IsNumber();
     public bool IsString => _value.IsString();
     public bool IsList => _value.IsList();
+    public bool IsFunction => _value.IsFunction();
 
     public bool Boolean => _value.AsBoolean();
     public double Number => _value.AsNumber();

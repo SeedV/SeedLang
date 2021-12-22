@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -32,7 +31,7 @@ namespace SeedLang.Interpreter.Tests {
           "1    LOADK     0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "2    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "3    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
+      ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
@@ -48,7 +47,7 @@ namespace SeedLang.Interpreter.Tests {
           "1    ADD       0 -1 -2        ; 1 2               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "2    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "3    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
+      ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
@@ -67,7 +66,7 @@ namespace SeedLang.Interpreter.Tests {
           "2    SUB       0 -1 1         ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "3    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "4    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
+      ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
@@ -86,7 +85,7 @@ namespace SeedLang.Interpreter.Tests {
           "2    SUB       0 -1 1         ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "3    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "4    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
+      ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
@@ -101,7 +100,7 @@ namespace SeedLang.Interpreter.Tests {
           "1    UNM       0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "2    EVAL      0                                  [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "3    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
+      ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
@@ -116,7 +115,7 @@ namespace SeedLang.Interpreter.Tests {
           "1    LOADK     0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "2    SETGLOB   0 -2           ; name              [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "3    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
+      ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
 
@@ -133,7 +132,7 @@ namespace SeedLang.Interpreter.Tests {
           "1    ADD       0 -1 -2        ; 1 2               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "2    SETGLOB   0 -3           ; name              [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "3    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
+      ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
   }

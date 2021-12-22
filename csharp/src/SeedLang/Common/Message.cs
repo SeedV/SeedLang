@@ -77,6 +77,7 @@ namespace SeedLang.Common {
     RuntimeErrorNotSubscriptable,       // Value type not subscriptable runtime error.
     RuntimeErrorOutOfRange,             // Index out of range runtime error.
     RuntimeErrorOverflow,               // Overflow runtime error.
+    RuntimeErrorVariableNotDefined,     // Variable not defined runtime error.
     SyntaxErrorFailedPredicate1,        // Semantic predicate failed syntax error.
     SyntaxErrorInputMismatch2,          // Input mismatch syntax error.
     SyntaxErrorMissingToken2,           // Missing token syntax error.

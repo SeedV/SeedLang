@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using Xunit;
@@ -32,6 +33,8 @@ namespace SeedLang.Ast.Tests {
         AddSubscriptAssignment();
         AddWhile();
         AddNativeFunctionCall();
+        AddVoidFunctionCall();
+        AddAddFunction();
       }
 
       private void AddAssignment() {
@@ -167,6 +170,48 @@ namespace SeedLang.Ast.Tests {
         var eval = Statement.Expression(len, _textRange);
         var expectedOutput = $"{_textRange} Eval 3\n";
         Add(eval, expectedOutput);
+      }
+
+      private void AddVoidFunctionCall() {
+        var body = Statement.Block(new Statement[] {
+          Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange),
+          Statement.Return(null, _textRange),
+        }, _textRange);
+        var func = Statement.Function("func", Array.Empty<string>(), body, _textRange);
+        var call = Expression.Call(Expression.Identifier(func.Name, _textRange),
+                                   Array.Empty<Expression>(), _textRange);
+        string variableName = "a";
+        var assignment = Statement.Assignment(Expression.Identifier(variableName, _textRange), call,
+                                              _textRange);
+        var block = Statement.Block(new Statement[] { func, assignment }, _textRange);
+        var expectedOutput = $"{_textRange} {variableName} = None\n" +
+                             $"{_textRange} Eval 1\n";
+        Add(block, expectedOutput);
+      }
+
+      private void AddAddFunction() {
+        string variableA = "a";
+        string variableB = "b";
+        var binary = Expression.Binary(Expression.Identifier(variableA, _textRange),
+                                       BinaryOperator.Add,
+                                       Expression.Identifier(variableB, _textRange),
+                                       _textRange);
+        var body = Statement.Block(new Statement[] {
+          Statement.Return(binary, _textRange),
+        }, _textRange);
+        var func = Statement.Function("add", new string[] { variableA, variableB }, body,
+                                      _textRange);
+        var call = Expression.Call(Expression.Identifier(func.Name, _textRange), new Expression[] {
+          Expression.NumberConstant(1, _textRange),
+          Expression.NumberConstant(2, _textRange),
+        }, _textRange);
+        string resultName = "a";
+        var assignment = Statement.Assignment(Expression.Identifier(resultName, _textRange), call,
+                                              _textRange);
+        var block = Statement.Block(new Statement[] { func, assignment }, _textRange);
+        var expectedOutput = $"{_textRange} {resultName} = 3\n" +
+                             $"{_textRange} 1 Add 2 = 3\n";
+        Add(block, expectedOutput);
       }
     }
 

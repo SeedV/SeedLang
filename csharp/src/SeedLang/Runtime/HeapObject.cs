@@ -145,14 +145,14 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value Call(Value[] parameters) {
+    internal Value Call(Value[] arguments) {
       switch (_object) {
         case string _:
         case List<Value> _:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorNotCallable);
         case IFunction func:
-          return func.Call(parameters);
+          return func.Call(arguments);
         default:
           throw new NotImplementedException(_unsupportedObjectTypeMessage);
       }

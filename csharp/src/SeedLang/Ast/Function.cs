@@ -15,15 +15,19 @@
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
+  // A function value type that is only used in SeedAst component to encapsulate AST function
+  // declearation statement.
   internal class Function : IFunction {
     private readonly FunctionStatement _func;
+    private readonly Executor _executor;
 
-    internal Function(FunctionStatement func) {
+    internal Function(FunctionStatement func, Executor executor) {
       _func = func;
+      _executor = executor;
     }
 
-    public Value Call(Value[] parameters) {
-      throw new System.NotImplementedException();
+    public Value Call(Value[] arguments) {
+      return _executor.Call(_func, arguments);
     }
   }
 }

@@ -24,15 +24,16 @@ namespace SeedLang.Ast {
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
 
-    // The global environment to store names and values of global variables.
-    private readonly GlobalEnvironment _globals = new GlobalEnvironment(Value.None());
+    // The environment to store global and local variables. A new frame of local variables is
+    // inserted into this environment when a function is called.
+    private readonly Environment _env = new Environment();
 
     // The result of current executed expression.
     private Value _expressionResult;
 
     internal Executor(VisualizerCenter visualizerCenter = null) {
       foreach (var func in NativeFunctions.Funcs) {
-        _globals.SetVariable(func.Name, Value.Function(func));
+        _env.SetVariable(func.Name, Value.Function(func));
       }
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
     }
@@ -40,6 +41,26 @@ namespace SeedLang.Ast {
     // Executes the given AST tree.
     internal void Run(AstNode node) {
       Visit(node);
+    }
+
+    // Calls a AST function with given arguments.
+    internal Value Call(FunctionStatement func, Value[] arguments) {
+      if (func.Parameters.Length != arguments.Length) {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorIncorrectArgsCount);
+      }
+      _env.EnterScope();
+      for (int i = 0; i < func.Parameters.Length; i++) {
+        _env.SetVariable(func.Parameters[i], arguments[i]);
+      }
+      var result = Value.None();
+      try {
+        Visit(func.Body);
+      } catch (ReturnException returnException) {
+        result = returnException.Result;
+      }
+      _env.ExitScope();
+      return result;
     }
 
     protected override void Visit(BinaryExpression binary) {
@@ -165,7 +186,7 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(IdentifierExpression identifier) {
-      _expressionResult = _globals.GetVariable(identifier.Name);
+      _expressionResult = _env.GetVariable(identifier.Name);
     }
 
     protected override void Visit(BooleanConstantExpression booleanConstant) {
@@ -227,7 +248,7 @@ namespace SeedLang.Ast {
       Visit(assignment.Expr);
       switch (assignment.Target) {
         case IdentifierExpression identifier:
-          _globals.SetVariable(identifier.Name, _expressionResult);
+          _env.SetVariable(identifier.Name, _expressionResult);
           var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(_expressionResult),
                                        assignment.Range);
           _visualizerCenter.AssignmentPublisher.Notify(ae);
@@ -256,8 +277,8 @@ namespace SeedLang.Ast {
       }
     }
 
-    protected override void Visit(FunctionStatement function) {
-      throw new NotImplementedException();
+    protected override void Visit(FunctionStatement func) {
+      _env.SetVariable(func.Name, Value.Function(new Function(func, this)));
     }
 
     protected override void Visit(IfStatement @if) {
@@ -272,7 +293,14 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(ReturnStatement @return) {
-      throw new NotImplementedException();
+      // Throws a return exception carried with the result value to break current execution flow and
+      // return from current function.
+      if (!(@return.Result is null)) {
+        Visit(@return.Result);
+        throw new ReturnException(_expressionResult);
+      } else {
+        throw new ReturnException(Value.None());
+      }
     }
 
     protected override void Visit(WhileStatement @while) {

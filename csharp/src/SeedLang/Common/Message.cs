@@ -71,6 +71,7 @@ namespace SeedLang.Common {
     InvalidPrimitiveValue1,             // Invalid primitive value.
     RuntimeErrorInvalidCast,            // Invalid cast of value types runtime error.
     RuntimeErrorDivideByZero,           // Divide by zero runtime error.
+    RuntimeErrorIncorrectArgsCount,     // Incorrect arguments count runtime error.
     RuntimeErrorInvalidListIndex,       // Invalid list index runtime error.
     RuntimeErrorNotCallable,            // Value type not callable runtime error.
     RuntimeErrorNotCountable,           // Value type not countable runtime error.

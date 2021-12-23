@@ -122,7 +122,7 @@ namespace SeedLang.Ast {
     protected abstract void Visit(AssignmentStatement assignment);
     protected abstract void Visit(BlockStatement block);
     protected abstract void Visit(ExpressionStatement expr);
-    protected abstract void Visit(FunctionStatement function);
+    protected abstract void Visit(FunctionStatement func);
     protected abstract void Visit(IfStatement @if);
     protected abstract void Visit(ReturnStatement @return);
     protected abstract void Visit(WhileStatement @while);

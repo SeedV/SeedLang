@@ -12,9 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  // The function interface of function value types.
-  internal interface IFunction {
-    Value Call(Value[] arguments);
+using System;
+using SeedLang.Runtime;
+
+namespace SeedLang.Ast {
+  internal class ReturnException : Exception {
+    public Value Result { get; }
+
+    internal ReturnException(Value result) {
+      Result = result;
+    }
   }
 }

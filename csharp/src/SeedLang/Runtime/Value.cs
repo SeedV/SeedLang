@@ -253,7 +253,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value Call(Value[] parameters) {
+    internal Value Call(Value[] arguments) {
       switch (_type) {
         case ValueType.None:
         case ValueType.Boolean:
@@ -263,7 +263,7 @@ namespace SeedLang.Runtime {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorNotCallable);
         case ValueType.Function:
-          return _object.Call(parameters);
+          return _object.Call(arguments);
         default:
           throw new NotImplementedException($"Unsupported value type: {_type}.");
       }

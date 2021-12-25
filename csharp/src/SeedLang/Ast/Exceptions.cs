@@ -12,19 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  public interface IValue {
-    bool IsNone { get; }
-    bool IsBoolean { get; }
-    bool IsNumber { get; }
-    bool IsString { get; }
-    bool IsList { get; }
-    bool IsFunction { get; }
+using System;
+using SeedLang.Runtime;
 
-    bool Boolean { get; }
-    double Number { get; }
-    string String { get; }
-    int Count { get; }
-    IValue this[int index] { get; }
+namespace SeedLang.Ast {
+  internal class ReturnException : Exception {
+    public Value Result { get; }
+
+    internal ReturnException(Value result) {
+      Result = result;
+    }
   }
 }

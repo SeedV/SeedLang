@@ -166,7 +166,7 @@ namespace SeedLang.Interpreter {
       _registerAllocator.DeallocateVariable();
     }
 
-    protected override void Visit(FunctionStatement function) {
+    protected override void Visit(FunctionStatement func) {
       throw new NotImplementedException();
     }
 

@@ -12,19 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  public interface IValue {
-    bool IsNone { get; }
-    bool IsBoolean { get; }
-    bool IsNumber { get; }
-    bool IsString { get; }
-    bool IsList { get; }
-    bool IsFunction { get; }
+using SeedLang.Runtime;
 
-    bool Boolean { get; }
-    double Number { get; }
-    string String { get; }
-    int Count { get; }
-    IValue this[int index] { get; }
+namespace SeedLang.Ast {
+  // A function value type that is only used in SeedAst component to encapsulate AST function
+  // declearation statement.
+  internal class Function : IFunction {
+    private readonly FunctionStatement _func;
+    private readonly Executor _executor;
+
+    internal Function(FunctionStatement func, Executor executor) {
+      _func = func;
+      _executor = executor;
+    }
+
+    public Value Call(Value[] arguments) {
+      return _executor.Call(_func, arguments);
+    }
   }
 }

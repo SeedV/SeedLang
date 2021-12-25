@@ -65,11 +65,10 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestRunPythonSumProgram() {
+    public void TestRunPythonSum() {
       var executor = new Executor();
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
-
       string source = @"sum = 0
 i = 1
 while i <= 10:
@@ -82,13 +81,12 @@ sum
     }
 
     [Fact]
-    public void TestRunPythonBubbleSortProgram() {
+    public void TestRunPythonBubbleSort() {
       var executor = new Executor();
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
-
       string source = @"array = [64, 34, 25, 12, 22, 11, 90]
-n = 7
+n = len(array)
 i = 0
 while i < n:
   j = 0
@@ -103,6 +101,22 @@ array
 ";
       Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast));
       Assert.Equal("[11, 12, 22, 25, 34, 64, 90]", visualizer.Result.ToString());
+    }
+
+    [Fact]
+    public void TestRunPythonFactorial() {
+      var executor = new Executor();
+      var visualizer = new MockupVisualizer();
+      executor.Register(visualizer);
+      string source = @"def factorial(n):
+  if n == 1:
+    return 1
+  else:
+    return n * factorial(n - 1)
+factorial(10)
+";
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast));
+      Assert.Equal("3628800", visualizer.Result.ToString());
     }
   }
 }

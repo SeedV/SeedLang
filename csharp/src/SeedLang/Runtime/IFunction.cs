@@ -13,18 +13,8 @@
 // limitations under the License.
 
 namespace SeedLang.Runtime {
-  public interface IValue {
-    bool IsNone { get; }
-    bool IsBoolean { get; }
-    bool IsNumber { get; }
-    bool IsString { get; }
-    bool IsList { get; }
-    bool IsFunction { get; }
-
-    bool Boolean { get; }
-    double Number { get; }
-    string String { get; }
-    int Count { get; }
-    IValue this[int index] { get; }
+  // The function interface of function value types.
+  internal interface IFunction {
+    Value Call(Value[] arguments);
   }
 }

@@ -211,19 +211,19 @@ namespace SeedLang.Ast {
       Exit();
     }
 
-    protected override void Visit(FunctionStatement function) {
-      Enter(function);
-      _out.Append($" ({function.Name}:");
-      bool firstArgument = true;
-      foreach (string argument in function.Parameters) {
-        if (!firstArgument) {
+    protected override void Visit(FunctionStatement func) {
+      Enter(func);
+      _out.Append($" ({func.Name}:");
+      bool firstParameter = true;
+      foreach (string parameter in func.Parameters) {
+        if (!firstParameter) {
           _out.Append(',');
         }
-        firstArgument = false;
-        _out.Append($" {argument}");
+        firstParameter = false;
+        _out.Append($" {parameter}");
       }
       _out.Append(')');
-      Visit(function.Body);
+      Visit(func.Body);
       Exit();
     }
 
@@ -239,7 +239,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(ReturnStatement @return) {
       Enter(@return);
-      Visit(@return.Value);
+      Visit(@return.Result);
       Exit();
     }
 

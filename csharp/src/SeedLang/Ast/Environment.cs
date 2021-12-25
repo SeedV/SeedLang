@@ -38,7 +38,7 @@ namespace SeedLang.Ast {
       }
     }
 
-    private readonly LinkedList<Frame> _frames = new LinkedList<Frame>();
+    private readonly Stack<Frame> _frames = new Stack<Frame>();
 
     internal Environment() {
       // Enters the first (global) scope.
@@ -46,11 +46,11 @@ namespace SeedLang.Ast {
     }
 
     internal void EnterScope() {
-      _frames.AddFirst(new Frame());
+      _frames.Push(new Frame());
     }
 
     internal void ExitScope() {
-      _frames.RemoveFirst();
+      _frames.Pop();
     }
 
     internal bool ContainsVariable(string name) {
@@ -73,7 +73,7 @@ namespace SeedLang.Ast {
     }
 
     internal void SetVariable(string name, in Value value) {
-      _frames.First.Value.SetVariable(name, value);
+      _frames.Peek().SetVariable(name, value);
     }
   }
 }

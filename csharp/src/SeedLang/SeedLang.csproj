@@ -8,11 +8,11 @@
     <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
     <Version Condition="'$(ReleaseTag)' != 'release'">$(VersionPrefix)-$(ReleaseTag)$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</Version>
     <Version Condition="'$(ReleaseTag)' == 'release'">$(VersionPrefix)+$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</Version>
-    <Copyright>Copyright 2021 The Aha001 Team</Copyright>
-    <Authors>The Aha001 Team</Authors>
+    <Copyright>Copyright 2021-2022 The SeedV Lab.</Copyright>
+    <Authors>The SeedV Lab</Authors>
     <Company>SeedV.com</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/aha-001/SeedLang</RepositoryUrl>
+    <RepositoryUrl>https://github.com/SeedV/SeedLang</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Description>SeedLang is a visualizable low-code programming environment that focuses on educational purposes.</Description>
   </PropertyGroup>

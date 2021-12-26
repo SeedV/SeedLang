@@ -1,6 +1,6 @@
 {
-  "$comment": "Copyright 2021 The Aha001 Team.\nLicensed under the Apache License, Version 2.0",
-  "$id": "https://www.aha001.com/seedlang/schemas/v0.1/bxf.schema.json",
+  "$comment": "Copyright 2021-2022 The SeedV Lab.\nLicensed under the Apache License, Version 2.0",
+  "$id": "https://www.seedv.com/seedlang/schemas/v0.1/bxf.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Block Exchange Format v0.1",
   "description": "The block exchange format of SeedLang.",

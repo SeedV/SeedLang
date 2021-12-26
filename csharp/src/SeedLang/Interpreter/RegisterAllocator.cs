@@ -12,17 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+
 namespace SeedLang.Interpreter {
   // The allocator class to allocate register slots for local and temporary variables.
   internal class RegisterAllocator {
     // The maximum count of the allocated registers. This number is never decreased even when a
     // register is deallocated.
     public uint MaxRegisterCount = 0;
+    private readonly Dictionary<string, uint> _locals = new Dictionary<string, uint>();
     // Current allocated registers count. This number is decreased if a register is deallocated.
     private uint _registerCount = 0;
 
+    internal uint RegisterOfVariable(string name) {
+      if (!_locals.ContainsKey(name)) {
+        _locals[name] = AllocateVariable();
+      }
+      return _locals[name];
+    }
+
     // Allocates a temporary variable and returns the index of the register slot.
     internal uint AllocateTempVariable() {
+      return AllocateVariable();
+    }
+
+    // Deallocate a register slot.
+    internal void DeallocateVariable() {
+      _registerCount--;
+    }
+
+    private uint AllocateVariable() {
       _registerCount++;
       if (_registerCount > MaxRegisterCount) {
         MaxRegisterCount = _registerCount;
@@ -32,11 +51,6 @@ namespace SeedLang.Interpreter {
         }
       }
       return _registerCount - 1;
-    }
-
-    // Deallocate a register slot.
-    internal void DeallocateVariable() {
-      _registerCount--;
     }
   }
 }

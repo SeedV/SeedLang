@@ -112,9 +112,8 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(assignment);
       string expected = (
-          "1    LOADK     0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "2    SETGLOB   0 -2           ; name              [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "3    RETURN    0                                  \n"
+          "1    MOVE      0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
+          "2    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
@@ -130,8 +129,7 @@ namespace SeedLang.Interpreter.Tests {
       var chunk = compiler.Compile(assignment);
       string expected = (
           "1    ADD       0 -1 -2        ; 1 2               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "2    SETGLOB   0 -3           ; name              [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "3    RETURN    0                                  \n"
+          "2    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }

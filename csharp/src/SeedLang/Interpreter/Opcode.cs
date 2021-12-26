@@ -17,10 +17,11 @@ using System;
 namespace SeedLang.Interpreter {
   // All the opcodes of SeedLang virtual machine.
   internal enum Opcode {
+    MOVE,         // R(A) := RK(B)
     LOADK,        // R(A) := Kst(Bx)
     GETGLOB,      // R[A] := Gbl[Kst(Bx)]
     SETGLOB,      // Gbl[Kst(Bx)] := R[A]
-    ADD,          // R(A) := RK(B)  RK(C)
+    ADD,          // R(A) := RK(B) + RK(C)
     SUB,          // R(A) := RK(B) - RK(C)
     MUL,          // R(A) := RK(B) * RK(C)
     DIV,          // R(A) := RK(B) / RK(C)
@@ -44,6 +45,7 @@ namespace SeedLang.Interpreter {
         case Opcode.GETGLOB:
         case Opcode.SETGLOB:
           return OpcodeType.ABx;
+        case Opcode.MOVE:
         case Opcode.ADD:
         case Opcode.SUB:
         case Opcode.MUL:
@@ -54,7 +56,7 @@ namespace SeedLang.Interpreter {
         case Opcode.RETURN:
           return OpcodeType.A;
         default:
-          throw new NotImplementedException("Unsupported opcode: {op}.");
+          throw new NotImplementedException($"Unsupported opcode: {op}.");
       }
     }
   }

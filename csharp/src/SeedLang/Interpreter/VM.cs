@@ -38,6 +38,9 @@ namespace SeedLang.Interpreter {
         Instruction instr = _chunk.Bytecode[pc];
         try {
           switch (instr.Opcode) {
+            case Opcode.MOVE:
+              _registers[instr.A] = Value.Number(ValueOfRK(instr.B).AsNumber());
+              break;
             case Opcode.LOADK:
               _registers[instr.A] = LoadConstantValue(instr.Bx);
               break;

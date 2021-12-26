@@ -71,18 +71,16 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestGlobalVariable() {
+    public void TestAssignmentStatement() {
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
 
       var identifier = Expression.Identifier("name", _testTextRange);
       var number = Expression.NumberConstant(1, _testTextRange);
       var assignment = Statement.Assignment(identifier, number, _testTextRange);
-      Chunk chunk = compiler.Compile(assignment);
-      vm.Run(chunk);
-
       var expr = Statement.Expression(identifier, _testTextRange);
-      chunk = compiler.Compile(expr);
+      var block = Statement.Block(new Statement[] { assignment, expr }, _testTextRange);
+      Chunk chunk = compiler.Compile(block);
       vm.Run(chunk);
 
       Assert.Equal(1, visualizer.Result.Number);

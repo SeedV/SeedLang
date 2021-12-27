@@ -50,6 +50,8 @@ namespace SeedLang.Interpreter {
                  (ignoreC ? "" : $" {RegisterOrConstantIndex(instr.C)}");
         case OpcodeType.ABx:
           return $"{instr.A} {RegisterOrConstantIndex(instr.Bx)}";
+        case OpcodeType.AsBx:
+          return $"{instr.A} {instr.SBx}";
         default:
           throw new System.NotImplementedException($"Unsupported opcode type: {type}");
       }

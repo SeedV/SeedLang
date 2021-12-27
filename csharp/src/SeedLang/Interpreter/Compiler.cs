@@ -30,7 +30,7 @@ namespace SeedLang.Interpreter {
       _constantCache = new ConstantCache();
       _registerAllocator = new RegisterAllocator();
       Visit(node);
-      _chunk.Emit(Opcode.RETURN, 0);
+      _chunk.EmitA(Opcode.RETURN, 0);
       _chunk.RegisterCount = _registerAllocator.MaxRegisterCount;
       _chunk.SetConstants(_constantCache.Constants.ToArray());
       return _chunk;
@@ -50,7 +50,7 @@ namespace SeedLang.Interpreter {
         _registerForSubExpr = right;
         Visit(binary.Right);
       }
-      _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), register, left, right, binary.Range);
+      _chunk.EmitABC(OpcodeOfBinaryOperator(binary.Op), register, left, right, binary.Range);
       if (needLeftRegister) {
         _registerAllocator.DeallocateVariable();
       }
@@ -67,7 +67,7 @@ namespace SeedLang.Interpreter {
         _registerForSubExpr = expr;
         Visit(unary.Expr);
       }
-      _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
+      _chunk.EmitABC(Opcode.UNM, register, expr, 0, unary.Range);
       if (needRegister) {
         _registerAllocator.DeallocateVariable();
       }
@@ -78,13 +78,60 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ComparisonExpression comparison) {
-      throw new NotImplementedException();
+      // TODO:
+      bool needFirstRegister = !TryGetRegisterOrConstantId(comparison.First, out uint firstId);
+      uint first = needFirstRegister ? _registerAllocator.AllocateTempVariable() : firstId;
+      if (needFirstRegister) {
+        _registerForSubExpr = first;
+        Visit(comparison.First);
+      }
+      bool needSecondRegister = !TryGetRegisterOrConstantId(comparison.Exprs[0], out uint secondId);
+      uint second = needSecondRegister ? _registerAllocator.AllocateTempVariable() : secondId;
+      if (needSecondRegister) {
+        _registerForSubExpr = second;
+        Visit(comparison.Exprs[0]);
+      }
+      Opcode op = Opcode.EQ;
+      bool expected = false;
+      switch (comparison.Ops[0]) {
+        case ComparisonOperator.Less:
+          op = Opcode.LT;
+          expected = true;
+          break;
+        case ComparisonOperator.Greater:
+          op = Opcode.LE;
+          expected = false;
+          break;
+        case ComparisonOperator.LessEqual:
+          op = Opcode.LE;
+          expected = true;
+          break;
+        case ComparisonOperator.GreaterEqual:
+          op = Opcode.LT;
+          expected = false;
+          break;
+        case ComparisonOperator.EqEqual:
+          op = Opcode.EQ;
+          expected = true;
+          break;
+        case ComparisonOperator.NotEqual:
+          op = Opcode.EQ;
+          expected = false;
+          break;
+      }
+      _chunk.EmitABC(op, expected ? 1u : 0u, first, second, comparison.Range);
+      if (needFirstRegister) {
+        _registerAllocator.DeallocateVariable();
+      }
+      if (needSecondRegister) {
+        _registerAllocator.DeallocateVariable();
+      }
     }
 
     protected override void Visit(IdentifierExpression identifier) {
       // The register ...
       uint register = _registerAllocator.RegisterOfVariable(identifier.Name);
-      _chunk.Emit(Opcode.MOVE, _registerForSubExpr, register, 0, identifier.Range);
+      _chunk.EmitABC(Opcode.MOVE, _registerForSubExpr, register, 0, identifier.Range);
     }
 
     protected override void Visit(NoneConstantExpression noneConstant) {
@@ -98,7 +145,7 @@ namespace SeedLang.Interpreter {
     protected override void Visit(NumberConstantExpression numberConstant) {
       // The constant
       uint id = _constantCache.IdOfConstant(numberConstant.Value);
-      _chunk.Emit(Opcode.LOADK, _registerForSubExpr, id, numberConstant.Range);
+      _chunk.EmitABx(Opcode.LOADK, _registerForSubExpr, id, numberConstant.Range);
     }
 
     protected override void Visit(StringConstantExpression stringConstant) {
@@ -122,7 +169,7 @@ namespace SeedLang.Interpreter {
         case IdentifierExpression identifier:
           _registerForSubExpr = _registerAllocator.RegisterOfVariable(identifier.Name);
           if (TryGetRegisterOrConstantId(assignment.Expr, out uint exprId)) {
-            _chunk.Emit(Opcode.MOVE, _registerForSubExpr, exprId, 0, assignment.Range);
+            _chunk.EmitABC(Opcode.MOVE, _registerForSubExpr, exprId, 0, assignment.Range);
           } else {
             Visit(assignment.Expr);
           }
@@ -146,7 +193,7 @@ namespace SeedLang.Interpreter {
         Visit(expr.Expr);
         _registerAllocator.DeallocateVariable();
       }
-      _chunk.Emit(Opcode.EVAL, register, expr.Range);
+      _chunk.EmitA(Opcode.EVAL, register, expr.Range);
     }
 
     protected override void Visit(FunctionStatement func) {
@@ -162,7 +209,13 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(WhileStatement @while) {
-      throw new NotImplementedException();
+      int start = _chunk.BytecodeCount;
+      Visit(@while.Test);
+      int jump = _chunk.BytecodeCount;
+      _chunk.EmitAsBx(Opcode.JMP, 0, 0, @while.Range);
+      Visit(@while.Body);
+      _chunk.EmitAsBx(Opcode.JMP, 0, start - (_chunk.BytecodeCount + 1), @while.Range);
+      _chunk.PatchJumpAt(jump, _chunk.BytecodeCount - jump - 1);
     }
 
     private bool TryGetRegisterId(Expression expr, out uint id) {

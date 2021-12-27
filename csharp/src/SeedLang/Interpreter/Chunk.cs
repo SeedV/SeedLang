@@ -33,6 +33,7 @@ namespace SeedLang.Interpreter {
 
     // The actual count of the registers that is needed for this chunk.
     public uint RegisterCount { get; set; }
+    public int BytecodeCount => _bytecode.Count;
 
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
@@ -41,19 +42,28 @@ namespace SeedLang.Interpreter {
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
 
-    internal void Emit(Opcode opcode, uint a, Range range = null) {
-      _bytecode.Add(new Instruction(opcode, a));
+    internal void EmitA(Opcode opcode, uint a, Range range = null) {
+      _bytecode.Add(Instruction.TypeA(opcode, a));
       _ranges.Add(range);
     }
 
-    internal void Emit(Opcode opcode, uint a, uint b, uint c, Range range = null) {
-      _bytecode.Add(new Instruction(opcode, a, b, c));
+    internal void EmitABC(Opcode opcode, uint a, uint b, uint c, Range range = null) {
+      _bytecode.Add(Instruction.TypeABC(opcode, a, b, c));
       _ranges.Add(range);
     }
 
-    internal void Emit(Opcode opcode, uint a, uint bx, Range range = null) {
-      _bytecode.Add(new Instruction(opcode, a, bx));
+    internal void EmitABx(Opcode opcode, uint a, uint bx, Range range = null) {
+      _bytecode.Add(Instruction.TypeABx(opcode, a, bx));
       _ranges.Add(range);
+    }
+
+    internal void EmitAsBx(Opcode opcode, uint a, int sbx, Range range = null) {
+      _bytecode.Add(Instruction.TypeAsBx(opcode, a, sbx));
+      _ranges.Add(range);
+    }
+
+    internal void PatchJumpAt(int pos, int sbx) {
+      _bytecode[pos] = Instruction.TypeAsBx(_bytecode[pos].Opcode, _bytecode[pos].A, sbx);
     }
 
     // Sets the constant list. It must be called by the compiler after compilation.

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using BenchmarkDotNet.Attributes;
 using SeedLang.Runtime;
 
@@ -22,12 +23,25 @@ namespace SeedLang.Benchmark {
       var executor = new Executor();
       string source = @"sum = 0
 i = 1
-while i <= 1000:
+while i <= 10000000:
   sum = sum + i
   i = i + 1
 sum
 ";
       executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast);
+    }
+
+    [Benchmark]
+    public void BenchmarkBytecodeRun() {
+      var executor = new Executor();
+      string source = @"sum = 0
+i = 1
+while i <= 10000000:
+  sum = sum + i
+  i = i + 1
+sum
+";
+      executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
     }
   }
 }

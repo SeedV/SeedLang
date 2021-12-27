@@ -59,6 +59,19 @@ namespace SeedLang.Interpreter {
             case Opcode.UNM:
               _registers[instr.A] = Value.Number(-ValueOfRK(instr.B).AsNumber());
               break;
+            case Opcode.JMP:
+              pc += instr.SBx;
+              break;
+            case Opcode.EQ:
+              break;
+            case Opcode.LT:
+              break;
+            case Opcode.LE:
+              if ((ValueOfRK(instr.B).AsNumber() <= ValueOfRK(instr.C).AsNumber()) ==
+                  (instr.A == 1)) {
+                pc++;
+              }
+              break;
             case Opcode.EVAL:
               if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
                 var ee = new EvalEvent(new ValueWrapper(_registers[instr.A]), _chunk.Ranges[pc]);
@@ -67,13 +80,15 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.RETURN:
               return;
+            default:
+              throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
         } catch (DiagnosticException ex) {
           throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
                                         ex.Diagnostic.Module, _chunk.Ranges[pc],
                                         ex.Diagnostic.MessageId);
         }
-        ++pc;
+        pc++;
       }
     }
 

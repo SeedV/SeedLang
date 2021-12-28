@@ -41,13 +41,13 @@ namespace SeedLang.Benchmark {
 
     // Benchmarks binary expression running time of the AST executor.
     [Benchmark]
-    public void BenchmarkAstRun() {
+    public void BenchmarkAst() {
       _executor.Run(_expressionStatement);
     }
 
     // Benchmarks binary expression running time of the VM. Compiling time is not included.
     [Benchmark]
-    public void BenchmarkVMRun() {
+    public void BenchmarkVM() {
       _vm.Run(_chunk);
     }
 

@@ -16,19 +16,8 @@ using Xunit;
 
 namespace SeedLang.Runtime.Tests {
   public class ExecutorBytecodeTests {
-    private class MockupVisualizer : IVisualizer<BinaryEvent>,
-                                     IVisualizer<EvalEvent> {
-      public IValue Left { get; private set; }
-      public BinaryOperator Op { get; private set; }
-      public IValue Right { get; private set; }
+    private class MockupVisualizer : IVisualizer<EvalEvent> {
       public IValue Result { get; private set; }
-
-      public void On(BinaryEvent be) {
-        Left = be.Left;
-        Op = be.Op;
-        Right = be.Right;
-        Result = be.Result;
-      }
 
       public void On(EvalEvent ee) {
         Result = ee.Value;

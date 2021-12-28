@@ -63,8 +63,16 @@ namespace SeedLang.Interpreter {
               pc += instr.SBx;
               break;
             case Opcode.EQ:
+              if (ValueOfRK(instr.B).AsNumber() == ValueOfRK(instr.C).AsNumber() ==
+                  (instr.A == 1)) {
+                pc++;
+              }
               break;
             case Opcode.LT:
+              if ((ValueOfRK(instr.B).AsNumber() < ValueOfRK(instr.C).AsNumber()) ==
+                  (instr.A == 1)) {
+                pc++;
+              }
               break;
             case Opcode.LE:
               if ((ValueOfRK(instr.B).AsNumber() <= ValueOfRK(instr.C).AsNumber()) ==
@@ -73,7 +81,7 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.EVAL:
-              if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+              if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
                 var ee = new EvalEvent(new ValueWrapper(_registers[instr.A]), _chunk.Ranges[pc]);
                 _visualizerCenter.EvalPublisher.Notify(ee);
               }

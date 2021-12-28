@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using BenchmarkDotNet.Attributes;
 using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
   public class SumBenchmark {
     [Benchmark]
-    public void BenchmarkAstRun() {
+    public void BenchmarkAst() {
       var executor = new Executor();
       string source = @"sum = 0
 i = 1
@@ -32,7 +31,7 @@ sum
     }
 
     [Benchmark]
-    public void BenchmarkBytecodeRun() {
+    public void BenchmarkBytecode() {
       var executor = new Executor();
       string source = @"sum = 0
 i = 1

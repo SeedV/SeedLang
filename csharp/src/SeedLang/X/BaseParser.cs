@@ -52,8 +52,14 @@ namespace SeedLang.X {
         node = null;
         return false;
       }
-      node = visitor.Visit(program);
-      return true;
+      try {
+        node = visitor.Visit(program);
+        return true;
+      } catch (DiagnosticException e) {
+        collection.Report(e.Diagnostic);
+        node = null;
+        return false;
+      }
     }
 
     protected abstract Lexer MakeLexer(ICharStream stream);

@@ -63,15 +63,6 @@ namespace SeedLang.Ast {
       return new NumberConstantExpression(value, range);
     }
 
-    // The factory method to create a number constant expression from a string.
-    internal static NumberConstantExpression NumberConstant(string value, Range range) {
-      try {
-        return NumberConstant(double.Parse(value), range);
-      } catch (System.Exception) {
-        return NumberConstant(0, range);
-      }
-    }
-
     // The factory method to create a string constant expression.
     internal static StringConstantExpression StringConstant(string value, Range range) {
       return new StringConstantExpression(value, range);

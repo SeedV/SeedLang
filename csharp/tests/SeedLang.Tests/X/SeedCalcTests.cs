@@ -46,12 +46,28 @@ namespace SeedLang.X.Tests {
                 "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (0)",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
+
+    [InlineData("0\n",
+
+                "[Ln 1, Col 0 - Ln 1, Col 0] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (0)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
+
+    [InlineData("0\n\n",
+
+                "[Ln 1, Col 0 - Ln 1, Col 0] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (0)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]")]
+
     [InlineData("0.",
 
                 "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 1] NumberConstantExpression (0)",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]")]
+
     [InlineData(".0",
 
                 "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
@@ -294,7 +310,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData(".3.",
                 new string[] {
-                  "SyntaxErrorUnwantedToken '.' <EOF>",
+                  "SyntaxErrorUnwantedToken '.' {<EOF>, NEWLINE}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +
@@ -302,7 +318,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData(".3@",
                 new string[] {
-                  "SyntaxErrorUnwantedToken '@' <EOF>",
+                  "SyntaxErrorUnwantedToken '@' {<EOF>, NEWLINE}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +

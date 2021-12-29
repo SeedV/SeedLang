@@ -184,7 +184,8 @@ namespace SeedLang.X {
     // Builds a number constant expresssion.
     internal NumberConstantExpression BuildNumberConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Number);
-      return Expression.NumberConstant(token.Text, range);
+      double value = double.Parse(token.Text);
+      return Expression.NumberConstant(value, range);
     }
 
     // Builds a string constant expresssion.

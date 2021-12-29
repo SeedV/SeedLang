@@ -27,7 +27,7 @@ grammar SeedCalc;
  * Parser rules
  */
 
-expressionStatement: expression EOF;
+expressionStatement: expression NEWLINE* EOF;
 
 expression: sum;
 
@@ -66,6 +66,8 @@ INTEGER: DECIMAL_INTEGER;
 DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
 
 FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
+
+NEWLINE: ('\r'? '\n' | '\r' | '\f') SPACES?;
 
 SKIP_: SPACES -> skip;
 

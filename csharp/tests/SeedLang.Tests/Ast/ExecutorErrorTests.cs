@@ -48,28 +48,6 @@ namespace SeedLang.Ast.Tests {
     }
 
     [Fact]
-    public void TestExecuteOverflow() {
-      var exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.NumberConstant(double.PositiveInfinity, _textRange));
-      Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
-      exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.NumberConstant(double.NegativeInfinity, _textRange));
-      Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
-      exception = Assert.Throws<DiagnosticException>(() =>
-          Expression.NumberConstant(double.NaN, _textRange));
-      Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
-
-      var binary = Expression.Binary(Expression.NumberConstant(7.997e307, _textRange),
-                                     BinaryOperator.Add,
-                                     Expression.NumberConstant(9.985e307, _textRange),
-                                     _textRange);
-
-      (var executor, var visualizer) = NewExecutorWithVisualizer();
-      exception = Assert.Throws<DiagnosticException>(() => executor.Run(binary));
-      Assert.Equal(Message.RuntimeErrorOverflow, exception.Diagnostic.MessageId);
-    }
-
-    [Fact]
     public void TestExecuteNotSubscriptable() {
       var one = Expression.NumberConstant(1, _textRange);
       var two = Expression.NumberConstant(2, _textRange);

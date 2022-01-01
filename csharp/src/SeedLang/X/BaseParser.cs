@@ -53,6 +53,8 @@ namespace SeedLang.X {
         return false;
       }
       try {
+        // The visitor will throw an overflow runtime exception if any constant number in the source
+        // code is overflowed.
         node = visitor.Visit(program);
         return true;
       } catch (DiagnosticException e) {

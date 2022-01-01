@@ -16,7 +16,6 @@ dotnet build
 To make a release build:
 
 ```shell
-cd csharp
 dotnet build -c Release
 ```
 
@@ -25,21 +24,17 @@ dotnet build -c Release
 To run the unit tests:
 
 ```shell
-cd csharp
 dotnet test
 ```
 
 To start a simple interpreter of SeedLang:
 
 ```shell
-cd csharp
-dotnet run -p src/SeedLang.Shell
+dotnet run --project src/SeedLang.Shell
 ```
 
-With the interpreter, you can input and execute SeedX code:
+To print the usage info of SeedLang.Shell:
 
-```python
-pi = 3.14
-r = 10
-a = pi * r * r
+```shell
+dotnet run --project src/SeedLang.Shell -- --help
 ```

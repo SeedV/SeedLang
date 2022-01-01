@@ -78,7 +78,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ComparisonExpression comparison) {
-      // TODO:
+      // TODO: support multiple operators. Current implementation only supports two operators.
       bool needFirstRegister = !TryGetRegisterOrConstantId(comparison.First, out uint firstId);
       uint first = needFirstRegister ? _registerAllocator.AllocateTempVariable() : firstId;
       if (needFirstRegister) {

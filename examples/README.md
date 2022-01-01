@@ -2,6 +2,7 @@
 
 SeedLang examples are organized in the following structure:
 
+```text
 examples/
 ├── seedcalc/
 │  ├── scripts/: scripts that are parsed and executed with SeedLang.
@@ -14,3 +15,4 @@ examples/
 ├── seedblock/
 │  └── ...
 └── ...
+```

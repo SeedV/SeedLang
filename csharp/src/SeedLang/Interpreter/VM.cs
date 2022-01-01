@@ -20,8 +20,7 @@ namespace SeedLang.Interpreter {
   internal class VM {
     private readonly VisualizerCenter _visualizerCenter;
 
-    // The global environment to store names and values of global variables.
-    private readonly GlobalEnvironment _globals = new GlobalEnvironment(new Value());
+    private readonly GlobalEnvironment _globals = new GlobalEnvironment();
 
     private Chunk _chunk;
     private Value[] _registers;

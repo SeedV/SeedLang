@@ -47,7 +47,7 @@ namespace SeedLang.Benchmark {
 
     // Benchmarks binary expression running time of the VM. Compiling time is not included.
     [Benchmark]
-    public void BenchmarkVM() {
+    public void BenchmarkBytecode() {
       _vm.Run(_chunk);
     }
 

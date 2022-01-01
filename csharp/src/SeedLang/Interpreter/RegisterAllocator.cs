@@ -19,7 +19,15 @@ namespace SeedLang.Interpreter {
   internal class RegisterAllocator {
     // The maximum count of the allocated registers. This number is never decreased even when a
     // register is deallocated.
-    public uint MaxRegisterCount = 0;
+    public uint MaxRegisterCount { get; private set; } = 0;
+    // The flag to indicate if it's in the global scope.
+    //
+    // TODO: set to false when entering an function or block scope.
+    public bool IsInGlobalScope { get; private set; } = true;
+
+    // A dictionary to store names and register indices of local variables.
+    //
+    // TODO: add a frame stack to support registers for each function call.
     private readonly Dictionary<string, uint> _locals = new Dictionary<string, uint>();
     // Current allocated registers count. This number is decreased if a register is deallocated.
     private uint _registerCount = 0;

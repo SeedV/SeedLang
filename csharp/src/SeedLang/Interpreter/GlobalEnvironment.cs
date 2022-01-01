@@ -13,15 +13,17 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using SeedLang.Runtime;
 
-namespace SeedLang.Runtime {
+namespace SeedLang.Interpreter {
+  // The global environment class to store names and values of global variables.
+  //
+  // TODO: looking up a global variable by strings in the dictionary is quite slow. So the
+  // performance of register-based local variables is much faster than global variables. It's
+  // possible to cache all global variable names during compilation, and use indices to search
+  // global variables in the dictionary. Decide if we need such kind of optimization.
   internal class GlobalEnvironment {
     private readonly Dictionary<string, Value> _globals = new Dictionary<string, Value>();
-    private readonly Value _defaultValue;
-
-    internal GlobalEnvironment(in Value defaultValue) {
-      _defaultValue = defaultValue;
-    }
 
     internal void SetVariable(string name, in Value value) {
       _globals[name] = value;
@@ -29,7 +31,7 @@ namespace SeedLang.Runtime {
 
     internal Value GetVariable(string name) {
       if (!_globals.ContainsKey(name)) {
-        _globals[name] = _defaultValue;
+        _globals[name] = Value.None();
       }
       return _globals[name];
     }

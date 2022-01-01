@@ -112,8 +112,9 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(assignment);
       string expected = (
-          $"1    MOVE      0 -1           ; 1                 {_textRange}\n" +
-          $"2    RETURN    0                                  \n"
+          $"1    LOADK     0 -2           ; 1                 {_textRange}\n" +
+          $"2    SETGLOB   0 -1           ; name              {_textRange}\n" +
+          $"3    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
@@ -128,8 +129,9 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(assignment);
       string expected = (
-          $"1    ADD       0 -1 -2        ; 1 2               {_textRange}\n" +
-          $"2    RETURN    0                                  \n"
+          $"1    ADD       0 -2 -3        ; 1 2               {_textRange}\n" +
+          $"2    SETGLOB   0 -1           ; name              {_textRange}\n" +
+          $"3    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
@@ -157,15 +159,24 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var chunk = compiler.Compile(program);
       string expected = (
-          $"1    MOVE      0 -1           ; 0                 {_textRange}\n" +
-          $"2    MOVE      1 -1           ; 0                 {_textRange}\n" +
-          $"3    LE        1 1 -2         ; 10                {_textRange}\n" +
-          $"4    JMP       0 3                                {_textRange}\n" +
-          $"5    ADD       0 0 1                              {_textRange}\n" +
-          $"6    ADD       1 1 -3         ; 1                 {_textRange}\n" +
-          $"7    JMP       0 -5                               {_textRange}\n" +
-          $"8    EVAL      0                                  {_textRange}\n" +
-          $"9    RETURN    0                                  \n"
+          $"1    LOADK     0 -2           ; 0                 {_textRange}\n" +
+          $"2    SETGLOB   0 -1           ; sum               {_textRange}\n" +
+          $"3    LOADK     0 -2           ; 0                 {_textRange}\n" +
+          $"4    SETGLOB   0 -3           ; i                 {_textRange}\n" +
+          $"5    GETGLOB   0 -3           ; i                 {_textRange}\n" +
+          $"6    LE        1 0 -4         ; 10                {_textRange}\n" +
+          $"7    JMP       0 8                                {_textRange}\n" +
+          $"8    GETGLOB   1 -1           ; sum               {_textRange}\n" +
+          $"9    GETGLOB   2 -3           ; i                 {_textRange}\n" +
+          $"10   ADD       0 1 2                              {_textRange}\n" +
+          $"11   SETGLOB   0 -1           ; sum               {_textRange}\n" +
+          $"12   GETGLOB   1 -3           ; i                 {_textRange}\n" +
+          $"13   ADD       0 1 -5         ; 1                 {_textRange}\n" +
+          $"14   SETGLOB   0 -3           ; i                 {_textRange}\n" +
+          $"15   JMP       0 -11                              {_textRange}\n" +
+          $"16   GETGLOB   0 -1           ; sum               {_textRange}\n" +
+          $"17   EVAL      0                                  {_textRange}\n" +
+          $"18   RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }

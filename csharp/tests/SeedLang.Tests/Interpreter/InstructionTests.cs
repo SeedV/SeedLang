@@ -18,31 +18,31 @@ namespace SeedLang.Interpreter.Tests {
   public class InstructionTests {
     [Fact]
     public void TestInstructions() {
-      var ret = Instruction.TypeA(Opcode.RETURN, 1);
+      var ret = new Instruction(Opcode.RETURN, 1u);
       Assert.Equal(Opcode.RETURN, ret.Opcode);
       Assert.Equal(1u, ret.A);
       Assert.Equal(0u, ret.B);
       Assert.Equal(0u, ret.C);
 
-      var add = Instruction.TypeABC(Opcode.ADD, 1, 2, 3);
+      var add = new Instruction(Opcode.ADD, 1, 2, 3);
       Assert.Equal(Opcode.ADD, add.Opcode);
       Assert.Equal(1u, add.A);
       Assert.Equal(2u, add.B);
       Assert.Equal(3u, add.C);
 
-      var loadK = Instruction.TypeABx(Opcode.LOADK, 1, 2);
+      var loadK = new Instruction(Opcode.LOADK, 1, 2);
       Assert.Equal(Opcode.LOADK, loadK.Opcode);
       Assert.Equal(1u, loadK.A);
       Assert.Equal(2u, loadK.Bx);
 
-      var jmp = Instruction.TypeAsBx(Opcode.JMP, 1, 2);
+      var jmp = new Instruction(Opcode.JMP, 2);
       Assert.Equal(Opcode.JMP, jmp.Opcode);
-      Assert.Equal(1u, jmp.A);
+      Assert.Equal(0u, jmp.A);
       Assert.Equal(2, jmp.SBx);
 
-      jmp = Instruction.TypeAsBx(Opcode.JMP, 1, -2);
+      jmp = new Instruction(Opcode.JMP, -2);
       Assert.Equal(Opcode.JMP, jmp.Opcode);
-      Assert.Equal(1u, jmp.A);
+      Assert.Equal(0u, jmp.A);
       Assert.Equal(-2, jmp.SBx);
     }
   }

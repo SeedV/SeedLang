@@ -20,12 +20,12 @@ namespace SeedLang.Interpreter {
   //
   // See design/seed_vm.md for the layout of instructions.
   internal struct Instruction {
-    private const int _lengthUInt = sizeof(uint) * 8;
+    private const int _lengthUint = sizeof(uint) * 8;
     private const int _lengthOpcode = 6;
     private const int _lengthA = 8;
     private const int _lengthB = 9;
-    private const int _lengthC = _lengthUInt - _lengthOpcode - _lengthA - _lengthB;
-    private const int _lengthBx = _lengthUInt - _lengthOpcode - _lengthA;
+    private const int _lengthC = _lengthUint - _lengthOpcode - _lengthA - _lengthB;
+    private const int _lengthBx = _lengthUint - _lengthOpcode - _lengthA;
 
     private const int _posA = _lengthOpcode;
     private const int _posB = _lengthOpcode + _lengthA;
@@ -49,46 +49,28 @@ namespace SeedLang.Interpreter {
 
     private readonly uint _code;
 
-    private Instruction(Opcode opcode, uint a) {
+    internal Instruction(Opcode opcode, uint a) {
+      CheckOpcodeType(opcode, OpcodeType.A);
       _code = (uint)opcode | a << _posA;
     }
 
-    private Instruction(Opcode opcode, uint a, uint b, uint c) {
+    internal Instruction(Opcode opcode, uint a, uint b, uint c) {
+      CheckOpcodeType(opcode, OpcodeType.ABC);
       _code = (uint)opcode | a << _posA | b << _posB | c << _posC;
     }
 
-    private Instruction(Opcode opcode, uint a, uint bx) {
+    internal Instruction(Opcode opcode, uint a, uint bx) {
       CheckOpcodeType(opcode, OpcodeType.ABx);
       _code = (uint)opcode | a << _posA | bx << _posBx;
     }
 
-    private Instruction(Opcode opcode, uint a, int sbx) {
-      CheckOpcodeType(opcode, OpcodeType.AsBx);
-      _code = (uint)opcode | a << _posA | (uint)(_maxSBx + sbx) << _posBx;
-    }
-
-    internal static Instruction TypeA(Opcode opcode, uint a) {
-      CheckOpcodeType(opcode, OpcodeType.A);
-      return new Instruction(opcode, a);
-    }
-
-    internal static Instruction TypeABC(Opcode opcode, uint a, uint b, uint c) {
-      CheckOpcodeType(opcode, OpcodeType.ABC);
-      return new Instruction(opcode, a, b, c);
-    }
-
-    internal static Instruction TypeABx(Opcode opcode, uint a, uint bx) {
-      CheckOpcodeType(opcode, OpcodeType.ABx);
-      return new Instruction(opcode, a, bx);
-    }
-
-    internal static Instruction TypeAsBx(Opcode opcode, uint a, int sbx) {
-      CheckOpcodeType(opcode, OpcodeType.AsBx);
-      return new Instruction(opcode, a, sbx);
+    internal Instruction(Opcode opcode, int sbx) {
+      CheckOpcodeType(opcode, OpcodeType.SBx);
+      _code = (uint)opcode | (uint)(_maxSBx + sbx) << _posBx;
     }
 
     private static void CheckOpcodeType(Opcode opcode, OpcodeType type) {
-      Debug.Assert(opcode.Type() == type, $"{opcode} shall be type {type} opcode.");
+      Debug.Assert(type == opcode.Type(), $"{opcode} shall be {opcode.Type()} type.");
     }
   }
 }

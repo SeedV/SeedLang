@@ -17,9 +17,10 @@ using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
   public class SumBenchmark {
+    private readonly Executor _executor = new Executor();
+
     [Benchmark]
     public void BenchmarkAst() {
-      var executor = new Executor();
       string source = @"sum = 0
 i = 1
 while i <= 10000000:
@@ -27,12 +28,11 @@ while i <= 10000000:
   i = i + 1
 sum
 ";
-      executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast);
+      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast);
     }
 
     [Benchmark]
     public void BenchmarkBytecode() {
-      var executor = new Executor();
       string source = @"sum = 0
 i = 1
 while i <= 10000000:
@@ -40,7 +40,7 @@ while i <= 10000000:
   i = i + 1
 sum
 ";
-      executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
     }
   }
 }

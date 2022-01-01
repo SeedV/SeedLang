@@ -39,7 +39,7 @@ namespace SeedLang.Interpreter {
     A,
     ABC,
     ABx,
-    AsBx,
+    SBx,
   }
 
   internal static class OpcodeExtension {
@@ -64,7 +64,7 @@ namespace SeedLang.Interpreter {
         case Opcode.SETGLOB:
           return OpcodeType.ABx;
         case Opcode.JMP:
-          return OpcodeType.AsBx;
+          return OpcodeType.SBx;
         default:
           throw new NotImplementedException($"Unsupported opcode: {op}.");
       }

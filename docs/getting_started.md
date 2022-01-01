@@ -68,8 +68,8 @@ See [SeedPython Example Scripts](../examples/seedpython/scripts/).
 
 ## Embed SeedLang into .Net console applications
 
-The [Apples](../examples/seedcalc/apples) application shows the way how to embed
-SeedLang into a .Net console application. It also defines a customized
+The [Apples](../examples/seedcalc/dotnet/apples) application shows the way how
+to embed SeedLang into a .Net console application. It also defines a customized
 visualizer to shows the integer numbers ranging from 1 to 20 as corresponding
 number of red apples.
 
@@ -85,5 +85,5 @@ STEP 4: 🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎 - 🍎🍎🍎🍎 = 🍎�
 Result: 🍎🍎🍎🍎🍎🍎🍎
 ```
 
-See the [Source code of Apples](../examples/seedcalc/apples/Apples.cs) for more
-details.
+See the [Source code of Apples](../examples/seedcalc/dotnet/apples/Apples.cs)
+for more details.

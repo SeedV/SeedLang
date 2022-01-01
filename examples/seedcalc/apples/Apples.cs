@@ -30,7 +30,7 @@ class Apples {
       string op = _unaryOperatorToString[e.Op];
       string result = NumberInApples(e.Result.Number);
       Console.WriteLine(
-          $"STEP {_step}: 0 {op} {operand} = {result}");
+          $"STEP {_step}: {op} {operand} = {result}");
     }
 
     public void On(BinaryEvent e) {
@@ -85,24 +85,26 @@ Enter ""bye"" to exit.";
       if (input == _bye) {
         break;
       }
-      var executor = new Executor();
-      var visualizer = new Visualizer();
-      executor.Register(visualizer);
-      var collection = new DiagnosticCollection();
-      if (!executor.Run(input, _moduleName, SeedXLanguage.SeedCalc, RunType.Ast, collection)) {
-        switch (collection.Diagnostics[0].MessageId) {
-          case Message.RuntimeErrorDivideByZero:
-            Console.WriteLine(_errorDivByZero);
-            break;
-          case Message.RuntimeErrorOverflow:
-            Console.WriteLine(_errorOverflow);
-            break;
-          default:
-            Console.WriteLine(_errorSyntax);
-            break;
+      if (input.Length > 0) {
+        var executor = new Executor();
+        var visualizer = new Visualizer();
+        executor.Register(visualizer);
+        var collection = new DiagnosticCollection();
+        if (!executor.Run(input, _moduleName, SeedXLanguage.SeedCalc, RunType.Ast, collection)) {
+          switch (collection.Diagnostics[0].MessageId) {
+            case Message.RuntimeErrorDivideByZero:
+              Console.WriteLine(_errorDivByZero);
+              break;
+            case Message.RuntimeErrorOverflow:
+              Console.WriteLine(_errorOverflow);
+              break;
+            default:
+              Console.WriteLine(_errorSyntax);
+              break;
+          }
         }
+        executor.Unregister(visualizer);
       }
-      executor.Unregister(visualizer);
       Console.Write(_prompt);
     }
   }

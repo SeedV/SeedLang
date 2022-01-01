@@ -76,7 +76,7 @@ number of red apples.
 Here is an example run of Apples:
 
 ```shell
-dotnet run --project ../examples/seedcalc/apples
+dotnet run --project ../examples/seedcalc/dotnet/apples
 ] 3+4*(5-3)-4
 STEP 1: 🍎🍎🍎🍎🍎 - 🍎🍎🍎 = 🍎🍎
 STEP 2: 🍎🍎🍎🍎 * 🍎🍎 = 🍎🍎🍎🍎🍎🍎🍎🍎

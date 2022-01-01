@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <PackageId>SeedLang</PackageId>
     <ReleaseTag>preview</ReleaseTag>
-    <VersionPrefix>0.1.2</VersionPrefix>
+    <VersionPrefix>0.2.0</VersionPrefix>
     <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
     <Version Condition="'$(ReleaseTag)' != 'release'">$(VersionPrefix)-$(ReleaseTag)$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</Version>
     <Version Condition="'$(ReleaseTag)' == 'release'">$(VersionPrefix)+$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</Version>
@@ -15,7 +15,13 @@
     <RepositoryUrl>https://github.com/SeedV/SeedLang</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Description>SeedLang is a visualizable low-code programming environment that focuses on educational purposes.</Description>
+    <PackageReadmeFile>README.nuget.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+    <None Include="..\..\..\README.nuget.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />

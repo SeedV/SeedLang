@@ -58,18 +58,8 @@ namespace SeedLang.Ast {
 
     // The factory method to create a number constant expression.
     internal static NumberConstantExpression NumberConstant(double value, Range range) {
-      // Throws a runtime overflow exception if the constant number is overflowed.
-      ValueHelper.CheckOverflow(value, range);
+      Debug.Assert(!double.IsInfinity(value) && !double.IsNaN(value));
       return new NumberConstantExpression(value, range);
-    }
-
-    // The factory method to create a number constant expression from a string.
-    internal static NumberConstantExpression NumberConstant(string value, Range range) {
-      try {
-        return NumberConstant(double.Parse(value), range);
-      } catch (System.Exception) {
-        return NumberConstant(0, range);
-      }
     }
 
     // The factory method to create a string constant expression.

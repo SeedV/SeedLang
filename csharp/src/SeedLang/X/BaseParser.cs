@@ -52,8 +52,16 @@ namespace SeedLang.X {
         node = null;
         return false;
       }
-      node = visitor.Visit(program);
-      return true;
+      try {
+        // The visitor will throw an overflow runtime exception if any constant number in the source
+        // code is overflowed.
+        node = visitor.Visit(program);
+        return true;
+      } catch (DiagnosticException e) {
+        collection.Report(e.Diagnostic);
+        node = null;
+        return false;
+      }
     }
 
     protected abstract Lexer MakeLexer(ICharStream stream);

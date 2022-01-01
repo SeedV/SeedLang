@@ -113,13 +113,21 @@ namespace SeedLang.X.Tests {
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 4]," +
                 "Keyword [Ln 1, Col 6 - Ln 1, Col 9]")]
+
+    [InlineData("1e9999",
+                new string[] {
+                  "RuntimeErrorOverflow",
+                },
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 5]")]
     public void TestParseSyntaxError(string input, string[] errorMessages, string expectedTokens) {
       Assert.False(_parser.Parse(input, "", _collection, out AstNode node,
                                  out IReadOnlyList<SyntaxToken> tokens));
       Assert.Null(node);
       Assert.Equal(errorMessages.Length, _collection.Diagnostics.Count);
       for (int i = 0; i < errorMessages.Length; ++i) {
-        Assert.Equal(SystemReporters.SeedX, _collection.Diagnostics[i].Reporter);
+        Assert.True(_collection.Diagnostics[i].Reporter == SystemReporters.SeedX ||
+                    _collection.Diagnostics[i].Reporter == SystemReporters.SeedRuntime);
         Assert.Equal(Severity.Fatal, _collection.Diagnostics[i].Severity);
         string diagnostic = _collection.Diagnostics[i].LocalizedMessage.Replace(@"\r\n", @"\n");
         Assert.Equal(errorMessages[i], diagnostic);

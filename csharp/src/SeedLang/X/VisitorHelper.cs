@@ -184,7 +184,17 @@ namespace SeedLang.X {
     // Builds a number constant expresssion.
     internal NumberConstantExpression BuildNumberConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Number);
-      return Expression.NumberConstant(token.Text, range);
+      try {
+        // The behavior of double.Parse is different between net6.0 and netstandard2.0 frameworks.
+        // It returns an infinity double value without throwing any exception on net6.0 framework.
+        // It throws an OverflowException on netstandard2.0. Handle both cases here.
+        double value = double.Parse(token.Text);
+        ValueHelper.CheckOverflow(value, range);
+        return Expression.NumberConstant(value, range);
+      } catch (System.OverflowException) {
+        throw new DiagnosticException(SystemReporters.SeedX, Severity.Fatal, "", range,
+                                      Message.RuntimeErrorOverflow);
+      }
     }
 
     // Builds a string constant expresssion.

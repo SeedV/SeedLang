@@ -34,7 +34,7 @@ strict digraph SeedLang {
     ]
     SeedAST [ shape = diamond ]
     SeedX [
-        label = "SeedX\n\nSeedPython\nSeedJS\nSeedLua\n..."
+        label = "SeedX\n\nSeedCalc\nSeedPython\nSeedJS\nSeedLua\n..."
         shape = folder
     ]
     { rank=same SeedBlock SeedAST SeedX }

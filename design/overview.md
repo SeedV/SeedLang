@@ -49,6 +49,9 @@ SeedX languages.
 SeedX is a set of programming languages that can be translated into SeedAST and
 run by SeedInterpreter.
 
+* SeedCalc: a lightweight sub-language to parse and execute arithmetic
+  expressions. With SeedCalc, calculator applications can visualize every single
+  step of an arithmetic calculation.
 * SeedPython: an educational programming language that implements a subset of
   Python features.
 * SeedJS: an educational programming language that implements a subset of

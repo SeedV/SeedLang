@@ -14,7 +14,7 @@ To publish a pre-release build of the NuGet package:
 cd csharp
 dotnet clean
 rm src/SeedLang/bin/Release/SeedLang.*.nupkg
-dotnet pack -c Release -p:ReleaseTag=preview
+dotnet pack src/SeedLang -c Release -p:ReleaseTag=preview
 dotnet nuget push src/SeedLang/bin/Release/SeedLang.*.nupkg --api-key <apikey> \
   --source https://api.nuget.org/v3/index.json
 ```
@@ -41,22 +41,26 @@ To publish a formal release build of the NuGet package:
 Manually assign a new version number `<major>.<minor>.<patch>` to the release
 build.
 
-Create a release branch and prepare a PR to update the `VersionPrefix` property
-accordingly at:
+Prepare a versioning PR to update the `VersionPrefix` property in the following
+two project files:
 
 * [SeedLang.csproj](./csharp/src/SeedLang/SeedLang.csproj)
 * [SeedLang.Shell.csproj](./csharp/src/SeedLang.Shell/SeedLang.Shell.csproj)
 
-Get the release PR approved by the dev team and merged into main branch. Tag the
-main branch with a release tag like `v<major>.<minor>.<patch>`.
+Get the versioning PR approved by the dev team and merged into the main branch.
 
-Build and publish the package to NuGet:
+In GitHub, [create a new release for
+SeedLang](https://github.com/SeedV/SeedLang/releases/new) and assign a release
+tag to the main branch. The release tag is typically formatted as
+`v<major>.<minor>.<patch>`.
+
+Build the SeedLang package and publish it to NuGet:
 
 ```shell
 cd csharp
 dotnet clean
 rm src/SeedLang/bin/Release/SeedLang.*.nupkg
-dotnet pack -c Release -p:ReleaseTag=release
+dotnet pack src/SeedLang -c Release -p:ReleaseTag=release
 dotnet nuget push src/SeedLang/bin/Release/SeedLang.*.nupkg --api-key <apikey> \
  --source https://api.nuget.org/v3/index.json
 ```

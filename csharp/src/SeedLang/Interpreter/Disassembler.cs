@@ -40,7 +40,7 @@ namespace SeedLang.Interpreter {
     }
 
     private string OperandsToString(Instruction instr) {
-      bool ignoreC = instr.Opcode == Opcode.UNM;
+      bool ignoreC = instr.Opcode == Opcode.MOVE || instr.Opcode == Opcode.UNM;
       OpcodeType type = instr.Opcode.Type();
       switch (type) {
         case OpcodeType.A:
@@ -50,6 +50,8 @@ namespace SeedLang.Interpreter {
                  (ignoreC ? "" : $" {RegisterOrConstantIndex(instr.C)}");
         case OpcodeType.ABx:
           return $"{instr.A} {RegisterOrConstantIndex(instr.Bx)}";
+        case OpcodeType.SBx:
+          return $"{instr.A} {instr.SBx}";
         default:
           throw new System.NotImplementedException($"Unsupported opcode type: {type}");
       }

@@ -18,7 +18,7 @@ namespace SeedLang.Interpreter.Tests {
   public class InstructionTests {
     [Fact]
     public void TestInstructions() {
-      var ret = new Instruction(Opcode.RETURN, 1);
+      var ret = new Instruction(Opcode.RETURN, 1u);
       Assert.Equal(Opcode.RETURN, ret.Opcode);
       Assert.Equal(1u, ret.A);
       Assert.Equal(0u, ret.B);
@@ -34,6 +34,16 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(Opcode.LOADK, loadK.Opcode);
       Assert.Equal(1u, loadK.A);
       Assert.Equal(2u, loadK.Bx);
+
+      var jmp = new Instruction(Opcode.JMP, 2);
+      Assert.Equal(Opcode.JMP, jmp.Opcode);
+      Assert.Equal(0u, jmp.A);
+      Assert.Equal(2, jmp.SBx);
+
+      jmp = new Instruction(Opcode.JMP, -2);
+      Assert.Equal(Opcode.JMP, jmp.Opcode);
+      Assert.Equal(0u, jmp.A);
+      Assert.Equal(-2, jmp.SBx);
     }
   }
 }

@@ -20,8 +20,7 @@ namespace SeedLang.Interpreter {
   internal class VM {
     private readonly VisualizerCenter _visualizerCenter;
 
-    // The global environment to store names and values of global variables.
-    private readonly GlobalEnvironment _globals = new GlobalEnvironment(new Value());
+    private readonly GlobalEnvironment _globals = new GlobalEnvironment();
 
     private Chunk _chunk;
     private Value[] _registers;
@@ -38,6 +37,9 @@ namespace SeedLang.Interpreter {
         Instruction instr = _chunk.Bytecode[pc];
         try {
           switch (instr.Opcode) {
+            case Opcode.MOVE:
+              _registers[instr.A] = Value.Number(ValueOfRK(instr.B).AsNumber());
+              break;
             case Opcode.LOADK:
               _registers[instr.A] = LoadConstantValue(instr.Bx);
               break;
@@ -56,21 +58,44 @@ namespace SeedLang.Interpreter {
             case Opcode.UNM:
               _registers[instr.A] = Value.Number(-ValueOfRK(instr.B).AsNumber());
               break;
+            case Opcode.JMP:
+              pc += instr.SBx;
+              break;
+            case Opcode.EQ:
+              if (ValueOfRK(instr.B).AsNumber() == ValueOfRK(instr.C).AsNumber() ==
+                  (instr.A == 1)) {
+                pc++;
+              }
+              break;
+            case Opcode.LT:
+              if ((ValueOfRK(instr.B).AsNumber() < ValueOfRK(instr.C).AsNumber()) ==
+                  (instr.A == 1)) {
+                pc++;
+              }
+              break;
+            case Opcode.LE:
+              if ((ValueOfRK(instr.B).AsNumber() <= ValueOfRK(instr.C).AsNumber()) ==
+                  (instr.A == 1)) {
+                pc++;
+              }
+              break;
             case Opcode.EVAL:
-              if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+              if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
                 var ee = new EvalEvent(new ValueWrapper(_registers[instr.A]), _chunk.Ranges[pc]);
                 _visualizerCenter.EvalPublisher.Notify(ee);
               }
               break;
             case Opcode.RETURN:
               return;
+            default:
+              throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
         } catch (DiagnosticException ex) {
           throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
                                         ex.Diagnostic.Module, _chunk.Ranges[pc],
                                         ex.Diagnostic.MessageId);
         }
-        ++pc;
+        pc++;
       }
     }
 

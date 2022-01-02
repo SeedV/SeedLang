@@ -12,35 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using BenchmarkDotNet.Attributes;
-using SeedLang.Runtime;
+using Xunit;
 
-namespace SeedLang.Benchmark {
-  public class SumBenchmark {
-    private readonly Executor _executor = new Executor();
+namespace SeedLang.Runtime.Tests {
+  public class ExecutorBytecodeTests {
+    private class MockupVisualizer : IVisualizer<EvalEvent> {
+      public IValue Result { get; private set; }
 
-    [Benchmark]
-    public void BenchmarkAst() {
-      string source = @"sum = 0
-i = 1
-while i <= 10000000:
-  sum = sum + i
-  i = i + 1
-sum
-";
-      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast);
+      public void On(EvalEvent ee) {
+        Result = ee.Value;
+      }
     }
 
-    [Benchmark]
-    public void BenchmarkBytecode() {
+    [Fact]
+    public void TestRunPythonSum() {
+      var executor = new Executor();
+      var visualizer = new MockupVisualizer();
+      executor.Register(visualizer);
       string source = @"sum = 0
 i = 1
-while i <= 10000000:
+while i <= 10:
   sum = sum + i
   i = i + 1
 sum
 ";
-      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode));
+      Assert.Equal(55, visualizer.Result.Number);
     }
   }
 }

@@ -37,6 +37,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BinaryExpression binary) {
+      _registerAllocator.EnterExpressionScope();
       uint register = _registerForSubExpr;
       bool needLeftRegister = !TryGetRegisterOrConstantId(binary.Left, out uint leftId);
       uint left = needLeftRegister ? _registerAllocator.AllocateTempVariable() : leftId;
@@ -51,15 +52,11 @@ namespace SeedLang.Interpreter {
         Visit(binary.Right);
       }
       _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), register, left, right, binary.Range);
-      if (needLeftRegister) {
-        _registerAllocator.DeallocateVariable();
-      }
-      if (needRightRegister) {
-        _registerAllocator.DeallocateVariable();
-      }
+      _registerAllocator.ExitExpressionScope();
     }
 
     protected override void Visit(UnaryExpression unary) {
+      _registerAllocator.EnterExpressionScope();
       uint register = _registerForSubExpr;
       bool needRegister = !TryGetRegisterOrConstantId(unary.Expr, out uint exprId);
       uint expr = needRegister ? _registerAllocator.AllocateTempVariable() : exprId;
@@ -68,9 +65,7 @@ namespace SeedLang.Interpreter {
         Visit(unary.Expr);
       }
       _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
-      if (needRegister) {
-        _registerAllocator.DeallocateVariable();
-      }
+      _registerAllocator.ExitExpressionScope();
     }
 
     protected override void Visit(BooleanExpression boolean) {
@@ -78,7 +73,9 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ComparisonExpression comparison) {
-      // TODO: support multiple operators. Current implementation only supports two operators.
+      // TODO: support comparison expressions with multiple operands (e.g. a < b < c). Current
+      // implementation only supports two operands (e.g. a < b).
+      _registerAllocator.EnterExpressionScope();
       bool needFirstRegister = !TryGetRegisterOrConstantId(comparison.First, out uint firstId);
       uint first = needFirstRegister ? _registerAllocator.AllocateTempVariable() : firstId;
       if (needFirstRegister) {
@@ -120,12 +117,7 @@ namespace SeedLang.Interpreter {
           break;
       }
       _chunk.Emit(op, expectedResult ? 1u : 0u, first, second, comparison.Range);
-      if (needFirstRegister) {
-        _registerAllocator.DeallocateVariable();
-      }
-      if (needSecondRegister) {
-        _registerAllocator.DeallocateVariable();
-      }
+      _registerAllocator.ExitExpressionScope();
     }
 
     protected override void Visit(IdentifierExpression identifier) {
@@ -175,11 +167,12 @@ namespace SeedLang.Interpreter {
             if (TryGetRegisterId(assignment.Expr, out uint exprId)) {
               _chunk.Emit(Opcode.SETGLOB, exprId, variableNameId, assignment.Range);
             } else {
+              _registerAllocator.EnterExpressionScope();
               uint resultRegister = _registerAllocator.AllocateTempVariable();
               _registerForSubExpr = resultRegister;
               Visit(assignment.Expr);
               _chunk.Emit(Opcode.SETGLOB, resultRegister, variableNameId, assignment.Range);
-              _registerAllocator.DeallocateVariable();
+              _registerAllocator.ExitExpressionScope();
             }
           } else {
             _registerForSubExpr = _registerAllocator.RegisterOfVariable(identifier.Name);
@@ -204,10 +197,11 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(ExpressionStatement expr) {
       if (!TryGetRegisterId(expr.Expr, out uint register)) {
+        _registerAllocator.EnterExpressionScope();
         register = _registerAllocator.AllocateTempVariable();
         _registerForSubExpr = register;
         Visit(expr.Expr);
-        _registerAllocator.DeallocateVariable();
+        _registerAllocator.ExitExpressionScope();
       }
       _chunk.Emit(Opcode.EVAL, register, expr.Range);
     }

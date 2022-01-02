@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
   // The allocator class to allocate register slots for local and temporary variables.
@@ -31,22 +32,35 @@ namespace SeedLang.Interpreter {
     private readonly Dictionary<string, uint> _locals = new Dictionary<string, uint>();
     // Current allocated registers count. This number is decreased if a register is deallocated.
     private uint _registerCount = 0;
+    // A Stack to store the beginning of registers before parsing an expression. The expresion
+    // visitor should call EnterExpressionScope() before allocating temporary variables for
+    // intermediate results. The ExitExpressionScope() call will deallocate all temporary variables
+    // that are allocated in this expression scope.
+    private readonly Stack<uint> _beginningOfExpressionScopes = new Stack<uint>();
 
+    // Allocates a register for a local variable with the given name.
     internal uint RegisterOfVariable(string name) {
+      // Temporary variables are allocated and deallocated within one statement. So all expression
+      // scopes shall be exited before allocating registers for local variables.
+      Debug.Assert(_beginningOfExpressionScopes.Count == 0);
       if (!_locals.ContainsKey(name)) {
         _locals[name] = AllocateVariable();
       }
       return _locals[name];
     }
 
+    internal void EnterExpressionScope() {
+      _beginningOfExpressionScopes.Push(_registerCount);
+    }
+
+    internal void ExitExpressionScope() {
+      _registerCount = _beginningOfExpressionScopes.Peek();
+      _beginningOfExpressionScopes.Pop();
+    }
+
     // Allocates a temporary variable and returns the index of the register slot.
     internal uint AllocateTempVariable() {
       return AllocateVariable();
-    }
-
-    // Deallocate a register slot.
-    internal void DeallocateVariable() {
-      _registerCount--;
     }
 
     private uint AllocateVariable() {

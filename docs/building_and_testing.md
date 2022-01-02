@@ -6,10 +6,15 @@
 
 Install [Microsoft .NET](https://dotnet.microsoft.com/download).
 
-### Building
+Note: the following example commands should be executed in the `csharp` dir:
 
 ```shell
 cd csharp
+```
+
+### Building
+
+```shell
 dotnet build
 ```
 

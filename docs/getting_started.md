@@ -10,6 +10,12 @@ You can run script code in one of the SeedLang scripting languages with
 SeedLang.Shell. You can also embed the SeedLang compiler/interpreter/runtime
 into your own hosting applications.
 
+Note: the following example commands should be executed in the `csharp` dir:
+
+```shell
+cd csharp
+```
+
 ## Run SeedLang scripts with SeedLang.Shell
 
 ### SeedCalc
@@ -24,7 +30,6 @@ You can start the interactive mode of SeedLang.Shell to input and execute
 SeedCalc expressions:
 
 ```shell
-cd csharp
 dotnet run --project src/SeedLang.Shell -- -l SeedCalc
 ```
 
@@ -37,11 +42,17 @@ dotnet run --project src/SeedLang.Shell -- -l SeedCalc -f ../examples/seedcalc/s
 Or, run the script file with all the shell-based visualizers on:
 
 ```shell
-cd SeedLang/csharp
 dotnet run --project src/SeedLang.Shell -- -l SeedCalc -f ../examples/seedcalc/scripts/arithmetic.calc -v All
 ```
 
-See [SeedCalc Example Scripts](../examples/seedcalc/scripts/).
+Shell-based visualizers are the example visualizers predefined by
+SeedLang.Shell. By default, only the final `Eval` step is shown to the console.
+With command-line option `-v All`, every calculation step of an expression will
+be printed to the console. See SeedLang.Shell's
+[VisualizerManager.cs](../csharp/src/SeedLang.Shell/VisualizerManager.cs) for
+more details.
+
+See also the dir of [SeedCalc Example Scripts](../examples/seedcalc/scripts/).
 
 ### SeedPython
 
@@ -64,7 +75,8 @@ Run the fibonacci example with all the shell-based visualizers on:
 dotnet run --project src/SeedLang.Shell -- -l SeedPython -f ../examples/seedpython/scripts/fibonacci.py -v All
 ```
 
-See [SeedPython Example Scripts](../examples/seedpython/scripts/).
+See also the dir of [SeedPython Example
+Scripts](../examples/seedpython/scripts/).
 
 ## Embed SeedLang into .Net console applications
 

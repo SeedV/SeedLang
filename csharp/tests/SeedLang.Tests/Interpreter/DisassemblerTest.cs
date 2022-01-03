@@ -22,7 +22,8 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestDisassember() {
-      var chunk = new Chunk();
+      var func = new Function("main");
+      var chunk = func.Chunk;
       var cache = new ConstantCache();
       chunk.Emit(Opcode.LOADK, 0, cache.IdOfConstant(1), _testTextRange);
       chunk.Emit(Opcode.GETGLOB, 1, cache.IdOfConstant("global_variable"), _testTextRange);
@@ -45,7 +46,7 @@ namespace SeedLang.Interpreter.Tests {
           "8    UNM       0 -8           ; 6                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "9    RETURN    0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }
 }

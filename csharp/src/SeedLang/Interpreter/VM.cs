@@ -22,91 +22,97 @@ namespace SeedLang.Interpreter {
 
     private readonly GlobalEnvironment _globals = new GlobalEnvironment();
 
-    private Chunk _chunk;
-    private Value[] _registers;
+    private readonly CallStack _callStack = new CallStack();
+
+    private readonly Value[] _registers = new Value[1000];
 
     internal VM(VisualizerCenter visualizerCenter = null) {
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
     }
 
-    internal void Run(Chunk chunk) {
-      _chunk = chunk;
-      _registers = new Value[_chunk.RegisterCount];
+    internal void Run(Function func) {
+      _callStack.PushFunc(func);
+      Chunk chunk = func.Chunk;
       int pc = 0;
-      while (pc < _chunk.Bytecode.Count) {
-        Instruction instr = _chunk.Bytecode[pc];
+      while (pc < chunk.Bytecode.Count) {
+        Instruction instr = chunk.Bytecode[pc];
         try {
           switch (instr.Opcode) {
             case Opcode.MOVE:
-              _registers[instr.A] = Value.Number(ValueOfRK(instr.B).AsNumber());
+              _registers[instr.A] = Value.Number(ValueOfRK(chunk, instr.B).AsNumber());
               break;
             case Opcode.LOADK:
-              _registers[instr.A] = LoadConstantValue(instr.Bx);
+              _registers[instr.A] = LoadConstantValue(chunk, instr.Bx);
               break;
             case Opcode.GETGLOB:
-              HandleGetGlobal(instr);
+              HandleGetGlobal(chunk, instr);
               break;
             case Opcode.SETGLOB:
-              HandleSetGlobal(instr, _chunk.Ranges[pc]);
+              HandleSetGlobal(chunk, instr, chunk.Ranges[pc]);
               break;
             case Opcode.ADD:
             case Opcode.SUB:
             case Opcode.MUL:
             case Opcode.DIV:
-              HandleBinary(instr, _chunk.Ranges[pc]);
+              HandleBinary(chunk, instr, chunk.Ranges[pc]);
               break;
             case Opcode.UNM:
-              _registers[instr.A] = Value.Number(-ValueOfRK(instr.B).AsNumber());
+              _registers[instr.A] = Value.Number(-ValueOfRK(chunk, instr.B).AsNumber());
               break;
             case Opcode.JMP:
               pc += instr.SBx;
               break;
             case Opcode.EQ:
-              if (ValueOfRK(instr.B).AsNumber() == ValueOfRK(instr.C).AsNumber() ==
+              if (ValueOfRK(chunk, instr.B).AsNumber() == ValueOfRK(chunk, instr.C).AsNumber() ==
                   (instr.A == 1)) {
                 pc++;
               }
               break;
             case Opcode.LT:
-              if ((ValueOfRK(instr.B).AsNumber() < ValueOfRK(instr.C).AsNumber()) ==
+              if ((ValueOfRK(chunk, instr.B).AsNumber() < ValueOfRK(chunk, instr.C).AsNumber()) ==
                   (instr.A == 1)) {
                 pc++;
               }
               break;
             case Opcode.LE:
-              if ((ValueOfRK(instr.B).AsNumber() <= ValueOfRK(instr.C).AsNumber()) ==
+              if ((ValueOfRK(chunk, instr.B).AsNumber() <= ValueOfRK(chunk, instr.C).AsNumber()) ==
                   (instr.A == 1)) {
                 pc++;
               }
               break;
             case Opcode.EVAL:
               if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
-                var ee = new EvalEvent(new ValueWrapper(_registers[instr.A]), _chunk.Ranges[pc]);
+                var ee = new EvalEvent(new ValueWrapper(_registers[instr.A]), chunk.Ranges[pc]);
                 _visualizerCenter.EvalPublisher.Notify(ee);
               }
               break;
             case Opcode.RETURN:
+              _callStack.PopFunc();
               return;
             default:
               throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
         } catch (DiagnosticException ex) {
           throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
-                                        ex.Diagnostic.Module, _chunk.Ranges[pc],
+                                        ex.Diagnostic.Module, chunk.Ranges[pc],
                                         ex.Diagnostic.MessageId);
         }
         pc++;
       }
     }
 
-    private void HandleGetGlobal(Instruction instr) {
-      var name = _chunk.ValueOfConstId(instr.Bx).ToString();
-      _registers[instr.A] = _globals.
-      GetVariable(name);
+    // Loads the constant value of constId. Returns a readonly reference to avoid copying.
+    private static ref readonly Value LoadConstantValue(Chunk chunk, uint constId) {
+      return ref chunk.ValueOfConstId(constId);
     }
 
-    private void HandleSetGlobal(Instruction instr, Range range) {
-      var name = _chunk.ValueOfConstId(instr.Bx).ToString();
+    private void HandleGetGlobal(Chunk chunk, Instruction instr) {
+      var name = chunk.ValueOfConstId(instr.Bx).ToString();
+      _registers[instr.A] = _globals.GetVariable(name);
+    }
+
+    private void HandleSetGlobal(Chunk chunk, Instruction instr, Range range) {
+      var name = chunk.ValueOfConstId(instr.Bx).ToString();
       _globals.SetVariable(name, _registers[instr.A]);
       if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
         var ae = new AssignmentEvent(name, new ValueWrapper(_registers[instr.A]), range);
@@ -114,11 +120,11 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void HandleBinary(Instruction instr, Range range) {
+    private void HandleBinary(Chunk chunk, Instruction instr, Range range) {
       BinaryOperator op = BinaryOperator.Add;
       double result = 0;
-      Value left = ValueOfRK(instr.B);
-      Value right = ValueOfRK(instr.C);
+      Value left = ValueOfRK(chunk, instr.B);
+      Value right = ValueOfRK(chunk, instr.C);
       switch (instr.Opcode) {
         case Opcode.ADD:
           op = BinaryOperator.Add;
@@ -147,16 +153,11 @@ namespace SeedLang.Interpreter {
 
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to
     // avoid copying.
-    private ref readonly Value ValueOfRK(uint rkPos) {
+    private ref readonly Value ValueOfRK(Chunk chunk, uint rkPos) {
       if (rkPos < Chunk.MaxRegisterCount) {
         return ref _registers[rkPos];
       }
-      return ref LoadConstantValue(rkPos);
-    }
-
-    // Loads the constant value of constId. Returns a readonly reference to avoid copying.
-    private ref readonly Value LoadConstantValue(uint constId) {
-      return ref _chunk.ValueOfConstId(constId);
+      return ref LoadConstantValue(chunk, rkPos);
     }
   }
 }

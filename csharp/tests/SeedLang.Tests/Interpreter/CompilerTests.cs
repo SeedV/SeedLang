@@ -26,13 +26,13 @@ namespace SeedLang.Interpreter.Tests {
       var number = Expression.NumberConstant(1, _textRange);
       var expr = Statement.Expression(number, _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(expr);
+      var func = compiler.Compile(expr);
       string expected = (
           $"1    LOADK     0 -1           ; 1                 {_textRange}\n" +
           $"2    EVAL      0                                  {_textRange}\n" +
           $"3    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
@@ -42,13 +42,13 @@ namespace SeedLang.Interpreter.Tests {
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
       var expr = Statement.Expression(binary, _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(expr);
+      var func = compiler.Compile(expr);
       string expected = (
           $"1    ADD       0 -1 -2        ; 1 2               {_textRange}\n" +
           $"2    EVAL      0                                  {_textRange}\n" +
           $"3    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
@@ -60,14 +60,14 @@ namespace SeedLang.Interpreter.Tests {
       var binary = Expression.Binary(left, BinaryOperator.Subtract, right, _textRange);
       var expr = Statement.Expression(binary, _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(expr);
+      var func = compiler.Compile(expr);
       string expected = (
           $"1    ADD       1 -2 -3        ; 2 3               {_textRange}\n" +
           $"2    SUB       0 -1 1         ; 1                 {_textRange}\n" +
           $"3    EVAL      0                                  {_textRange}\n" +
           $"4    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
@@ -79,14 +79,14 @@ namespace SeedLang.Interpreter.Tests {
       var binary = Expression.Binary(left, BinaryOperator.Subtract, right, _textRange);
       var expr = Statement.Expression(binary, _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(expr);
+      var func = compiler.Compile(expr);
       string expected = (
           $"1    ADD       1 -1 -2        ; 1 2               {_textRange}\n" +
           $"2    SUB       0 -1 1         ; 1                 {_textRange}\n" +
           $"3    EVAL      0                                  {_textRange}\n" +
           $"4    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
@@ -95,13 +95,13 @@ namespace SeedLang.Interpreter.Tests {
       var unary = Expression.Unary(UnaryOperator.Negative, number, _textRange);
       var expr = Statement.Expression(unary, _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(expr);
+      var func = compiler.Compile(expr);
       string expected = (
           $"1    UNM       0 -1           ; 1                 {_textRange}\n" +
           $"2    EVAL      0                                  {_textRange}\n" +
           $"3    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
@@ -110,13 +110,13 @@ namespace SeedLang.Interpreter.Tests {
       var number = Expression.NumberConstant(1, _textRange);
       var assignment = Statement.Assignment(identifier, number, _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(assignment);
+      var func = compiler.Compile(assignment);
       string expected = (
           $"1    LOADK     0 -2           ; 1                 {_textRange}\n" +
           $"2    SETGLOB   0 -1           ; name              {_textRange}\n" +
           $"3    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
@@ -127,13 +127,13 @@ namespace SeedLang.Interpreter.Tests {
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
       var assignment = Statement.Assignment(identifier, binary, _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(assignment);
+      var func = compiler.Compile(assignment);
       string expected = (
           $"1    ADD       0 -2 -3        ; 1 2               {_textRange}\n" +
           $"2    SETGLOB   0 -1           ; name              {_textRange}\n" +
           $"3    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
@@ -157,7 +157,7 @@ namespace SeedLang.Interpreter.Tests {
       var program = Statement.Block(new Statement[] { initialSum, initialI, @while, evalSum },
                                     _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(program);
+      var func = compiler.Compile(program);
       string expected = (
           $"1    LOADK     0 -2           ; 0                 {_textRange}\n" +
           $"2    SETGLOB   0 -1           ; sum               {_textRange}\n" +
@@ -178,7 +178,7 @@ namespace SeedLang.Interpreter.Tests {
           $"17   EVAL      0                                  {_textRange}\n" +
           $"18   RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
@@ -191,13 +191,13 @@ namespace SeedLang.Interpreter.Tests {
       var eval = Statement.Expression(binary, _textRange);
       var funcDecl = Statement.FuncDecl("eval", new string[] { a, b }, eval, _textRange);
       var compiler = new Compiler();
-      var chunk = compiler.Compile(funcDecl);
+      var func = compiler.Compile(funcDecl);
       string expected = (
           $"1    LOADK     0 -1           ; Func <eval>       {_textRange}\n" +
           $"2    SETGLOB   0 -2           ; eval              {_textRange}\n" +
           $"3    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }
 }

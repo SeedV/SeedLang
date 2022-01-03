@@ -19,10 +19,11 @@ using SeedLang.Common;
 namespace SeedLang.Interpreter {
   // An utility class to generate the disassembly text of a chunk.
   internal class Disassembler {
-    private readonly Chunk _chunk;
+    private readonly Function _func;
+    private Chunk _chunk => _func.Chunk;
 
-    internal Disassembler(Chunk chunk) {
-      _chunk = chunk;
+    internal Disassembler(Function func) {
+      _func = func;
     }
 
     public override string ToString() {

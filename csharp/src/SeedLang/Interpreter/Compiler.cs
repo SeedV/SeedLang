@@ -13,29 +13,26 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
-
-    private Chunk _chunk => _functionStack.CurrentChunk();
-    private ConstantCache _constantCache => _functionStack.CurrentConstantCache();
-    private RegisterAllocator _registerAllocator => _functionStack.CurrentRegisterAllocator();
-
     private readonly FunctionStack _functionStack = new FunctionStack();
     // The register allocated for the result of sub-expressions.
     private uint _registerForSubExpr;
+    private Chunk _chunk;
+    private ConstantCache _constantCache;
+    private RegisterAllocator _registerAllocator;
 
-    internal Chunk Compile(AstNode node) {
-      _functionStack.PushFunc("main");
+
+    internal Function Compile(AstNode node) {
+      PushFunc("main");
       Visit(node);
       _chunk.Emit(Opcode.RETURN, 0u, null);
       _functionStack.UpdateCurrentFunc();
-      return _chunk;
+      return PopFunc();
     }
 
     protected override void Visit(BinaryExpression binary) {
@@ -210,12 +207,12 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(FuncDeclStatement funcDecl) {
-      _functionStack.PushFunc(funcDecl.Name);
+      PushFunc(funcDecl.Name);
       foreach (string parameterName in funcDecl.Parameters) {
         _registerAllocator.RegisterOfVariable(parameterName);
       }
       Visit(funcDecl.Body);
-      Function func = _functionStack.PopFunc();
+      Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       uint funcNameId = _constantCache.IdOfConstant(funcDecl.Name);
       // TODO: implement local scope functions.
@@ -242,6 +239,25 @@ namespace SeedLang.Interpreter {
       Visit(@while.Body);
       _chunk.Emit(Opcode.JMP, start - (_chunk.Bytecode.Count + 1), @while.Range);
       _chunk.PatchJumpAt(jump, _chunk.Bytecode.Count - jump - 1);
+    }
+
+    private void PushFunc(string name) {
+      _functionStack.PushFunc(name);
+      CacheTopFunction();
+    }
+
+    private Function PopFunc() {
+      Function func = _functionStack.PopFunc();
+      if (_functionStack.Count > 0) {
+        CacheTopFunction();
+      }
+      return func;
+    }
+
+    private void CacheTopFunction() {
+      _chunk = _functionStack.CurrentChunk();
+      _constantCache = _functionStack.CurrentConstantCache();
+      _registerAllocator = _functionStack.CurrentRegisterAllocator();
     }
 
     private bool TryGetRegisterId(Expression expr, out uint id) {

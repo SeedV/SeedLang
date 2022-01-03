@@ -13,26 +13,28 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
-    private Chunk _chunk;
-    private ConstantCache _constantCache;
-    private RegisterAllocator _registerAllocator;
+
+    private Chunk _chunk => _functionStack.CurrentChunk();
+    private ConstantCache _constantCache => _functionStack.CurrentConstantCache();
+    private RegisterAllocator _registerAllocator => _functionStack.CurrentRegisterAllocator();
+
+    private readonly FunctionStack _functionStack = new FunctionStack();
     // The register allocated for the result of sub-expressions.
     private uint _registerForSubExpr;
 
     internal Chunk Compile(AstNode node) {
-      _chunk = new Chunk();
-      _constantCache = new ConstantCache();
-      _registerAllocator = new RegisterAllocator();
+      _functionStack.PushFunc("main");
       Visit(node);
       _chunk.Emit(Opcode.RETURN, 0u, null);
-      _chunk.RegisterCount = _registerAllocator.MaxRegisterCount;
-      _chunk.SetConstants(_constantCache.Constants.ToArray());
+      _functionStack.UpdateCurrentFunc();
       return _chunk;
     }
 
@@ -116,7 +118,8 @@ namespace SeedLang.Interpreter {
           expectedResult = false;
           break;
       }
-      _chunk.Emit(op, expectedResult ? 1u : 0u, first, second, comparison.Range);
+      _functionStack.CurrentChunk().Emit(op, expectedResult ? 1u : 0u, first, second,
+                                         comparison.Range);
       _registerAllocator.ExitExpressionScope();
     }
 
@@ -206,8 +209,21 @@ namespace SeedLang.Interpreter {
       _chunk.Emit(Opcode.EVAL, register, expr.Range);
     }
 
-    protected override void Visit(FunctionStatement func) {
-      throw new NotImplementedException();
+    protected override void Visit(FuncDeclStatement funcDecl) {
+      _functionStack.PushFunc(funcDecl.Name);
+      foreach (string parameterName in funcDecl.Parameters) {
+        _registerAllocator.RegisterOfVariable(parameterName);
+      }
+      Visit(funcDecl.Body);
+      Function func = _functionStack.PopFunc();
+      uint funcId = _constantCache.IdOfConstant(func);
+      uint funcNameId = _constantCache.IdOfConstant(funcDecl.Name);
+      // TODO: implement local scope functions.
+      _registerAllocator.EnterExpressionScope();
+      uint registerId = _registerAllocator.AllocateTempVariable();
+      _chunk.Emit(Opcode.LOADK, registerId, funcId, funcDecl.Range);
+      _chunk.Emit(Opcode.SETGLOB, registerId, funcNameId, funcDecl.Range);
+      _registerAllocator.ExitExpressionScope();
     }
 
     protected override void Visit(IfStatement @if) {

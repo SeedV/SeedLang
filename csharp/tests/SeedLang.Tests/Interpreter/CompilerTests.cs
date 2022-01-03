@@ -180,5 +180,24 @@ namespace SeedLang.Interpreter.Tests {
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(chunk).ToString());
     }
+
+    [Fact]
+    public void TestCompileFuncDecl() {
+      string a = "a";
+      string b = "b";
+      var left = Expression.Identifier(a, _textRange);
+      var right = Expression.Identifier(b, _textRange);
+      var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
+      var eval = Statement.Expression(binary, _textRange);
+      var funcDecl = Statement.FuncDecl("eval", new string[] { a, b }, eval, _textRange);
+      var compiler = new Compiler();
+      var chunk = compiler.Compile(funcDecl);
+      string expected = (
+          $"1    LOADK     0 -1           ; Func <eval>       {_textRange}\n" +
+          $"2    SETGLOB   0 -2           ; eval              {_textRange}\n" +
+          $"3    RETURN    0                                  \n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(chunk).ToString());
+    }
   }
 }

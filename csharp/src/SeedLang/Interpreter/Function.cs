@@ -14,20 +14,21 @@
 
 using SeedLang.Runtime;
 
-namespace SeedLang.Ast {
-  // A function value type that is only used in SeedAst component to encapsulate AST function
-  // declearation statement.
+namespace SeedLang.Interpreter {
   internal class Function : IFunction {
-    private readonly FuncDeclStatement _funcDecl;
-    private readonly Executor _executor;
+    public string Name { get; }
+    public Chunk Chunk { get; } = new Chunk();
 
-    internal Function(FuncDeclStatement funcDecl, Executor executor) {
-      _funcDecl = funcDecl;
-      _executor = executor;
+    internal Function(string name) {
+      Name = name;
     }
 
     public Value Call(Value[] arguments) {
-      return _executor.Call(_funcDecl, arguments);
+      throw new System.NotImplementedException();
+    }
+
+    public override string ToString() {
+      return $"Func <{Name}>";
     }
   }
 }

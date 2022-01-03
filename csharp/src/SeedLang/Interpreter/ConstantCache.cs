@@ -46,6 +46,11 @@ namespace SeedLang.Interpreter {
       return _strings[str];
     }
 
+    internal uint IdOfConstant(Function func) {
+      Constants.Add(Value.Function(func));
+      return IdOfLastConst();
+    }
+
     private uint IdOfLastConst() {
       Debug.Assert(Constants.Count >= 1);
       return (uint)Constants.Count - 1 + Chunk.MaxRegisterCount;

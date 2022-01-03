@@ -44,18 +44,18 @@ namespace SeedLang.Ast {
     }
 
     // Calls a AST function with given arguments.
-    internal Value Call(FunctionStatement func, Value[] arguments) {
-      if (func.Parameters.Length != arguments.Length) {
+    internal Value Call(FuncDeclStatement funcDecl, Value[] arguments) {
+      if (funcDecl.Parameters.Length != arguments.Length) {
         throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
       _env.EnterScope();
-      for (int i = 0; i < func.Parameters.Length; i++) {
-        _env.SetVariable(func.Parameters[i], arguments[i]);
+      for (int i = 0; i < funcDecl.Parameters.Length; i++) {
+        _env.SetVariable(funcDecl.Parameters[i], arguments[i]);
       }
       var result = Value.None();
       try {
-        Visit(func.Body);
+        Visit(funcDecl.Body);
       } catch (ReturnException returnException) {
         result = returnException.Result;
       }
@@ -277,8 +277,8 @@ namespace SeedLang.Ast {
       }
     }
 
-    protected override void Visit(FunctionStatement func) {
-      _env.SetVariable(func.Name, Value.Function(new Function(func, this)));
+    protected override void Visit(FuncDeclStatement funcDecl) {
+      _env.SetVariable(funcDecl.Name, Value.Function(new Function(funcDecl, this)));
     }
 
     protected override void Visit(IfStatement @if) {

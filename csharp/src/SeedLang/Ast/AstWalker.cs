@@ -88,8 +88,8 @@ namespace SeedLang.Ast {
         case ExpressionStatement expr:
           Visit(expr);
           break;
-        case FunctionStatement function:
-          Visit(function);
+        case FuncDeclStatement funcDecl:
+          Visit(funcDecl);
           break;
         case IfStatement @if:
           Visit(@if);
@@ -122,7 +122,7 @@ namespace SeedLang.Ast {
     protected abstract void Visit(AssignmentStatement assignment);
     protected abstract void Visit(BlockStatement block);
     protected abstract void Visit(ExpressionStatement expr);
-    protected abstract void Visit(FunctionStatement func);
+    protected abstract void Visit(FuncDeclStatement funcDecl);
     protected abstract void Visit(IfStatement @if);
     protected abstract void Visit(ReturnStatement @return);
     protected abstract void Visit(WhileStatement @while);

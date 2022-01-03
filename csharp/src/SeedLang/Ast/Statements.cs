@@ -34,10 +34,10 @@ namespace SeedLang.Ast {
       return new ExpressionStatement(expr, range);
     }
 
-    // The factory method to create a function statement.
-    internal static FunctionStatement Function(string name, string[] parameters, Statement body,
+    // The factory method to create a function declearation statement.
+    internal static FuncDeclStatement FuncDecl(string name, string[] parameters, Statement body,
                                                Range range) {
-      return new FunctionStatement(name, parameters, body, range);
+      return new FuncDeclStatement(name, parameters, body, range);
     }
 
     // The factory method to create an if statement.
@@ -89,12 +89,12 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal class FunctionStatement : Statement {
+  internal class FuncDeclStatement : Statement {
     public string Name { get; }
     public string[] Parameters { get; }
     public Statement Body { get; }
 
-    internal FunctionStatement(string name, string[] parameters, Statement body, Range range) :
+    internal FuncDeclStatement(string name, string[] parameters, Statement body, Range range) :
         base(range) {
       Name = name;
       Parameters = parameters;

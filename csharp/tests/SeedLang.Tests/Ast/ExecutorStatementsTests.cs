@@ -177,7 +177,7 @@ namespace SeedLang.Ast.Tests {
           Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange),
           Statement.Return(null, _textRange),
         }, _textRange);
-        var func = Statement.Function("func", Array.Empty<string>(), body, _textRange);
+        var func = Statement.FuncDecl("func", Array.Empty<string>(), body, _textRange);
         var call = Expression.Call(Expression.Identifier(func.Name, _textRange),
                                    Array.Empty<Expression>(), _textRange);
         string variableName = "a";
@@ -199,7 +199,7 @@ namespace SeedLang.Ast.Tests {
         var body = Statement.Block(new Statement[] {
           Statement.Return(binary, _textRange),
         }, _textRange);
-        var func = Statement.Function("add", new string[] { variableA, variableB }, body,
+        var func = Statement.FuncDecl("add", new string[] { variableA, variableB }, body,
                                       _textRange);
         var call = Expression.Call(Expression.Identifier(func.Name, _textRange), new Expression[] {
           Expression.NumberConstant(1, _textRange),

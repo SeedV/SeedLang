@@ -330,7 +330,7 @@ namespace SeedLang.X {
     }
 
     // Builds a function declearation statement.
-    internal FunctionStatement BuildFunction(IToken defToken, IToken nameToken,
+    internal FuncDeclStatement BuildFuncDecl(IToken defToken, IToken nameToken,
                                              IToken openParenToken, ITerminalNode[] parameterNodes,
                                              ITerminalNode[] commaNodes, IToken closeParenToken,
                                              IToken colonToken, ParserRuleContext blockContext,
@@ -355,7 +355,7 @@ namespace SeedLang.X {
       if (visitor.Visit(blockContext) is Statement block) {
         Debug.Assert(block.Range is TextRange);
         TextRange range = CodeReferenceUtils.CombineRanges(defRange, block.Range as TextRange);
-        return Statement.Function(nameToken.Text, arguments, block, range);
+        return Statement.FuncDecl(nameToken.Text, arguments, block, range);
       }
       return null;
     }

@@ -1,5 +1,5 @@
 // All variables must be declared with "let" before using.
-// Not supports "const", "var", and hoisting.
+// The language doesn't support "const", "var", and hoisting.
 
 let a = "hello"; // Global scope
 

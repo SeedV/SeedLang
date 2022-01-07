@@ -1,3 +1,8 @@
+# The language doesn't support raw string like r"raw string".
+# The language doesn't support unicode string like u"unicode string".
+# The language doesn't support string templates like "...%()...", "...{}..." or
+# f"...{}...".
+
 "spam eggs"  # spam eggs
 "doesn't"  # doesn\'t
 "doesn't"  # doesn't

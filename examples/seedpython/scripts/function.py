@@ -25,6 +25,16 @@ def fib_list(n):
 fib_list(100)  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
 
 
+def fib_recursive(n):
+    if n == 1 or n == 2:
+        return 1
+    else:
+        return fib_recursive(n - 1) + fib_recursive(n - 2)
+
+
+fib_recursive(10)  # 55
+
+
 def my_func():
     """Do nothing, but document it.
 

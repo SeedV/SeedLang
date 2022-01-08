@@ -19,7 +19,7 @@ namespace SeedLang.Ast.Tests {
   public class EnvironmentTests {
     [Fact]
     public void TestEnvironment() {
-      var env = new Environment();
+      var env = new ScopedEnvironment();
       env.SetVariable("a", Value.Number(1));
       Assert.True(env.ContainsVariable("a"));
       Assert.False(env.ContainsVariable("b"));

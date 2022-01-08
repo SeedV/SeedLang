@@ -21,14 +21,12 @@ namespace SeedLang.Interpreter {
     private class Frame {
       public Function Func { get; }
       public ConstantCache ConstantCache { get; } = new ConstantCache();
-      public RegisterAllocator RegisterAllocator { get; } = new RegisterAllocator();
 
       internal Frame(string name) {
         Func = new Function(name);
       }
 
-      internal void UpdateFunc() {
-        Func.Chunk.RegisterCount = RegisterAllocator.MaxRegisterCount;
+      internal void UpdateConstantArray() {
         Func.Chunk.SetConstants(ConstantCache.Constants.ToArray());
       }
     }
@@ -42,7 +40,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal Function PopFunc() {
-      UpdateCurrentFunc();
+      _frames.Peek().UpdateConstantArray();
       Function func = _frames.Peek().Func;
       _frames.Pop();
       return func;
@@ -61,15 +59,6 @@ namespace SeedLang.Interpreter {
     internal ConstantCache CurrentConstantCache() {
       Debug.Assert(_frames.Count > 0);
       return _frames.Peek().ConstantCache;
-    }
-
-    internal RegisterAllocator CurrentRegisterAllocator() {
-      Debug.Assert(_frames.Count > 0);
-      return _frames.Peek().RegisterAllocator;
-    }
-
-    internal void UpdateCurrentFunc() {
-      _frames.Peek().UpdateFunc();
     }
   }
 }

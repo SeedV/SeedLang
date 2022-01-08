@@ -24,6 +24,7 @@ namespace SeedLang.Benchmark {
     private readonly ExpressionStatement _expressionStatement;
     private readonly Ast.Executor _executor;
     private readonly Interpreter.Function _func;
+    private readonly Compiler _compiler;
     private readonly VM _vm;
 
     public BinaryExpressionBenchmark() {
@@ -34,9 +35,9 @@ namespace SeedLang.Benchmark {
 
       _executor = new Ast.Executor(_visualizerCenter);
 
-      var compiler = new Compiler();
-      _func = compiler.Compile(_expressionStatement);
+      _compiler = new Compiler();
       _vm = new VM(_visualizerCenter);
+      _func = _compiler.Compile(_expressionStatement, _vm.Env);
     }
 
     // Benchmarks binary expression running time of the AST executor.
@@ -48,7 +49,7 @@ namespace SeedLang.Benchmark {
     // Benchmarks binary expression running time of the VM. Compiling time is not included.
     [Benchmark]
     public void BenchmarkBytecode() {
-      _vm.Run(_func);
+      _vm.Run(_func, _compiler.MaxRegisterCount);
     }
 
     private static TextRange NewTextRange() {

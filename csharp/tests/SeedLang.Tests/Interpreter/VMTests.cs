@@ -57,11 +57,11 @@ namespace SeedLang.Interpreter.Tests {
       var right = Expression.NumberConstant(2, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
       var expr = Statement.Expression(binary, _testTextRange);
-      var compiler = new Compiler();
-      Function func = compiler.Compile(expr);
 
+      var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
-      vm.Run(func);
+      Function func = compiler.Compile(expr, vm.Env);
+      vm.Run(func, compiler.MaxRegisterCount);
 
       Assert.Equal(1, visualizer.Left.Number);
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
@@ -80,8 +80,8 @@ namespace SeedLang.Interpreter.Tests {
       var assignment = Statement.Assignment(identifier, number, _testTextRange);
       var expr = Statement.Expression(identifier, _testTextRange);
       var block = Statement.Block(new Statement[] { assignment, expr }, _testTextRange);
-      Function func = compiler.Compile(block);
-      vm.Run(func);
+      Function func = compiler.Compile(block, vm.Env);
+      vm.Run(func, compiler.MaxRegisterCount);
 
       Assert.Equal(1, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);
@@ -95,8 +95,8 @@ namespace SeedLang.Interpreter.Tests {
       var number = Expression.NumberConstant(1, _testTextRange);
       var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
       var expr = Statement.Expression(unary, _testTextRange);
-      Function func = compiler.Compile(expr);
-      vm.Run(func);
+      Function func = compiler.Compile(expr, vm.Env);
+      vm.Run(func, compiler.MaxRegisterCount);
 
       Assert.Equal(-1, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);
@@ -106,8 +106,8 @@ namespace SeedLang.Interpreter.Tests {
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
       unary = Expression.Unary(UnaryOperator.Negative, binary, _testTextRange);
       expr = Statement.Expression(unary, _testTextRange);
-      func = compiler.Compile(expr);
-      vm.Run(func);
+      func = compiler.Compile(expr, vm.Env);
+      vm.Run(func, compiler.MaxRegisterCount);
 
       Assert.Equal(-3, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);

@@ -21,7 +21,6 @@ namespace SeedLang.Interpreter.Tests {
       var env = new Environment();
       string a = "a";
       string b = "b";
-      string local = "local";
       Assert.Equal(0u, env.DefineVariable(a));
       var resolver = new VariableResolver(env);
       Assert.Equal(0u, resolver.FindVariable(a));
@@ -29,6 +28,7 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(1u, resolver.DefineVariable(b));
       Assert.Equal(1u, resolver.FindVariable(b));
 
+      string local = "local";
       resolver.BeginFunctionScope();
       Assert.False(resolver.IsInGlobalScope);
       Assert.Equal(0u, resolver.DefineVariable(local));
@@ -38,6 +38,13 @@ namespace SeedLang.Interpreter.Tests {
 
       Assert.Equal(1u, resolver.DefineVariable(a));
       Assert.Equal(1u, resolver.FindVariable(a));
+
+      resolver.BeginFunctionScope();
+      Assert.Equal(0u, resolver.DefineVariable(a));
+      Assert.Equal(0u, resolver.FindVariable(a));
+      Assert.Equal(1u, resolver.DefineVariable(local));
+      Assert.Equal(1u, resolver.FindVariable(local));
+      resolver.EndFunctionScope();
 
       resolver.EndFunctionScope();
       Assert.Null(resolver.FindVariable(local));

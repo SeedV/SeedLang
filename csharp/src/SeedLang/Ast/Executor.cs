@@ -26,7 +26,7 @@ namespace SeedLang.Ast {
 
     // The environment to store global and local variables. A new frame of local variables is
     // inserted into this environment when a function is called.
-    private readonly Environment _env = new Environment();
+    private readonly ScopedEnvironment _env = new ScopedEnvironment();
 
     // The result of current executed expression.
     private Value _expressionResult;

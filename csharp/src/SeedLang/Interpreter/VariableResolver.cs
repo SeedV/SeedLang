@@ -24,9 +24,7 @@ namespace SeedLang.Interpreter {
     // register is deallocated.
     public uint MaxRegisterCount { get; private set; } = 0;
     // The flag to indicate if it's in the global scope.
-    //
-    // TODO: set to false when entering an function or block scope.
-    public bool IsInGlobalScope => _scopes.Count == 0;
+    public bool IsInGlobalScope => _scopes.Count == 1;
 
     private readonly Environment _env;
     // A dictionary to store names and register indices of local variables.
@@ -42,6 +40,8 @@ namespace SeedLang.Interpreter {
 
     internal VariableResolver(Environment env) {
       _env = env;
+      // Begins global scope. It's used for temporary variables in the global scope.
+      BeginFunctionScope();
     }
 
     internal void BeginFunctionScope() {
@@ -96,15 +96,16 @@ namespace SeedLang.Interpreter {
 
     private uint AllocateVariable() {
       _registerCount++;
-      Debug.Assert(_baseOfFunctionScopes.Count > 0);
-      if (_registerCount - _baseOfFunctionScopes.Peek() > Chunk.MaxRegisterCount) {
-        // TODO: throw a compile error exception and handle it in the executor to generate the
-        // corresponding diagnostic information.
-      }
       if (_registerCount > MaxRegisterCount) {
         MaxRegisterCount = _registerCount;
       }
-      return _registerCount - 1;
+      Debug.Assert(_baseOfFunctionScopes.Count > 0);
+      uint registerId = _registerCount - _baseOfFunctionScopes.Peek() - 1;
+      if (registerId >= Chunk.MaxRegisterCount) {
+        // TODO: throw a compile error exception and handle it in the executor to generate the
+        // corresponding diagnostic information.
+      }
+      return registerId;
     }
   }
 }

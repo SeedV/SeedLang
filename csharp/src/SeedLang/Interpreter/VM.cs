@@ -18,19 +18,18 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
+    public readonly Environment Env = new Environment();
     private readonly VisualizerCenter _visualizerCenter;
-
-    private readonly GlobalEnvironment _globals = new GlobalEnvironment();
-
     private readonly CallStack _callStack = new CallStack();
 
-    private readonly Value[] _registers = new Value[1000];
+    private Value[] _registers;
 
     internal VM(VisualizerCenter visualizerCenter = null) {
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
     }
 
-    internal void Run(Function func) {
+    internal void Run(Function func, uint maxRegisterCount) {
+      _registers = new Value[maxRegisterCount];
       _callStack.PushFunc(func);
       Chunk chunk = func.Chunk;
       int pc = 0;
@@ -39,16 +38,17 @@ namespace SeedLang.Interpreter {
         try {
           switch (instr.Opcode) {
             case Opcode.MOVE:
-              _registers[instr.A] = Value.Number(ValueOfRK(chunk, instr.B).AsNumber());
+              _registers[instr.A] = _registers[instr.B];
               break;
             case Opcode.LOADK:
-              _registers[instr.A] = LoadConstantValue(chunk, instr.Bx);
+              _registers[instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
             case Opcode.GETGLOB:
-              HandleGetGlobal(chunk, instr);
+              _registers[instr.A] = Env.GetVariable(instr.Bx);
               break;
             case Opcode.SETGLOB:
-              HandleSetGlobal(chunk, instr, chunk.Ranges[pc]);
+              Env.SetVariable(instr.Bx, _registers[instr.A]);
+              // TODO: comments for not notify.
               break;
             case Opcode.ADD:
             case Opcode.SUB:
@@ -101,25 +101,6 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    // Loads the constant value of constId. Returns a readonly reference to avoid copying.
-    private static ref readonly Value LoadConstantValue(Chunk chunk, uint constId) {
-      return ref chunk.ValueOfConstId(constId);
-    }
-
-    private void HandleGetGlobal(Chunk chunk, Instruction instr) {
-      var name = chunk.ValueOfConstId(instr.Bx).ToString();
-      _registers[instr.A] = _globals.GetVariable(name);
-    }
-
-    private void HandleSetGlobal(Chunk chunk, Instruction instr, Range range) {
-      var name = chunk.ValueOfConstId(instr.Bx).ToString();
-      _globals.SetVariable(name, _registers[instr.A]);
-      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var ae = new AssignmentEvent(name, new ValueWrapper(_registers[instr.A]), range);
-        _visualizerCenter.AssignmentPublisher.Notify(ae);
-      }
-    }
-
     private void HandleBinary(Chunk chunk, Instruction instr, Range range) {
       BinaryOperator op = BinaryOperator.Add;
       double result = 0;
@@ -157,7 +138,7 @@ namespace SeedLang.Interpreter {
       if (rkPos < Chunk.MaxRegisterCount) {
         return ref _registers[rkPos];
       }
-      return ref LoadConstantValue(chunk, rkPos);
+      return ref chunk.ValueOfConstId(rkPos);
     }
   }
 }

@@ -33,14 +33,14 @@ namespace SeedLang.Interpreter {
       return _globals.ContainsKey(name) ? _globals[name] : null;
     }
 
-    internal void SetVariable(string name, in Value value) {
-      Debug.Assert(_globals.ContainsKey(name));
-      _values[(int)_globals[name]] = value;
+    internal void SetVariable(uint id, in Value value) {
+      Debug.Assert(id < _values.Count);
+      _values[(int)id] = value;
     }
 
-    internal Value GetVariable(string name) {
-      Debug.Assert(_globals.ContainsKey(name));
-      return _values[(int)_globals[name]];
+    internal Value GetVariable(uint id) {
+      Debug.Assert(id < _values.Count);
+      return _values[(int)id];
     }
   }
 }

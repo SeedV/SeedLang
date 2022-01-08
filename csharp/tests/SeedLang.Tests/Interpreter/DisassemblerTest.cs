@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using SeedLang.Common;
 using Xunit;
 
@@ -45,7 +44,7 @@ namespace SeedLang.Interpreter.Tests {
           "7    DIV       0 -6 -7        ; 4 5               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "8    UNM       0 -8           ; 6                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
           "9    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
+      ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }

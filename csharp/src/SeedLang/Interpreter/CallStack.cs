@@ -19,16 +19,24 @@ namespace SeedLang.Interpreter {
   internal class CallStack {
     private class Frame {
       public Function Func { get; }
+      public uint BaseRegister { get; }
+      public int PC { get; set; }
 
-      internal Frame(Function func) {
+      internal Frame(Function func, uint baseRegister) {
         Func = func;
+        BaseRegister = baseRegister;
       }
     }
 
+    public bool IsEmpty => _frames.Count == 0;
+
     private readonly Stack<Frame> _frames = new Stack<Frame>();
 
-    internal void PushFunc(Function func) {
-      _frames.Push(new Frame(func));
+    internal void PushFunc(Function func, uint baseRegister, int pc) {
+      if (_frames.Count > 0) {
+        _frames.Peek().PC = pc;
+      }
+      _frames.Push(new Frame(func, baseRegister));
     }
 
     internal void PopFunc() {
@@ -38,6 +46,16 @@ namespace SeedLang.Interpreter {
     internal Chunk CurrentChunk() {
       Debug.Assert(_frames.Count > 0);
       return _frames.Peek().Func.Chunk;
+    }
+
+    internal uint CurrentBase() {
+      Debug.Assert(_frames.Count > 0);
+      return _frames.Peek().BaseRegister;
+    }
+
+    internal int CurrentPC() {
+      Debug.Assert(_frames.Count > 0);
+      return _frames.Peek().PC;
     }
   }
 }

@@ -31,8 +31,6 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    public int Count => _frames.Count;
-
     private readonly Stack<Frame> _frames = new Stack<Frame>();
 
     internal void PushFunc(string name) {

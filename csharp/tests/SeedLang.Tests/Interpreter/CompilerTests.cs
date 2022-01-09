@@ -184,20 +184,33 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestCompileFuncDecl() {
+    public void TestCompileCall() {
       string a = "a";
       string b = "b";
       var left = Expression.Identifier(a, _textRange);
       var right = Expression.Identifier(b, _textRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
       var eval = Statement.Expression(binary, _textRange);
-      var funcDecl = Statement.FuncDecl("eval", new string[] { a, b }, eval, _textRange);
+      string name = "eval";
+      var funcDecl = Statement.FuncDecl(name, new string[] { a, b }, eval, _textRange);
+      var identifier = Expression.Identifier(name, _textRange);
+      var call = Expression.Call(identifier, new Expression[] {
+        Expression.NumberConstant(1, _textRange),
+        Expression.NumberConstant(2, _textRange),
+      }, _textRange);
+      var exprStatement = Statement.Expression(call, _textRange);
+      var block = Statement.Block(new Statement[] { funcDecl, exprStatement }, _textRange);
       var compiler = new Compiler();
-      var func = compiler.Compile(funcDecl, _env);
+      var func = compiler.Compile(block, _env);
       string expected = (
           $"1    LOADK     0 -1           ; Func <eval>       {_textRange}\n" +
           $"2    SETGLOB   0 0                                {_textRange}\n" +
-          $"3    RETURN    0                                  \n"
+          $"3    GETGLOB   0 0                                {_textRange}\n" +
+          $"4    LOADK     1 -2           ; 1                 {_textRange}\n" +
+          $"5    LOADK     2 -3           ; 2                 {_textRange}\n" +
+          $"6    CALL      0 2 0                              {_textRange}\n" +
+          $"7    EVAL      0                                  {_textRange}\n" +
+          $"8    RETURN    0                                  \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

@@ -237,6 +237,23 @@ namespace SeedLang.Runtime {
       }
     }
 
+    internal IFunction AsFunction() {
+      switch (_type) {
+        case ValueType.None:
+        case ValueType.Boolean:
+        case ValueType.Number:
+        case ValueType.String:
+        case ValueType.List:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                Message.RuntimeErrorNotCallable);
+        case ValueType.Function:
+          return _object.AsFunction();
+        default:
+          throw new NotImplementedException($"Unsupported value type: {_type}.");
+      }
+
+    }
+
     internal int Count() {
       switch (_type) {
         case ValueType.None:

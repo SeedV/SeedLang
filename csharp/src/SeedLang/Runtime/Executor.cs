@@ -86,7 +86,7 @@ namespace SeedLang.Runtime {
           case RunType.Bytecode:
             var compiler = new Compiler();
             Interpreter.Function func = compiler.Compile(node, _vm.Env);
-            _vm.Run(func, compiler.MaxRegisterCount);
+            _vm.Run(func);
             return true;
           default:
             throw new NotImplementedException($"Unsupported run type: {runType}");

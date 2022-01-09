@@ -20,39 +20,53 @@ namespace SeedLang.Interpreter {
 
   // The allocator class to allocate register slots for local and temporary variables.
   internal class VariableResolver {
-    // The maximum count of the allocated registers. This number is never decreased even when a
-    // register is deallocated.
-    public uint MaxRegisterCount { get; private set; } = 0;
     // The flag to indicate if it's in the global scope.
     public bool IsInGlobalScope => _scopes.Count == 1;
+    public uint LastRegister => _currentRegisterCount - 1;
 
     private readonly Environment _env;
     // A dictionary to store names and register indices of local variables.
     private readonly Stack<Scope> _scopes = new Stack<Scope>();
     // Current allocated registers count. This number is decreased if a register is deallocated.
-    private uint _registerCount = 0;
-    private readonly Stack<uint> _baseOfFunctionScopes = new Stack<uint>();
+    private readonly Stack<uint> _registerCounts = new Stack<uint>();
     // A Stack to store the beginning of registers before parsing an expression. The expresion
     // visitor should call EnterExpressionScope() before allocating temporary variables for
     // intermediate results. The ExitExpressionScope() call will deallocate all temporary variables
     // that are allocated in this expression scope.
     private readonly Stack<uint> _baseOfExpressionScopes = new Stack<uint>();
+    private uint _currentRegisterCount => _registerCounts.Peek();
 
     internal VariableResolver(Environment env) {
       _env = env;
-      // Begins global scope. It's used for temporary variables in the global scope.
+      // Begins global scope. It's needed for temporary variables in the global scope.
       BeginFunctionScope();
     }
 
     internal void BeginFunctionScope() {
-      _baseOfFunctionScopes.Push(_registerCount);
       _scopes.Push(new Scope());
+      _registerCounts.Push(0);
     }
 
     internal void EndFunctionScope() {
-      _registerCount = _baseOfFunctionScopes.Peek();
-      _baseOfFunctionScopes.Pop();
       _scopes.Pop();
+      _registerCounts.Pop();
+    }
+
+    internal void BeginBlockScope() {
+      _scopes.Push(new Scope());
+    }
+
+    internal void EndBlockScope() {
+      _scopes.Pop();
+    }
+
+    internal void BeginExpressionScope() {
+      _baseOfExpressionScopes.Push(_currentRegisterCount);
+    }
+
+    internal void EndExpressionScope() {
+      SetCurrentRegisterCount(_baseOfExpressionScopes.Peek());
+      _baseOfExpressionScopes.Pop();
     }
 
     internal uint DefineVariable(string name) {
@@ -80,32 +94,19 @@ namespace SeedLang.Interpreter {
       return _env.FindVariable(name);
     }
 
-    internal void BeginExpressionScope() {
-      _baseOfExpressionScopes.Push(_registerCount);
-    }
-
-    internal void EndExpressionScope() {
-      _registerCount = _baseOfExpressionScopes.Peek();
-      _baseOfExpressionScopes.Pop();
-    }
-
-    // Allocates a temporary variable and returns the index of the register slot.
-    internal uint AllocateTempVariable() {
-      return AllocateVariable();
-    }
-
-    private uint AllocateVariable() {
-      _registerCount++;
-      if (_registerCount > MaxRegisterCount) {
-        MaxRegisterCount = _registerCount;
-      }
-      Debug.Assert(_baseOfFunctionScopes.Count > 0);
-      uint registerId = _registerCount - _baseOfFunctionScopes.Peek() - 1;
-      if (registerId >= Chunk.MaxRegisterCount) {
+    internal uint AllocateVariable() {
+      uint registerCount = _currentRegisterCount + 1;
+      if (registerCount > Chunk.MaxRegisterCount) {
         // TODO: throw a compile error exception and handle it in the executor to generate the
         // corresponding diagnostic information.
       }
-      return registerId;
+      SetCurrentRegisterCount(registerCount);
+      return registerCount - 1;
+    }
+
+    private void SetCurrentRegisterCount(uint registerCount) {
+      _registerCounts.Pop();
+      _registerCounts.Push(registerCount);
     }
   }
 }

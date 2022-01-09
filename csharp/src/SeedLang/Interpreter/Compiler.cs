@@ -19,9 +19,7 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
-    public uint MaxRegisterCount => _variableResolver.MaxRegisterCount;
-
-    private readonly FunctionStack _functionStack = new FunctionStack();
+    private FunctionStack _functionStack;
     // The register allocated for the result of sub-expressions.
     private VariableResolver _variableResolver;
     private uint _registerForSubExpr;
@@ -32,8 +30,8 @@ namespace SeedLang.Interpreter {
     }
 
     internal Function Compile(AstNode node, Environment env) {
+      _functionStack = new FunctionStack();
       _variableResolver = new VariableResolver(env);
-      Debug.Assert(_functionStack.Count == 0);
       // main function in global scope.
       _functionStack.PushFunc("main");
       CacheTopFunction();
@@ -140,7 +138,27 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(CallExpression call) {
-      throw new System.NotImplementedException();
+      _variableResolver.BeginExpressionScope();
+      // TODO:
+      if (call.Func is IdentifierExpression identifier) {
+        if (_variableResolver.FindVariable(identifier.Name) is uint funcId) {
+          uint resultRegister = _registerForSubExpr;
+          bool needRegister = resultRegister != _variableResolver.LastRegister;
+          uint funcRegister = needRegister ? _variableResolver.AllocateVariable() : resultRegister;
+          _chunk.Emit(Opcode.GETGLOB, funcRegister, funcId, identifier.Range);
+          foreach (Expression expr in call.Arguments) {
+            _registerForSubExpr = _variableResolver.AllocateVariable();
+            Visit(expr);
+          }
+          _chunk.Emit(Opcode.CALL, funcRegister, (uint)call.Arguments.Length, 0, call.Range);
+          if (needRegister) {
+            _chunk.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
+          }
+        } else {
+          // TODO:
+        }
+      }
+      _variableResolver.EndExpressionScope();
     }
 
     protected override void Visit(AssignmentStatement assignment) {
@@ -152,7 +170,7 @@ namespace SeedLang.Interpreter {
           uint variableId = _variableResolver.FindVariable(identifier.Name).Value;
           if (_variableResolver.IsInGlobalScope) {
             _variableResolver.BeginExpressionScope();
-            uint resultRegister = _variableResolver.AllocateTempVariable();
+            uint resultRegister = _variableResolver.AllocateVariable();
             _registerForSubExpr = resultRegister;
             Visit(assignment.Expr);
             _chunk.Emit(Opcode.SETGLOB, resultRegister, variableId, assignment.Range);
@@ -185,7 +203,7 @@ namespace SeedLang.Interpreter {
         _chunk.Emit(Opcode.EVAL, id, expr.Range);
       } else {
         _variableResolver.BeginExpressionScope();
-        id = _variableResolver.AllocateTempVariable();
+        id = _variableResolver.AllocateVariable();
         _registerForSubExpr = id;
         Visit(expr.Expr);
         _variableResolver.EndExpressionScope();
@@ -203,7 +221,7 @@ namespace SeedLang.Interpreter {
       uint funcId = _constantCache.IdOfConstant(func);
       uint variableId = _variableResolver.DefineVariable(funcDecl.Name);
       _variableResolver.BeginExpressionScope();
-      uint registerId = _variableResolver.AllocateTempVariable();
+      uint registerId = _variableResolver.AllocateVariable();
       _chunk.Emit(Opcode.LOADK, registerId, funcId, funcDecl.Range);
       _chunk.Emit(Opcode.SETGLOB, registerId, variableId, funcDecl.Range);
       _variableResolver.EndExpressionScope();
@@ -247,7 +265,7 @@ namespace SeedLang.Interpreter {
 
     private uint VisitExpression(Expression expr) {
       if (!(GetRegisterOrConstantId(expr) is uint exprId)) {
-        exprId = _variableResolver.AllocateTempVariable();
+        exprId = _variableResolver.AllocateVariable();
         _registerForSubExpr = exprId;
         Visit(expr);
       }

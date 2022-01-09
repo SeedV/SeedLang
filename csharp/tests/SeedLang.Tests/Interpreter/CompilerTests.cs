@@ -184,6 +184,26 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileFuncDecl() {
+      string a = "a";
+      string b = "b";
+      var left = Expression.Identifier(a, _textRange);
+      var right = Expression.Identifier(b, _textRange);
+      var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
+      var ret = Statement.Return(binary, _textRange);
+      string name = "eval";
+      var funcDecl = Statement.FuncDecl(name, new string[] { a, b }, ret, _textRange);
+      var compiler = new Compiler();
+      var func = compiler.Compile(funcDecl, _env);
+      string expected = (
+          $"1    LOADK     0 -1           ; Func <eval>       {_textRange}\n" +
+          $"2    SETGLOB   0 0                                {_textRange}\n" +
+          $"3    RETURN    0                                  \n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileCall() {
       string a = "a";
       string b = "b";

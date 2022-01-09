@@ -100,13 +100,17 @@ namespace SeedLang.Interpreter {
               pc = -1;
               break;
             case Opcode.RETURN:
+              uint currentBase = _callStack.CurrentBase();
+              if (currentBase > 0) {
+                _stack[currentBase - 1] = _stack[currentBase + instr.A];
+              }
               _callStack.PopFunc();
               if (!_callStack.IsEmpty) {
                 chunk = _callStack.CurrentChunk();
                 baseRegister = _callStack.CurrentBase();
                 pc = _callStack.CurrentPC();
               }
-              return;
+              break;
             default:
               throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }

@@ -42,5 +42,19 @@ sum
 ";
       _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
     }
+
+    [Benchmark]
+    public void BenchmarkBytecodeLocalScope() {
+      string source = @"def func():
+  sum = 0
+  i = 1
+  while i <= 10000000:
+    sum = sum + i
+    i = i + 1
+  return sum
+func()
+";
+      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+    }
   }
 }

@@ -179,7 +179,7 @@ namespace SeedLang.Interpreter {
             if (GetRegisterId(assignment.Expr) is uint registerId) {
               _chunk.Emit(Opcode.MOVE, variableId, registerId, 0, assignment.Range);
             } else if (GetConstantId(assignment.Expr) is uint constantId) {
-              _chunk.Emit(Opcode.LOADK, variableId, constantId, 0, assignment.Range);
+              _chunk.Emit(Opcode.LOADK, variableId, constantId, assignment.Range);
             } else {
               _registerForSubExpr = variableId;
               Visit(assignment.Expr);
@@ -232,7 +232,14 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ReturnStatement @return) {
-      throw new System.NotImplementedException();
+      if (!(GetRegisterId(@return.Result) is uint result)) {
+        _variableResolver.BeginExpressionScope();
+        result = _variableResolver.AllocateVariable();
+        _registerForSubExpr = result;
+        Visit(@return.Result);
+        _variableResolver.EndExpressionScope();
+      }
+      _chunk.Emit(Opcode.RETURN, result, @return.Range);
     }
 
     protected override void Visit(WhileStatement @while) {

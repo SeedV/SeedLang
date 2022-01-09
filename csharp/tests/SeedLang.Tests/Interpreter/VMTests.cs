@@ -123,9 +123,9 @@ namespace SeedLang.Interpreter.Tests {
       var left = Expression.Identifier(a, _testTextRange);
       var right = Expression.Identifier(b, _testTextRange);
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
-      var eval = Statement.Expression(binary, _testTextRange);
+      var ret = Statement.Return(binary, _testTextRange);
       string name = "eval";
-      var funcDecl = Statement.FuncDecl(name, new string[] { a, b }, eval, _testTextRange);
+      var funcDecl = Statement.FuncDecl(name, new string[] { a, b }, ret, _testTextRange);
       var identifier = Expression.Identifier(name, _testTextRange);
       var call = Expression.Call(identifier, new Expression[] {
         Expression.NumberConstant(1, _testTextRange),
@@ -140,6 +140,7 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(1, visualizer.Left.Number);
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.Number);
+      Assert.Equal(3, visualizer.Result.Number);
       Assert.Equal(_testTextRange, visualizer.Range);
     }
 

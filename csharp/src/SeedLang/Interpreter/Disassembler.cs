@@ -32,7 +32,7 @@ namespace SeedLang.Interpreter {
     public override string ToString() {
       var sb = new StringBuilder();
       while (_functions.Count > 0) {
-        sb.Append($"Function <{_name}>\n");
+        sb.AppendLine($"Function <{_name}>");
         for (int i = 0; i < _chunk.Bytecode.Count; ++i) {
           Debug.Assert(i < _chunk.Ranges.Count);
           Instruction instr = _chunk.Bytecode[i];

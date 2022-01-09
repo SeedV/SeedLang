@@ -32,7 +32,10 @@ namespace SeedLang.Interpreter {
     }
 
     internal uint? FindVariable(string name) {
-      return _globals.ContainsKey(name) ? _globals[name] : null;
+      if (_globals.ContainsKey(name)) {
+        return _globals[name];
+      }
+      return null;
     }
 
     internal void SetVariable(uint id, in Value value) {

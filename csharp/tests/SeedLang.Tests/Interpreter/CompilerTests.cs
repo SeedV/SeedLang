@@ -30,9 +30,10 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
-          $"1    LOADK     0 -1           ; 1                 {_textRange}\n" +
-          $"2    EVAL      0                                  {_textRange}\n" +
-          $"3    RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  2    EVAL      0                                    {_textRange}\n" +
+          $"  3    RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -46,9 +47,10 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
-          $"1    ADD       0 -1 -2        ; 1 2               {_textRange}\n" +
-          $"2    EVAL      0                                  {_textRange}\n" +
-          $"3    RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    ADD       0 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  2    EVAL      0                                    {_textRange}\n" +
+          $"  3    RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -64,10 +66,11 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
-          $"1    ADD       1 -2 -3        ; 2 3               {_textRange}\n" +
-          $"2    SUB       0 -1 1         ; 1                 {_textRange}\n" +
-          $"3    EVAL      0                                  {_textRange}\n" +
-          $"4    RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    ADD       1 -2 -3          ; 2 3               {_textRange}\n" +
+          $"  2    SUB       0 -1 1           ; 1                 {_textRange}\n" +
+          $"  3    EVAL      0                                    {_textRange}\n" +
+          $"  4    RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -83,10 +86,11 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
-          $"1    ADD       1 -1 -2        ; 1 2               {_textRange}\n" +
-          $"2    SUB       0 -1 1         ; 1                 {_textRange}\n" +
-          $"3    EVAL      0                                  {_textRange}\n" +
-          $"4    RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    ADD       1 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  2    SUB       0 -1 1           ; 1                 {_textRange}\n" +
+          $"  3    EVAL      0                                    {_textRange}\n" +
+          $"  4    RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -99,9 +103,10 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
-          $"1    UNM       0 -1           ; 1                 {_textRange}\n" +
-          $"2    EVAL      0                                  {_textRange}\n" +
-          $"3    RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    UNM       0 -1             ; 1                 {_textRange}\n" +
+          $"  2    EVAL      0                                    {_textRange}\n" +
+          $"  3    RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -114,9 +119,10 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(assignment, _env);
       string expected = (
-          $"1    LOADK     0 -1           ; 1                 {_textRange}\n" +
-          $"2    SETGLOB   0 0                                {_textRange}\n" +
-          $"3    RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  2    SETGLOB   0 0                                  {_textRange}\n" +
+          $"  3    RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -131,9 +137,10 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(assignment, _env);
       string expected = (
-          $"1    ADD       0 -1 -2        ; 1 2               {_textRange}\n" +
-          $"2    SETGLOB   0 0                                {_textRange}\n" +
-          $"3    RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    ADD       0 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  2    SETGLOB   0 0                                  {_textRange}\n" +
+          $"  3    RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -161,30 +168,31 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(program, _env);
       string expected = (
-          $"1    LOADK     0 -1           ; 0                 {_textRange}\n" +
-          $"2    SETGLOB   0 0                                {_textRange}\n" +
-          $"3    LOADK     0 -1           ; 0                 {_textRange}\n" +
-          $"4    SETGLOB   0 1                                {_textRange}\n" +
-          $"5    GETGLOB   0 1                                {_textRange}\n" +
-          $"6    LE        1 0 -2         ; 10                {_textRange}\n" +
-          $"7    JMP       0 8                                {_textRange}\n" +
-          $"8    GETGLOB   1 0                                {_textRange}\n" +
-          $"9    GETGLOB   2 1                                {_textRange}\n" +
-          $"10   ADD       0 1 2                              {_textRange}\n" +
-          $"11   SETGLOB   0 0                                {_textRange}\n" +
-          $"12   GETGLOB   1 1                                {_textRange}\n" +
-          $"13   ADD       0 1 -3         ; 1                 {_textRange}\n" +
-          $"14   SETGLOB   0 1                                {_textRange}\n" +
-          $"15   JMP       0 -11                              {_textRange}\n" +
-          $"16   GETGLOB   0 0                                {_textRange}\n" +
-          $"17   EVAL      0                                  {_textRange}\n" +
-          $"18   RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; 0                 {_textRange}\n" +
+          $"  2    SETGLOB   0 0                                  {_textRange}\n" +
+          $"  3    LOADK     0 -1             ; 0                 {_textRange}\n" +
+          $"  4    SETGLOB   0 1                                  {_textRange}\n" +
+          $"  5    GETGLOB   0 1                                  {_textRange}\n" +
+          $"  6    LE        1 0 -2           ; 10                {_textRange}\n" +
+          $"  7    JMP       0 8                                  {_textRange}\n" +
+          $"  8    GETGLOB   1 0                                  {_textRange}\n" +
+          $"  9    GETGLOB   2 1                                  {_textRange}\n" +
+          $"  10   ADD       0 1 2                                {_textRange}\n" +
+          $"  11   SETGLOB   0 0                                  {_textRange}\n" +
+          $"  12   GETGLOB   1 1                                  {_textRange}\n" +
+          $"  13   ADD       0 1 -3           ; 1                 {_textRange}\n" +
+          $"  14   SETGLOB   0 1                                  {_textRange}\n" +
+          $"  15   JMP       0 -11                                {_textRange}\n" +
+          $"  16   GETGLOB   0 0                                  {_textRange}\n" +
+          $"  17   EVAL      0                                    {_textRange}\n" +
+          $"  18   RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
-    public void TestCompileFuncDecl() {
+    public void TestCompileFuncCall() {
       string a = "a";
       string b = "b";
       var left = Expression.Identifier(a, _textRange);
@@ -193,26 +201,6 @@ namespace SeedLang.Interpreter.Tests {
       var ret = Statement.Return(binary, _textRange);
       string name = "eval";
       var funcDecl = Statement.FuncDecl(name, new string[] { a, b }, ret, _textRange);
-      var compiler = new Compiler();
-      var func = compiler.Compile(funcDecl, _env);
-      string expected = (
-          $"1    LOADK     0 -1           ; Func <eval>       {_textRange}\n" +
-          $"2    SETGLOB   0 0                                {_textRange}\n" +
-          $"3    RETURN    0                                  \n"
-      ).Replace("\n", System.Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
-    }
-
-    [Fact]
-    public void TestCompileCall() {
-      string a = "a";
-      string b = "b";
-      var left = Expression.Identifier(a, _textRange);
-      var right = Expression.Identifier(b, _textRange);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
-      var eval = Statement.Expression(binary, _textRange);
-      string name = "eval";
-      var funcDecl = Statement.FuncDecl(name, new string[] { a, b }, eval, _textRange);
       var identifier = Expression.Identifier(name, _textRange);
       var call = Expression.Call(identifier, new Expression[] {
         Expression.NumberConstant(1, _textRange),
@@ -223,14 +211,19 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var func = compiler.Compile(block, _env);
       string expected = (
-          $"1    LOADK     0 -1           ; Func <eval>       {_textRange}\n" +
-          $"2    SETGLOB   0 0                                {_textRange}\n" +
-          $"3    GETGLOB   0 0                                {_textRange}\n" +
-          $"4    LOADK     1 -2           ; 1                 {_textRange}\n" +
-          $"5    LOADK     2 -3           ; 2                 {_textRange}\n" +
-          $"6    CALL      0 2 0                              {_textRange}\n" +
-          $"7    EVAL      0                                  {_textRange}\n" +
-          $"8    RETURN    0                                  \n"
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; Func <eval>       {_textRange}\n" +
+          $"  2    SETGLOB   0 0                                  {_textRange}\n" +
+          $"  3    GETGLOB   0 0                                  {_textRange}\n" +
+          $"  4    LOADK     1 -2             ; 1                 {_textRange}\n" +
+          $"  5    LOADK     2 -3             ; 2                 {_textRange}\n" +
+          $"  6    CALL      0 2 0                                {_textRange}\n" +
+          $"  7    EVAL      0                                    {_textRange}\n" +
+          $"  8    RETURN    0                                    \n" +
+          $"\n" +
+          $"Function <eval>\n" +
+          $"  1    ADD       2 0 1                                {_textRange}\n" +
+          $"  2    RETURN    2                                    {_textRange}\n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

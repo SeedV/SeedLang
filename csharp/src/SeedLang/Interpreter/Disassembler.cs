@@ -12,33 +12,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using SeedLang.Common;
+using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // An utility class to generate the disassembly text of a chunk.
   internal class Disassembler {
-    private readonly Function _func;
-    private Chunk _chunk => _func.Chunk;
+    private readonly Queue<Function> _functions = new Queue<Function>();
+    private string _name => _functions.Peek().Name;
+    private Chunk _chunk => _functions.Peek().Chunk;
 
     internal Disassembler(Function func) {
-      _func = func;
+      _functions.Enqueue(func);
     }
 
     public override string ToString() {
       var sb = new StringBuilder();
-      for (int i = 0; i < _chunk.Bytecode.Count; ++i) {
-        Debug.Assert(i < _chunk.Ranges.Count);
-        Instruction instr = _chunk.Bytecode[i];
-        Range range = _chunk.Ranges[i];
-        sb.Append($"{i + 1,-5}{instr.Opcode,-10}{OperandsToString(instr),-15}");
-        string rangeString = range is null ? "" : range.ToString();
-        sb.Append($"{ConstOperandsToString(instr),-20}{rangeString}");
-        sb.AppendLine();
+      while (_functions.Count > 0) {
+        sb.Append($"Function <{_name}>\n");
+        for (int i = 0; i < _chunk.Bytecode.Count; ++i) {
+          Debug.Assert(i < _chunk.Ranges.Count);
+          Instruction instr = _chunk.Bytecode[i];
+          Range range = _chunk.Ranges[i];
+          sb.Append($"  {i + 1,-5}{instr.Opcode,-10}{OperandsToString(instr),-15}");
+          string rangeString = range is null ? "" : range.ToString();
+          sb.Append($"  {ConstOperandsToString(instr),-20}{rangeString}");
+          sb.AppendLine();
+
+          if (instr.Opcode == Opcode.LOADK) {
+            Value value = _chunk.ValueOfConstId(instr.Bx);
+            if (value.IsFunction() && value.AsFunction() is Function func) {
+              _functions.Enqueue(func);
+            }
+          }
+        }
+        _functions.Dequeue();
+        if (_functions.Count > 0) {
+          sb.AppendLine();
+        }
       }
       return sb.ToString();
     }
+
 
     private string OperandsToString(Instruction instr) {
       bool ignoreC = instr.Opcode == Opcode.MOVE || instr.Opcode == Opcode.UNM;

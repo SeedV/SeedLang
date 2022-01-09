@@ -32,7 +32,7 @@ sum
     }
 
     [Benchmark]
-    public void BenchmarkBytecode() {
+    public void BenchmarkBytecodeGlobalScope() {
       string source = @"sum = 0
 i = 1
 while i <= 10000000:

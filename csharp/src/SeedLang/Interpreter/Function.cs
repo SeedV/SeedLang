@@ -15,6 +15,8 @@
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
+  // A function value type that is only used in SeedVM component to encapsulate a compiled bytecode
+  // chunk.
   internal class Function : IFunction {
     public string Name { get; }
     public Chunk Chunk { get; } = new Chunk();

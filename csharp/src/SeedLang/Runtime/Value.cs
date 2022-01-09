@@ -245,7 +245,7 @@ namespace SeedLang.Runtime {
         case ValueType.String:
         case ValueType.List:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                Message.RuntimeErrorNotCallable);
+                                        Message.RuntimeErrorNotCallable);
         case ValueType.Function:
           return _object.AsFunction();
         default:

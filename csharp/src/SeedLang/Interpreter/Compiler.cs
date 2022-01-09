@@ -20,10 +20,13 @@ namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
     private FunctionStack _functionStack;
-    // The register allocated for the result of sub-expressions.
     private VariableResolver _variableResolver;
+
+    // The register allocated for the result of sub-expressions.
     private uint _registerForSubExpr;
+    // The chunk on the top of the function stack.
     private Chunk _chunk;
+    // The constant cache on the top of the function stack.
     private ConstantCache _constantCache;
 
     internal Compiler() {
@@ -32,7 +35,7 @@ namespace SeedLang.Interpreter {
     internal Function Compile(AstNode node, Environment env) {
       _functionStack = new FunctionStack();
       _variableResolver = new VariableResolver(env);
-      // main function in global scope.
+      // Starts to parse the main function in the global scope.
       _functionStack.PushFunc("main");
       CacheTopFunction();
       Visit(node);
@@ -108,7 +111,7 @@ namespace SeedLang.Interpreter {
           _chunk.Emit(Opcode.MOVE, _registerForSubExpr, id, 0, identifier.Range);
         }
       } else {
-        // TODO: throw variable is not defined runtime error.
+        // TODO: throw a variable not defined runtime error.
       }
     }
 
@@ -139,7 +142,7 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(CallExpression call) {
       _variableResolver.BeginExpressionScope();
-      // TODO:
+      // TODO: should call.Func always be IdentifierExpression?
       if (call.Func is IdentifierExpression identifier) {
         if (_variableResolver.FindVariable(identifier.Name) is uint funcId) {
           uint resultRegister = _registerForSubExpr;
@@ -155,7 +158,7 @@ namespace SeedLang.Interpreter {
             _chunk.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
           }
         } else {
-          // TODO:
+          // TODO: throw a variable not defined runtime error.
         }
       }
       _variableResolver.EndExpressionScope();
@@ -187,7 +190,7 @@ namespace SeedLang.Interpreter {
           }
           break;
         case SubscriptExpression _:
-          // TODO: handle subscript assignment.
+          // TODO: handle subscript assignment statements.
           break;
       }
     }
@@ -211,19 +214,19 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    protected override void Visit(FuncDeclStatement funcDecl) {
-      PushFunc(funcDecl.Name);
-      foreach (string parameterName in funcDecl.Parameters) {
+    protected override void Visit(FuncDefStatement funcDef) {
+      PushFunc(funcDef.Name);
+      foreach (string parameterName in funcDef.Parameters) {
         _variableResolver.DefineVariable(parameterName);
       }
-      Visit(funcDecl.Body);
+      Visit(funcDef.Body);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
-      uint variableId = _variableResolver.DefineVariable(funcDecl.Name);
+      uint variableId = _variableResolver.DefineVariable(funcDef.Name);
       _variableResolver.BeginExpressionScope();
       uint registerId = _variableResolver.AllocateVariable();
-      _chunk.Emit(Opcode.LOADK, registerId, funcId, funcDecl.Range);
-      _chunk.Emit(Opcode.SETGLOB, registerId, variableId, funcDecl.Range);
+      _chunk.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
+      _chunk.Emit(Opcode.SETGLOB, registerId, variableId, funcDef.Range);
       _variableResolver.EndExpressionScope();
     }
 

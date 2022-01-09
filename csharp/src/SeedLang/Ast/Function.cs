@@ -18,16 +18,16 @@ namespace SeedLang.Ast {
   // A function value type that is only used in SeedAst component to encapsulate AST function
   // declearation statement.
   internal class Function : IFunction {
-    private readonly FuncDeclStatement _funcDecl;
+    private readonly FuncDefStatement _funcDef;
     private readonly Executor _executor;
 
-    internal Function(FuncDeclStatement funcDecl, Executor executor) {
-      _funcDecl = funcDecl;
+    internal Function(FuncDefStatement funcDef, Executor executor) {
+      _funcDef = funcDef;
       _executor = executor;
     }
 
     public Value Call(Value[] arguments) {
-      return _executor.Call(_funcDecl, arguments);
+      return _executor.Call(_funcDef, arguments);
     }
   }
 }

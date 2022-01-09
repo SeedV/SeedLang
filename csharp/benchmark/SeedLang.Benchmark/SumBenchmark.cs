@@ -20,7 +20,7 @@ namespace SeedLang.Benchmark {
     private readonly Executor _executor = new Executor();
 
     [Benchmark]
-    public void BenchmarkAst() {
+    public void BenchmarkAstSum() {
       string source = @"sum = 0
 i = 1
 while i <= 10000000:
@@ -32,7 +32,7 @@ sum
     }
 
     [Benchmark]
-    public void BenchmarkBytecodeGlobalScope() {
+    public void BenchmarkBytecodeGlobalScopeSum() {
       string source = @"sum = 0
 i = 1
 while i <= 10000000:
@@ -44,7 +44,7 @@ sum
     }
 
     [Benchmark]
-    public void BenchmarkBytecodeLocalScope() {
+    public void BenchmarkBytecodeLocalScopeSum() {
       string source = @"def func():
   sum = 0
   i = 1

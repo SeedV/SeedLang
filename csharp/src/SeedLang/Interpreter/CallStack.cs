@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
+  // A stack used in SeedVM to store running functions, base register indices and program counters.
   internal class CallStack {
     private class Frame {
       public Function Func { get; }

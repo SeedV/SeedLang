@@ -17,7 +17,9 @@ using System.Diagnostics;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  // The global environment to store names and values of build-in and global variables.
+  // The environment to store names and values of build-in and global variables.
+  //
+  // TODO: handle build-in variables.
   internal class Environment {
     private readonly Dictionary<string, uint> _globals = new Dictionary<string, uint>();
     private readonly List<Value> _values = new List<Value>();

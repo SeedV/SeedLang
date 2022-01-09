@@ -18,27 +18,31 @@ using System.Diagnostics;
 namespace SeedLang.Interpreter {
   using Scope = Dictionary<string, uint>;
 
-  // The allocator class to allocate register slots for local and temporary variables.
+  // The class to resolve global and local variables. It defines and finds global variables in the
+  // global environment, and allocates register slots for local and temporary variables.
   internal class VariableResolver {
     // The flag to indicate if it's in the global scope.
     public bool IsInGlobalScope => _scopes.Count == 1;
+    // The last allocated register in the current scope.
     public uint LastRegister => _currentRegisterCount - 1;
 
+    // The global environment.
     private readonly Environment _env;
-    // A dictionary to store names and register indices of local variables.
+    // A stack of dictionaries to store names and register indices of local variables for function
+    // and block scopes.
     private readonly Stack<Scope> _scopes = new Stack<Scope>();
-    // Current allocated registers count. This number is decreased if a register is deallocated.
+    // The stack of the current allocated registers count of function scopes.
     private readonly Stack<uint> _registerCounts = new Stack<uint>();
-    // A Stack to store the beginning of registers before parsing an expression. The expresion
-    // visitor should call EnterExpressionScope() before allocating temporary variables for
-    // intermediate results. The ExitExpressionScope() call will deallocate all temporary variables
-    // that are allocated in this expression scope.
+    // A Stack to store the base of registers before parsing an expression. The expresion visitor
+    // should call EnterExpressionScope() before allocating temporary variables for intermediate
+    // results. The ExitExpressionScope() call will deallocate all temporary variables that are
+    // allocated in this expression scope.
     private readonly Stack<uint> _baseOfExpressionScopes = new Stack<uint>();
     private uint _currentRegisterCount => _registerCounts.Peek();
 
     internal VariableResolver(Environment env) {
       _env = env;
-      // Begins global scope. It's needed for temporary variables in the global scope.
+      // Begins global scope. It's used for temporary variables in the global scope.
       BeginFunctionScope();
     }
 

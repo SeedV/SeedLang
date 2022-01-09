@@ -211,11 +211,11 @@ namespace SeedLang.Ast {
       Exit();
     }
 
-    protected override void Visit(FuncDeclStatement funcDecl) {
-      Enter(funcDecl);
-      _out.Append($" ({funcDecl.Name}:");
+    protected override void Visit(FuncDefStatement funcDef) {
+      Enter(funcDef);
+      _out.Append($" ({funcDef.Name}:");
       bool firstParameter = true;
-      foreach (string parameter in funcDecl.Parameters) {
+      foreach (string parameter in funcDef.Parameters) {
         if (!firstParameter) {
           _out.Append(',');
         }
@@ -223,7 +223,7 @@ namespace SeedLang.Ast {
         _out.Append($" {parameter}");
       }
       _out.Append(')');
-      Visit(funcDecl.Body);
+      Visit(funcDef.Body);
       Exit();
     }
 

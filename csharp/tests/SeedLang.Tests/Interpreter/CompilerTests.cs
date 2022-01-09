@@ -200,14 +200,14 @@ namespace SeedLang.Interpreter.Tests {
       var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
       var ret = Statement.Return(binary, _textRange);
       string name = "eval";
-      var funcDecl = Statement.FuncDecl(name, new string[] { a, b }, ret, _textRange);
+      var funcDef = Statement.FuncDef(name, new string[] { a, b }, ret, _textRange);
       var identifier = Expression.Identifier(name, _textRange);
       var call = Expression.Call(identifier, new Expression[] {
         Expression.NumberConstant(1, _textRange),
         Expression.NumberConstant(2, _textRange),
       }, _textRange);
       var exprStatement = Statement.Expression(call, _textRange);
-      var block = Statement.Block(new Statement[] { funcDecl, exprStatement }, _textRange);
+      var block = Statement.Block(new Statement[] { funcDef, exprStatement }, _textRange);
       var compiler = new Compiler();
       var func = compiler.Compile(block, _env);
       string expected = (

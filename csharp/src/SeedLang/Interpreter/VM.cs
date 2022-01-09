@@ -21,6 +21,8 @@ namespace SeedLang.Interpreter {
   internal class VM {
     public readonly Environment Env = new Environment();
 
+    // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
+    // can hold maximun 100 recursive function calls.
     private const int _stackSize = 25 * 1024;
 
     private readonly VisualizerCenter _visualizerCenter;
@@ -52,7 +54,10 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.SETGLOB:
               Env.SetVariable(instr.Bx, _stack[baseRegister + instr.A]);
-              // TODO: comments for not notify.
+              // TODO: it's hard to send assignment notification in the VM, because it's hard to
+              // distinguish assignment to local variable or temporary variables, and the name
+              // information of the variables have been removed during compilation. Decide if this
+              // kind of notification is needed, or if other kinds of notification can replace it.
               break;
             case Opcode.ADD:
             case Opcode.SUB:

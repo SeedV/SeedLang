@@ -35,9 +35,9 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a function declearation statement.
-    internal static FuncDeclStatement FuncDecl(string name, string[] parameters, Statement body,
-                                               Range range) {
-      return new FuncDeclStatement(name, parameters, body, range);
+    internal static FuncDefStatement FuncDef(string name, string[] parameters, Statement body,
+                                             Range range) {
+      return new FuncDefStatement(name, parameters, body, range);
     }
 
     // The factory method to create an if statement.
@@ -89,12 +89,12 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal class FuncDeclStatement : Statement {
+  internal class FuncDefStatement : Statement {
     public string Name { get; }
     public string[] Parameters { get; }
     public Statement Body { get; }
 
-    internal FuncDeclStatement(string name, string[] parameters, Statement body, Range range) :
+    internal FuncDefStatement(string name, string[] parameters, Statement body, Range range) :
         base(range) {
       Name = name;
       Parameters = parameters;

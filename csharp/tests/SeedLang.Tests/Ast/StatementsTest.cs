@@ -26,7 +26,7 @@ namespace SeedLang.Ast.Tests {
         AddAssignmentStatement();
         AddEmptyBlockStatement();
         AddExpressionStatement();
-        AddFuncDeclStatement();
+        AddFuncDefStatement();
         AddIfStatement();
         AddReturnStatement();
         AddWhileStatement();
@@ -64,13 +64,13 @@ namespace SeedLang.Ast.Tests {
         Add(expr, expectedOutput);
       }
 
-      private void AddFuncDeclStatement() {
+      private void AddFuncDefStatement() {
         var arguments = new string[] { "arg1", "arg2", };
         var body = Statement.Block(Array.Empty<Statement>(), _blockRange);
-        var funcDecl = Statement.FuncDecl("func", arguments, body, _blockRange);
-        var expectedOutput = $"{_blockRange} FuncDeclStatement (func: arg1, arg2)\n" +
+        var funcDef = Statement.FuncDef("func", arguments, body, _blockRange);
+        var expectedOutput = $"{_blockRange} FuncDefStatement (func: arg1, arg2)\n" +
                              $"  {_blockRange} BlockStatement";
-        Add(funcDecl, expectedOutput);
+        Add(funcDef, expectedOutput);
       }
 
       private void AddIfStatement() {

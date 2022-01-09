@@ -125,10 +125,10 @@ namespace SeedLang.X {
         parameterNodes = parameters.NAME();
         commaNodes = parameters.COMMA();
       }
-      return _helper.BuildFuncDecl(context.DEF().Symbol, context.NAME().Symbol,
-                                   context.OPEN_PAREN().Symbol, parameterNodes, commaNodes,
-                                   context.CLOSE_PAREN().Symbol, context.COLON().Symbol,
-                                   context.block(), this);
+      return _helper.BuildFuncDef(context.DEF().Symbol, context.NAME().Symbol,
+                                  context.OPEN_PAREN().Symbol, parameterNodes, commaNodes,
+                                  context.CLOSE_PAREN().Symbol, context.COLON().Symbol,
+                                  context.block(), this);
     }
 
     public override AstNode VisitReturn_stmt(

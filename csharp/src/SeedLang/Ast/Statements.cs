@@ -34,7 +34,7 @@ namespace SeedLang.Ast {
       return new ExpressionStatement(expr, range);
     }
 
-    // The factory method to create a function declearation statement.
+    // The factory method to create a function define statement.
     internal static FuncDefStatement FuncDef(string name, string[] parameters, Statement body,
                                              Range range) {
       return new FuncDefStatement(name, parameters, body, range);

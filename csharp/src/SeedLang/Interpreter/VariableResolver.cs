@@ -27,7 +27,7 @@ namespace SeedLang.Interpreter {
     public uint LastRegister => _currentRegisterCount - 1;
 
     // The global environment.
-    private readonly Environment _env;
+    private readonly GlobalEnvironment _env;
     // A stack of dictionaries to store names and register indices of local variables for function
     // and block scopes.
     private readonly Stack<Scope> _scopes = new Stack<Scope>();
@@ -40,7 +40,7 @@ namespace SeedLang.Interpreter {
     private readonly Stack<uint> _baseOfExpressionScopes = new Stack<uint>();
     private uint _currentRegisterCount => _registerCounts.Peek();
 
-    internal VariableResolver(Environment env) {
+    internal VariableResolver(GlobalEnvironment env) {
       _env = env;
       // Begins global scope. It's used for temporary variables in the global scope.
       BeginFunctionScope();

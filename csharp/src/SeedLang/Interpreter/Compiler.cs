@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
-    private FunctionStack _functionStack;
+    private NestedFuncStack _functionStack;
     private VariableResolver _variableResolver;
 
     // The register allocated for the result of sub-expressions.
@@ -29,11 +28,8 @@ namespace SeedLang.Interpreter {
     // The constant cache on the top of the function stack.
     private ConstantCache _constantCache;
 
-    internal Compiler() {
-    }
-
-    internal Function Compile(AstNode node, Environment env) {
-      _functionStack = new FunctionStack();
+    internal Function Compile(AstNode node, GlobalEnvironment env) {
+      _functionStack = new NestedFuncStack();
       _variableResolver = new VariableResolver(env);
       // Starts to parse the main function in the global scope.
       _functionStack.PushFunc("main");

@@ -68,7 +68,7 @@ namespace SeedLang.Ast.Tests {
         var arguments = new string[] { "arg1", "arg2", };
         var body = Statement.Block(Array.Empty<Statement>(), _blockRange);
         var funcDef = Statement.FuncDef("func", arguments, body, _blockRange);
-        var expectedOutput = $"{_blockRange} FuncDefStatement (func: arg1, arg2)\n" +
+        var expectedOutput = $"{_blockRange} FuncDefStatement (func:arg1,arg2)\n" +
                              $"  {_blockRange} BlockStatement";
         Add(funcDef, expectedOutput);
       }

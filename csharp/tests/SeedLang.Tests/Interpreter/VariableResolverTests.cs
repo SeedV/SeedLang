@@ -18,7 +18,7 @@ namespace SeedLang.Interpreter.Tests {
   public class VariableResolverTests {
     [Fact]
     public void TestFunctionScope() {
-      var env = new Environment();
+      var env = new GlobalEnvironment();
       string a = "a";
       string b = "b";
       Assert.Equal(0u, env.DefineVariable(a));

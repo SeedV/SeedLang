@@ -19,7 +19,7 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static Environment _env => new Environment();
+    private static GlobalEnvironment _env => new GlobalEnvironment();
     private static TextRange _textRange => new TextRange(0, 1, 2, 3);
 
 

@@ -213,16 +213,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(FuncDefStatement funcDef) {
       Enter(funcDef);
-      _out.Append($" ({funcDef.Name}:");
-      bool firstParameter = true;
-      foreach (string parameter in funcDef.Parameters) {
-        if (!firstParameter) {
-          _out.Append(',');
-        }
-        firstParameter = false;
-        _out.Append($" {parameter}");
-      }
-      _out.Append(')');
+      _out.Append($" ({funcDef.Name}:{string.Join(",", funcDef.Parameters)})");
       Visit(funcDef.Body);
       Exit();
     }

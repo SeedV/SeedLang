@@ -21,6 +21,11 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // An utility class to generate the disassembly text of a chunk.
   internal class Disassembler {
+    private const int _indexColumnWidth = -5;
+    private const int _opcodeColumnWidth = -10;
+    private const int _operandsColumnWidth = -15;
+    private const int _constValueColumnWidth = -20;
+
     private readonly Queue<Function> _functions = new Queue<Function>();
     private string _name => _functions.Peek().Name;
     private Chunk _chunk => _functions.Peek().Chunk;
@@ -37,9 +42,10 @@ namespace SeedLang.Interpreter {
           Debug.Assert(i < _chunk.Ranges.Count);
           Instruction instr = _chunk.Bytecode[i];
           Range range = _chunk.Ranges[i];
-          sb.Append($"  {i + 1,-5}{instr.Opcode,-10}{OperandsToString(instr),-15}");
+          sb.Append($"  {i + 1,_indexColumnWidth}{instr.Opcode,_opcodeColumnWidth}");
+          sb.Append($"{OperandsToString(instr),_operandsColumnWidth}");
           string rangeString = range is null ? "" : range.ToString();
-          sb.Append($"  {ConstOperandsToString(instr),-20}{rangeString}");
+          sb.Append($"  {ConstOperandsToString(instr),_constValueColumnWidth}{rangeString}");
           sb.AppendLine();
 
           if (instr.Opcode == Opcode.LOADK) {

@@ -17,8 +17,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
-  // A stack used in the compiler to store compiled functions.
-  internal class FunctionStack {
+  // A stack used in the compiler to store compiled nested functions.
+  internal class NestedFuncStack {
     private class Frame {
       public Function Func { get; }
       public ConstantCache ConstantCache { get; } = new ConstantCache();

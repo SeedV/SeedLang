@@ -101,6 +101,19 @@ namespace SeedLang.Runtime {
       }
     }
 
+    internal IFunction AsFunction() {
+      switch (_object) {
+        case string _:
+        case List<Value> _:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotCallable);
+        case IFunction func:
+          return func;
+        default:
+          throw new NotImplementedException(_unsupportedObjectTypeMessage);
+      }
+    }
+
     internal int Count() {
       switch (_object) {
         case string str:

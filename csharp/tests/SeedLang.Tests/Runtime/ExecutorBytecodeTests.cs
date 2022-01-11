@@ -39,5 +39,23 @@ sum
       Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode));
       Assert.Equal(55, visualizer.Result.Number);
     }
+
+    [Fact]
+    public void TestRunPythonSumFunc() {
+      var executor = new Executor();
+      var visualizer = new MockupVisualizer();
+      executor.Register(visualizer);
+      string source = @"def func():
+  sum = 0
+  i = 1
+  while i <= 10:
+    sum = sum + i
+    i = i + 1
+  return sum
+func()
+";
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode));
+      Assert.Equal(55, visualizer.Result.Number);
+    }
   }
 }

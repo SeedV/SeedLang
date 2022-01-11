@@ -31,9 +31,6 @@ namespace SeedLang.Interpreter {
     // The length of Bytecode and Range lists shall be the same.
     public IReadOnlyList<Range> Ranges => _ranges;
 
-    // The actual count of the registers that is needed for this chunk.
-    public uint RegisterCount { get; set; }
-
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
     private readonly List<Range> _ranges = new List<Range>();

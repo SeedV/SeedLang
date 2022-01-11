@@ -12,40 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class DisassemblerTests {
-    private static TextRange _testTextRange => new TextRange(0, 1, 2, 3);
+    private static TextRange _textRange => new TextRange(0, 1, 2, 3);
 
     [Fact]
     public void TestDisassember() {
-      var chunk = new Chunk();
+      var func = new Function("main");
+      var chunk = func.Chunk;
       var cache = new ConstantCache();
-      chunk.Emit(Opcode.LOADK, 0, cache.IdOfConstant(1), _testTextRange);
-      chunk.Emit(Opcode.GETGLOB, 1, cache.IdOfConstant("global_variable"), _testTextRange);
-      chunk.Emit(Opcode.SETGLOB, 1, cache.IdOfConstant("name"), _testTextRange);
-      chunk.Emit(Opcode.ADD, 0, 1, 2, _testTextRange);
-      chunk.Emit(Opcode.SUB, 0, cache.IdOfConstant(2), 2, _testTextRange);
-      chunk.Emit(Opcode.MUL, 0, 1, cache.IdOfConstant(3), _testTextRange);
-      chunk.Emit(Opcode.DIV, 0, cache.IdOfConstant(4), cache.IdOfConstant(5), _testTextRange);
-      chunk.Emit(Opcode.UNM, 0, cache.IdOfConstant(6), 0, _testTextRange);
+      chunk.Emit(Opcode.LOADK, 0, cache.IdOfConstant(1), _textRange);
+      chunk.Emit(Opcode.GETGLOB, 1, cache.IdOfConstant("global_variable"), _textRange);
+      chunk.Emit(Opcode.SETGLOB, 1, cache.IdOfConstant("name"), _textRange);
+      chunk.Emit(Opcode.ADD, 0, 1, 2, _textRange);
+      chunk.Emit(Opcode.SUB, 0, cache.IdOfConstant(2), 2, _textRange);
+      chunk.Emit(Opcode.MUL, 0, 1, cache.IdOfConstant(3), _textRange);
+      chunk.Emit(Opcode.DIV, 0, cache.IdOfConstant(4), cache.IdOfConstant(5), _textRange);
+      chunk.Emit(Opcode.UNM, 0, cache.IdOfConstant(6), 0, _textRange);
       chunk.Emit(Opcode.RETURN, 0u, null);
       chunk.SetConstants(cache.Constants.ToArray());
       string expected = (
-          "1    LOADK     0 -1           ; 1                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "2    GETGLOB   1 -2           ; global_variable   [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "3    SETGLOB   1 -3           ; name              [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "4    ADD       0 1 2                              [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "5    SUB       0 -4 2         ; 2                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "6    MUL       0 1 -5         ; 3                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "7    DIV       0 -6 -7        ; 4 5               [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "8    UNM       0 -8           ; 6                 [Ln 0, Col 1 - Ln 2, Col 3]\n" +
-          "9    RETURN    0                                  \n"
-      ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(chunk).ToString());
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  2    GETGLOB   1 -2             ; global_variable   {_textRange}\n" +
+          $"  3    SETGLOB   1 -3             ; name              {_textRange}\n" +
+          $"  4    ADD       0 1 2                                {_textRange}\n" +
+          $"  5    SUB       0 -4 2           ; 2                 {_textRange}\n" +
+          $"  6    MUL       0 1 -5           ; 3                 {_textRange}\n" +
+          $"  7    DIV       0 -6 -7          ; 4 5               {_textRange}\n" +
+          $"  8    UNM       0 -8             ; 6                 {_textRange}\n" +
+          $"  9    RETURN    0                                    \n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }
 }

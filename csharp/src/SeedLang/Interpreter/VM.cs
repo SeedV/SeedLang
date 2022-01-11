@@ -18,107 +18,120 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
+    public readonly GlobalEnvironment Env = new GlobalEnvironment();
+
+    // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
+    // can hold maximun 100 recursive function calls.
+    private const int _stackSize = 25 * 1024;
+
     private readonly VisualizerCenter _visualizerCenter;
-
-    private readonly GlobalEnvironment _globals = new GlobalEnvironment();
-
-    private Chunk _chunk;
-    private Value[] _registers;
+    private readonly Value[] _stack = new Value[_stackSize];
+    private CallStack _callStack;
 
     internal VM(VisualizerCenter visualizerCenter = null) {
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
     }
 
-    internal void Run(Chunk chunk) {
-      _chunk = chunk;
-      _registers = new Value[_chunk.RegisterCount];
+    internal void Run(Function func) {
+      uint baseRegister = 0;
+      _callStack = new CallStack();
+      _callStack.PushFunc(func, baseRegister, 0);
+      Chunk chunk = func.Chunk;
       int pc = 0;
-      while (pc < _chunk.Bytecode.Count) {
-        Instruction instr = _chunk.Bytecode[pc];
+      while (pc < chunk.Bytecode.Count) {
+        Instruction instr = chunk.Bytecode[pc];
         try {
           switch (instr.Opcode) {
             case Opcode.MOVE:
-              _registers[instr.A] = Value.Number(ValueOfRK(instr.B).AsNumber());
+              _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B];
               break;
             case Opcode.LOADK:
-              _registers[instr.A] = LoadConstantValue(instr.Bx);
+              _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
             case Opcode.GETGLOB:
-              HandleGetGlobal(instr);
+              _stack[baseRegister + instr.A] = Env.GetVariable(instr.Bx);
               break;
             case Opcode.SETGLOB:
-              HandleSetGlobal(instr, _chunk.Ranges[pc]);
+              Env.SetVariable(instr.Bx, _stack[baseRegister + instr.A]);
+              // TODO: it's hard to send assignment notification in the VM, because it's hard to
+              // distinguish assignment to local variable or temporary variables, and the name
+              // information of the variables have been removed during compilation. Decide if this
+              // kind of notification is needed, or if other kinds of notification can replace it.
               break;
             case Opcode.ADD:
             case Opcode.SUB:
             case Opcode.MUL:
             case Opcode.DIV:
-              HandleBinary(instr, _chunk.Ranges[pc]);
+              HandleBinary(chunk, instr, baseRegister, chunk.Ranges[pc]);
               break;
             case Opcode.UNM:
-              _registers[instr.A] = Value.Number(-ValueOfRK(instr.B).AsNumber());
+              _stack[baseRegister + instr.A] =
+                  Value.Number(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
               break;
             case Opcode.JMP:
               pc += instr.SBx;
               break;
             case Opcode.EQ:
-              if (ValueOfRK(instr.B).AsNumber() == ValueOfRK(instr.C).AsNumber() ==
-                  (instr.A == 1)) {
+              if (ValueOfRK(chunk, instr.B, baseRegister).AsNumber() ==
+                  ValueOfRK(chunk, instr.C, baseRegister).AsNumber() == (instr.A == 1)) {
                 pc++;
               }
               break;
             case Opcode.LT:
-              if ((ValueOfRK(instr.B).AsNumber() < ValueOfRK(instr.C).AsNumber()) ==
-                  (instr.A == 1)) {
+              if ((ValueOfRK(chunk, instr.B, baseRegister).AsNumber() <
+                   ValueOfRK(chunk, instr.C, baseRegister).AsNumber()) == (instr.A == 1)) {
                 pc++;
               }
               break;
             case Opcode.LE:
-              if ((ValueOfRK(instr.B).AsNumber() <= ValueOfRK(instr.C).AsNumber()) ==
-                  (instr.A == 1)) {
+              if ((ValueOfRK(chunk, instr.B, baseRegister).AsNumber() <=
+                   ValueOfRK(chunk, instr.C, baseRegister).AsNumber()) == (instr.A == 1)) {
                 pc++;
               }
               break;
             case Opcode.EVAL:
               if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
-                var ee = new EvalEvent(new ValueWrapper(_registers[instr.A]), _chunk.Ranges[pc]);
+                var ee = new EvalEvent(new ValueWrapper(_stack[baseRegister + instr.A]),
+                                                        chunk.Ranges[pc]);
                 _visualizerCenter.EvalPublisher.Notify(ee);
               }
               break;
+            case Opcode.CALL:
+              var callFunc = _stack[baseRegister + instr.A].AsFunction() as Function;
+              baseRegister = instr.A + 1;
+              _callStack.PushFunc(callFunc, baseRegister, pc);
+              chunk = callFunc.Chunk;
+              pc = -1;
+              break;
             case Opcode.RETURN:
-              return;
+              uint currentBase = _callStack.CurrentBase();
+              if (currentBase > 0) {
+                _stack[currentBase - 1] = _stack[currentBase + instr.A];
+              }
+              _callStack.PopFunc();
+              if (!_callStack.IsEmpty) {
+                chunk = _callStack.CurrentChunk();
+                baseRegister = _callStack.CurrentBase();
+                pc = _callStack.CurrentPC();
+              }
+              break;
             default:
               throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
         } catch (DiagnosticException ex) {
           throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
-                                        ex.Diagnostic.Module, _chunk.Ranges[pc],
+                                        ex.Diagnostic.Module, chunk.Ranges[pc],
                                         ex.Diagnostic.MessageId);
         }
         pc++;
       }
     }
 
-    private void HandleGetGlobal(Instruction instr) {
-      var name = _chunk.ValueOfConstId(instr.Bx).ToString();
-      _registers[instr.A] = _globals.
-      GetVariable(name);
-    }
-
-    private void HandleSetGlobal(Instruction instr, Range range) {
-      var name = _chunk.ValueOfConstId(instr.Bx).ToString();
-      _globals.SetVariable(name, _registers[instr.A]);
-      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var ae = new AssignmentEvent(name, new ValueWrapper(_registers[instr.A]), range);
-        _visualizerCenter.AssignmentPublisher.Notify(ae);
-      }
-    }
-
-    private void HandleBinary(Instruction instr, Range range) {
+    private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister, Range range) {
       BinaryOperator op = BinaryOperator.Add;
       double result = 0;
-      Value left = ValueOfRK(instr.B);
-      Value right = ValueOfRK(instr.C);
+      Value left = ValueOfRK(chunk, instr.B, baseRegister);
+      Value right = ValueOfRK(chunk, instr.C, baseRegister);
       switch (instr.Opcode) {
         case Opcode.ADD:
           op = BinaryOperator.Add;
@@ -137,26 +150,21 @@ namespace SeedLang.Interpreter {
           result = ValueHelper.Divide(left, right);
           break;
       }
-      _registers[instr.A] = Value.Number(result);
+      _stack[baseRegister + instr.A] = Value.Number(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
-                                 new ValueWrapper(_registers[instr.A]), range);
+                                 new ValueWrapper(_stack[baseRegister + instr.A]), range);
         _visualizerCenter.BinaryPublisher.Notify(be);
       }
     }
 
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to
     // avoid copying.
-    private ref readonly Value ValueOfRK(uint rkPos) {
+    private ref readonly Value ValueOfRK(Chunk chunk, uint rkPos, uint baseRegister) {
       if (rkPos < Chunk.MaxRegisterCount) {
-        return ref _registers[rkPos];
+        return ref _stack[baseRegister + rkPos];
       }
-      return ref LoadConstantValue(rkPos);
-    }
-
-    // Loads the constant value of constId. Returns a readonly reference to avoid copying.
-    private ref readonly Value LoadConstantValue(uint constId) {
-      return ref _chunk.ValueOfConstId(constId);
+      return ref chunk.ValueOfConstId(rkPos);
     }
   }
 }

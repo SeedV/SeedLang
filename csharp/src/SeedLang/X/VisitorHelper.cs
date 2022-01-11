@@ -330,11 +330,11 @@ namespace SeedLang.X {
     }
 
     // Builds a function declearation statement.
-    internal FunctionStatement BuildFunction(IToken defToken, IToken nameToken,
-                                             IToken openParenToken, ITerminalNode[] parameterNodes,
-                                             ITerminalNode[] commaNodes, IToken closeParenToken,
-                                             IToken colonToken, ParserRuleContext blockContext,
-                                             AbstractParseTreeVisitor<AstNode> visitor) {
+    internal FuncDefStatement BuildFuncDef(IToken defToken, IToken nameToken,
+                                           IToken openParenToken, ITerminalNode[] parameterNodes,
+                                           ITerminalNode[] commaNodes, IToken closeParenToken,
+                                           IToken colonToken, ParserRuleContext blockContext,
+                                           AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange defRange = CodeReferenceUtils.RangeOfToken(defToken);
       AddSyntaxToken(SyntaxType.Keyword, defRange);
       AddSyntaxToken(SyntaxType.Function, CodeReferenceUtils.RangeOfToken(nameToken));
@@ -355,7 +355,7 @@ namespace SeedLang.X {
       if (visitor.Visit(blockContext) is Statement block) {
         Debug.Assert(block.Range is TextRange);
         TextRange range = CodeReferenceUtils.CombineRanges(defRange, block.Range as TextRange);
-        return Statement.Function(nameToken.Text, arguments, block, range);
+        return Statement.FuncDef(nameToken.Text, arguments, block, range);
       }
       return null;
     }

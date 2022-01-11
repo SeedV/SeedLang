@@ -13,27 +13,39 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  // The global environment class to store names and values of global variables.
+  // The environment to store names and values of build-in and global variables.
   //
-  // TODO: looking up a global variable by strings in the dictionary is quite slow. So the
-  // performance of register-based local variables is much faster than global variables. It's
-  // possible to cache all global variable names during compilation, and use indices to search
-  // global variables in the dictionary. Decide if we need such kind of optimization.
+  // TODO: handle build-in variables.
   internal class GlobalEnvironment {
-    private readonly Dictionary<string, Value> _globals = new Dictionary<string, Value>();
+    private readonly Dictionary<string, uint> _globals = new Dictionary<string, uint>();
+    private readonly List<Value> _values = new List<Value>();
 
-    internal void SetVariable(string name, in Value value) {
-      _globals[name] = value;
+    internal uint DefineVariable(string name) {
+      Debug.Assert(!_globals.ContainsKey(name));
+      _values.Add(Value.None());
+      _globals[name] = (uint)_values.Count - 1;
+      return _globals[name];
     }
 
-    internal Value GetVariable(string name) {
-      if (!_globals.ContainsKey(name)) {
-        _globals[name] = Value.None();
+    internal uint? FindVariable(string name) {
+      if (_globals.ContainsKey(name)) {
+        return _globals[name];
       }
-      return _globals[name];
+      return null;
+    }
+
+    internal void SetVariable(uint id, in Value value) {
+      Debug.Assert(id < _values.Count);
+      _values[(int)id] = value;
+    }
+
+    internal Value GetVariable(uint id) {
+      Debug.Assert(id < _values.Count);
+      return _values[(int)id];
     }
   }
 }

@@ -31,6 +31,7 @@ namespace SeedLang.Interpreter {
     LT,           // if (RK(B) < RK(C)) != A then PC++
     LE,           // if (RK(B) <= RK(C)) != A then PC++
     EVAL,         // Eval R(A). Evaluates the expresion statement. TODO: do we need this?
+    CALL,         // call function R(A), parameters are R(A + 1), ..., R(A + B)
     RETURN,       // Return R(A)
   }
 
@@ -58,6 +59,7 @@ namespace SeedLang.Interpreter {
         case Opcode.EQ:
         case Opcode.LT:
         case Opcode.LE:
+        case Opcode.CALL:
           return OpcodeType.ABC;
         case Opcode.LOADK:
         case Opcode.GETGLOB:

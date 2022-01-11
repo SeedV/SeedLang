@@ -213,7 +213,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("def func(): x = 1",
 
-                "[Ln 1, Col 0 - Ln 1, Col 16] FunctionStatement (func:)\n" +
+                "[Ln 1, Col 0 - Ln 1, Col 16] FuncDefStatement (func:)\n" +
                 "  [Ln 1, Col 12 - Ln 1, Col 16] AssignmentStatement\n" +
                 "    [Ln 1, Col 12 - Ln 1, Col 12] IdentifierExpression (x)\n" +
                 "    [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (1)",
@@ -230,7 +230,7 @@ namespace SeedLang.X.Tests {
     [InlineData("def add(a, b):\n" +
                 "  return a + b",
 
-                "[Ln 1, Col 0 - Ln 2, Col 13] FunctionStatement (add: a, b)\n" +
+                "[Ln 1, Col 0 - Ln 2, Col 13] FuncDefStatement (add:a,b)\n" +
                 "  [Ln 2, Col 2 - Ln 2, Col 13] ReturnStatement\n" +
                 "    [Ln 2, Col 9 - Ln 2, Col 13] BinaryExpression (+)\n" +
                 "      [Ln 2, Col 9 - Ln 2, Col 9] IdentifierExpression (a)\n" +
@@ -253,7 +253,7 @@ namespace SeedLang.X.Tests {
                 "  c = a + b\n" +
                 "  return c",
 
-                "[Ln 1, Col 0 - Ln 3, Col 9] FunctionStatement (add: a, b)\n" +
+                "[Ln 1, Col 0 - Ln 3, Col 9] FuncDefStatement (add:a,b)\n" +
                 "  [Ln 2, Col 2 - Ln 3, Col 9] BlockStatement\n" +
                 "    [Ln 2, Col 2 - Ln 2, Col 10] AssignmentStatement\n" +
                 "      [Ln 2, Col 2 - Ln 2, Col 2] IdentifierExpression (c)\n" +

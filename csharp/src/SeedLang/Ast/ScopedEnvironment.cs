@@ -18,9 +18,11 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
-  // The environment class to store scoped variables. A new frame is inserted at the first of a
-  // linked list when a new scope is entered.
-  internal class Environment {
+  // The environment to store scoped variables. A new frame is pushed into the stack when a new
+  // scope is entered.
+  //
+  // TODO: ScopedEnvironment might not be a good name for this class, choose a proper name for it.
+  internal class ScopedEnvironment {
     private class Frame {
       private readonly Dictionary<string, Value> _variables = new Dictionary<string, Value>();
 
@@ -40,7 +42,7 @@ namespace SeedLang.Ast {
 
     private readonly Stack<Frame> _frames = new Stack<Frame>();
 
-    internal Environment() {
+    internal ScopedEnvironment() {
       // Enters the first (global) scope.
       EnterScope();
     }

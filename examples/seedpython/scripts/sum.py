@@ -13,7 +13,7 @@ def f():
     while i <= 10000000:
         sum = sum + i
         i = i + 1
-    sum
+    return sum
 
 
 f()

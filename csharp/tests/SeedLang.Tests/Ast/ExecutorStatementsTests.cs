@@ -177,7 +177,7 @@ namespace SeedLang.Ast.Tests {
           Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange),
           Statement.Return(null, _textRange),
         }, _textRange);
-        var func = Statement.Function("func", Array.Empty<string>(), body, _textRange);
+        var func = Statement.FuncDef("func", Array.Empty<string>(), body, _textRange);
         var call = Expression.Call(Expression.Identifier(func.Name, _textRange),
                                    Array.Empty<Expression>(), _textRange);
         string variableName = "a";
@@ -199,16 +199,17 @@ namespace SeedLang.Ast.Tests {
         var body = Statement.Block(new Statement[] {
           Statement.Return(binary, _textRange),
         }, _textRange);
-        var func = Statement.Function("add", new string[] { variableA, variableB }, body,
-                                      _textRange);
-        var call = Expression.Call(Expression.Identifier(func.Name, _textRange), new Expression[] {
+        var funcDef = Statement.FuncDef("add", new string[] { variableA, variableB }, body,
+                                        _textRange);
+        var identifier = Expression.Identifier(funcDef.Name, _textRange);
+        var call = Expression.Call(identifier, new Expression[] {
           Expression.NumberConstant(1, _textRange),
           Expression.NumberConstant(2, _textRange),
         }, _textRange);
         string resultName = "a";
         var assignment = Statement.Assignment(Expression.Identifier(resultName, _textRange), call,
                                               _textRange);
-        var block = Statement.Block(new Statement[] { func, assignment }, _textRange);
+        var block = Statement.Block(new Statement[] { funcDef, assignment }, _textRange);
         var expectedOutput = $"{_textRange} {resultName} = 3\n" +
                              $"{_textRange} 1 Add 2 = 3\n";
         Add(block, expectedOutput);

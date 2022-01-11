@@ -24,9 +24,8 @@ namespace SeedLang.Ast {
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
 
-    // The environment to store global and local variables. A new frame of local variables is
-    // inserted into this environment when a function is called.
-    private readonly Environment _env = new Environment();
+    // The environment to store global and local variables.
+    private readonly ScopedEnvironment _env = new ScopedEnvironment();
 
     // The result of current executed expression.
     private Value _expressionResult;
@@ -44,18 +43,18 @@ namespace SeedLang.Ast {
     }
 
     // Calls a AST function with given arguments.
-    internal Value Call(FunctionStatement func, Value[] arguments) {
-      if (func.Parameters.Length != arguments.Length) {
+    internal Value Call(FuncDefStatement funcDef, Value[] arguments) {
+      if (funcDef.Parameters.Length != arguments.Length) {
         throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
       _env.EnterScope();
-      for (int i = 0; i < func.Parameters.Length; i++) {
-        _env.SetVariable(func.Parameters[i], arguments[i]);
+      for (int i = 0; i < funcDef.Parameters.Length; i++) {
+        _env.SetVariable(funcDef.Parameters[i], arguments[i]);
       }
       var result = Value.None();
       try {
-        Visit(func.Body);
+        Visit(funcDef.Body);
       } catch (ReturnException returnException) {
         result = returnException.Result;
       }
@@ -277,8 +276,8 @@ namespace SeedLang.Ast {
       }
     }
 
-    protected override void Visit(FunctionStatement func) {
-      _env.SetVariable(func.Name, Value.Function(new Function(func, this)));
+    protected override void Visit(FuncDefStatement funcDef) {
+      _env.SetVariable(funcDef.Name, Value.Function(new Function(funcDef, this)));
     }
 
     protected override void Visit(IfStatement @if) {

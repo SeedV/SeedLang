@@ -125,7 +125,7 @@ All the SeedLang instructions are listed as follows:
 ### Move and Load Constant
 
 ```shell
-MOVE A B                    # R(A) := RK(B)
+MOVE A B                    # R(A) := R(B)
 LOADBOOL A B C              # R(A) := (Bool)B; if C then PC++
 LOADK A Bx                  # R(A) := Kst(Bx)
 ```
@@ -193,6 +193,6 @@ TESTSET A B C               # if R(B) == C then R(A) := R(B) else PC++
 
 ```shell
 JMP sBx                     # PC += sBx
-CALL A                      # call function R(A), parameters R(A), R(A+1), ...
+CALL A                      # call function R(A), parameters are R(A+1), ...
 RETURN A                    # return R(A) from function
 ```

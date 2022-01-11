@@ -98,7 +98,7 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.CALL:
               var callFunc = _stack[baseRegister + instr.A].AsFunction() as Function;
-              baseRegister = instr.A + 1;
+              baseRegister += instr.A + 1;
               _callStack.PushFunc(callFunc, baseRegister, pc);
               chunk = callFunc.Chunk;
               pc = -1;

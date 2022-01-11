@@ -15,6 +15,9 @@
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
+  using VariableInfo = VariableResolver.VariableInfo;
+  using VariableType = VariableResolver.VariableType;
+
   public class VariableResolverTests {
     [Fact]
     public void TestFunctionScope() {
@@ -23,33 +26,31 @@ namespace SeedLang.Interpreter.Tests {
       string b = "b";
       Assert.Equal(0u, env.DefineVariable(a));
       var resolver = new VariableResolver(env);
-      Assert.Equal(0u, resolver.FindVariable(a));
-      Assert.True(resolver.IsInGlobalScope);
-      Assert.Equal(1u, resolver.DefineVariable(b));
-      Assert.Equal(1u, resolver.FindVariable(b));
+      Assert.Equal(new VariableInfo(VariableType.Global, 0), resolver.FindVariable(a));
+      Assert.Equal(new VariableInfo(VariableType.Global, 1), resolver.DefineVariable(b));
+      Assert.Equal(new VariableInfo(VariableType.Global, 1), resolver.FindVariable(b));
 
       string local = "local";
       resolver.BeginFunctionScope();
-      Assert.False(resolver.IsInGlobalScope);
-      Assert.Equal(0u, resolver.DefineVariable(local));
-      Assert.Equal(0u, resolver.FindVariable(local));
-      Assert.Equal(0u, resolver.FindVariable(a));
-      Assert.Equal(1u, resolver.FindVariable(b));
+      Assert.Equal(new VariableInfo(VariableType.Local, 0), resolver.DefineVariable(local));
+      Assert.Equal(new VariableInfo(VariableType.Local, 0), resolver.FindVariable(local));
+      Assert.Equal(new VariableInfo(VariableType.Global, 0), resolver.FindVariable(a));
+      Assert.Equal(new VariableInfo(VariableType.Global, 1), resolver.FindVariable(b));
 
-      Assert.Equal(1u, resolver.DefineVariable(a));
-      Assert.Equal(1u, resolver.FindVariable(a));
+      Assert.Equal(new VariableInfo(VariableType.Local, 1), resolver.DefineVariable(a));
+      Assert.Equal(new VariableInfo(VariableType.Local, 1), resolver.FindVariable(a));
 
       resolver.BeginFunctionScope();
-      Assert.Equal(0u, resolver.DefineVariable(a));
-      Assert.Equal(0u, resolver.FindVariable(a));
-      Assert.Equal(1u, resolver.DefineVariable(local));
-      Assert.Equal(1u, resolver.FindVariable(local));
+      Assert.Equal(new VariableInfo(VariableType.Local, 0), resolver.DefineVariable(a));
+      Assert.Equal(new VariableInfo(VariableType.Local, 0), resolver.FindVariable(a));
+      Assert.Equal(new VariableInfo(VariableType.Local, 1), resolver.DefineVariable(local));
+      Assert.Equal(new VariableInfo(VariableType.Local, 1), resolver.FindVariable(local));
       resolver.EndFunctionScope();
 
       resolver.EndFunctionScope();
       Assert.Null(resolver.FindVariable(local));
-      Assert.Equal(0u, resolver.FindVariable(a));
-      Assert.Equal(1u, resolver.FindVariable(b));
+      Assert.Equal(new VariableInfo(VariableType.Global, 0), resolver.FindVariable(a));
+      Assert.Equal(new VariableInfo(VariableType.Global, 1), resolver.FindVariable(b));
     }
   }
 }

@@ -21,8 +21,23 @@ namespace SeedLang.Interpreter {
   // The class to resolve global and local variables. It defines and finds global variables in the
   // global environment, and allocates register slots for local and temporary variables.
   internal class VariableResolver {
-    // The flag to indicate if it's in the global scope.
-    public bool IsInGlobalScope => _scopes.Count == 1;
+    internal enum VariableType {
+      Global,
+      Local,
+      Upvalue,
+    }
+
+    internal struct VariableInfo {
+      // TODO: add information for upvalues
+      public VariableType Type { get; }
+      public uint Id { get; }
+
+      internal VariableInfo(VariableType type, uint id) {
+        Type = type;
+        Id = id;
+      }
+    }
+
     // The last allocated register in the current scope.
     public uint LastRegister => _currentRegisterCount - 1;
 
@@ -38,7 +53,10 @@ namespace SeedLang.Interpreter {
     // results. The ExitExpressionScope() call will deallocate all temporary variables that are
     // allocated in this expression scope.
     private readonly Stack<uint> _baseOfExpressionScopes = new Stack<uint>();
+
     private uint _currentRegisterCount => _registerCounts.Peek();
+    // The flag to indicate if it's in the global scope.
+    private bool _isInGlobalScope => _scopes.Count == 1;
 
     internal VariableResolver(GlobalEnvironment env) {
       _env = env;
@@ -73,9 +91,9 @@ namespace SeedLang.Interpreter {
       _baseOfExpressionScopes.Pop();
     }
 
-    internal uint DefineVariable(string name) {
-      if (IsInGlobalScope) {
-        return _env.DefineVariable(name);
+    internal VariableInfo DefineVariable(string name) {
+      if (_isInGlobalScope) {
+        return new VariableInfo(VariableType.Global, _env.DefineVariable(name));
       } else {
         // Temporary variables are allocated and deallocated within one statement. So all expression
         // scopes shall be ended before allocating registers for local variables.
@@ -83,19 +101,26 @@ namespace SeedLang.Interpreter {
         Scope scope = _scopes.Peek();
         Debug.Assert(!scope.ContainsKey(name));
         scope[name] = AllocateVariable();
-        return scope[name];
+        return new VariableInfo(VariableType.Local, scope[name]);
       }
     }
 
-    internal uint? FindVariable(string name) {
-      if (!IsInGlobalScope) {
-        foreach (var scope in _scopes) {
-          if (scope.ContainsKey(name)) {
-            return scope[name];
+    internal VariableInfo? FindVariable(string name) {
+      bool isIncurrentScope = true;
+      foreach (var scope in _scopes) {
+        if (scope.ContainsKey(name)) {
+          if (isIncurrentScope) {
+            return new VariableInfo(VariableType.Local, scope[name]);
+          } else {
+            return new VariableInfo(VariableType.Upvalue, scope[name]);
           }
         }
+        isIncurrentScope = false;
       }
-      return _env.FindVariable(name);
+      if (_env.FindVariable(name) is uint id) {
+        return new VariableInfo(VariableType.Global, id);
+      }
+      return null;
     }
 
     internal uint AllocateVariable() {

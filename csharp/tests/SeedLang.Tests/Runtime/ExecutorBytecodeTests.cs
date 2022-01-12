@@ -57,5 +57,52 @@ func()
       Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode));
       Assert.Equal(55, visualizer.Result.Number);
     }
+
+    [Fact]
+    public void TestRunPythonRecursiveSum() {
+      var executor = new Executor();
+      var visualizer = new MockupVisualizer();
+      executor.Register(visualizer);
+      string source = @"def sum(n):
+  if n == 1:
+    return 1
+  else:
+    return n + sum(n - 1)
+sum(10)
+";
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode));
+      Assert.Equal(55, visualizer.Result.Number);
+    }
+
+    [Fact]
+    public void TestRunPythonRecursiveFib() {
+      var executor = new Executor();
+      var visualizer = new MockupVisualizer();
+      executor.Register(visualizer);
+      string source = @"def fib(n):
+  if n <= 2:
+    return 1
+  else:
+    return fib(n - 1) + fib(n - 2)
+fib(10)
+";
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode));
+      Assert.Equal(55, visualizer.Result.Number);
+    }
+
+    [Fact]
+    public void TestRunPythonNestedFunc() {
+      var executor = new Executor();
+      var visualizer = new MockupVisualizer();
+      executor.Register(visualizer);
+      string source = @"def func():
+  def inner_func():
+    return 2
+  return inner_func()
+func()
+";
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode));
+      Assert.Equal(2, visualizer.Result.Number);
+    }
   }
 }

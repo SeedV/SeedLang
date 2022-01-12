@@ -12,31 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
-    private NestedFuncStack _functionStack;
+    private NestedFuncStack _nestedFuncStack;
     private VariableResolver _variableResolver;
 
     // The register allocated for the result of sub-expressions.
     private uint _registerForSubExpr;
+    private bool _reverseSubComparison;
+
     // The chunk on the top of the function stack.
     private Chunk _chunk;
     // The constant cache on the top of the function stack.
     private ConstantCache _constantCache;
 
     internal Function Compile(AstNode node, GlobalEnvironment env) {
-      _functionStack = new NestedFuncStack();
+      _nestedFuncStack = new NestedFuncStack();
       _variableResolver = new VariableResolver(env);
       // Starts to parse the main function in the global scope.
-      _functionStack.PushFunc("main");
+      _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
       Visit(node);
       _chunk.Emit(Opcode.RETURN, 0u, null);
-      return _functionStack.PopFunc();
+      return _nestedFuncStack.PopFunc();
     }
 
     protected override void Visit(BinaryExpression binary) {
@@ -57,7 +61,22 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BooleanExpression boolean) {
-      throw new System.NotImplementedException();
+      Debug.Assert(boolean.Op == BooleanOperator.And || boolean.Op == BooleanOperator.Or,
+                   "Only supports And and Or boolean operators now.");
+      _reverseSubComparison = boolean.Op == BooleanOperator.Or;
+      var jumps = new List<int>();
+      for (int i = 0; i < boolean.Exprs.Length; i++) {
+        Debug.Assert(boolean.Exprs[i] is ComparisonExpression,
+                     "Only supports comparison expressions now.");
+        Visit(boolean.Exprs[i]);
+        if (i < boolean.Exprs.Length - 1) {
+          jumps.Add(_chunk.Emit(Opcode.JMP, 0, boolean.Range));
+        }
+      }
+      foreach (int jump in jumps) {
+        _chunk.PatchJumpAt(jump, _chunk.Bytecode.Count - jump - 1);
+      }
+      _reverseSubComparison = false;
     }
 
     protected override void Visit(ComparisonExpression comparison) {
@@ -66,36 +85,12 @@ namespace SeedLang.Interpreter {
       _variableResolver.BeginExpressionScope();
       uint first = VisitExpression(comparison.First);
       uint second = VisitExpression(comparison.Exprs[0]);
-      Opcode op = Opcode.EQ;
-      bool expectedResult = false;
-      switch (comparison.Ops[0]) {
-        case ComparisonOperator.Less:
-          op = Opcode.LT;
-          expectedResult = true;
-          break;
-        case ComparisonOperator.Greater:
-          op = Opcode.LE;
-          expectedResult = false;
-          break;
-        case ComparisonOperator.LessEqual:
-          op = Opcode.LE;
-          expectedResult = true;
-          break;
-        case ComparisonOperator.GreaterEqual:
-          op = Opcode.LT;
-          expectedResult = false;
-          break;
-        case ComparisonOperator.EqEqual:
-          op = Opcode.EQ;
-          expectedResult = true;
-          break;
-        case ComparisonOperator.NotEqual:
-          op = Opcode.EQ;
-          expectedResult = false;
-          break;
+      (Opcode opcode, bool checkFlag) = OpcodeAndCheckFlagOfComparisonOperator(comparison.Ops[0]);
+      if (_reverseSubComparison) {
+        checkFlag = !checkFlag;
       }
-      _functionStack.CurrentChunk().Emit(op, expectedResult ? 1u : 0u, first, second,
-                                         comparison.Range);
+      _nestedFuncStack.CurrentChunk().Emit(opcode, checkFlag ? 1u : 0u, first, second,
+                                           comparison.Range);
       _variableResolver.EndExpressionScope();
     }
 
@@ -261,11 +256,9 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(IfStatement @if) {
       Visit(@if.Test);
-      int jumpElse = _chunk.Bytecode.Count;
-      _chunk.Emit(Opcode.JMP, 0, @if.Range);
+      int jumpElse = _chunk.Emit(Opcode.JMP, 0, @if.Range);
       Visit(@if.ThenBody);
-      int jumpEnd = _chunk.Bytecode.Count;
-      _chunk.Emit(Opcode.JMP, 0, @if.Range);
+      int jumpEnd = _chunk.Emit(Opcode.JMP, 0, @if.Range);
       _chunk.PatchJumpAt(jumpElse, _chunk.Bytecode.Count - jumpElse - 1);
       Visit(@if.ElseBody);
       _chunk.PatchJumpAt(jumpEnd, _chunk.Bytecode.Count - jumpEnd - 1);
@@ -285,29 +278,28 @@ namespace SeedLang.Interpreter {
     protected override void Visit(WhileStatement @while) {
       int start = _chunk.Bytecode.Count;
       Visit(@while.Test);
-      int jump = _chunk.Bytecode.Count;
-      _chunk.Emit(Opcode.JMP, 0, @while.Range);
+      int jump = _chunk.Emit(Opcode.JMP, 0, @while.Range);
       Visit(@while.Body);
       _chunk.Emit(Opcode.JMP, start - (_chunk.Bytecode.Count + 1), @while.Range);
       _chunk.PatchJumpAt(jump, _chunk.Bytecode.Count - jump - 1);
     }
 
     private void PushFunc(string name) {
-      _functionStack.PushFunc(name);
+      _nestedFuncStack.PushFunc(name);
       CacheTopFunction();
       _variableResolver.BeginFunctionScope();
     }
 
     private Function PopFunc() {
       _variableResolver.EndFunctionScope();
-      Function func = _functionStack.PopFunc();
+      Function func = _nestedFuncStack.PopFunc();
       CacheTopFunction();
       return func;
     }
 
     private void CacheTopFunction() {
-      _chunk = _functionStack.CurrentChunk();
-      _constantCache = _functionStack.CurrentConstantCache();
+      _chunk = _nestedFuncStack.CurrentChunk();
+      _constantCache = _nestedFuncStack.CurrentConstantCache();
     }
 
     private uint VisitExpression(Expression expr) {
@@ -358,6 +350,25 @@ namespace SeedLang.Interpreter {
           return Opcode.MUL;
         case BinaryOperator.Divide:
           return Opcode.DIV;
+        default:
+          throw new System.NotImplementedException($"Operator {op} not implemented.");
+      }
+    }
+
+    private static (Opcode, bool) OpcodeAndCheckFlagOfComparisonOperator(ComparisonOperator op) {
+      switch (op) {
+        case ComparisonOperator.Less:
+          return (Opcode.LT, true);
+        case ComparisonOperator.Greater:
+          return (Opcode.LE, false);
+        case ComparisonOperator.LessEqual:
+          return (Opcode.LE, true);
+        case ComparisonOperator.GreaterEqual:
+          return (Opcode.LT, false);
+        case ComparisonOperator.EqEqual:
+          return (Opcode.EQ, true);
+        case ComparisonOperator.NotEqual:
+          return (Opcode.EQ, false);
         default:
           throw new System.NotImplementedException($"Operator {op} not implemented.");
       }

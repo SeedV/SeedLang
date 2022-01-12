@@ -49,14 +49,13 @@ namespace SeedLang.Interpreter.Tests {
       }
     }
 
-    private static TextRange _testTextRange => new TextRange(0, 1, 2, 3);
+    private static TextRange _textRange => new TextRange(0, 1, 2, 3);
 
     [Fact]
     public void TestBinaryExpressionStatement() {
-      var left = Expression.NumberConstant(1, _testTextRange);
-      var right = Expression.NumberConstant(2, _testTextRange);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
-      var expr = Statement.Expression(binary, _testTextRange);
+      var expr = ExpressionStmt(
+        Binary(NumberConstant(1), BinaryOperator.Add, NumberConstant(2))
+      );
 
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
@@ -67,50 +66,49 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.Number);
       Assert.Equal(3, visualizer.Result.Number);
-      Assert.Equal(_testTextRange, visualizer.Range);
+      Assert.Equal(_textRange, visualizer.Range);
     }
 
     [Fact]
     public void TestAssignmentStatement() {
+      string name = "name";
+      var block = Block(
+        Assign(Id(name), NumberConstant(1)),
+        ExpressionStmt(Id(name))
+      );
+
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
-
-      var identifier = Expression.Identifier("name", _testTextRange);
-      var number = Expression.NumberConstant(1, _testTextRange);
-      var assignment = Statement.Assignment(identifier, number, _testTextRange);
-      var expr = Statement.Expression(identifier, _testTextRange);
-      var block = Statement.Block(new Statement[] { assignment, expr }, _testTextRange);
       Function func = compiler.Compile(block, vm.Env);
       vm.Run(func);
 
       Assert.Equal(1, visualizer.Result.Number);
-      Assert.Equal(_testTextRange, visualizer.Range);
+      Assert.Equal(_textRange, visualizer.Range);
     }
 
     [Fact]
     public void TestUnaryExpressionStatement() {
+      var expr = ExpressionStmt(Unary(UnaryOperator.Negative, NumberConstant(1)));
+
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
-
-      var number = Expression.NumberConstant(1, _testTextRange);
-      var unary = Expression.Unary(UnaryOperator.Negative, number, _testTextRange);
-      var expr = Statement.Expression(unary, _testTextRange);
       Function func = compiler.Compile(expr, vm.Env);
       vm.Run(func);
 
       Assert.Equal(-1, visualizer.Result.Number);
-      Assert.Equal(_testTextRange, visualizer.Range);
+      Assert.Equal(_textRange, visualizer.Range);
 
-      var left = Expression.NumberConstant(1, _testTextRange);
-      var right = Expression.NumberConstant(2, _testTextRange);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
-      unary = Expression.Unary(UnaryOperator.Negative, binary, _testTextRange);
-      expr = Statement.Expression(unary, _testTextRange);
+      expr = ExpressionStmt(
+        Unary(
+          UnaryOperator.Negative,
+          Binary(NumberConstant(1), BinaryOperator.Add, NumberConstant(2))
+        )
+      );
       func = compiler.Compile(expr, vm.Env);
       vm.Run(func);
 
       Assert.Equal(-3, visualizer.Result.Number);
-      Assert.Equal(_testTextRange, visualizer.Range);
+      Assert.Equal(_textRange, visualizer.Range);
     }
 
     [Fact]
@@ -118,21 +116,15 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
 
+      string name = "eval";
       string a = "a";
       string b = "b";
-      var left = Expression.Identifier(a, _testTextRange);
-      var right = Expression.Identifier(b, _testTextRange);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, _testTextRange);
-      var ret = Statement.Return(binary, _testTextRange);
-      string name = "eval";
-      var funcDef = Statement.FuncDef(name, new string[] { a, b }, ret, _testTextRange);
-      var identifier = Expression.Identifier(name, _testTextRange);
-      var call = Expression.Call(identifier, new Expression[] {
-        Expression.NumberConstant(1, _testTextRange),
-        Expression.NumberConstant(2, _testTextRange),
-      }, _testTextRange);
-      var exprStatement = Statement.Expression(call, _testTextRange);
-      var block = Statement.Block(new Statement[] { funcDef, exprStatement }, _testTextRange);
+      var block = Block(
+        FuncDef(name, Params(a, b), Return(Binary(Id(a), BinaryOperator.Add, Id(b)))),
+        ExpressionStmt(
+          Call(Id(name), NumberConstant(1), NumberConstant(2))
+        )
+      );
 
       Function func = compiler.Compile(block, vm.Env);
       vm.Run(func);
@@ -141,7 +133,39 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.Number);
       Assert.Equal(3, visualizer.Result.Number);
-      Assert.Equal(_testTextRange, visualizer.Range);
+      Assert.Equal(_textRange, visualizer.Range);
+    }
+
+    [Fact]
+    public void TestRecursiveFib() {
+      var compiler = new Compiler();
+      (var vm, var visualizer) = NewVMWithVisualizer();
+
+      string fib = "fib";
+      string n = "n";
+      var program = Block(
+        FuncDef(fib, new string[] { n }, Block(
+          If(
+            Boolean(BooleanOperator.Or,
+              Comparison(Id(n), CompOps(ComparisonOperator.EqEqual), NumberConstant(1)),
+              Comparison(Id(n), CompOps(ComparisonOperator.EqEqual), NumberConstant(2))),
+            Return(NumberConstant(1)),
+            Return(Binary(
+              Call(Id(fib), Binary(Id(n), BinaryOperator.Subtract, NumberConstant(1))),
+              BinaryOperator.Add,
+              Call(Id(fib), Binary(Id(n), BinaryOperator.Subtract, NumberConstant(2)))
+            ))
+          )
+        )),
+        ExpressionStmt(Call(Id(fib), NumberConstant(10)))
+      );
+
+      Function func = compiler.Compile(program, vm.Env);
+      string dis = new Disassembler(func).ToString();
+      vm.Run(func);
+
+      Assert.Equal(55, visualizer.Result.Number);
+      Assert.Equal(_textRange, visualizer.Range);
     }
 
     private static (VM, MockupVisualizer) NewVMWithVisualizer() {
@@ -150,6 +174,67 @@ namespace SeedLang.Interpreter.Tests {
       visualizerCenter.Register(visualizer);
       var vm = new VM(visualizerCenter);
       return (vm, visualizer);
+    }
+
+    private static AssignmentStatement Assign(Expression target, Expression expr) {
+      return Statement.Assignment(target, expr, _textRange);
+    }
+
+    private static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
+      return Expression.Binary(left, op, right, _textRange);
+    }
+
+    private static BlockStatement Block(params Statement[] statements) {
+      return Statement.Block(statements, _textRange);
+    }
+
+    private static BooleanExpression Boolean(BooleanOperator op, params Expression[] exprs) {
+      return Expression.Boolean(op, exprs, _textRange);
+    }
+
+    private static CallExpression Call(Expression func, params Expression[] arguments) {
+      return Expression.Call(func, arguments, _textRange);
+    }
+
+    private static ComparisonExpression Comparison(Expression first, ComparisonOperator[] ops,
+                                                    params Expression[] exprs) {
+      return Expression.Comparison(first, ops, exprs, _textRange);
+    }
+
+    private static ComparisonOperator[] CompOps(params ComparisonOperator[] ops) {
+      return ops;
+    }
+
+    private static ExpressionStatement ExpressionStmt(Expression expr) {
+      return Statement.Expression(expr, _textRange);
+    }
+
+    private static FuncDefStatement FuncDef(string name, string[] parameters, Statement body) {
+      return Statement.FuncDef(name, parameters, body, _textRange);
+    }
+
+    private static string[] Params(params string[] parameters) {
+      return parameters;
+    }
+
+    private static IdentifierExpression Id(string name) {
+      return Expression.Identifier(name, _textRange);
+    }
+
+    private static IfStatement If(Expression test, Statement thenBody, Statement elseBody) {
+      return Statement.If(test, thenBody, elseBody, _textRange);
+    }
+
+    private static NumberConstantExpression NumberConstant(double value) {
+      return Expression.NumberConstant(value, _textRange);
+    }
+
+    private static ReturnStatement Return(Expression result) {
+      return Statement.Return(result, _textRange);
+    }
+
+    private static UnaryExpression Unary(UnaryOperator op, Expression expr) {
+      return Expression.Unary(op, expr, _textRange);
     }
   }
 }

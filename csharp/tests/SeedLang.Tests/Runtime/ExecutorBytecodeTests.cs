@@ -80,7 +80,7 @@ sum(10)
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
       string source = @"def fib(n):
-  if n <= 2:
+  if n == 1 or n == 2:
     return 1
   else:
     return fib(n - 1) + fib(n - 2)

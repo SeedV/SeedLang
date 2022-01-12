@@ -25,8 +25,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileNumberConstant() {
-      var number = Expression.NumberConstant(1, _textRange);
-      var expr = Statement.Expression(number, _textRange);
+      var expr = ExpressionStmt(NumberConstant(1));
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
@@ -40,10 +39,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileBinary() {
-      var left = Expression.NumberConstant(1, _textRange);
-      var right = Expression.NumberConstant(2, _textRange);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
-      var expr = Statement.Expression(binary, _textRange);
+      var expr = ExpressionStmt(Binary(NumberConstant(1), BinaryOperator.Add, NumberConstant(2)));
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
@@ -57,12 +53,13 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileComplexBinary() {
-      var left = Expression.NumberConstant(1, _textRange);
-      var number2 = Expression.NumberConstant(2, _textRange);
-      var number3 = Expression.NumberConstant(3, _textRange);
-      var right = Expression.Binary(number2, BinaryOperator.Add, number3, _textRange);
-      var binary = Expression.Binary(left, BinaryOperator.Subtract, right, _textRange);
-      var expr = Statement.Expression(binary, _textRange);
+      var expr = ExpressionStmt(
+        Binary(
+          NumberConstant(1),
+          BinaryOperator.Subtract,
+          Binary(NumberConstant(2), BinaryOperator.Add, NumberConstant(3))
+        )
+      );
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
@@ -77,12 +74,13 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileBinaryWithSameConstants() {
-      var left = Expression.NumberConstant(1, _textRange);
-      var number1 = Expression.NumberConstant(1, _textRange);
-      var number2 = Expression.NumberConstant(2, _textRange);
-      var right = Expression.Binary(number1, BinaryOperator.Add, number2, _textRange);
-      var binary = Expression.Binary(left, BinaryOperator.Subtract, right, _textRange);
-      var expr = Statement.Expression(binary, _textRange);
+      var expr = ExpressionStmt(
+        Binary(
+          NumberConstant(1),
+          BinaryOperator.Subtract,
+          Binary(NumberConstant(1), BinaryOperator.Add, NumberConstant(2))
+        )
+      );
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
@@ -97,9 +95,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileUnary() {
-      var number = Expression.NumberConstant(1, _textRange);
-      var unary = Expression.Unary(UnaryOperator.Negative, number, _textRange);
-      var expr = Statement.Expression(unary, _textRange);
+      var expr = ExpressionStmt(Unary(UnaryOperator.Negative, NumberConstant(1)));
       var compiler = new Compiler();
       var func = compiler.Compile(expr, _env);
       string expected = (
@@ -113,9 +109,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileAssignNumberConstant() {
-      var identifier = Expression.Identifier("name", _textRange);
-      var number = Expression.NumberConstant(1, _textRange);
-      var assignment = Statement.Assignment(identifier, number, _textRange);
+      var assignment = Assign(Id("name"), NumberConstant(1));
       var compiler = new Compiler();
       var func = compiler.Compile(assignment, _env);
       string expected = (
@@ -129,11 +123,10 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileAssignBinary() {
-      var identifier = Expression.Identifier("name", _textRange);
-      var left = Expression.NumberConstant(1, _textRange);
-      var right = Expression.NumberConstant(2, _textRange);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
-      var assignment = Statement.Assignment(identifier, binary, _textRange);
+      var assignment = Assign(
+        Id("name"),
+        Binary(NumberConstant(1), BinaryOperator.Add, NumberConstant(2))
+      );
       var compiler = new Compiler();
       var func = compiler.Compile(assignment, _env);
       string expected = (
@@ -147,16 +140,10 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileIf() {
-      var @if = Statement.If(
-        Expression.Comparison(
-          Expression.NumberConstant(1, _textRange),
-          new ComparisonOperator[] { ComparisonOperator.EqEqual },
-          new Expression[] { Expression.NumberConstant(2, _textRange) },
-          _textRange
-        ),
-        Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange),
-        Statement.Expression(Expression.NumberConstant(2, _textRange), _textRange),
-        _textRange
+      var @if = If(
+        Comparison(NumberConstant(1), CompOps(ComparisonOperator.EqEqual), NumberConstant(2)),
+        ExpressionStmt(NumberConstant(1)),
+        ExpressionStmt(NumberConstant(2))
       );
       var compiler = new Compiler();
       var func = compiler.Compile(@if, _env);
@@ -170,6 +157,74 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    LOADK     0 -2             ; 2                 {_textRange}\n" +
           $"  7    EVAL      0                                    {_textRange}\n" +
           $"  8    RETURN    0                                    \n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileIfAndBooleanExpression() {
+      var @if = If(
+        Boolean(
+          BooleanOperator.And,
+          Comparison(NumberConstant(1), CompOps(ComparisonOperator.Less), NumberConstant(2)),
+          Comparison(NumberConstant(1), CompOps(ComparisonOperator.GreaterEqual), NumberConstant(2))
+        ),
+        ExpressionStmt(NumberConstant(1)),
+        ExpressionStmt(NumberConstant(2))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LT        1 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  2    JMP       0 1                                  {_textRange}\n" +
+          $"  3    LT        0 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  4    JMP       0 3                                  {_textRange}\n" +
+          $"  5    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  6    EVAL      0                                    {_textRange}\n" +
+          $"  7    JMP       0 2                                  {_textRange}\n" +
+          $"  8    LOADK     0 -2             ; 2                 {_textRange}\n" +
+          $"  9    EVAL      0                                    {_textRange}\n" +
+          $"  10   RETURN    0                                    \n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileIfOrBooleanExpression() {
+      var @if = Statement.If(
+        Expression.Boolean(BooleanOperator.Or, new Expression[] {
+          Expression.Comparison(
+            Expression.NumberConstant(1, _textRange),
+            new ComparisonOperator[] { ComparisonOperator.Less },
+            new Expression[] { Expression.NumberConstant(2, _textRange) },
+            _textRange
+          ),
+          Expression.Comparison(
+            Expression.NumberConstant(1, _textRange),
+            new ComparisonOperator[] { ComparisonOperator.GreaterEqual },
+            new Expression[] { Expression.NumberConstant(2, _textRange) },
+            _textRange
+          ),
+        }, _textRange),
+        Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange),
+        Statement.Expression(Expression.NumberConstant(2, _textRange), _textRange),
+        _textRange
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LT        0 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  2    JMP       0 1                                  {_textRange}\n" +
+          $"  3    LT        1 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  4    JMP       0 3                                  {_textRange}\n" +
+          $"  5    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  6    EVAL      0                                    {_textRange}\n" +
+          $"  7    JMP       0 2                                  {_textRange}\n" +
+          $"  8    LOADK     0 -2             ; 2                 {_textRange}\n" +
+          $"  9    EVAL      0                                    {_textRange}\n" +
+          $"  10   RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -306,6 +361,67 @@ namespace SeedLang.Interpreter.Tests {
           $"  10   RETURN    1                                    {_textRange}\n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    private static AssignmentStatement Assign(Expression target, Expression expr) {
+      return Statement.Assignment(target, expr, _textRange);
+    }
+
+    private static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
+      return Expression.Binary(left, op, right, _textRange);
+    }
+
+    private static BlockStatement Block(params Statement[] statements) {
+      return Statement.Block(statements, _textRange);
+    }
+
+    private static BooleanExpression Boolean(BooleanOperator op, params Expression[] exprs) {
+      return Expression.Boolean(op, exprs, _textRange);
+    }
+
+    private static CallExpression Call(Expression func, params Expression[] arguments) {
+      return Expression.Call(func, arguments, _textRange);
+    }
+
+    private static ComparisonExpression Comparison(Expression first, ComparisonOperator[] ops,
+                                                    params Expression[] exprs) {
+      return Expression.Comparison(first, ops, exprs, _textRange);
+    }
+
+    private static ComparisonOperator[] CompOps(params ComparisonOperator[] ops) {
+      return ops;
+    }
+
+    private static ExpressionStatement ExpressionStmt(Expression expr) {
+      return Statement.Expression(expr, _textRange);
+    }
+
+    private static FuncDefStatement FuncDef(string name, string[] parameters, Statement body) {
+      return Statement.FuncDef(name, parameters, body, _textRange);
+    }
+
+    private static string[] Params(params string[] parameters) {
+      return parameters;
+    }
+
+    private static IdentifierExpression Id(string name) {
+      return Expression.Identifier(name, _textRange);
+    }
+
+    private static IfStatement If(Expression test, Statement thenBody, Statement elseBody) {
+      return Statement.If(test, thenBody, elseBody, _textRange);
+    }
+
+    private static NumberConstantExpression NumberConstant(double value) {
+      return Expression.NumberConstant(value, _textRange);
+    }
+
+    private static ReturnStatement Return(Expression result) {
+      return Statement.Return(result, _textRange);
+    }
+
+    private static UnaryExpression Unary(UnaryOperator op, Expression expr) {
+      return Expression.Unary(op, expr, _textRange);
     }
   }
 }

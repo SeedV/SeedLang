@@ -24,6 +24,14 @@ rm -f "${markdown_name}"
   cat <<END
 # Benchmark
 
+## Fibonacci
+
+END
+
+  cat ${results_path}/SeedLang.Benchmark.FibBenchmark-report-github.md
+
+  cat <<END
+
 ## Sum
 
 END

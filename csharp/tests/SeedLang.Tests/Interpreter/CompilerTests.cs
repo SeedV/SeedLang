@@ -146,6 +146,35 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileIf() {
+      var @if = Statement.If(
+        Expression.Comparison(
+          Expression.NumberConstant(1, _textRange),
+          new ComparisonOperator[] { ComparisonOperator.EqEqual },
+          new Expression[] { Expression.NumberConstant(2, _textRange) },
+          _textRange
+        ),
+        Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange),
+        Statement.Expression(Expression.NumberConstant(2, _textRange), _textRange),
+        _textRange
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    EQ        1 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  2    JMP       0 3                                  {_textRange}\n" +
+          $"  3    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  4    EVAL      0                                    {_textRange}\n" +
+          $"  5    JMP       0 2                                  {_textRange}\n" +
+          $"  6    LOADK     0 -2             ; 2                 {_textRange}\n" +
+          $"  7    EVAL      0                                    {_textRange}\n" +
+          $"  8    RETURN    0                                    \n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileWhile() {
       var sum = Expression.Identifier("sum", _textRange);
       var i = Expression.Identifier("i", _textRange);
@@ -224,6 +253,57 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <eval>\n" +
           $"  1    ADD       2 0 1                                {_textRange}\n" +
           $"  2    RETURN    2                                    {_textRange}\n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestRecursiveFuncCall() {
+      string sum = "sum";
+      var n = "n";
+      var test = Expression.Comparison(
+          Expression.Identifier(n, _textRange),
+          new ComparisonOperator[] { ComparisonOperator.EqEqual },
+          new Expression[] { Expression.NumberConstant(1, _textRange) }, _textRange);
+      var thenBlock = Statement.Return(Expression.NumberConstant(1, _textRange), _textRange);
+      var subtract = Expression.Binary(
+          Expression.Identifier(n, _textRange), BinaryOperator.Subtract,
+          Expression.NumberConstant(1, _textRange), _textRange);
+      var funcName = Expression.Identifier(sum, _textRange);
+      var recursiveCall = Expression.Call(funcName, new Expression[] { subtract }, _textRange);
+      var add = Expression.Binary(
+       Expression.Identifier(n, _textRange), BinaryOperator.Add, recursiveCall, _textRange);
+      var elseBlock = Statement.Return(add, _textRange);
+      var @if = Statement.If(test, thenBlock, elseBlock, _textRange);
+      var funcBody = Statement.Block(new Statement[] { @if }, _textRange);
+      var funcDef = Statement.FuncDef(sum, new string[] { n }, funcBody, _textRange);
+      var call = Statement.Expression(Expression.Call(funcName, new Expression[] {
+     Expression.NumberConstant(10, _textRange)
+   }, _textRange), _textRange);
+      var block = Statement.Block(new Statement[] { funcDef, call }, _textRange);
+      var compiler = new Compiler();
+      var func = compiler.Compile(block, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; Func <sum>        {_textRange}\n" +
+          $"  2    SETGLOB   0 0                                  {_textRange}\n" +
+          $"  3    GETGLOB   0 0                                  {_textRange}\n" +
+          $"  4    LOADK     1 -2             ; 10                {_textRange}\n" +
+          $"  5    CALL      0 1 0                                {_textRange}\n" +
+          $"  6    EVAL      0                                    {_textRange}\n" +
+          $"  7    RETURN    0                                    \n" +
+          $"\n" +
+          $"Function <sum>\n" +
+          $"  1    EQ        1 0 -1           ; 1                 {_textRange}\n" +
+          $"  2    JMP       0 3                                  {_textRange}\n" +
+          $"  3    LOADK     1 -1             ; 1                 {_textRange}\n" +
+          $"  4    RETURN    1                                    {_textRange}\n" +
+          $"  5    JMP       0 5                                  {_textRange}\n" +
+          $"  6    GETGLOB   2 0                                  {_textRange}\n" +
+          $"  7    SUB       3 0 -1           ; 1                 {_textRange}\n" +
+          $"  8    CALL      2 1 0                                {_textRange}\n" +
+          $"  9    ADD       1 0 2                                {_textRange}\n" +
+          $"  10   RETURN    1                                    {_textRange}\n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

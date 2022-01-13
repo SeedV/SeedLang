@@ -1,0 +1,35 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [bugfix_79]
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore dependencies
+        working-directory: ./csharp
+        run: dotnet restore
+      - name: Build
+        working-directory: ./csharp
+        run: dotnet build --no-restore
+      - name: Benchmark
+        working-directory: ./csharp
+        run: dotnet run -c Release --project benchmark/SeedLang.Benchmark
+      - name: Check out wiki
+        uses: actions/checkout@v2
+        with:
+          repository: "SeedV/SeedLang.wiki"
+          ref: "master"
+          path: "SeedLang.wiki"
+      - name: Update benchmark.md if needed
+        run: ./benchmark/SeedLang.Benchmark/update_wiki.sh $GITHUB_WORKSPACE/SeedLang.wiki
+        working-directory: ./csharp

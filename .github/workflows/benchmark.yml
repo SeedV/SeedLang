@@ -2,7 +2,7 @@ name: Benchmark
 
 on:
   push:
-    branches: [bugfix_79]
+    branches: [main]
   workflow_dispatch:
 
 jobs:

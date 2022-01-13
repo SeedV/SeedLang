@@ -15,6 +15,7 @@
 
 markdown_name="$1/Benchmark.md"
 results_path=./BenchmarkDotNet.Artifacts/results
+
 old_md5=$(md5sum "${markdown_name}")
 
 rm -f "${markdown_name}"
@@ -22,14 +23,6 @@ rm -f "${markdown_name}"
 {
   cat <<END
 # Benchmark
-
-## Fibonacci
-
-END
-
-  cat ${results_path}/SeedLang.Benchmark.FibBenchmark-report-github.md
-
-  cat <<END
 
 ## Sum
 

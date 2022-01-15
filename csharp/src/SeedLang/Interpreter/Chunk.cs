@@ -38,21 +38,25 @@ namespace SeedLang.Interpreter {
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
 
+    // Emits an instruction with the opcode of type A.
     internal void Emit(Opcode opcode, uint a, Range range) {
       _bytecode.Add(new Instruction(opcode, a));
       _ranges.Add(range);
     }
 
+    // Emits an instruction with the opcode of type ABC.
     internal void Emit(Opcode opcode, uint a, uint b, uint c, Range range) {
       _bytecode.Add(new Instruction(opcode, a, b, c));
       _ranges.Add(range);
     }
 
+    // Emits an instruction with the opcode of type ABx.
     internal void Emit(Opcode opcode, uint a, uint bx, Range range) {
       _bytecode.Add(new Instruction(opcode, a, bx));
       _ranges.Add(range);
     }
 
+    // Emits an instruction with the opcode of type SBx.
     internal void Emit(Opcode opcode, int sbx, Range range) {
       _bytecode.Add(new Instruction(opcode, sbx));
       _ranges.Add(range);

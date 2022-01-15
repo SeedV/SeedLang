@@ -161,7 +161,6 @@ namespace SeedLang.Interpreter.Tests {
       );
 
       Function func = compiler.Compile(program, vm.Env);
-      string dis = new Disassembler(func).ToString();
       vm.Run(func);
 
       Assert.Equal(55, visualizer.Result.Number);

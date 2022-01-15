@@ -150,10 +150,10 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_textRange}\n" +
-          $"  2    JMP       0 3                                  {_textRange}\n" +
+          $"  2    JMP       0 3              ; to 6              {_textRange}\n" +
           $"  3    LOADK     0 -1             ; 1                 {_textRange}\n" +
           $"  4    EVAL      0                                    {_textRange}\n" +
-          $"  5    JMP       0 2                                  {_textRange}\n" +
+          $"  5    JMP       0 2              ; to 8              {_textRange}\n" +
           $"  6    LOADK     0 -2             ; 2                 {_textRange}\n" +
           $"  7    EVAL      0                                    {_textRange}\n" +
           $"  8    RETURN    0                                    \n"
@@ -162,12 +162,13 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestCompileIfAndBooleanExpression() {
+    public void TestCompileIfMultipleComparison() {
       var @if = If(
-        Boolean(
-          BooleanOperator.And,
-          Comparison(NumberConstant(1), CompOps(ComparisonOperator.Less), NumberConstant(2)),
-          Comparison(NumberConstant(1), CompOps(ComparisonOperator.GreaterEqual), NumberConstant(2))
+        Comparison(
+          NumberConstant(1),
+          CompOps(ComparisonOperator.Less, ComparisonOperator.Less),
+          NumberConstant(2),
+          NumberConstant(3)
         ),
         ExpressionStmt(NumberConstant(1)),
         ExpressionStmt(NumberConstant(2))
@@ -177,78 +178,142 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LT        1 -1 -2          ; 1 2               {_textRange}\n" +
-          $"  2    JMP       0 1                                  {_textRange}\n" +
-          $"  3    LT        0 -1 -2          ; 1 2               {_textRange}\n" +
-          $"  4    JMP       0 3                                  {_textRange}\n" +
+          $"  2    JMP       0 5              ; to 8              {_textRange}\n" +
+          $"  3    LT        1 -2 -3          ; 2 3               {_textRange}\n" +
+          $"  4    JMP       0 3              ; to 8              {_textRange}\n" +
           $"  5    LOADK     0 -1             ; 1                 {_textRange}\n" +
           $"  6    EVAL      0                                    {_textRange}\n" +
-          $"  7    JMP       0 2                                  {_textRange}\n" +
+          $"  7    JMP       0 2              ; to 10             {_textRange}\n" +
           $"  8    LOADK     0 -2             ; 2                 {_textRange}\n" +
           $"  9    EVAL      0                                    {_textRange}\n" +
           $"  10   RETURN    0                                    \n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileIfAndBooleanExpression() {
+      var @if = If(
+        Boolean(
+          BooleanOperator.And,
+          Comparison(NumberConstant(1), CompOps(ComparisonOperator.EqEqual), NumberConstant(2)),
+          Comparison(NumberConstant(1), CompOps(ComparisonOperator.Greater), NumberConstant(2)),
+          Comparison(NumberConstant(1), CompOps(ComparisonOperator.GreaterEqual), NumberConstant(2))
+        ),
+        ExpressionStmt(NumberConstant(1)),
+        ExpressionStmt(NumberConstant(2))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    EQ        1 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  2    JMP       0 7              ; to 10             {_textRange}\n" +
+          $"  3    LE        0 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  4    JMP       0 5              ; to 10             {_textRange}\n" +
+          $"  5    LT        0 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  6    JMP       0 3              ; to 10             {_textRange}\n" +
+          $"  7    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  8    EVAL      0                                    {_textRange}\n" +
+          $"  9    JMP       0 2              ; to 12             {_textRange}\n" +
+          $"  10   LOADK     0 -2             ; 2                 {_textRange}\n" +
+          $"  11   EVAL      0                                    {_textRange}\n" +
+          $"  12   RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
     public void TestCompileIfOrBooleanExpression() {
-      var @if = Statement.If(
-        Expression.Boolean(BooleanOperator.Or, new Expression[] {
-          Expression.Comparison(
-            Expression.NumberConstant(1, _textRange),
-            new ComparisonOperator[] { ComparisonOperator.Less },
-            new Expression[] { Expression.NumberConstant(2, _textRange) },
-            _textRange
-          ),
-          Expression.Comparison(
-            Expression.NumberConstant(1, _textRange),
-            new ComparisonOperator[] { ComparisonOperator.GreaterEqual },
-            new Expression[] { Expression.NumberConstant(2, _textRange) },
-            _textRange
-          ),
-        }, _textRange),
-        Statement.Expression(Expression.NumberConstant(1, _textRange), _textRange),
-        Statement.Expression(Expression.NumberConstant(2, _textRange), _textRange),
-        _textRange
+      var @if = If(
+        Boolean(
+          BooleanOperator.Or,
+          Comparison(NumberConstant(1), CompOps(ComparisonOperator.Less), NumberConstant(2)),
+          Comparison(NumberConstant(1), CompOps(ComparisonOperator.LessEqual), NumberConstant(2)),
+          Comparison(NumberConstant(1), CompOps(ComparisonOperator.NotEqual), NumberConstant(2))
+        ),
+        ExpressionStmt(NumberConstant(1)),
+        ExpressionStmt(NumberConstant(2))
       );
       var compiler = new Compiler();
       var func = compiler.Compile(@if, _env);
       string expected = (
           $"Function <main>\n" +
           $"  1    LT        0 -1 -2          ; 1 2               {_textRange}\n" +
-          $"  2    JMP       0 1                                  {_textRange}\n" +
-          $"  3    LT        1 -1 -2          ; 1 2               {_textRange}\n" +
-          $"  4    JMP       0 3                                  {_textRange}\n" +
-          $"  5    LOADK     0 -1             ; 1                 {_textRange}\n" +
-          $"  6    EVAL      0                                    {_textRange}\n" +
-          $"  7    JMP       0 2                                  {_textRange}\n" +
-          $"  8    LOADK     0 -2             ; 2                 {_textRange}\n" +
-          $"  9    EVAL      0                                    {_textRange}\n" +
-          $"  10   RETURN    0                                    \n"
+          $"  2    JMP       0 4              ; to 7              {_textRange}\n" +
+          $"  3    LE        0 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  4    JMP       0 2              ; to 7              {_textRange}\n" +
+          $"  5    EQ        0 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  6    JMP       0 3              ; to 10             {_textRange}\n" +
+          $"  7    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  8    EVAL      0                                    {_textRange}\n" +
+          $"  9    JMP       0 2              ; to 12             {_textRange}\n" +
+          $"  10   LOADK     0 -2             ; 2                 {_textRange}\n" +
+          $"  11   EVAL      0                                    {_textRange}\n" +
+          $"  12   RETURN    0                                    \n"
+      ).Replace("\n", System.Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileIfOrWithMultipleComparison() {
+      var @if = If(
+        Boolean(
+          BooleanOperator.Or,
+          Comparison(
+            NumberConstant(1),
+            CompOps(ComparisonOperator.Less, ComparisonOperator.Less),
+            NumberConstant(2),
+            NumberConstant(3)
+          ),
+          Comparison(
+            NumberConstant(1),
+            CompOps(ComparisonOperator.LessEqual, ComparisonOperator.LessEqual),
+            NumberConstant(2),
+            NumberConstant(3)
+          )
+        ),
+        ExpressionStmt(NumberConstant(1)),
+        ExpressionStmt(NumberConstant(2))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LT        1 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  2    JMP       0 2              ; to 5              {_textRange}\n" +
+          $"  3    LT        0 -2 -3          ; 2 3               {_textRange}\n" +
+          $"  4    JMP       0 4              ; to 9              {_textRange}\n" +
+          $"  5    LE        1 -1 -2          ; 1 2               {_textRange}\n" +
+          $"  6    JMP       0 5              ; to 12             {_textRange}\n" +
+          $"  7    LE        1 -2 -3          ; 2 3               {_textRange}\n" +
+          $"  8    JMP       0 3              ; to 12             {_textRange}\n" +
+          $"  9    LOADK     0 -1             ; 1                 {_textRange}\n" +
+          $"  10   EVAL      0                                    {_textRange}\n" +
+          $"  11   JMP       0 2              ; to 14             {_textRange}\n" +
+          $"  12   LOADK     0 -2             ; 2                 {_textRange}\n" +
+          $"  13   EVAL      0                                    {_textRange}\n" +
+          $"  14   RETURN    0                                    \n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     [Fact]
     public void TestCompileWhile() {
-      var sum = Expression.Identifier("sum", _textRange);
-      var i = Expression.Identifier("i", _textRange);
-      var zero = Expression.NumberConstant(0, _textRange);
-      var one = Expression.NumberConstant(1, _textRange);
-      var initialSum = Statement.Assignment(sum, zero, _textRange);
-      var initialI = Statement.Assignment(i, zero, _textRange);
-      var ops = new ComparisonOperator[] { ComparisonOperator.LessEqual };
-      var exprs = new Expression[] { Expression.NumberConstant(10, _textRange) };
-      var test = Expression.Comparison(i, ops, exprs, _textRange);
-      var addSum = Expression.Binary(sum, BinaryOperator.Add, i, _textRange);
-      var assignSum = Statement.Assignment(sum, addSum, _textRange);
-      var addI = Expression.Binary(i, BinaryOperator.Add, one, _textRange);
-      var assignI = Statement.Assignment(i, addI, _textRange);
-      var body = Statement.Block(new Statement[] { assignSum, assignI }, _textRange);
-      var @while = Statement.While(test, body, _textRange);
-      var evalSum = Statement.Expression(sum, _textRange);
-      var program = Statement.Block(new Statement[] { initialSum, initialI, @while, evalSum },
-                                    _textRange);
+      string sum = "sum";
+      string i = "i";
+      var program = Block(
+        Assign(Id(sum), NumberConstant(0)),
+        Assign(Id(i), NumberConstant(0)),
+        While(
+          Comparison(Id(i), CompOps(ComparisonOperator.LessEqual), NumberConstant(10)),
+          Block(
+            Assign(Id(sum), Binary(Id(sum), BinaryOperator.Add, Id(i))),
+            Assign(Id(i), Binary(Id(i), BinaryOperator.Add, NumberConstant(1)))
+          )
+        ),
+        ExpressionStmt(Id(sum))
+      );
       var compiler = new Compiler();
       var func = compiler.Compile(program, _env);
       string expected = (
@@ -259,7 +324,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    SETGLOB   0 1                                  {_textRange}\n" +
           $"  5    GETGLOB   0 1                                  {_textRange}\n" +
           $"  6    LE        1 0 -2           ; 10                {_textRange}\n" +
-          $"  7    JMP       0 8                                  {_textRange}\n" +
+          $"  7    JMP       0 8              ; to 16             {_textRange}\n" +
           $"  8    GETGLOB   1 0                                  {_textRange}\n" +
           $"  9    GETGLOB   2 1                                  {_textRange}\n" +
           $"  10   ADD       0 1 2                                {_textRange}\n" +
@@ -267,7 +332,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  12   GETGLOB   1 1                                  {_textRange}\n" +
           $"  13   ADD       0 1 -3           ; 1                 {_textRange}\n" +
           $"  14   SETGLOB   0 1                                  {_textRange}\n" +
-          $"  15   JMP       0 -11                                {_textRange}\n" +
+          $"  15   JMP       0 -11            ; to 5              {_textRange}\n" +
           $"  16   GETGLOB   0 0                                  {_textRange}\n" +
           $"  17   EVAL      0                                    {_textRange}\n" +
           $"  18   RETURN    0                                    \n"
@@ -277,21 +342,13 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileFuncCall() {
+      string eval = "eval";
       string a = "a";
       string b = "b";
-      var left = Expression.Identifier(a, _textRange);
-      var right = Expression.Identifier(b, _textRange);
-      var binary = Expression.Binary(left, BinaryOperator.Add, right, _textRange);
-      var ret = Statement.Return(binary, _textRange);
-      string name = "eval";
-      var funcDef = Statement.FuncDef(name, new string[] { a, b }, ret, _textRange);
-      var identifier = Expression.Identifier(name, _textRange);
-      var call = Expression.Call(identifier, new Expression[] {
-        Expression.NumberConstant(1, _textRange),
-        Expression.NumberConstant(2, _textRange),
-      }, _textRange);
-      var exprStatement = Statement.Expression(call, _textRange);
-      var block = Statement.Block(new Statement[] { funcDef, exprStatement }, _textRange);
+      var block = Block(
+        FuncDef(eval, Params(a, b), Return(Binary(Id(a), BinaryOperator.Add, Id(b)))),
+        ExpressionStmt(Call(Id(eval), NumberConstant(1), NumberConstant(2)))
+      );
       var compiler = new Compiler();
       var func = compiler.Compile(block, _env);
       string expected = (
@@ -316,26 +373,20 @@ namespace SeedLang.Interpreter.Tests {
     public void TestRecursiveFuncCall() {
       string sum = "sum";
       var n = "n";
-      var test = Expression.Comparison(
-          Expression.Identifier(n, _textRange),
-          new ComparisonOperator[] { ComparisonOperator.EqEqual },
-          new Expression[] { Expression.NumberConstant(1, _textRange) }, _textRange);
-      var thenBlock = Statement.Return(Expression.NumberConstant(1, _textRange), _textRange);
-      var subtract = Expression.Binary(
-          Expression.Identifier(n, _textRange), BinaryOperator.Subtract,
-          Expression.NumberConstant(1, _textRange), _textRange);
-      var funcName = Expression.Identifier(sum, _textRange);
-      var recursiveCall = Expression.Call(funcName, new Expression[] { subtract }, _textRange);
-      var add = Expression.Binary(
-       Expression.Identifier(n, _textRange), BinaryOperator.Add, recursiveCall, _textRange);
-      var elseBlock = Statement.Return(add, _textRange);
-      var @if = Statement.If(test, thenBlock, elseBlock, _textRange);
-      var funcBody = Statement.Block(new Statement[] { @if }, _textRange);
-      var funcDef = Statement.FuncDef(sum, new string[] { n }, funcBody, _textRange);
-      var call = Statement.Expression(Expression.Call(funcName, new Expression[] {
-     Expression.NumberConstant(10, _textRange)
-   }, _textRange), _textRange);
-      var block = Statement.Block(new Statement[] { funcDef, call }, _textRange);
+      var block = Block(
+        FuncDef(sum, Params(n), Block(
+          If(
+            Comparison(Id(n), CompOps(ComparisonOperator.EqEqual), NumberConstant(1)),
+            Return(NumberConstant(1)),
+            Return(Binary(
+              Id(n),
+              BinaryOperator.Add,
+              Call(Id(sum), Binary(Id(n), BinaryOperator.Subtract, NumberConstant(1)))
+            ))
+          )
+        )),
+        ExpressionStmt(Call(Id(sum), NumberConstant(10)))
+      );
       var compiler = new Compiler();
       var func = compiler.Compile(block, _env);
       string expected = (
@@ -350,10 +401,10 @@ namespace SeedLang.Interpreter.Tests {
           $"\n" +
           $"Function <sum>\n" +
           $"  1    EQ        1 0 -1           ; 1                 {_textRange}\n" +
-          $"  2    JMP       0 3                                  {_textRange}\n" +
+          $"  2    JMP       0 3              ; to 6              {_textRange}\n" +
           $"  3    LOADK     1 -1             ; 1                 {_textRange}\n" +
           $"  4    RETURN    1                                    {_textRange}\n" +
-          $"  5    JMP       0 5                                  {_textRange}\n" +
+          $"  5    JMP       0 5              ; to 11             {_textRange}\n" +
           $"  6    GETGLOB   2 0                                  {_textRange}\n" +
           $"  7    SUB       3 0 -1           ; 1                 {_textRange}\n" +
           $"  8    CALL      2 1 0                                {_textRange}\n" +
@@ -422,6 +473,10 @@ namespace SeedLang.Interpreter.Tests {
 
     private static UnaryExpression Unary(UnaryOperator op, Expression expr) {
       return Expression.Unary(op, expr, _textRange);
+    }
+
+    private static WhileStatement While(Expression test, Statement body) {
+      return Statement.While(test, body, _textRange);
     }
   }
 }

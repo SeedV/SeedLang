@@ -15,6 +15,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Ast;
+using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
@@ -25,7 +26,13 @@ namespace SeedLang.Interpreter {
 
     // The register allocated for the result of sub-expressions.
     private uint _registerForSubExpr;
-    private bool _reverseSubComparison;
+    // The next boolean operator. A true condition check instruction is emitted if the next boolean
+    // operator is "And", otherwise a false condition instruction check is emitted.
+    private BooleanOperator _nextBooleanOp;
+    // A list to collect all true short circuit jumps.
+    private readonly List<int> _trueShortCircuitJumps = new List<int>();
+    // A list to collect all false short circuit jumps.
+    private readonly List<int> _falseShortCircuitJumps = new List<int>();
 
     // The chunk on the top of the function stack.
     private Chunk _chunk;
@@ -61,36 +68,33 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BooleanExpression boolean) {
-      Debug.Assert(boolean.Op == BooleanOperator.And || boolean.Op == BooleanOperator.Or,
-                   "Only supports And and Or boolean operators now.");
-      _reverseSubComparison = boolean.Op == BooleanOperator.Or;
-      var jumps = new List<int>();
+      BooleanOperator nextBooleanOp = _nextBooleanOp;
       for (int i = 0; i < boolean.Exprs.Length; i++) {
-        Debug.Assert(boolean.Exprs[i] is ComparisonExpression,
-                     "Only supports comparison expressions now.");
+        _nextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : nextBooleanOp;
         Visit(boolean.Exprs[i]);
         if (i < boolean.Exprs.Length - 1) {
-          jumps.Add(_chunk.Emit(Opcode.JMP, 0, boolean.Range));
+          switch (boolean.Op) {
+            case BooleanOperator.And:
+              PatchJumps(_trueShortCircuitJumps);
+              break;
+            case BooleanOperator.Or:
+              PatchJumps(_falseShortCircuitJumps);
+              break;
+          }
         }
       }
-      foreach (int jump in jumps) {
-        _chunk.PatchJumpAt(jump, _chunk.Bytecode.Count - jump - 1);
-      }
-      _reverseSubComparison = false;
     }
 
     protected override void Visit(ComparisonExpression comparison) {
-      // TODO: support comparison expressions with multiple operands (e.g. a < b < c). Current
-      // implementation only supports two operands (e.g. a < b).
+      Debug.Assert(comparison.Ops.Length > 0 && comparison.Exprs.Length > 0);
       _variableResolver.BeginExpressionScope();
-      uint first = VisitExpression(comparison.First);
-      uint second = VisitExpression(comparison.Exprs[0]);
-      (Opcode opcode, bool checkFlag) = OpcodeAndCheckFlagOfComparisonOperator(comparison.Ops[0]);
-      if (_reverseSubComparison) {
-        checkFlag = !checkFlag;
+      BooleanOperator nextBooleanOp = _nextBooleanOp;
+      Expression left = comparison.First;
+      for (int i = 0; i < comparison.Exprs.Length; i++) {
+        _nextBooleanOp = i < comparison.Exprs.Length - 1 ? BooleanOperator.And : nextBooleanOp;
+        VisitSingleComparison(left, comparison.Ops[i], comparison.Exprs[i], comparison.Range);
+        left = comparison.Exprs[i];
       }
-      _nestedFuncStack.CurrentChunk().Emit(opcode, checkFlag ? 1u : 0u, first, second,
-                                           comparison.Range);
       _variableResolver.EndExpressionScope();
     }
 
@@ -256,12 +260,12 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(IfStatement @if) {
       Visit(@if.Test);
-      int jumpElse = _chunk.Emit(Opcode.JMP, 0, @if.Range);
+      PatchJumps(_trueShortCircuitJumps);
       Visit(@if.ThenBody);
       int jumpEnd = _chunk.Emit(Opcode.JMP, 0, @if.Range);
-      _chunk.PatchJumpAt(jumpElse, _chunk.Bytecode.Count - jumpElse - 1);
+      PatchJumps(_falseShortCircuitJumps);
       Visit(@if.ElseBody);
-      _chunk.PatchJumpAt(jumpEnd, _chunk.Bytecode.Count - jumpEnd - 1);
+      PatchJump(jumpEnd);
     }
 
     protected override void Visit(ReturnStatement @return) {
@@ -278,9 +282,39 @@ namespace SeedLang.Interpreter {
     protected override void Visit(WhileStatement @while) {
       int start = _chunk.Bytecode.Count;
       Visit(@while.Test);
-      int jump = _chunk.Emit(Opcode.JMP, 0, @while.Range);
       Visit(@while.Body);
       _chunk.Emit(Opcode.JMP, start - (_chunk.Bytecode.Count + 1), @while.Range);
+      PatchJumps(_falseShortCircuitJumps);
+    }
+
+    private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
+                                       Range range) {
+      uint leftRegister = VisitExpression(left);
+      uint rightRegister = VisitExpression(right);
+      (Opcode opcode, bool checkFlag) = OpcodeAndCheckFlagOfComparisonOperator(op);
+      if (_nextBooleanOp == BooleanOperator.Or) {
+        checkFlag = !checkFlag;
+      }
+      _chunk.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
+      int jump = _chunk.Emit(Opcode.JMP, 0, range);
+      switch (_nextBooleanOp) {
+        case BooleanOperator.And:
+          _falseShortCircuitJumps.Add(jump);
+          break;
+        case BooleanOperator.Or:
+          _trueShortCircuitJumps.Add(jump);
+          break;
+      }
+    }
+
+    private void PatchJumps(List<int> jumps) {
+      foreach (int jump in jumps) {
+        PatchJump(jump);
+      }
+      jumps.Clear();
+    }
+
+    private void PatchJump(int jump) {
       _chunk.PatchJumpAt(jump, _chunk.Bytecode.Count - jump - 1);
     }
 

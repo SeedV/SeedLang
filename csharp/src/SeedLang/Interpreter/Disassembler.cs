@@ -42,10 +42,11 @@ namespace SeedLang.Interpreter {
           Debug.Assert(i < _chunk.Ranges.Count);
           Instruction instr = _chunk.Bytecode[i];
           Range range = _chunk.Ranges[i];
-          sb.Append($"  {i + 1,_indexColumnWidth}{instr.Opcode,_opcodeColumnWidth}");
+          int index = i + 1;
+          sb.Append($"  {index,_indexColumnWidth}{instr.Opcode,_opcodeColumnWidth}");
           sb.Append($"{OperandsToString(instr),_operandsColumnWidth}");
           string rangeString = range is null ? "" : range.ToString();
-          sb.Append($"  {ConstOperandsToString(instr),_constValueColumnWidth}{rangeString}");
+          sb.Append($"  {ConstOperandsToString(index, instr),_constValueColumnWidth}{rangeString}");
           sb.AppendLine();
 
           if (instr.Opcode == Opcode.LOADK) {
@@ -86,7 +87,7 @@ namespace SeedLang.Interpreter {
       return _chunk.IsConstIdValid(rk) ? (int)Chunk.MaxRegisterCount - (int)rk - 1 : (int)rk;
     }
 
-    private string ConstOperandsToString(Instruction instr) {
+    private string ConstOperandsToString(int index, Instruction instr) {
       OpcodeType type = instr.Opcode.Type();
       switch (type) {
         case OpcodeType.ABC:
@@ -98,6 +99,9 @@ namespace SeedLang.Interpreter {
           return $";{b}{c}";
         case OpcodeType.ABx:
           return _chunk.IsConstIdValid(instr.Bx) ? $"; {_chunk.ValueOfConstId(instr.Bx)}" : "";
+        case OpcodeType.SBx:
+          // Program counter is increased by 1 after execution of each instruction.
+          return $"; to {index + instr.SBx + 1}";
         default:
           return "";
       }

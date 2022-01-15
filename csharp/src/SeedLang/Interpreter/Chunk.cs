@@ -38,28 +38,28 @@ namespace SeedLang.Interpreter {
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
 
-    internal int Emit(Opcode opcode, uint a, Range range) {
+    // Emits an instruction with the opcode of type A.
+    internal void Emit(Opcode opcode, uint a, Range range) {
       _bytecode.Add(new Instruction(opcode, a));
       _ranges.Add(range);
-      return _bytecode.Count - 1;
     }
 
-    internal int Emit(Opcode opcode, uint a, uint b, uint c, Range range) {
+    // Emits an instruction with the opcode of type ABC.
+    internal void Emit(Opcode opcode, uint a, uint b, uint c, Range range) {
       _bytecode.Add(new Instruction(opcode, a, b, c));
       _ranges.Add(range);
-      return _bytecode.Count - 1;
     }
 
-    internal int Emit(Opcode opcode, uint a, uint bx, Range range) {
+    // Emits an instruction with the opcode of type ABx.
+    internal void Emit(Opcode opcode, uint a, uint bx, Range range) {
       _bytecode.Add(new Instruction(opcode, a, bx));
       _ranges.Add(range);
-      return _bytecode.Count - 1;
     }
 
-    internal int Emit(Opcode opcode, int sbx, Range range) {
+    // Emits an instruction with the opcode of type SBx.
+    internal void Emit(Opcode opcode, int sbx, Range range) {
       _bytecode.Add(new Instruction(opcode, sbx));
       _ranges.Add(range);
-      return _bytecode.Count - 1;
     }
 
     internal void PatchJumpAt(int pos, int sbx) {

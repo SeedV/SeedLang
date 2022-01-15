@@ -262,7 +262,8 @@ namespace SeedLang.Interpreter {
       Visit(@if.Test);
       PatchJumps(_trueShortCircuitJumps);
       Visit(@if.ThenBody);
-      int jumpEnd = _chunk.Emit(Opcode.JMP, 0, @if.Range);
+      _chunk.Emit(Opcode.JMP, 0, @if.Range);
+      int jumpEnd = GetCurrentCodePos();
       PatchJumps(_falseShortCircuitJumps);
       Visit(@if.ElseBody);
       PatchJump(jumpEnd);
@@ -296,7 +297,8 @@ namespace SeedLang.Interpreter {
         checkFlag = !checkFlag;
       }
       _chunk.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
-      int jump = _chunk.Emit(Opcode.JMP, 0, range);
+      _chunk.Emit(Opcode.JMP, 0, range);
+      int jump = GetCurrentCodePos();
       switch (_nextBooleanOp) {
         case BooleanOperator.And:
           _falseShortCircuitJumps.Add(jump);
@@ -305,6 +307,10 @@ namespace SeedLang.Interpreter {
           _trueShortCircuitJumps.Add(jump);
           break;
       }
+    }
+
+    private int GetCurrentCodePos() {
+      return _chunk.Bytecode.Count - 1;
     }
 
     private void PatchJumps(List<int> jumps) {

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -19,7 +20,7 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static GlobalEnvironment _env => new GlobalEnvironment();
+    private static GlobalEnvironment _env => new GlobalEnvironment(Array.Empty<NativeFunction>());
     private static TextRange _textRange => new TextRange(0, 1, 2, 3);
 
 
@@ -33,7 +34,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    LOADK     0 -1             ; 1                 {_textRange}\n" +
           $"  2    EVAL      0                                    {_textRange}\n" +
           $"  3    RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -47,7 +48,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    ADD       0 -1 -2          ; 1 2               {_textRange}\n" +
           $"  2    EVAL      0                                    {_textRange}\n" +
           $"  3    RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -68,7 +69,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    SUB       0 -1 1           ; 1                 {_textRange}\n" +
           $"  3    EVAL      0                                    {_textRange}\n" +
           $"  4    RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -89,7 +90,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    SUB       0 -1 1           ; 1                 {_textRange}\n" +
           $"  3    EVAL      0                                    {_textRange}\n" +
           $"  4    RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -103,7 +104,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    UNM       0 -1             ; 1                 {_textRange}\n" +
           $"  2    EVAL      0                                    {_textRange}\n" +
           $"  3    RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -117,7 +118,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    LOADK     0 -1             ; 1                 {_textRange}\n" +
           $"  2    SETGLOB   0 0                                  {_textRange}\n" +
           $"  3    RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -134,7 +135,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    ADD       0 -1 -2          ; 1 2               {_textRange}\n" +
           $"  2    SETGLOB   0 0                                  {_textRange}\n" +
           $"  3    RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -157,7 +158,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    LOADK     0 -2             ; 2                 {_textRange}\n" +
           $"  7    EVAL      0                                    {_textRange}\n" +
           $"  8    RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -187,7 +188,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  8    LOADK     0 -2             ; 2                 {_textRange}\n" +
           $"  9    EVAL      0                                    {_textRange}\n" +
           $"  10   RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -219,7 +220,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  10   LOADK     0 -2             ; 2                 {_textRange}\n" +
           $"  11   EVAL      0                                    {_textRange}\n" +
           $"  12   RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -251,7 +252,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  10   LOADK     0 -2             ; 2                 {_textRange}\n" +
           $"  11   EVAL      0                                    {_textRange}\n" +
           $"  12   RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -294,7 +295,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  12   LOADK     0 -2             ; 2                 {_textRange}\n" +
           $"  13   EVAL      0                                    {_textRange}\n" +
           $"  14   RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -336,7 +337,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  16   GETGLOB   0 0                                  {_textRange}\n" +
           $"  17   EVAL      0                                    {_textRange}\n" +
           $"  18   RETURN    0                                    \n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -365,7 +366,7 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <eval>\n" +
           $"  1    ADD       2 0 1                                {_textRange}\n" +
           $"  2    RETURN    2                                    {_textRange}\n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -410,7 +411,26 @@ namespace SeedLang.Interpreter.Tests {
           $"  8    CALL      2 1 0                                {_textRange}\n" +
           $"  9    ADD       1 0 2                                {_textRange}\n" +
           $"  10   RETURN    1                                    {_textRange}\n"
-      ).Replace("\n", System.Environment.NewLine);
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileList() {
+      var list = ExpressionStmt(List(NumberConstant(1), NumberConstant(2), NumberConstant(3)));
+      var compiler = new Compiler();
+      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var func = compiler.Compile(list, env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 0                                  {_textRange}\n" +
+          $"  2    LOADK     1 -1             ; 1                 {_textRange}\n" +
+          $"  3    LOADK     2 -2             ; 2                 {_textRange}\n" +
+          $"  4    LOADK     3 -3             ; 3                 {_textRange}\n" +
+          $"  5    CALL      0 3 0                                {_textRange}\n" +
+          $"  6    EVAL      0                                    {_textRange}\n" +
+          $"  7    RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
@@ -449,6 +469,10 @@ namespace SeedLang.Interpreter.Tests {
 
     private static FuncDefStatement FuncDef(string name, string[] parameters, Statement body) {
       return Statement.FuncDef(name, parameters, body, _textRange);
+    }
+
+    private static ListExpression List(params Expression[] exprs) {
+      return Expression.List(exprs, _textRange);
     }
 
     private static string[] Params(params string[] parameters) {

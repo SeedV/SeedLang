@@ -134,7 +134,8 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ListExpression list) {
-      throw new System.NotImplementedException();
+      var call = Expression.Call(Expression.Identifier("list", list.Range), list.Exprs, list.Range);
+      Visit(call);
     }
 
     protected override void Visit(SubscriptExpression subscript) {

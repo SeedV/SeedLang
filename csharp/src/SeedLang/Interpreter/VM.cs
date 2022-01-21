@@ -18,7 +18,7 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
-    public readonly GlobalEnvironment Env = new GlobalEnvironment();
+    public readonly GlobalEnvironment Env = new GlobalEnvironment(NativeFunctions.Funcs);
 
     // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
     // can hold maximun 100 recursive function calls.
@@ -97,11 +97,7 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.CALL:
-              var callFunc = _stack[baseRegister + instr.A].AsFunction() as Function;
-              baseRegister += instr.A + 1;
-              _callStack.PushFunc(callFunc, baseRegister, pc);
-              chunk = callFunc.Chunk;
-              pc = -1;
+              CallFunction(ref chunk, ref pc, ref baseRegister, instr);
               break;
             case Opcode.RETURN:
               uint currentBase = _callStack.CurrentBase();
@@ -155,6 +151,23 @@ namespace SeedLang.Interpreter {
         var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
                                  new ValueWrapper(_stack[baseRegister + instr.A]), range);
         _visualizerCenter.BinaryPublisher.Notify(be);
+      }
+    }
+
+    private void CallFunction(ref Chunk chunk, ref int pc, ref uint baseRegister,
+                              Instruction instr) {
+      var callFunc = _stack[baseRegister + instr.A].AsFunction();
+      switch (callFunc) {
+        case NativeFunction nativeFunc:
+          var arguments = new System.ArraySegment<Value>(_stack, (int)instr.A + 1, (int)instr.B);
+          _stack[baseRegister + instr.A] = nativeFunc.Call(arguments);
+          break;
+        case Function func:
+          baseRegister += instr.A + 1;
+          _callStack.PushFunc(func, baseRegister, pc);
+          chunk = func.Chunk;
+          pc = -1;
+          break;
       }
     }
 

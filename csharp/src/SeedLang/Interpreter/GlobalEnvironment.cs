@@ -12,17 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // The environment to store names and values of build-in and global variables.
-  //
-  // TODO: handle build-in variables.
   internal class GlobalEnvironment {
     private readonly Dictionary<string, uint> _globals = new Dictionary<string, uint>();
     private readonly List<Value> _values = new List<Value>();
+    private readonly int _buildInFuncCount;
+
+    internal GlobalEnvironment(NativeFunction[] nativeFunctions) {
+      foreach (var func in nativeFunctions) {
+        _values.Add(Value.Function(func));
+        _globals[func.Name] = (uint)_values.Count - 1;
+      }
+      _buildInFuncCount = _values.Count;
+    }
 
     internal uint DefineVariable(string name) {
       Debug.Assert(!_globals.ContainsKey(name));
@@ -40,6 +48,9 @@ namespace SeedLang.Interpreter {
 
     internal void SetVariable(uint id, in Value value) {
       Debug.Assert(id < _values.Count);
+      if (id < _buildInFuncCount) {
+        throw new NotImplementedException("Add cannot change build-in function runtime error");
+      }
       _values[(int)id] = value;
     }
 

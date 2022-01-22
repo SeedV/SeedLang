@@ -22,14 +22,12 @@ namespace SeedLang.Interpreter {
   internal class GlobalEnvironment {
     private readonly Dictionary<string, uint> _globals = new Dictionary<string, uint>();
     private readonly List<Value> _values = new List<Value>();
-    private readonly int _buildInFuncCount;
 
     internal GlobalEnvironment(NativeFunction[] nativeFunctions) {
       foreach (var func in nativeFunctions) {
         _values.Add(Value.Function(func));
         _globals[func.Name] = (uint)_values.Count - 1;
       }
-      _buildInFuncCount = _values.Count;
     }
 
     internal uint DefineVariable(string name) {
@@ -48,9 +46,6 @@ namespace SeedLang.Interpreter {
 
     internal void SetVariable(uint id, in Value value) {
       Debug.Assert(id < _values.Count);
-      if (id < _buildInFuncCount) {
-        throw new NotImplementedException("Add cannot change build-in function runtime error");
-      }
       _values[(int)id] = value;
     }
 

@@ -58,6 +58,14 @@ namespace SeedLang.Interpreter {
               // information of the variables have been removed during compilation. Decide if this
               // kind of notification is needed, or if other kinds of notification can replace it.
               break;
+            case Opcode.GETELEM:
+              double getIndex = ValueOfRK(chunk, instr.C, baseRegister).AsNumber();
+              _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][getIndex];
+              break;
+            case Opcode.SETELEM:
+              double setIndex = ValueOfRK(chunk, instr.B, baseRegister).AsNumber();
+              _stack[baseRegister + instr.A][setIndex] = ValueOfRK(chunk, instr.C, baseRegister);
+              break;
             case Opcode.ADD:
             case Opcode.SUB:
             case Opcode.MUL:

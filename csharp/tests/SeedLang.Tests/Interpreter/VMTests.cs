@@ -205,10 +205,29 @@ namespace SeedLang.Interpreter.Tests {
       Function func = compiler.Compile(program, vm.Env);
       vm.Run(func);
 
-      Assert.True(visualizer.Result.IsList);
-      for (int i = 0; i < visualizer.Result.Count; i++) {
-        Assert.Equal(i + 1, visualizer.Result[i].Number);
-      }
+      Assert.Equal(2, visualizer.Result.Number);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
+    }
+
+    [Fact]
+    public void TestSubscriptAssignment() {
+      var compiler = new Compiler();
+      (var vm, var visualizer) = NewVMWithVisualizer();
+
+      string a = "a";
+      var program = AstHelper.Block(
+        AstHelper.Assign(AstHelper.Id(a), AstHelper.List(AstHelper.NumberConstant(1),
+                                                         AstHelper.NumberConstant(2),
+                                                         AstHelper.NumberConstant(3))),
+        AstHelper.Assign(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)),
+                         AstHelper.NumberConstant(5)),
+        AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
+      );
+
+      Function func = compiler.Compile(program, vm.Env);
+      vm.Run(func);
+
+      Assert.Equal(5, visualizer.Result.Number);
       Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 

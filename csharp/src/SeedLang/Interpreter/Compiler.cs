@@ -139,7 +139,19 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(SubscriptExpression subscript) {
-      throw new System.NotImplementedException();
+      _variableResolver.BeginExpressionScope();
+      uint targetId = _registerForSubExpr;
+      uint listId;
+      if (GetRegisterId(subscript.Expr) is uint list) {
+        listId = list;
+      } else {
+        listId = _variableResolver.AllocateVariable();
+        _registerForSubExpr = listId;
+        Visit(subscript.Expr);
+      }
+      uint indexId = VisitExpression(subscript.Index);
+      _chunk.Emit(Opcode.GETELEM, targetId, listId, indexId, subscript.Range);
+      _variableResolver.EndExpressionScope();
     }
 
     protected override void Visit(CallExpression call) {
@@ -208,8 +220,20 @@ namespace SeedLang.Interpreter {
               break;
           }
           break;
-        case SubscriptExpression _:
-          // TODO: handle subscript assignment statements.
+        case SubscriptExpression subscript:
+          _variableResolver.BeginExpressionScope();
+          uint listId;
+          if (GetRegisterId(subscript.Expr) is uint list) {
+            listId = list;
+          } else {
+            listId = _variableResolver.AllocateVariable();
+            _registerForSubExpr = listId;
+            Visit(subscript.Expr);
+          }
+          uint indexId = VisitExpression(subscript.Index);
+          uint exprId = VisitExpression(assignment.Expr);
+          _chunk.Emit(Opcode.SETELEM, listId, indexId, exprId, subscript.Range);
+          _variableResolver.EndExpressionScope();
           break;
       }
     }
@@ -263,11 +287,15 @@ namespace SeedLang.Interpreter {
       Visit(@if.Test);
       PatchJumps(_trueShortCircuitJumps);
       Visit(@if.ThenBody);
-      _chunk.Emit(Opcode.JMP, 0, @if.Range);
-      int jumpEnd = GetCurrentCodePos();
-      PatchJumps(_falseShortCircuitJumps);
-      Visit(@if.ElseBody);
-      PatchJump(jumpEnd);
+      if (!(@if.ElseBody is null)) {
+        _chunk.Emit(Opcode.JMP, 0, @if.Range);
+        int jumpEnd = GetCurrentCodePos();
+        PatchJumps(_falseShortCircuitJumps);
+        Visit(@if.ElseBody);
+        PatchJump(jumpEnd);
+      } else {
+        PatchJumps(_falseShortCircuitJumps);
+      }
     }
 
     protected override void Visit(ReturnStatement @return) {

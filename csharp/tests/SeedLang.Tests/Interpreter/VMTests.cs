@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Tests.Helper;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
@@ -49,13 +49,11 @@ namespace SeedLang.Interpreter.Tests {
       }
     }
 
-    private static TextRange _textRange => new TextRange(0, 1, 2, 3);
-
     [Fact]
     public void TestBinaryExpressionStatement() {
-      var expr = ExpressionStmt(
-        Binary(NumberConstant(1), BinaryOperator.Add, NumberConstant(2))
-      );
+      var expr = AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.NumberConstant(1),
+                                                           BinaryOperator.Add,
+                                                           AstHelper.NumberConstant(2)));
 
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
@@ -66,16 +64,14 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.Number);
       Assert.Equal(3, visualizer.Result.Number);
-      Assert.Equal(_textRange, visualizer.Range);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
     public void TestAssignmentStatement() {
       string name = "name";
-      var block = Block(
-        Assign(Id(name), NumberConstant(1)),
-        ExpressionStmt(Id(name))
-      );
+      var block = AstHelper.Block(AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(1)),
+                                  AstHelper.ExpressionStmt(AstHelper.Id(name)));
 
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
@@ -83,12 +79,13 @@ namespace SeedLang.Interpreter.Tests {
       vm.Run(func);
 
       Assert.Equal(1, visualizer.Result.Number);
-      Assert.Equal(_textRange, visualizer.Range);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
     public void TestUnaryExpressionStatement() {
-      var expr = ExpressionStmt(Unary(UnaryOperator.Negative, NumberConstant(1)));
+      var expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
+                                                          AstHelper.NumberConstant(1)));
 
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
@@ -96,19 +93,18 @@ namespace SeedLang.Interpreter.Tests {
       vm.Run(func);
 
       Assert.Equal(-1, visualizer.Result.Number);
-      Assert.Equal(_textRange, visualizer.Range);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
 
-      expr = ExpressionStmt(
-        Unary(
-          UnaryOperator.Negative,
-          Binary(NumberConstant(1), BinaryOperator.Add, NumberConstant(2))
-        )
-      );
+      expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
+        AstHelper.Binary(AstHelper.NumberConstant(1),
+                         BinaryOperator.Add,
+                         AstHelper.NumberConstant(2))
+      ));
       func = compiler.Compile(expr, vm.Env);
       vm.Run(func);
 
       Assert.Equal(-3, visualizer.Result.Number);
-      Assert.Equal(_textRange, visualizer.Range);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
@@ -119,11 +115,15 @@ namespace SeedLang.Interpreter.Tests {
       string name = "eval";
       string a = "a";
       string b = "b";
-      var block = Block(
-        FuncDef(name, Params(a, b), Return(Binary(Id(a), BinaryOperator.Add, Id(b)))),
-        ExpressionStmt(
-          Call(Id(name), NumberConstant(1), NumberConstant(2))
-        )
+      var block = AstHelper.Block(
+        AstHelper.FuncDef(name, AstHelper.Params(a, b),
+          AstHelper.Return(AstHelper.Binary(AstHelper.Id(a),
+                                            BinaryOperator.Add,
+                                            AstHelper.Id(b))
+        )),
+        AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(name),
+                                                AstHelper.NumberConstant(1),
+                                                AstHelper.NumberConstant(2)))
       );
 
       Function func = compiler.Compile(block, vm.Env);
@@ -133,7 +133,7 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.Number);
       Assert.Equal(3, visualizer.Result.Number);
-      Assert.Equal(_textRange, visualizer.Range);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
@@ -143,28 +143,32 @@ namespace SeedLang.Interpreter.Tests {
 
       string fib = "fib";
       string n = "n";
-      var program = Block(
-        FuncDef(fib, new string[] { n }, Block(
-          If(
-            Boolean(BooleanOperator.Or,
-              Comparison(Id(n), CompOps(ComparisonOperator.EqEqual), NumberConstant(1)),
-              Comparison(Id(n), CompOps(ComparisonOperator.EqEqual), NumberConstant(2))),
-            Return(NumberConstant(1)),
-            Return(Binary(
-              Call(Id(fib), Binary(Id(n), BinaryOperator.Subtract, NumberConstant(1))),
-              BinaryOperator.Add,
-              Call(Id(fib), Binary(Id(n), BinaryOperator.Subtract, NumberConstant(2)))
-            ))
-          )
+      var test = AstHelper.Boolean(BooleanOperator.Or,
+        AstHelper.Comparison(AstHelper.Id(n), AstHelper.CompOps(ComparisonOperator.EqEqual),
+                             AstHelper.NumberConstant(1)),
+        AstHelper.Comparison(AstHelper.Id(n), AstHelper.CompOps(ComparisonOperator.EqEqual),
+                             AstHelper.NumberConstant(2))
+      );
+      var trueBlock = AstHelper.Return(AstHelper.NumberConstant(1));
+      var falseBlock = AstHelper.Return(AstHelper.Binary(
+        AstHelper.Call(AstHelper.Id(fib), AstHelper.Binary(AstHelper.Id(n), BinaryOperator.Subtract,
+                                                           AstHelper.NumberConstant(1))),
+        BinaryOperator.Add,
+        AstHelper.Call(AstHelper.Id(fib), AstHelper.Binary(AstHelper.Id(n), BinaryOperator.Subtract,
+                                                           AstHelper.NumberConstant(2)))
+      ));
+      var program = AstHelper.Block(
+        AstHelper.FuncDef(fib, new string[] { n }, AstHelper.Block(
+          AstHelper.If(test, trueBlock, falseBlock)
         )),
-        ExpressionStmt(Call(Id(fib), NumberConstant(10)))
+        AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(fib), AstHelper.NumberConstant(10)))
       );
 
       Function func = compiler.Compile(program, vm.Env);
       vm.Run(func);
 
       Assert.Equal(55, visualizer.Result.Number);
-      Assert.Equal(_textRange, visualizer.Range);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
@@ -172,9 +176,10 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
 
-      var program = ExpressionStmt(
-        Call(Id("list"), NumberConstant(1), NumberConstant(2), NumberConstant(3))
-      );
+      var program = AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id("list"),
+                                                            AstHelper.NumberConstant(1),
+                                                            AstHelper.NumberConstant(2),
+                                                            AstHelper.NumberConstant(3)));
 
       Function func = compiler.Compile(program, vm.Env);
       vm.Run(func);
@@ -183,7 +188,28 @@ namespace SeedLang.Interpreter.Tests {
       for (int i = 0; i < visualizer.Result.Count; i++) {
         Assert.Equal(i + 1, visualizer.Result[i].Number);
       }
-      Assert.Equal(_textRange, visualizer.Range);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
+    }
+
+    [Fact]
+    public void TestSubscript() {
+      var compiler = new Compiler();
+      (var vm, var visualizer) = NewVMWithVisualizer();
+
+      var program = AstHelper.ExpressionStmt(AstHelper.Subscript(
+        AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2),
+                       AstHelper.NumberConstant(3)),
+        AstHelper.NumberConstant(1)
+      ));
+
+      Function func = compiler.Compile(program, vm.Env);
+      vm.Run(func);
+
+      Assert.True(visualizer.Result.IsList);
+      for (int i = 0; i < visualizer.Result.Count; i++) {
+        Assert.Equal(i + 1, visualizer.Result[i].Number);
+      }
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     private static (VM, MockupVisualizer) NewVMWithVisualizer() {
@@ -192,67 +218,6 @@ namespace SeedLang.Interpreter.Tests {
       visualizerCenter.Register(visualizer);
       var vm = new VM(visualizerCenter);
       return (vm, visualizer);
-    }
-
-    private static AssignmentStatement Assign(Expression target, Expression expr) {
-      return Statement.Assignment(target, expr, _textRange);
-    }
-
-    private static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
-      return Expression.Binary(left, op, right, _textRange);
-    }
-
-    private static BlockStatement Block(params Statement[] statements) {
-      return Statement.Block(statements, _textRange);
-    }
-
-    private static BooleanExpression Boolean(BooleanOperator op, params Expression[] exprs) {
-      return Expression.Boolean(op, exprs, _textRange);
-    }
-
-    private static CallExpression Call(Expression func, params Expression[] arguments) {
-      return Expression.Call(func, arguments, _textRange);
-    }
-
-    private static ComparisonExpression Comparison(Expression first, ComparisonOperator[] ops,
-                                                    params Expression[] exprs) {
-      return Expression.Comparison(first, ops, exprs, _textRange);
-    }
-
-    private static ComparisonOperator[] CompOps(params ComparisonOperator[] ops) {
-      return ops;
-    }
-
-    private static ExpressionStatement ExpressionStmt(Expression expr) {
-      return Statement.Expression(expr, _textRange);
-    }
-
-    private static FuncDefStatement FuncDef(string name, string[] parameters, Statement body) {
-      return Statement.FuncDef(name, parameters, body, _textRange);
-    }
-
-    private static string[] Params(params string[] parameters) {
-      return parameters;
-    }
-
-    private static IdentifierExpression Id(string name) {
-      return Expression.Identifier(name, _textRange);
-    }
-
-    private static IfStatement If(Expression test, Statement thenBody, Statement elseBody) {
-      return Statement.If(test, thenBody, elseBody, _textRange);
-    }
-
-    private static NumberConstantExpression NumberConstant(double value) {
-      return Expression.NumberConstant(value, _textRange);
-    }
-
-    private static ReturnStatement Return(Expression result) {
-      return Statement.Return(result, _textRange);
-    }
-
-    private static UnaryExpression Unary(UnaryOperator op, Expression expr) {
-      return Expression.Unary(op, expr, _textRange);
     }
   }
 }

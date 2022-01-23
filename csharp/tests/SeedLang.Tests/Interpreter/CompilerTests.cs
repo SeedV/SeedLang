@@ -335,6 +335,42 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileNestedIf() {
+      var @if = AstHelper.If(
+        AstHelper.Comparison(AstHelper.NumberConstant(1),
+                             AstHelper.CompOps(ComparisonOperator.EqEqual),
+                             AstHelper.NumberConstant(2)),
+        AstHelper.If(
+          AstHelper.Comparison(AstHelper.NumberConstant(3),
+                               AstHelper.CompOps(ComparisonOperator.Less),
+                               AstHelper.NumberConstant(4)),
+          AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
+          AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
+        ),
+        AstHelper.ExpressionStmt(AstHelper.NumberConstant(3))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    EQ        1 -1 -2          ; 1 2               {AstHelper.TextRange}\n" +
+          $"  2    JMP       0 8              ; to 11             {AstHelper.TextRange}\n" +
+          $"  3    LT        1 -3 -4          ; 3 4               {AstHelper.TextRange}\n" +
+          $"  4    JMP       0 3              ; to 8              {AstHelper.TextRange}\n" +
+          $"  5    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  6    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  7    JMP       0 2              ; to 10             {AstHelper.TextRange}\n" +
+          $"  8    LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  9    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  10   JMP       0 2              ; to 13             {AstHelper.TextRange}\n" +
+          $"  11   LOADK     0 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  12   EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  13   RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileWhile() {
       string sum = "sum";
       string i = "i";

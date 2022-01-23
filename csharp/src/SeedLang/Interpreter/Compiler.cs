@@ -21,18 +21,15 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
-    private NestedFuncStack _nestedFuncStack;
     private VariableResolver _variableResolver;
+    private NestedFuncStack _nestedFuncStack;
+    private NestedJumpStack _nestedJumpStack;
 
     // The register allocated for the result of sub-expressions.
     private uint _registerForSubExpr;
     // The next boolean operator. A true condition check instruction is emitted if the next boolean
     // operator is "And", otherwise a false condition instruction check is emitted.
     private BooleanOperator _nextBooleanOp;
-    // A list to collect all true short circuit jumps.
-    private readonly List<int> _trueShortCircuitJumps = new List<int>();
-    // A list to collect all false short circuit jumps.
-    private readonly List<int> _falseShortCircuitJumps = new List<int>();
 
     // The chunk on the top of the function stack.
     private Chunk _chunk;
@@ -40,8 +37,9 @@ namespace SeedLang.Interpreter {
     private ConstantCache _constantCache;
 
     internal Function Compile(AstNode node, GlobalEnvironment env) {
-      _nestedFuncStack = new NestedFuncStack();
       _variableResolver = new VariableResolver(env);
+      _nestedFuncStack = new NestedFuncStack();
+      _nestedJumpStack = new NestedJumpStack();
       // Starts to parse the main function in the global scope.
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
@@ -75,10 +73,10 @@ namespace SeedLang.Interpreter {
         if (i < boolean.Exprs.Length - 1) {
           switch (boolean.Op) {
             case BooleanOperator.And:
-              PatchJumps(_trueShortCircuitJumps);
+              PatchJumps(_nestedJumpStack.TrueJumps);
               break;
             case BooleanOperator.Or:
-              PatchJumps(_falseShortCircuitJumps);
+              PatchJumps(_nestedJumpStack.FalseJumps);
               break;
           }
         }
@@ -284,18 +282,20 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(IfStatement @if) {
+      _nestedJumpStack.PushJumpFrame();
       Visit(@if.Test);
-      PatchJumps(_trueShortCircuitJumps);
+      PatchJumps(_nestedJumpStack.TrueJumps);
       Visit(@if.ThenBody);
       if (!(@if.ElseBody is null)) {
         _chunk.Emit(Opcode.JMP, 0, @if.Range);
         int jumpEnd = GetCurrentCodePos();
-        PatchJumps(_falseShortCircuitJumps);
+        PatchJumps(_nestedJumpStack.FalseJumps);
         Visit(@if.ElseBody);
         PatchJump(jumpEnd);
       } else {
-        PatchJumps(_falseShortCircuitJumps);
+        PatchJumps(_nestedJumpStack.FalseJumps);
       }
+      _nestedJumpStack.PopJumpFrame();
     }
 
     protected override void Visit(ReturnStatement @return) {
@@ -310,11 +310,13 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(WhileStatement @while) {
+      _nestedJumpStack.PushJumpFrame();
       int start = _chunk.Bytecode.Count;
       Visit(@while.Test);
       Visit(@while.Body);
       _chunk.Emit(Opcode.JMP, start - (_chunk.Bytecode.Count + 1), @while.Range);
-      PatchJumps(_falseShortCircuitJumps);
+      PatchJumps(_nestedJumpStack.FalseJumps);
+      _nestedJumpStack.PopJumpFrame();
     }
 
     private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
@@ -330,10 +332,10 @@ namespace SeedLang.Interpreter {
       int jump = GetCurrentCodePos();
       switch (_nextBooleanOp) {
         case BooleanOperator.And:
-          _falseShortCircuitJumps.Add(jump);
+          _nestedJumpStack.FalseJumps.Add(jump);
           break;
         case BooleanOperator.Or:
-          _trueShortCircuitJumps.Add(jump);
+          _nestedJumpStack.TrueJumps.Add(jump);
           break;
       }
     }

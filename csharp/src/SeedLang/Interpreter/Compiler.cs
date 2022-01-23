@@ -51,8 +51,8 @@ namespace SeedLang.Interpreter {
     protected override void Visit(BinaryExpression binary) {
       _variableResolver.BeginExpressionScope();
       uint register = _registerForSubExpr;
-      uint left = VisitExpression(binary.Left);
-      uint right = VisitExpression(binary.Right);
+      uint left = VisitExpressionForRKId(binary.Left);
+      uint right = VisitExpressionForRKId(binary.Right);
       _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), register, left, right, binary.Range);
       _variableResolver.EndExpressionScope();
     }
@@ -60,7 +60,7 @@ namespace SeedLang.Interpreter {
     protected override void Visit(UnaryExpression unary) {
       _variableResolver.BeginExpressionScope();
       uint register = _registerForSubExpr;
-      uint expr = VisitExpression(unary.Expr);
+      uint expr = VisitExpressionForRKId(unary.Expr);
       _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
       _variableResolver.EndExpressionScope();
     }
@@ -139,15 +139,8 @@ namespace SeedLang.Interpreter {
     protected override void Visit(SubscriptExpression subscript) {
       _variableResolver.BeginExpressionScope();
       uint targetId = _registerForSubExpr;
-      uint listId;
-      if (GetRegisterId(subscript.Expr) is uint list) {
-        listId = list;
-      } else {
-        listId = _variableResolver.AllocateVariable();
-        _registerForSubExpr = listId;
-        Visit(subscript.Expr);
-      }
-      uint indexId = VisitExpression(subscript.Index);
+      uint listId = VisitExpressionForRegisterId(subscript.Expr);
+      uint indexId = VisitExpressionForRKId(subscript.Index);
       _chunk.Emit(Opcode.GETELEM, targetId, listId, indexId, subscript.Range);
       _variableResolver.EndExpressionScope();
     }
@@ -220,16 +213,9 @@ namespace SeedLang.Interpreter {
           break;
         case SubscriptExpression subscript:
           _variableResolver.BeginExpressionScope();
-          uint listId;
-          if (GetRegisterId(subscript.Expr) is uint list) {
-            listId = list;
-          } else {
-            listId = _variableResolver.AllocateVariable();
-            _registerForSubExpr = listId;
-            Visit(subscript.Expr);
-          }
-          uint indexId = VisitExpression(subscript.Index);
-          uint exprId = VisitExpression(assignment.Expr);
+          uint listId = VisitExpressionForRegisterId(subscript.Expr);
+          uint indexId = VisitExpressionForRKId(subscript.Index);
+          uint exprId = VisitExpressionForRKId(assignment.Expr);
           _chunk.Emit(Opcode.SETELEM, listId, indexId, exprId, subscript.Range);
           _variableResolver.EndExpressionScope();
           break;
@@ -282,7 +268,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(IfStatement @if) {
-      _nestedJumpStack.PushJumpFrame();
+      _nestedJumpStack.PushFrame();
       Visit(@if.Test);
       PatchJumps(_nestedJumpStack.TrueJumps);
       Visit(@if.ThenBody);
@@ -295,7 +281,7 @@ namespace SeedLang.Interpreter {
       } else {
         PatchJumps(_nestedJumpStack.FalseJumps);
       }
-      _nestedJumpStack.PopJumpFrame();
+      _nestedJumpStack.PopFrame();
     }
 
     protected override void Visit(ReturnStatement @return) {
@@ -310,19 +296,19 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(WhileStatement @while) {
-      _nestedJumpStack.PushJumpFrame();
+      _nestedJumpStack.PushFrame();
       int start = _chunk.Bytecode.Count;
       Visit(@while.Test);
       Visit(@while.Body);
       _chunk.Emit(Opcode.JMP, start - (_chunk.Bytecode.Count + 1), @while.Range);
       PatchJumps(_nestedJumpStack.FalseJumps);
-      _nestedJumpStack.PopJumpFrame();
+      _nestedJumpStack.PopFrame();
     }
 
     private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
                                        Range range) {
-      uint leftRegister = VisitExpression(left);
-      uint rightRegister = VisitExpression(right);
+      uint leftRegister = VisitExpressionForRKId(left);
+      uint rightRegister = VisitExpressionForRKId(right);
       (Opcode opcode, bool checkFlag) = OpcodeAndCheckFlagOfComparisonOperator(op);
       if (_nextBooleanOp == BooleanOperator.Or) {
         checkFlag = !checkFlag;
@@ -373,7 +359,16 @@ namespace SeedLang.Interpreter {
       _constantCache = _nestedFuncStack.CurrentConstantCache();
     }
 
-    private uint VisitExpression(Expression expr) {
+    private uint VisitExpressionForRegisterId(Expression expr) {
+      if (!(GetRegisterId(expr) is uint exprId)) {
+        exprId = _variableResolver.AllocateVariable();
+        _registerForSubExpr = exprId;
+        Visit(expr);
+      }
+      return exprId;
+    }
+
+    private uint VisitExpressionForRKId(Expression expr) {
       if (!(GetRegisterOrConstantId(expr) is uint exprId)) {
         exprId = _variableResolver.AllocateVariable();
         _registerForSubExpr = exprId;

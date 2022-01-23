@@ -16,11 +16,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
+  // A helper class to collect positions of jump bytecodes for nested "if" and "while" statements
+  // during compilation.
   internal class NestedJumpStack {
     private class Frame {
-      // A list to collect bytecode positions of all true jumps.
+      // A list to collect positions of all true jump bytecode.
       public readonly List<int> TrueJumps = new List<int>();
-      // A list to collect bytecode positions of all false jumps.
+      // A list to collect bytecode positions of all false jump bytecode.
       public readonly List<int> FalseJumps = new List<int>();
     }
 
@@ -29,11 +31,13 @@ namespace SeedLang.Interpreter {
 
     private readonly Stack<Frame> _frames = new Stack<Frame>();
 
-    internal void PushJumpFrame() {
+    // Pushes a new frame when a "if" or "while" statement is visited by the compiler.
+    internal void PushFrame() {
       _frames.Push(new Frame());
     }
 
-    internal void PopJumpFrame() {
+    // Pops a frame when a "if" or "while" statement is finished visiting.
+    internal void PopFrame() {
       Debug.Assert(_frames.Count > 0 && _frames.Peek().TrueJumps.Count == 0 &&
                    _frames.Peek().FalseJumps.Count == 0);
       _frames.Pop();

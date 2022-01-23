@@ -59,12 +59,10 @@ namespace SeedLang.Interpreter {
               // kind of notification is needed, or if other kinds of notification can replace it.
               break;
             case Opcode.GETELEM:
-              double getIndex = ValueOfRK(chunk, instr.C, baseRegister).AsNumber();
-              _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][getIndex];
+              GetElement(chunk, instr, baseRegister);
               break;
             case Opcode.SETELEM:
-              double setIndex = ValueOfRK(chunk, instr.B, baseRegister).AsNumber();
-              _stack[baseRegister + instr.A][setIndex] = ValueOfRK(chunk, instr.C, baseRegister);
+              SetElement(chunk, instr, baseRegister);
               break;
             case Opcode.ADD:
             case Opcode.SUB:
@@ -131,6 +129,16 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    private void GetElement(Chunk chunk, Instruction instr, uint baseRegister) {
+      double index = ValueOfRK(chunk, instr.C, baseRegister).AsNumber();
+      _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][index];
+    }
+
+    private void SetElement(Chunk chunk, Instruction instr, uint baseRegister) {
+      double index = ValueOfRK(chunk, instr.B, baseRegister).AsNumber();
+      _stack[baseRegister + instr.A][index] = ValueOfRK(chunk, instr.C, baseRegister);
+    }
+
     private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister, Range range) {
       BinaryOperator op = BinaryOperator.Add;
       double result = 0;
@@ -164,8 +172,8 @@ namespace SeedLang.Interpreter {
 
     private void CallFunction(ref Chunk chunk, ref int pc, ref uint baseRegister,
                               Instruction instr) {
-      var callFunc = _stack[baseRegister + instr.A].AsFunction();
-      switch (callFunc) {
+      var callee = _stack[baseRegister + instr.A].AsFunction();
+      switch (callee) {
         case NativeFunction nativeFunc:
           var arguments = new System.ArraySegment<Value>(_stack, (int)instr.A + 1, (int)instr.B);
           _stack[baseRegister + instr.A] = nativeFunc.Call(arguments);

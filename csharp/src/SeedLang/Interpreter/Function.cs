@@ -27,7 +27,7 @@ namespace SeedLang.Interpreter {
     }
 
     public Value Call(ArraySegment<Value> arguments) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     public override string ToString() {

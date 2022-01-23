@@ -86,10 +86,6 @@ namespace SeedLang.Runtime {
           case RunType.Bytecode:
             var compiler = new Compiler();
             Interpreter.Function func = compiler.Compile(node, _vm.Env);
-            /// <summary>
-            /// ddddd
-            /// </summary>
-            Console.WriteLine(new Disassembler(func).ToString());
             _vm.Run(func);
             return true;
           default:

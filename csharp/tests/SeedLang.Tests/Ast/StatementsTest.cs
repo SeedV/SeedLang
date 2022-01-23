@@ -13,15 +13,13 @@
 // limitations under the License.
 
 using System;
-using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Tests.Helper;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {
   public class StatementsTests {
     internal class TestData : TheoryData<Statement, string> {
-      private static BlockRange _blockRange => new BlockRange(new BlockPosition("id"));
-
       public TestData() {
         AddAssignmentStatement();
         AddEmptyBlockStatement();
@@ -33,84 +31,77 @@ namespace SeedLang.Ast.Tests {
       }
 
       private void AddAssignmentStatement() {
-        var identifier = Expression.Identifier("id", _blockRange);
-        var expr = Expression.NumberConstant(1, _blockRange);
-        var assignment = Statement.Assignment(identifier, expr, _blockRange);
-        var expectedOutput = $"{_blockRange} AssignmentStatement\n" +
-                             $"  {_blockRange} IdentifierExpression (id)\n" +
-                             $"  {_blockRange} NumberConstantExpression (1)";
+        string name = "id";
+        var assignment = AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(1));
+        var expectedOutput = $"{AstHelper.TextRange} AssignmentStatement\n" +
+                             $"  {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+                             $"  {AstHelper.TextRange} NumberConstantExpression (1)";
         Add(assignment, expectedOutput);
       }
 
       private void AddEmptyBlockStatement() {
-        var block = Statement.Block(Array.Empty<Statement>(), _blockRange);
-        var expectedOutput = $"{_blockRange} BlockStatement";
+        var block = AstHelper.Block(Array.Empty<Statement>());
+        var expectedOutput = $"{AstHelper.TextRange} BlockStatement";
         Add(block, expectedOutput);
       }
 
       private void AddExpressionStatement() {
-        var one = Expression.NumberConstant(1, _blockRange);
-        var two = Expression.NumberConstant(2, _blockRange);
-        var three = Expression.NumberConstant(3, _blockRange);
-        var left = Expression.Binary(one, BinaryOperator.Add, two, _blockRange);
-        var binary = Expression.Binary(left, BinaryOperator.Multiply, three, _blockRange);
-        var expr = Statement.Expression(binary, _blockRange);
-        var expectedOutput = $"{_blockRange} ExpressionStatement\n" +
-                             $"  {_blockRange} BinaryExpression (*)\n" +
-                             $"    {_blockRange} BinaryExpression (+)\n" +
-                             $"      {_blockRange} NumberConstantExpression (1)\n" +
-                             $"      {_blockRange} NumberConstantExpression (2)\n" +
-                             $"    {_blockRange} NumberConstantExpression (3)";
+        var expr = AstHelper.ExpressionStmt(AstHelper.Binary(
+          AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
+                           AstHelper.NumberConstant(2)),
+          BinaryOperator.Multiply,
+          AstHelper.NumberConstant(3)
+        ));
+        var expectedOutput = $"{AstHelper.TextRange} ExpressionStatement\n" +
+                             $"  {AstHelper.TextRange} BinaryExpression (*)\n" +
+                             $"    {AstHelper.TextRange} BinaryExpression (+)\n" +
+                             $"      {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+                             $"      {AstHelper.TextRange} NumberConstantExpression (2)\n" +
+                             $"    {AstHelper.TextRange} NumberConstantExpression (3)";
         Add(expr, expectedOutput);
       }
 
       private void AddFuncDefStatement() {
-        var arguments = new string[] { "arg1", "arg2", };
-        var body = Statement.Block(Array.Empty<Statement>(), _blockRange);
-        var funcDef = Statement.FuncDef("func", arguments, body, _blockRange);
-        var expectedOutput = $"{_blockRange} FuncDefStatement (func:arg1,arg2)\n" +
-                             $"  {_blockRange} BlockStatement";
+        var funcDef = AstHelper.FuncDef("func", AstHelper.Params("arg1", "arg2"),
+                                        AstHelper.Block(Array.Empty<Statement>()));
+        var expectedOutput = $"{AstHelper.TextRange} FuncDefStatement (func:arg1,arg2)\n" +
+                             $"  {AstHelper.TextRange} BlockStatement";
         Add(funcDef, expectedOutput);
       }
 
       private void AddIfStatement() {
-        var test = Expression.BooleanConstant(false, _blockRange);
-        var identifier = Expression.Identifier("id", _blockRange);
-        var one = Expression.NumberConstant(1, _blockRange);
-        var two = Expression.NumberConstant(2, _blockRange);
-        var thenBody = Statement.Assignment(identifier, one, _blockRange);
-        var elseBody = Statement.Assignment(identifier, two, _blockRange);
-        var @if = Statement.If(test, thenBody, elseBody, _blockRange);
-        var expectedOutput = $"{_blockRange} IfStatement\n" +
-                             $"  {_blockRange} BooleanConstantExpression (False)\n" +
-                             $"  {_blockRange} AssignmentStatement\n" +
-                             $"    {_blockRange} IdentifierExpression (id)\n" +
-                             $"    {_blockRange} NumberConstantExpression (1)\n" +
-                             $"  {_blockRange} AssignmentStatement\n" +
-                             $"    {_blockRange} IdentifierExpression (id)\n" +
-                             $"    {_blockRange} NumberConstantExpression (2)";
+        string name = "id";
+        var @if = AstHelper.If(AstHelper.BooleanConstant(false),
+                               AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(1)),
+                               AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(2)));
+        var expectedOutput = $"{AstHelper.TextRange} IfStatement\n" +
+                             $"  {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
+                             $"  {AstHelper.TextRange} AssignmentStatement\n" +
+                             $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+                             $"    {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+                             $"  {AstHelper.TextRange} AssignmentStatement\n" +
+                             $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+                             $"    {AstHelper.TextRange} NumberConstantExpression (2)";
         Add(@if, expectedOutput);
       }
 
       private void AddReturnStatement() {
-        var value = Expression.NumberConstant(1, _blockRange);
-        var ret = Statement.Return(value, _blockRange);
-        var expectedOutput = $"{_blockRange} ReturnStatement\n" +
-                             $"  {_blockRange} NumberConstantExpression (1)";
+        var ret = AstHelper.Return(AstHelper.NumberConstant(1));
+        var expectedOutput = $"{AstHelper.TextRange} ReturnStatement\n" +
+                             $"  {AstHelper.TextRange} NumberConstantExpression (1)";
         Add(ret, expectedOutput);
       }
 
       private void AddWhileStatement() {
-        var test = Expression.BooleanConstant(true, _blockRange);
-        var identifier = Expression.Identifier("id", _blockRange);
-        var one = Expression.NumberConstant(1, _blockRange);
-        var body = Statement.Assignment(identifier, one, _blockRange);
-        var @while = Statement.While(test, body, _blockRange);
-        var expectedOutput = $"{_blockRange} WhileStatement\n" +
-                             $"  {_blockRange} BooleanConstantExpression (True)\n" +
-                             $"  {_blockRange} AssignmentStatement\n" +
-                             $"    {_blockRange} IdentifierExpression (id)\n" +
-                             $"    {_blockRange} NumberConstantExpression (1)";
+        string name = "id";
+        var @while = AstHelper.While(AstHelper.BooleanConstant(true),
+                                     AstHelper.Assign(AstHelper.Id(name),
+                                                      AstHelper.NumberConstant(1)));
+        var expectedOutput = $"{AstHelper.TextRange} WhileStatement\n" +
+                             $"  {AstHelper.TextRange} BooleanConstantExpression (True)\n" +
+                             $"  {AstHelper.TextRange} AssignmentStatement\n" +
+                             $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+                             $"    {AstHelper.TextRange} NumberConstantExpression (1)";
         Add(@while, expectedOutput);
       }
     }

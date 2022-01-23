@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections.Generic;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
@@ -25,8 +27,8 @@ namespace SeedLang.Interpreter {
       Name = name;
     }
 
-    public Value Call(Value[] arguments) {
-      throw new System.NotImplementedException();
+    public Value Call(IList<Value> arguments) {
+      throw new NotImplementedException();
     }
 
     public override string ToString() {

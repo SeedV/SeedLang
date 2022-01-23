@@ -43,8 +43,8 @@ namespace SeedLang.Ast {
     }
 
     // Calls a AST function with given arguments.
-    internal Value Call(FuncDefStatement funcDef, Value[] arguments) {
-      if (funcDef.Parameters.Length != arguments.Length) {
+    internal Value Call(FuncDefStatement funcDef, IList<Value> arguments) {
+      if (funcDef.Parameters.Length != arguments.Count) {
         throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }

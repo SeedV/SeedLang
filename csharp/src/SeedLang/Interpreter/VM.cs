@@ -18,7 +18,7 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
-    public readonly GlobalEnvironment Env = new GlobalEnvironment();
+    public readonly GlobalEnvironment Env = new GlobalEnvironment(NativeFunctions.Funcs);
 
     // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
     // can hold maximun 100 recursive function calls.
@@ -57,6 +57,12 @@ namespace SeedLang.Interpreter {
               // distinguish assignment to local variable or temporary variables, and the name
               // information of the variables have been removed during compilation. Decide if this
               // kind of notification is needed, or if other kinds of notification can replace it.
+              break;
+            case Opcode.GETELEM:
+              GetElement(chunk, instr, baseRegister);
+              break;
+            case Opcode.SETELEM:
+              SetElement(chunk, instr, baseRegister);
               break;
             case Opcode.ADD:
             case Opcode.SUB:
@@ -97,11 +103,7 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.CALL:
-              var callFunc = _stack[baseRegister + instr.A].AsFunction() as Function;
-              baseRegister += instr.A + 1;
-              _callStack.PushFunc(callFunc, baseRegister, pc);
-              chunk = callFunc.Chunk;
-              pc = -1;
+              CallFunction(ref chunk, ref pc, ref baseRegister, instr);
               break;
             case Opcode.RETURN:
               uint currentBase = _callStack.CurrentBase();
@@ -125,6 +127,16 @@ namespace SeedLang.Interpreter {
         }
         pc++;
       }
+    }
+
+    private void GetElement(Chunk chunk, Instruction instr, uint baseRegister) {
+      double index = ValueOfRK(chunk, instr.C, baseRegister).AsNumber();
+      _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][index];
+    }
+
+    private void SetElement(Chunk chunk, Instruction instr, uint baseRegister) {
+      double index = ValueOfRK(chunk, instr.B, baseRegister).AsNumber();
+      _stack[baseRegister + instr.A][index] = ValueOfRK(chunk, instr.C, baseRegister);
     }
 
     private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister, Range range) {
@@ -155,6 +167,23 @@ namespace SeedLang.Interpreter {
         var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
                                  new ValueWrapper(_stack[baseRegister + instr.A]), range);
         _visualizerCenter.BinaryPublisher.Notify(be);
+      }
+    }
+
+    private void CallFunction(ref Chunk chunk, ref int pc, ref uint baseRegister,
+                              Instruction instr) {
+      var callee = _stack[baseRegister + instr.A].AsFunction();
+      switch (callee) {
+        case NativeFunction nativeFunc:
+          var arguments = new System.ArraySegment<Value>(_stack, (int)instr.A + 1, (int)instr.B);
+          _stack[baseRegister + instr.A] = nativeFunc.Call(arguments);
+          break;
+        case Function func:
+          baseRegister += instr.A + 1;
+          _callStack.PushFunc(func, baseRegister, pc);
+          chunk = func.Chunk;
+          pc = -1;
+          break;
       }
     }
 

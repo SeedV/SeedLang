@@ -13,20 +13,23 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
+  using NativeFunctionType = Func<IList<Value>, Value>;
+
   // The native function class to encapsulate build-in functions written by the host language.
   internal class NativeFunction : IFunction {
     public readonly string Name;
-    private readonly Func<Value[], Value> _func;
+    private readonly NativeFunctionType _func;
 
-    internal NativeFunction(string name, Func<Value[], Value> func) {
+    internal NativeFunction(string name, NativeFunctionType func) {
       Name = name;
       _func = func;
     }
 
-    public Value Call(Value[] parameters) {
+    public Value Call(IList<Value> parameters) {
       return _func(parameters);
     }
 
@@ -38,8 +41,11 @@ namespace SeedLang.Runtime {
   // The static class to define all the build-in native functions.
   internal static class NativeFunctions {
     public static NativeFunction[] Funcs = new NativeFunction[] {
-      new NativeFunction("len", (Value[] arguments) => {
-        if (arguments.Length != 1) {
+      new NativeFunction("list", (IList<Value> arguments) => {
+        return Value.List(new List<Value>(arguments));
+      }),
+      new NativeFunction("len", (IList<Value> arguments) => {
+        if (arguments.Count != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }

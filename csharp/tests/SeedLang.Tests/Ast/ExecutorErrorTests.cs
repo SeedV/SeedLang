@@ -14,18 +14,17 @@
 
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Tests.Helper;
 using Xunit;
 
 namespace SeedLang.Ast.Tests {
   public class ExecutorErrorTests {
-    private static TextRange _textRange => new TextRange(0, 1, 2, 3);
-
     [Fact]
     public void TestExecuteDivideByZero() {
-      var zero = Expression.NumberConstant(0, _textRange);
-      var one = Expression.NumberConstant(1, _textRange);
-      var binary1 = Expression.Binary(one, BinaryOperator.Divide, zero, _textRange);
-      var binary2 = Expression.Binary(zero, BinaryOperator.Divide, zero, _textRange);
+      var binary1 = AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Divide,
+                                     AstHelper.NumberConstant(0));
+      var binary2 = AstHelper.Binary(AstHelper.NumberConstant(0), BinaryOperator.Divide,
+                                     AstHelper.NumberConstant(0));
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       var exception1 = Assert.Throws<DiagnosticException>(() => executor.Run(binary1));
@@ -36,12 +35,11 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteOutOfRange() {
-      var one = Expression.NumberConstant(1, _textRange);
-      var two = Expression.NumberConstant(2, _textRange);
-      var three = Expression.NumberConstant(3, _textRange);
-      var list = Expression.List(new Expression[] { one, two, three }, _textRange);
-      var subscript = Expression.Subscript(list, three, _textRange);
-      var eval = Statement.Expression(subscript, _textRange);
+      var eval = AstHelper.ExpressionStmt(AstHelper.Subscript(
+        AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2),
+                       AstHelper.NumberConstant(3)),
+        AstHelper.NumberConstant(3)
+      ));
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       var exception = Assert.Throws<DiagnosticException>(() => executor.Run(eval));
       Assert.Equal(Message.RuntimeErrorOutOfRange, exception.Diagnostic.MessageId);
@@ -49,9 +47,7 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteNotSubscriptable() {
-      var one = Expression.NumberConstant(1, _textRange);
-      var two = Expression.NumberConstant(2, _textRange);
-      var subscript = Expression.Subscript(one, two, _textRange);
+      var subscript = AstHelper.Subscript(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       var exception = Assert.Throws<DiagnosticException>(() => executor.Run(subscript));
@@ -60,11 +56,10 @@ namespace SeedLang.Ast.Tests {
 
     [Fact]
     public void TestExecuteInvalidListIndex() {
-      var one = Expression.NumberConstant(1, _textRange);
-      var two = Expression.NumberConstant(2, _textRange);
-      var list = Expression.List(new Expression[] { one, two }, _textRange);
-      var index = Expression.NumberConstant(0.1, _textRange);
-      var subscript = Expression.Subscript(list, index, _textRange);
+      var subscript = AstHelper.Subscript(
+        AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)),
+        AstHelper.NumberConstant(0.1)
+      );
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       var exception = Assert.Throws<DiagnosticException>(() => executor.Run(subscript));

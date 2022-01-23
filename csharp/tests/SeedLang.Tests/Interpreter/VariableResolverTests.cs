@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
@@ -21,7 +23,7 @@ namespace SeedLang.Interpreter.Tests {
   public class VariableResolverTests {
     [Fact]
     public void TestFunctionScope() {
-      var env = new GlobalEnvironment();
+      var env = new GlobalEnvironment(Array.Empty<NativeFunction>());
       string a = "a";
       string b = "b";
       Assert.Equal(0u, env.DefineVariable(a));

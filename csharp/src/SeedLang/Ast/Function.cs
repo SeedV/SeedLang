@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using System.Collections.Generic;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
@@ -27,7 +27,7 @@ namespace SeedLang.Ast {
       _executor = executor;
     }
 
-    public Value Call(ArraySegment<Value> arguments) {
+    public Value Call(IList<Value> arguments) {
       return _executor.Call(_funcDef, arguments);
     }
   }

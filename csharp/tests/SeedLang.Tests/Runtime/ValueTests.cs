@@ -141,7 +141,7 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNativeFunction() {
-      var nativeFunc = new NativeFunction("add", (ArraySegment<Value> parameters) => {
+      var nativeFunc = new NativeFunction("add", (IList<Value> parameters) => {
         if (parameters.Count == 2) {
           return Value.Number(parameters[0].AsNumber() + parameters[1].AsNumber());
         }

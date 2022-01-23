@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
@@ -26,7 +27,7 @@ namespace SeedLang.Interpreter {
       Name = name;
     }
 
-    public Value Call(ArraySegment<Value> arguments) {
+    public Value Call(IList<Value> arguments) {
       throw new NotImplementedException();
     }
 

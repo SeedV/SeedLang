@@ -32,7 +32,8 @@ namespace SeedLang.Ast.Tests {
 
       private void AddAssignmentStatement() {
         string name = "id";
-        var assignment = AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(1));
+        var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
+                                          AstHelper.NumberConstant(1));
         var expectedOutput = $"{AstHelper.TextRange} AssignmentStatement\n" +
                              $"  {AstHelper.TextRange} IdentifierExpression ({name})\n" +
                              $"  {AstHelper.TextRange} NumberConstantExpression (1)";
@@ -72,8 +73,10 @@ namespace SeedLang.Ast.Tests {
       private void AddIfStatement() {
         string name = "id";
         var @if = AstHelper.If(AstHelper.BooleanConstant(false),
-                               AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(1)),
-                               AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(2)));
+                               AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
+                                                AstHelper.NumberConstant(1)),
+                               AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
+                                                AstHelper.NumberConstant(2)));
         var expectedOutput = $"{AstHelper.TextRange} IfStatement\n" +
                              $"  {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
                              $"  {AstHelper.TextRange} AssignmentStatement\n" +
@@ -95,7 +98,7 @@ namespace SeedLang.Ast.Tests {
       private void AddWhileStatement() {
         string name = "id";
         var @while = AstHelper.While(AstHelper.BooleanConstant(true),
-                                     AstHelper.Assign(AstHelper.Id(name),
+                                     AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
                                                       AstHelper.NumberConstant(1)));
         var expectedOutput = $"{AstHelper.TextRange} WhileStatement\n" +
                              $"  {AstHelper.TextRange} BooleanConstantExpression (True)\n" +

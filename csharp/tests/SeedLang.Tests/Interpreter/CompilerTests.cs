@@ -108,7 +108,8 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileAssignNumberConstant() {
-      var assignment = AstHelper.Assign(AstHelper.Id("name"), AstHelper.NumberConstant(1));
+      var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("name")),
+                                        AstHelper.NumberConstant(1));
       var compiler = new Compiler();
       var func = compiler.Compile(assignment, _env);
       string expected = (
@@ -123,7 +124,7 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestCompileAssignBinary() {
       var assignment = AstHelper.Assign(
-        AstHelper.Id("name"),
+        AstHelper.Targets(AstHelper.Id("name")),
         AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
       );
@@ -375,16 +376,16 @@ namespace SeedLang.Interpreter.Tests {
       string sum = "sum";
       string i = "i";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Id(sum), AstHelper.NumberConstant(0)),
-        AstHelper.Assign(AstHelper.Id(i), AstHelper.NumberConstant(0)),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)), AstHelper.NumberConstant(0)),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)), AstHelper.NumberConstant(0)),
         AstHelper.While(
           AstHelper.Comparison(AstHelper.Id(i), AstHelper.CompOps(ComparisonOperator.LessEqual),
                                AstHelper.NumberConstant(10)),
           AstHelper.Block(
-            AstHelper.Assign(AstHelper.Id(sum),
+            AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)),
                              AstHelper.Binary(AstHelper.Id(sum), BinaryOperator.Add,
                                               AstHelper.Id(i))),
-            AstHelper.Assign(AstHelper.Id(i),
+            AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)),
                              AstHelper.Binary(AstHelper.Id(i), BinaryOperator.Add,
                                               AstHelper.NumberConstant(1)))
           )
@@ -547,10 +548,12 @@ namespace SeedLang.Interpreter.Tests {
     public void TestCompileSubscriptAssignment() {
       string a = "a";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Id(a), AstHelper.List(AstHelper.NumberConstant(1),
-                                                         AstHelper.NumberConstant(2),
-                                                         AstHelper.NumberConstant(3))),
-        AstHelper.Assign(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+                         AstHelper.List(AstHelper.NumberConstant(1),
+                                        AstHelper.NumberConstant(2),
+                                        AstHelper.NumberConstant(3))),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Subscript(AstHelper.Id(a),
+                                                               AstHelper.NumberConstant(1))),
                          AstHelper.NumberConstant(5)),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );

@@ -65,21 +65,15 @@ namespace SeedLang.X {
       return VisitorHelper.BuildExpressionStatement(context.expressions(), this);
     }
 
-    public override AstNode VisitName_assignment(
-        [NotNull] SeedPythonParser.Name_assignmentContext context) {
-      return _helper.BuildAssignment(context.NAME().Symbol, context.EQUAL().Symbol,
-                                     context.expression(), this);
+    public override AstNode VisitAssignment([NotNull] SeedPythonParser.AssignmentContext context) {
+      SeedPythonParser.TargetsContext targets = context.targets();
+      SeedPythonParser.ExpressionsContext exprs = context.expressions();
+      return _helper.BuildAssignment(targets.target(), targets.COMMA(), context.EQUAL().Symbol,
+                                     exprs.expression(), exprs.COMMA(), this);
     }
 
-    public override AstNode VisitSubscript_assignment(
-      [NotNull] SeedPythonParser.Subscript_assignmentContext context) {
-      var subscript = Visit(context.left_subscript()) as SubscriptExpression;
-      return _helper.BuildSubscriptAssignment(subscript, context.EQUAL().Symbol,
-                                              context.expression(), this);
-    }
-
-    public override AstNode VisitLeft_subscript(
-        [NotNull] SeedPythonParser.Left_subscriptContext context) {
+    public override AstNode VisitSubscript_target(
+      [NotNull] SeedPythonParser.Subscript_targetContext context) {
       return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
                                     context.expression(), context.CLOSE_BRACK().Symbol, this);
     }
@@ -235,10 +229,6 @@ namespace SeedLang.X {
                                     context.expression(), context.CLOSE_BRACK().Symbol, this);
     }
 
-    public override AstNode VisitName([NotNull] SeedPythonParser.NameContext context) {
-      return _helper.BuildIdentifier(context.NAME().Symbol);
-    }
-
     public override AstNode VisitTrue([NotNull] SeedPythonParser.TrueContext context) {
       return _helper.BuildBooleanConstant(context.TRUE().Symbol, true);
     }
@@ -253,6 +243,11 @@ namespace SeedLang.X {
 
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {
       return _helper.BuildNumberConstant(context.NUMBER().Symbol);
+    }
+
+    public override AstNode VisitIdentifier(
+      [NotNull] SeedPythonParser.IdentifierContext context) {
+      return _helper.BuildIdentifier(context.NAME().Symbol);
     }
 
     public override AstNode VisitGroup([NotNull] SeedPythonParser.GroupContext context) {

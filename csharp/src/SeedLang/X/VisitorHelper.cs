@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -211,22 +212,13 @@ namespace SeedLang.X {
                    exprContexts.Length == commaNodes.Length + 1);
       TextRange openBrackRange = CodeReferenceUtils.RangeOfToken(openBrackToken);
       AddSyntaxToken(SyntaxType.Bracket, openBrackRange);
-      var exprs = new Expression[exprContexts.Length];
-      for (int i = 0; i < exprContexts.Length; i++) {
-        if (visitor.Visit(exprContexts[i]) is Expression expr) {
-          exprs[i] = expr;
-          if (i < commaNodes.Length) {
-            TextRange commaRange = CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol);
-            AddSyntaxToken(SyntaxType.Symbol, commaRange);
-          }
-        } else {
-          return null;
-        }
+      if (BuildExpressions(exprContexts, commaNodes, visitor) is Expression[] exprs) {
+        TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
+        AddSyntaxToken(SyntaxType.Bracket, closeBrackRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(openBrackRange, closeBrackRange);
+        return Expression.List(exprs, range);
       }
-      TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
-      AddSyntaxToken(SyntaxType.Bracket, closeBrackRange);
-      TextRange range = CodeReferenceUtils.CombineRanges(openBrackRange, closeBrackRange);
-      return Expression.List(exprs, range);
+      return null;
     }
 
     // Builds a subscript expression.
@@ -279,33 +271,21 @@ namespace SeedLang.X {
     }
 
     // Builds an assignment statement.
-    internal AssignmentStatement BuildAssignment(IToken idToken, IToken equalToken,
-                                                 ParserRuleContext exprContext,
+    internal AssignmentStatement BuildAssignment(ParserRuleContext[] targetContexts,
+                                                 ITerminalNode[] targetCommaNodes,
+                                                 IToken equalToken,
+                                                 ParserRuleContext[] exprContexts,
+                                                 ITerminalNode[] exprCommaNodes,
                                                  AbstractParseTreeVisitor<AstNode> visitor) {
-      TextRange idRange = CodeReferenceUtils.RangeOfToken(idToken);
-      var identifier = Expression.Identifier(idToken.Text, idRange);
-      AddSyntaxToken(SyntaxType.Variable, idRange);
+      Debug.Assert(targetContexts.Length > 0 && exprContexts.Length > 0);
+      var targets = BuildExpressions(targetContexts, targetCommaNodes, visitor);
       AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(equalToken));
-
-      if (visitor.Visit(exprContext) is Expression expr) {
-        Debug.Assert(expr.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(idRange, expr.Range as TextRange);
-        return Statement.Assignment(identifier, expr, range);
-      }
-      return null;
-    }
-
-    // Builds a subscript assignment statement.
-    internal AssignmentStatement BuildSubscriptAssignment(
-        SubscriptExpression subscript, IToken equalToken, ParserRuleContext exprContext,
-        AbstractParseTreeVisitor<AstNode> visitor) {
-      AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(equalToken));
-      if (visitor.Visit(exprContext) is Expression expr) {
-        Debug.Assert(subscript.Range is TextRange);
-        Debug.Assert(expr.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(subscript.Range as TextRange,
-                                                           expr.Range as TextRange);
-        return Statement.Assignment(subscript, expr, range);
+      var exprs = BuildExpressions(exprContexts, exprCommaNodes, visitor);
+      if (!(targets is null) && !(exprs is null)) {
+        Debug.Assert(targets.Length > 0 && exprs.Length > 0);
+        TextRange range = CodeReferenceUtils.CombineRanges(targets[0].Range as TextRange,
+                                                           exprs[0].Range as TextRange);
+        return Statement.Assignment(targets, exprs, range);
       }
       return null;
     }
@@ -463,6 +443,24 @@ namespace SeedLang.X {
       Range range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
                                                      last.Range as TextRange);
       return new BlockStatement(statements, range);
+    }
+
+    private Expression[] BuildExpressions(ParserRuleContext[] exprContexts,
+                                          ITerminalNode[] commaNodes,
+                                          AbstractParseTreeVisitor<AstNode> visitor) {
+      var exprs = new Expression[exprContexts.Length];
+      for (int i = 0; i < exprContexts.Length; i++) {
+        if (visitor.Visit(exprContexts[i]) is Expression expr) {
+          exprs[i] = expr;
+          if (i < commaNodes.Length) {
+            TextRange commaRange = CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol);
+            AddSyntaxToken(SyntaxType.Symbol, commaRange);
+          }
+        } else {
+          Debug.Fail("");
+        }
+      }
+      return exprs;
     }
 
     private TextRange HandleConstantOrVariableExpression(IToken token, SyntaxType type) {

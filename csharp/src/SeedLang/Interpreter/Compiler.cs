@@ -180,7 +180,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
-      switch (assignment.Target) {
+      switch (assignment.Targets[0]) {
         case IdentifierExpression identifier:
           string name = identifier.Name;
           if (_variableResolver.FindVariable(name) is null) {
@@ -192,18 +192,18 @@ namespace SeedLang.Interpreter {
               _variableResolver.BeginExpressionScope();
               uint resultRegister = _variableResolver.AllocateVariable();
               _registerForSubExpr = resultRegister;
-              Visit(assignment.Expr);
+              Visit(assignment.Exprs[0]);
               _chunk.Emit(Opcode.SETGLOB, resultRegister, info.Id, assignment.Range);
               _variableResolver.EndExpressionScope();
               break;
             case VariableResolver.VariableType.Local:
-              if (GetRegisterId(assignment.Expr) is uint registerId) {
+              if (GetRegisterId(assignment.Exprs[0]) is uint registerId) {
                 _chunk.Emit(Opcode.MOVE, info.Id, registerId, 0, assignment.Range);
-              } else if (GetConstantId(assignment.Expr) is uint constantId) {
+              } else if (GetConstantId(assignment.Exprs[0]) is uint constantId) {
                 _chunk.Emit(Opcode.LOADK, info.Id, constantId, assignment.Range);
               } else {
                 _registerForSubExpr = info.Id;
-                Visit(assignment.Expr);
+                Visit(assignment.Exprs[0]);
               }
               break;
             case VariableResolver.VariableType.Upvalue:
@@ -215,7 +215,7 @@ namespace SeedLang.Interpreter {
           _variableResolver.BeginExpressionScope();
           uint listId = VisitExpressionForRegisterId(subscript.Expr);
           uint indexId = VisitExpressionForRKId(subscript.Index);
-          uint exprId = VisitExpressionForRKId(assignment.Expr);
+          uint exprId = VisitExpressionForRKId(assignment.Exprs[0]);
           _chunk.Emit(Opcode.SETELEM, listId, indexId, exprId, subscript.Range);
           _variableResolver.EndExpressionScope();
           break;

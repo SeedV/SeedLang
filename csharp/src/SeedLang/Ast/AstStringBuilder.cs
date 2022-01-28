@@ -192,8 +192,14 @@ namespace SeedLang.Ast {
 
     protected override void Visit(AssignmentStatement assignment) {
       Enter(assignment);
-      Visit(assignment.Target);
-      Visit(assignment.Expr);
+      for (int i = 0; i < assignment.Targets.Length; i++) {
+        Visit(assignment.Targets[i]);
+        _out.Append(i < assignment.Targets.Length - 1 ? ", " : " ");
+      }
+      for (int i = 0; i < assignment.Exprs.Length; i++) {
+        Visit(assignment.Exprs[i]);
+        _out.Append(i < assignment.Exprs.Length - 1 ? ", " : " ");
+      }
       Exit();
     }
 

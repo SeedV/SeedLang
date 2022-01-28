@@ -244,21 +244,28 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
-      Visit(assignment.Expr);
-      switch (assignment.Target) {
-        case IdentifierExpression identifier:
-          _env.SetVariable(identifier.Name, _expressionResult);
-          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(_expressionResult),
-                                       assignment.Range);
-          _visualizerCenter.AssignmentPublisher.Notify(ae);
-          break;
-        case SubscriptExpression subscript:
-          Value value = _expressionResult;
-          Visit(subscript.Expr);
-          Value list = _expressionResult;
-          Visit(subscript.Index);
-          list[_expressionResult.AsNumber()] = value;
-          break;
+      for (int i = 0; i < assignment.Targets.Length; i++) {
+        var value = Value.None();
+        if (i < assignment.Exprs.Length) {
+          Visit(assignment.Exprs[i]);
+        }
+        switch (assignment.Targets[i]) {
+          case IdentifierExpression identifier:
+            _env.SetVariable(identifier.Name, value);
+            var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(value),
+                                         assignment.Range);
+            _visualizerCenter.AssignmentPublisher.Notify(ae);
+            break;
+          case SubscriptExpression subscript:
+            Visit(subscript.Expr);
+            Value list = _expressionResult;
+            Visit(subscript.Index);
+            list[_expressionResult.AsNumber()] = value;
+            break;
+          default:
+            // TODO: throw a runtime error.
+            break;
+        }
       }
     }
 

@@ -68,13 +68,14 @@ primary:
   | primary OPEN_PAREN arguments? CLOSE_PAREN # call
   | atom                                      # atom_as_primary;
 atom:
-  NAME     # name
-  | TRUE   # true
-  | FALSE  # false
-  | NONE   # none
-  | NUMBER # number
-  | group  # group_as_atom
-  | list   # list_as_atom;
+  identifier # identifier_as_atom
+  | TRUE     # true
+  | FALSE    # false
+  | NONE     # none
+  | NUMBER   # number
+  | group    # group_as_atom
+  | list     # list_as_atom;
+identifier: NAME;
 
 arguments: expression (COMMA expression)*;
 

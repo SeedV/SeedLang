@@ -244,15 +244,20 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
+      var values = new Value[assignment.Targets.Length];
       for (int i = 0; i < assignment.Targets.Length; i++) {
-        var value = Value.None();
         if (i < assignment.Exprs.Length) {
           Visit(assignment.Exprs[i]);
+          values[i] = _expressionResult;
+        } else {
+          values[i] = Value.None();
         }
+      }
+      for (int i = 0; i < assignment.Targets.Length; i++) {
         switch (assignment.Targets[i]) {
           case IdentifierExpression identifier:
-            _env.SetVariable(identifier.Name, value);
-            var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(value),
+            _env.SetVariable(identifier.Name, values[i]);
+            var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(values[i]),
                                          assignment.Range);
             _visualizerCenter.AssignmentPublisher.Notify(ae);
             break;
@@ -260,7 +265,7 @@ namespace SeedLang.Ast {
             Visit(subscript.Expr);
             Value list = _expressionResult;
             Visit(subscript.Index);
-            list[_expressionResult.AsNumber()] = value;
+            list[_expressionResult.AsNumber()] = values[i];
             break;
           default:
             // TODO: throw a runtime error.

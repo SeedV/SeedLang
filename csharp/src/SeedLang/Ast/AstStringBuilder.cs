@@ -192,14 +192,8 @@ namespace SeedLang.Ast {
 
     protected override void Visit(AssignmentStatement assignment) {
       Enter(assignment);
-      for (int i = 0; i < assignment.Targets.Length; i++) {
-        Visit(assignment.Targets[i]);
-        _out.Append(i < assignment.Targets.Length - 1 ? ", " : " ");
-      }
-      for (int i = 0; i < assignment.Exprs.Length; i++) {
-        Visit(assignment.Exprs[i]);
-        _out.Append(i < assignment.Exprs.Length - 1 ? ", " : " ");
-      }
+      VisitExpressions(assignment.Targets);
+      VisitExpressions(assignment.Exprs);
       Exit();
     }
 
@@ -236,7 +230,9 @@ namespace SeedLang.Ast {
 
     protected override void Visit(ReturnStatement @return) {
       Enter(@return);
-      Visit(@return.Result);
+      if (!(@return.Result is null)) {
+        Visit(@return.Result);
+      }
       Exit();
     }
 
@@ -245,6 +241,15 @@ namespace SeedLang.Ast {
       Visit(@while.Test);
       Visit(@while.Body);
       Exit();
+    }
+
+    private void VisitExpressions(Expression[] exprs) {
+      for (int i = 0; i < exprs.Length; i++) {
+        Visit(exprs[i]);
+        if (i < exprs.Length - 1) {
+          _out.Append(", ");
+        }
+      }
     }
 
     private void Enter(AstNode node) {

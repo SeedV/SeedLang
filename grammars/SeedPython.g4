@@ -46,7 +46,7 @@ simple_stmt:
 compound_stmt: function_def | if_stmt | while_stmt;
 
 assignment: targets EQUAL expressions;
-targets: target (COMMA target)* COMMA?;
+targets: target (COMMA target)*;
 target:
   identifier                                  # identifier_target
   | primary OPEN_BRACK expression CLOSE_BRACK # subscript_target;

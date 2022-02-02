@@ -18,7 +18,7 @@ using Xunit;
 
 namespace SeedLang.X.Tests {
   public class SeedPythonDentLexerTests {
-    public class TestData : TheoryData<string, string[]> {
+    internal class TestData : TheoryData<string, string[]> {
       private const int _add = SeedPythonParser.ADD;
       private const int _colon = SeedPythonParser.COLON;
       private const int _dedent = SeedPythonParser.DEDENT;
@@ -141,18 +141,18 @@ namespace SeedLang.X.Tests {
         };
         Add(source, expectedTokens);
       }
+    }
 
-      [Theory]
-      [ClassData(typeof(TestData))]
-      public void TestScanTokens(string source, string[] expectedTokens) {
-        var inputStream = new AntlrInputStream(source);
-        var lexer = new SeedPythonDentLexer(inputStream);
-        IList<IToken> tokens = lexer.GetAllTokens();
-        Assert.Equal(expectedTokens.Length, tokens.Count);
-        for (int i = 0; i < expectedTokens.Length; ++i) {
-          string token = tokens[i].ToString().Replace(@"\r\n", @"\n");
-          Assert.Equal(expectedTokens[i], token);
-        }
+    [Theory]
+    [ClassData(typeof(TestData))]
+    public void TestScanTokens(string source, string[] expectedTokens) {
+      var inputStream = new AntlrInputStream(source);
+      var lexer = new SeedPythonDentLexer(inputStream);
+      IList<IToken> tokens = lexer.GetAllTokens();
+      Assert.Equal(expectedTokens.Length, tokens.Count);
+      for (int i = 0; i < expectedTokens.Length; ++i) {
+        string token = tokens[i].ToString().Replace(@"\r\n", @"\n");
+        Assert.Equal(expectedTokens[i], token);
       }
     }
   }

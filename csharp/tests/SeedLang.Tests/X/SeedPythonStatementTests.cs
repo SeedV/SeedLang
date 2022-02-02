@@ -24,6 +24,32 @@ namespace SeedLang.X.Tests {
     private readonly SeedPython _parser = new SeedPython();
 
     [Theory]
+    [InlineData("x = 1",
+
+                "[Ln 1, Col 0 - Ln 1, Col 4] AssignmentStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (x)\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (1)",
+
+                "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
+
+    [InlineData("x, y = 1, 2",
+
+                "[Ln 1, Col 0 - Ln 1, Col 10] AssignmentStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (x)\n" +
+                "  [Ln 1, Col 3 - Ln 1, Col 3] IdentifierExpression (y)\n" +
+                "  [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (1)\n" +
+                "  [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (2)",
+
+                "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Symbol [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Variable [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "Operator [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Symbol [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Number [Ln 1, Col 10 - Ln 1, Col 10]")]
+
     [InlineData("if 1 < 2: x = 1",
 
                 "[Ln 1, Col 0 - Ln 1, Col 14] IfStatement\n" +

@@ -283,8 +283,8 @@ namespace SeedLang.X {
       var exprs = BuildExpressions(exprContexts, exprCommaNodes, visitor);
       if (!(targets is null) && !(exprs is null)) {
         Debug.Assert(targets.Length > 0 && exprs.Length > 0);
-        TextRange range = CodeReferenceUtils.CombineRanges(targets[0].Range as TextRange,
-                                                           exprs[0].Range as TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(
+            targets[0].Range as TextRange, exprs[exprs.Length - 1].Range as TextRange);
         return Statement.Assignment(targets, exprs, range);
       }
       return null;

@@ -27,7 +27,7 @@ grammar Common;
  * Parser rules
  */
 
-expressions: expression (COMMA expression)* COMMA?;
+expressions: expression (COMMA expression)*;
 
 expression: disjunction;
 

@@ -122,6 +122,23 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileMultipleAssignment() {
+      var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y")),
+                                        AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
+      var compiler = new Compiler();
+      var func = compiler.Compile(assignment, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     1 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  4    SETGLOB   1 1                                  {AstHelper.TextRange}\n" +
+          $"  5    RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileAssignBinary() {
       var assignment = AstHelper.Assign(
         AstHelper.Targets(AstHelper.Id("name")),
@@ -574,6 +591,46 @@ namespace SeedLang.Interpreter.Tests {
           $"  10   GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
           $"  11   EVAL      0                                    {AstHelper.TextRange}\n" +
           $"  12   RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileMultipleSubscriptAssignment() {
+      string a = "a";
+      var program = AstHelper.Block(
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+                         AstHelper.List(AstHelper.NumberConstant(1),
+                                        AstHelper.NumberConstant(2),
+                                        AstHelper.NumberConstant(3))),
+        AstHelper.Assign(AstHelper.Targets(
+            AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(0)),
+            AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1))
+          ),
+          AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)),
+          AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(0))
+        )
+      );
+      var compiler = new Compiler();
+      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var func = compiler.Compile(program, env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  2    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
+          $"  6    SETGLOB   0 2                                  {AstHelper.TextRange}\n" +
+          $"  7    GETGLOB   1 2                                  {AstHelper.TextRange}\n" +
+          $"  8    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  9    GETGLOB   2 2                                  {AstHelper.TextRange}\n" +
+          $"  10   GETELEM   1 2 -4           ; 0                 {AstHelper.TextRange}\n" +
+          $"  11   GETGLOB   2 2                                  {AstHelper.TextRange}\n" +
+          $"  12   SETELEM   2 -4 0           ; 0                 {AstHelper.TextRange}\n" +
+          $"  13   GETGLOB   3 2                                  {AstHelper.TextRange}\n" +
+          $"  14   SETELEM   3 -1 1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  15   RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

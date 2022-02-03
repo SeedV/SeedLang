@@ -75,6 +75,24 @@ sum(10)
     }
 
     [Fact]
+    public void TestRunPythonFib() {
+      var executor = new Executor();
+      var visualizer = new MockupVisualizer();
+      executor.Register(visualizer);
+      string source = @"def fib(n):
+  a, b = 0, 1
+  i = 1
+  while i < n:
+    a, b = b, a + b
+    i = i + 1
+  return b
+fib(10)
+";
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode));
+      Assert.Equal(55, visualizer.Result.Number);
+    }
+
+    [Fact]
     public void TestRunPythonRecursiveFib() {
       var executor = new Executor();
       var visualizer = new MockupVisualizer();
@@ -117,9 +135,7 @@ while i < n:
   j = 0
   while j < n - i - 1:
     if array[j] > array[j + 1]:
-      temp = array[j]
-      array[j] = array[j + 1]
-      array[j + 1] = temp
+      array[j], array[j + 1] = array[j + 1], array[j]
     j = j + 1
   i = i + 1
 array

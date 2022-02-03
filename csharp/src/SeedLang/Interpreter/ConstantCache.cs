@@ -23,8 +23,17 @@ namespace SeedLang.Interpreter {
     // A list to collect constatnt values during compilation.
     public List<Value> Constants { get; } = new List<Value>();
 
+    private uint? _idOfNone;
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
+
+    internal uint IdOfNone() {
+      if (!_idOfNone.HasValue) {
+        Constants.Add(Value.None());
+        _idOfNone = IdOfLastConst();
+      }
+      return (uint)_idOfNone;
+    }
 
     // Returns the id of a given number constant. The number is added into the constant list if it
     // is not exist.

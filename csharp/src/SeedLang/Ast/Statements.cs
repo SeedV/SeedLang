@@ -19,9 +19,9 @@ namespace SeedLang.Ast {
   // The base class of all statement nodes.
   internal abstract class Statement : AstNode {
     // The factory method to create an assignment statement.
-    internal static AssignmentStatement Assignment(Expression target, Expression expr,
+    internal static AssignmentStatement Assignment(Expression[] targets, Expression[] exprs,
                                                    Range range) {
-      return new AssignmentStatement(target, expr, range);
+      return new AssignmentStatement(targets, exprs, range);
     }
 
     // The factory method to create a block statement.
@@ -60,16 +60,17 @@ namespace SeedLang.Ast {
   }
 
   internal class AssignmentStatement : Statement {
-    // The target of the assignment statement. It could be IdentifierExpression or
-    // SubscriptExpression.
-    public Expression Target { get; }
-    public Expression Expr { get; }
+    // The targets of assignment statements. The class of each target could be IdentifierExpression
+    // or SubscriptExpression.
+    public Expression[] Targets { get; }
+    // The right values of assignment statements. The lengths of targets and exprs are not necessary
+    // to be the same.
+    public Expression[] Exprs { get; }
 
-    internal AssignmentStatement(Expression target, Expression expr, Range range) :
+    internal AssignmentStatement(Expression[] targets, Expression[] exprs, Range range) :
         base(range) {
-      Debug.Assert(target is IdentifierExpression || target is SubscriptExpression);
-      Target = target;
-      Expr = expr;
+      Targets = targets;
+      Exprs = exprs;
     }
   }
 

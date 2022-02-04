@@ -22,6 +22,20 @@ namespace SeedLang.Benchmark {
     [Benchmark]
     public void BenchmarkBytecodeFib() {
       string source = @"def fib(n):
+  a, b = 0, 1
+  i = 1
+  while i < n:
+    a, b = b, a + b
+    i = i + 1
+  return b
+fib(35)
+";
+      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+    }
+
+    [Benchmark]
+    public void BenchmarkBytecodeRecursiveFib() {
+      string source = @"def fib(n):
   if n == 1 or n == 2:
     return 1
   else:

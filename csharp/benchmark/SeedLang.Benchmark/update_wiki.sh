@@ -45,7 +45,7 @@ echo "Old md5 sum: ${old_md5}; New md5 sum: ${new_md5}"
 
 if [ "${old_md5}" != "${new_md5}" ]; then
   cd "$1" || exit
-  git config --global user.email "wyw@seedv.com"
+  git config --global user.email "codingpotato@gmail.com"
   git config --global user.name "codingpotato"
   git add Benchmark.md
   git commit -m "Update Benchmark.ms at $(date)"

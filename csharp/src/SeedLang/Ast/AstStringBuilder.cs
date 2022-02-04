@@ -192,8 +192,12 @@ namespace SeedLang.Ast {
 
     protected override void Visit(AssignmentStatement assignment) {
       Enter(assignment);
-      Visit(assignment.Target);
-      Visit(assignment.Expr);
+      for (int i = 0; i < assignment.Targets.Length; i++) {
+        Visit(assignment.Targets[i]);
+      }
+      for (int i = 0; i < assignment.Exprs.Length; i++) {
+        Visit(assignment.Exprs[i]);
+      }
       Exit();
     }
 
@@ -230,7 +234,9 @@ namespace SeedLang.Ast {
 
     protected override void Visit(ReturnStatement @return) {
       Enter(@return);
-      Visit(@return.Result);
+      if (!(@return.Result is null)) {
+        Visit(@return.Result);
+      }
       Exit();
     }
 

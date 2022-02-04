@@ -99,10 +99,6 @@ namespace SeedLang.X {
                                  context.factor(), this);
     }
 
-    public override AstNode VisitName([NotNull] SeedBlockInlineTextParser.NameContext context) {
-      return _helper.BuildIdentifier(context.NAME().Symbol);
-    }
-
     public override AstNode VisitTrue([NotNull] SeedBlockInlineTextParser.TrueContext context) {
       return _helper.BuildBooleanConstant(context.TRUE().Symbol, true);
     }
@@ -118,6 +114,11 @@ namespace SeedLang.X {
 
     public override AstNode VisitNumber([NotNull] SeedBlockInlineTextParser.NumberContext context) {
       return _helper.BuildNumberConstant(context.NUMBER().Symbol);
+    }
+
+    public override AstNode VisitIdentifier(
+        [NotNull] SeedBlockInlineTextParser.IdentifierContext context) {
+      return _helper.BuildIdentifier(context.NAME().Symbol);
     }
 
     public override AstNode VisitGroup([NotNull] SeedBlockInlineTextParser.GroupContext context) {

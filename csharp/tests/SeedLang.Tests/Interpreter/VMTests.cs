@@ -70,7 +70,8 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestAssignmentStatement() {
       string name = "name";
-      var block = AstHelper.Block(AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(1)),
+      var block = AstHelper.Block(AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
+                                                   AstHelper.NumberConstant(1)),
                                   AstHelper.ExpressionStmt(AstHelper.Id(name)));
 
       var compiler = new Compiler();
@@ -216,10 +217,12 @@ namespace SeedLang.Interpreter.Tests {
 
       string a = "a";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Id(a), AstHelper.List(AstHelper.NumberConstant(1),
-                                                         AstHelper.NumberConstant(2),
-                                                         AstHelper.NumberConstant(3))),
-        AstHelper.Assign(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+                         AstHelper.List(AstHelper.NumberConstant(1),
+                                        AstHelper.NumberConstant(2),
+                                        AstHelper.NumberConstant(3))),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Subscript(AstHelper.Id(a),
+                                                               AstHelper.NumberConstant(1))),
                          AstHelper.NumberConstant(5)),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );

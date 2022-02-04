@@ -36,7 +36,8 @@ namespace SeedLang.Ast.Tests {
 
       private void AddAssignment() {
         string name = "id";
-        var assignment = AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(1));
+        var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
+                                          AstHelper.NumberConstant(1));
         var expectedOutput = $"{AstHelper.TextRange} {name} = 1\n";
         Add(assignment, expectedOutput);
       }
@@ -44,7 +45,7 @@ namespace SeedLang.Ast.Tests {
       private void AddBlock() {
         string name = "id";
         var block = AstHelper.Block(
-          AstHelper.Assign(AstHelper.Id(name), AstHelper.NumberConstant(1)),
+          AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)), AstHelper.NumberConstant(1)),
           AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.Id(name), BinaryOperator.Add,
                                                     AstHelper.NumberConstant(2)))
         );
@@ -117,11 +118,12 @@ namespace SeedLang.Ast.Tests {
       private void AddSubscriptAssignment() {
         string a = "a";
         var block = AstHelper.Block(
-          AstHelper.Assign(AstHelper.Id(a), AstHelper.List(AstHelper.NumberConstant(1),
-                                                           AstHelper.NumberConstant(2),
-                                                           AstHelper.NumberConstant(3))),
+          AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+                           AstHelper.List(AstHelper.NumberConstant(1),
+                                          AstHelper.NumberConstant(2),
+                                          AstHelper.NumberConstant(3))),
           AstHelper.Assign(
-            AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)),
+            AstHelper.Targets(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1))),
             AstHelper.NumberConstant(3)
           )
         );
@@ -133,18 +135,20 @@ namespace SeedLang.Ast.Tests {
         string sum = "sum";
         string i = "i";
         var program = AstHelper.Block(
-          AstHelper.Assign(AstHelper.Id(sum), AstHelper.NumberConstant(0)),
-          AstHelper.Assign(AstHelper.Id(i), AstHelper.NumberConstant(0)),
+          AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)), AstHelper.NumberConstant(0)),
+          AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)), AstHelper.NumberConstant(0)),
           AstHelper.While(
             AstHelper.Comparison(AstHelper.Id(i), AstHelper.CompOps(ComparisonOperator.LessEqual),
                                  AstHelper.NumberConstant(10)),
             AstHelper.Block(
-              AstHelper.Assign(AstHelper.Id(sum), AstHelper.Binary(AstHelper.Id(sum),
-                                                                   BinaryOperator.Add,
-                                                                   AstHelper.Id(i))),
-              AstHelper.Assign(AstHelper.Id(i), AstHelper.Binary(AstHelper.Id(i),
-                                                                 BinaryOperator.Add,
-                                                                 AstHelper.NumberConstant(1)))
+              AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)),
+                               AstHelper.Binary(AstHelper.Id(sum),
+                                                BinaryOperator.Add,
+                                                AstHelper.Id(i))),
+              AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)),
+                               AstHelper.Binary(AstHelper.Id(i),
+                                                BinaryOperator.Add,
+                                                AstHelper.NumberConstant(1)))
             )
           ),
           AstHelper.ExpressionStmt(AstHelper.Id(sum))
@@ -175,7 +179,7 @@ namespace SeedLang.Ast.Tests {
             AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
             AstHelper.Return(null)
           )),
-          AstHelper.Assign(AstHelper.Id(a), AstHelper.Call(AstHelper.Id(func)))
+          AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)), AstHelper.Call(AstHelper.Id(func)))
         );
         var expectedOutput = $"{AstHelper.TextRange} {a} = None\n" +
                              $"{AstHelper.TextRange} Eval 1\n";
@@ -190,7 +194,7 @@ namespace SeedLang.Ast.Tests {
           AstHelper.FuncDef(add, AstHelper.Params(a, b), AstHelper.Block(
             AstHelper.Return(AstHelper.Binary(AstHelper.Id(a), BinaryOperator.Add, AstHelper.Id(b)))
           )),
-          AstHelper.Assign(AstHelper.Id(a),
+          AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
                            AstHelper.Call(AstHelper.Id(add),
                                           AstHelper.NumberConstant(1),
                                           AstHelper.NumberConstant(2)))

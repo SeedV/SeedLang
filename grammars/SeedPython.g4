@@ -45,12 +45,11 @@ simple_stmt:
   | 'continue'  # continue;
 compound_stmt: function_def | if_stmt | while_stmt;
 
-assignment: name_assignment | subscript_assignment;
-name_assignment: NAME EQUAL expression;
-subscript_assignment:
-  left_subscript EQUAL expression;
-left_subscript:
-  primary OPEN_BRACK expression CLOSE_BRACK;
+assignment: targets EQUAL expressions;
+targets: target (COMMA target)*;
+target:
+  identifier                                  # identifier_target
+  | primary OPEN_BRACK expression CLOSE_BRACK # subscript_target;
 
 if_stmt:
   IF expression COLON block elif_stmt       # if_elif

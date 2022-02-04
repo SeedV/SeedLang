@@ -20,8 +20,12 @@ namespace SeedLang.Tests.Helper {
   internal class AstHelper {
     public static readonly TextRange TextRange = new TextRange(0, 1, 2, 3);
 
-    internal static AssignmentStatement Assign(Expression target, Expression expr) {
-      return Statement.Assignment(target, expr, TextRange);
+    internal static AssignmentStatement Assign(Expression[] targets, params Expression[] exprs) {
+      return Statement.Assignment(targets, exprs, TextRange);
+    }
+
+    internal static Expression[] Targets(params Expression[] targets) {
+      return targets;
     }
 
     internal static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {

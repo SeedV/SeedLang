@@ -244,21 +244,34 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
-      Visit(assignment.Expr);
-      switch (assignment.Target) {
-        case IdentifierExpression identifier:
-          _env.SetVariable(identifier.Name, _expressionResult);
-          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(_expressionResult),
-                                       assignment.Range);
-          _visualizerCenter.AssignmentPublisher.Notify(ae);
-          break;
-        case SubscriptExpression subscript:
-          Value value = _expressionResult;
-          Visit(subscript.Expr);
-          Value list = _expressionResult;
-          Visit(subscript.Index);
-          list[_expressionResult.AsNumber()] = value;
-          break;
+      var values = new Value[assignment.Targets.Length];
+      for (int i = 0; i < assignment.Targets.Length; i++) {
+        if (i < assignment.Exprs.Length) {
+          Visit(assignment.Exprs[i]);
+          values[i] = _expressionResult;
+        } else {
+          values[i] = Value.None();
+        }
+      }
+      for (int i = 0; i < assignment.Targets.Length; i++) {
+        switch (assignment.Targets[i]) {
+          case IdentifierExpression identifier:
+            _env.SetVariable(identifier.Name, values[i]);
+            var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(values[i]),
+                                         assignment.Range);
+            _visualizerCenter.AssignmentPublisher.Notify(ae);
+            break;
+          case SubscriptExpression subscript:
+            Visit(subscript.Expr);
+            Value list = _expressionResult;
+            Visit(subscript.Index);
+            list[_expressionResult.AsNumber()] = values[i];
+            // TODO: send an assignment event to visualizers.
+            break;
+          default:
+            // TODO: throw a runtime error for invalid assignment targets.
+            break;
+        }
       }
     }
 

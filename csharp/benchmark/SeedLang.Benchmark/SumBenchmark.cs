@@ -18,29 +18,22 @@ using SeedLang.Runtime;
 namespace SeedLang.Benchmark {
   public class SumBenchmark {
     private readonly Executor _executor = new Executor();
-
-    [Benchmark]
-    public void BenchmarkAstSum() {
-      string source = @"sum = 0
+    private readonly string _source = @"sum = 0
 i = 1
 while i <= 10000000:
   sum = sum + i
   i = i + 1
 sum
 ";
-      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Ast);
+
+    [Benchmark]
+    public void BenchmarkAstSum() {
+      _executor.Run(_source, "", SeedXLanguage.SeedPython, RunType.Ast);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeGlobalScopeSum() {
-      string source = @"sum = 0
-i = 1
-while i <= 10000000:
-  sum = sum + i
-  i = i + 1
-sum
-";
-      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      _executor.Run(_source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
     }
 
     [Benchmark]

@@ -108,7 +108,8 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileAssignNumberConstant() {
-      var assignment = AstHelper.Assign(AstHelper.Id("name"), AstHelper.NumberConstant(1));
+      var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("name")),
+                                        AstHelper.NumberConstant(1));
       var compiler = new Compiler();
       var func = compiler.Compile(assignment, _env);
       string expected = (
@@ -121,9 +122,26 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileMultipleAssignment() {
+      var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y")),
+                                        AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
+      var compiler = new Compiler();
+      var func = compiler.Compile(assignment, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     1 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  4    SETGLOB   1 1                                  {AstHelper.TextRange}\n" +
+          $"  5    RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileAssignBinary() {
       var assignment = AstHelper.Assign(
-        AstHelper.Id("name"),
+        AstHelper.Targets(AstHelper.Id("name")),
         AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
       );
@@ -375,16 +393,16 @@ namespace SeedLang.Interpreter.Tests {
       string sum = "sum";
       string i = "i";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Id(sum), AstHelper.NumberConstant(0)),
-        AstHelper.Assign(AstHelper.Id(i), AstHelper.NumberConstant(0)),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)), AstHelper.NumberConstant(0)),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)), AstHelper.NumberConstant(0)),
         AstHelper.While(
           AstHelper.Comparison(AstHelper.Id(i), AstHelper.CompOps(ComparisonOperator.LessEqual),
                                AstHelper.NumberConstant(10)),
           AstHelper.Block(
-            AstHelper.Assign(AstHelper.Id(sum),
+            AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)),
                              AstHelper.Binary(AstHelper.Id(sum), BinaryOperator.Add,
                                               AstHelper.Id(i))),
-            AstHelper.Assign(AstHelper.Id(i),
+            AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)),
                              AstHelper.Binary(AstHelper.Id(i), BinaryOperator.Add,
                                               AstHelper.NumberConstant(1)))
           )
@@ -547,10 +565,12 @@ namespace SeedLang.Interpreter.Tests {
     public void TestCompileSubscriptAssignment() {
       string a = "a";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Id(a), AstHelper.List(AstHelper.NumberConstant(1),
-                                                         AstHelper.NumberConstant(2),
-                                                         AstHelper.NumberConstant(3))),
-        AstHelper.Assign(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+                         AstHelper.List(AstHelper.NumberConstant(1),
+                                        AstHelper.NumberConstant(2),
+                                        AstHelper.NumberConstant(3))),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Subscript(AstHelper.Id(a),
+                                                               AstHelper.NumberConstant(1))),
                          AstHelper.NumberConstant(5)),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
@@ -571,6 +591,46 @@ namespace SeedLang.Interpreter.Tests {
           $"  10   GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
           $"  11   EVAL      0                                    {AstHelper.TextRange}\n" +
           $"  12   RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileMultipleSubscriptAssignment() {
+      string a = "a";
+      var program = AstHelper.Block(
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+                         AstHelper.List(AstHelper.NumberConstant(1),
+                                        AstHelper.NumberConstant(2),
+                                        AstHelper.NumberConstant(3))),
+        AstHelper.Assign(AstHelper.Targets(
+            AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(0)),
+            AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1))
+          ),
+          AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)),
+          AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(0))
+        )
+      );
+      var compiler = new Compiler();
+      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var func = compiler.Compile(program, env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  2    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
+          $"  6    SETGLOB   0 2                                  {AstHelper.TextRange}\n" +
+          $"  7    GETGLOB   1 2                                  {AstHelper.TextRange}\n" +
+          $"  8    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  9    GETGLOB   2 2                                  {AstHelper.TextRange}\n" +
+          $"  10   GETELEM   1 2 -4           ; 0                 {AstHelper.TextRange}\n" +
+          $"  11   GETGLOB   2 2                                  {AstHelper.TextRange}\n" +
+          $"  12   SETELEM   2 -4 0           ; 0                 {AstHelper.TextRange}\n" +
+          $"  13   GETGLOB   3 2                                  {AstHelper.TextRange}\n" +
+          $"  14   SETELEM   3 -1 1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  15   RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

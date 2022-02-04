@@ -60,9 +60,11 @@ namespace SeedLang.Ast {
   }
 
   internal class AssignmentStatement : Statement {
-    // The target array of the assignment statement. Each element in it could be
-    // IdentifierExpression or SubscriptExpression.
+    // The targets of assignment statements. The class of each target could be IdentifierExpression
+    // or SubscriptExpression.
     public Expression[] Targets { get; }
+    // The right values of assignment statements. The lengths of targets and exprs are not necessary
+    // to be the same.
     public Expression[] Exprs { get; }
 
     internal AssignmentStatement(Expression[] targets, Expression[] exprs, Range range) :

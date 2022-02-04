@@ -181,7 +181,10 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
+      // Additional bytecode need to be generated for multiple assignments to evaluate all values,
+      // and then assign to the left variables. So using optimized implement for single assignments.
       if (assignment.Targets.Length == 1) {
+        Debug.Assert(assignment.Exprs.Length > 0);
         VisitSingleAssignment(assignment.Targets[0], assignment.Exprs[0], assignment.Range);
       } else {
         VisitMultipleAssignment(assignment.Targets, assignment.Exprs, assignment.Range);
@@ -335,9 +338,11 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    // TODO:
+    // TODO: temporary variables are allocated to evaluate the expressions for multiple assignments.
+    // It's possible to optimize the useage of temporary variables by the help of intermediate IR.
     private void VisitMultipleAssignment(Expression[] targets, Expression[] exprs, Range range) {
-      var isTargetGlobal = new bool[targets.Length];
+      // Defines variables for targets if needed.
+      var isTargetGlobals = new bool[targets.Length];
       for (int i = 0; i < targets.Length; i++) {
         if (targets[i] is IdentifierExpression id) {
           string name = id.Name;
@@ -345,25 +350,27 @@ namespace SeedLang.Interpreter {
             _variableResolver.DefineVariable(name);
           }
           VariableResolver.VariableInfo info = _variableResolver.FindVariable(name).Value;
-          isTargetGlobal[i] = info.Type == VariableResolver.VariableType.Global;
+          isTargetGlobals[i] = info.Type == VariableResolver.VariableType.Global;
         }
       }
       _variableResolver.BeginExpressionScope();
+      // Evaluates expressions based on the length of the targets. Additional expressions will not
+      // be evaluated.
       var exprIds = new uint[targets.Length];
-      var isConstants = new bool[targets.Length];
+      var isExprConstants = new bool[targets.Length];
       for (int i = 0; i < targets.Length; i++) {
         if (i < exprs.Length) {
           if (GetRegisterId(exprs[i]) is uint registerId) {
             exprIds[i] = registerId;
-            isConstants[i] = false;
+            isExprConstants[i] = false;
           } else if (GetConstantId(exprs[i]) is uint constantId) {
-            if (isTargetGlobal[i]) {
+            if (isTargetGlobals[i]) {
               exprIds[i] = _variableResolver.AllocateVariable();
               _chunk.Emit(Opcode.LOADK, exprIds[i], constantId, range);
-              isConstants[i] = false;
+              isExprConstants[i] = false;
             } else {
               exprIds[i] = constantId;
-              isConstants[i] = true;
+              isExprConstants[i] = true;
             }
           } else {
             exprIds[i] = _variableResolver.AllocateVariable();
@@ -371,16 +378,17 @@ namespace SeedLang.Interpreter {
             Visit(exprs[i]);
           }
         } else {
-          if (isTargetGlobal[i]) {
+          if (isTargetGlobals[i]) {
             exprIds[i] = _variableResolver.AllocateVariable();
             _chunk.Emit(Opcode.LOADK, exprIds[i], _constantCache.IdOfNone(), range);
-            isConstants[i] = false;
+            isExprConstants[i] = false;
           } else {
             exprIds[i] = _constantCache.IdOfNone();
-            isConstants[i] = true;
+            isExprConstants[i] = true;
           }
         }
       }
+      // Assigns values to left targets.
       for (int i = 0; i < targets.Length; i++) {
         switch (targets[i]) {
           case IdentifierExpression id:
@@ -390,7 +398,7 @@ namespace SeedLang.Interpreter {
                 _chunk.Emit(Opcode.SETGLOB, exprIds[i], info.Id, range);
                 break;
               case VariableResolver.VariableType.Local:
-                if (isConstants[i]) {
+                if (isExprConstants[i]) {
                   _chunk.Emit(Opcode.LOADK, info.Id, exprIds[i], range);
                 } else {
                   _chunk.Emit(Opcode.MOVE, info.Id, exprIds[i], 0, range);

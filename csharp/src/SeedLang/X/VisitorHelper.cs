@@ -33,7 +33,7 @@ namespace SeedLang.X {
       _syntaxTokens = tokens;
     }
 
-    // Builds a binary expression.
+    // Builds binary expressions.
     internal BinaryExpression BuildBinary(ParserRuleContext leftContext, IToken opToken,
                                           BinaryOperator op, ParserRuleContext rightContext,
                                           AbstractParseTreeVisitor<AstNode> visitor) {
@@ -58,7 +58,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds a comparison expression.
+    // Builds comparison expressions.
     internal ComparisonExpression BuildComparison(ParserRuleContext leftContext,
                                                   ParserRuleContext[] rightContexts,
                                                   ToComparisonOperator toComparisonOperator,
@@ -98,7 +98,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds a boolean expression.
+    // Builds boolean expressions.
     internal AstNode BuildAndOr(BooleanOperator op, ParserRuleContext[] operandContexts,
                                 ITerminalNode[] orNodes,
                                 AbstractParseTreeVisitor<AstNode> visitor) {
@@ -125,7 +125,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an unary expresssion.
+    // Builds unary expressions.
     internal UnaryExpression BuildUnary(IToken opToken, UnaryOperator op,
                                         ParserRuleContext exprContext,
                                         AbstractParseTreeVisitor<AstNode> visitor) {
@@ -145,7 +145,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds a grouping expressions, and sets grouping range for sub-expression to use. Only keeps
+    // Builds grouping expressions, and sets grouping range for sub-expression to use. Only keeps
     // the largest grouping range.
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
@@ -164,25 +164,25 @@ namespace SeedLang.X {
       return node;
     }
 
-    // Builds an identifier expresssion.
+    // Builds identifier expressions.
     internal IdentifierExpression BuildIdentifier(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Variable);
       return Expression.Identifier(token.Text, range);
     }
 
-    // Builds a boolean costant expression.
+    // Builds boolean costant expressions.
     internal BooleanConstantExpression BuildBooleanConstant(IToken token, bool value) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Boolean);
       return Expression.BooleanConstant(value, range);
     }
 
-    // Builds a none costant expression.
+    // Builds none costant expressions.
     internal NoneConstantExpression BuildNoneConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.None);
       return Expression.NoneConstant(range);
     }
 
-    // Builds a number constant expresssion.
+    // Builds number constant expressions.
     internal NumberConstantExpression BuildNumberConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Number);
       try {
@@ -198,13 +198,13 @@ namespace SeedLang.X {
       }
     }
 
-    // Builds a string constant expresssion.
+    // Builds string constant expressions.
     internal StringConstantExpression BuildStringConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.String);
       return Expression.StringConstant(token.Text, range);
     }
 
-    // Builds a list expression.
+    // Builds list expressions.
     internal ListExpression BuildList(IToken openBrackToken, ParserRuleContext[] exprContexts,
                                       ITerminalNode[] commaNodes, IToken closeBrackToken,
                                       AbstractParseTreeVisitor<AstNode> visitor) {
@@ -221,7 +221,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds a subscript expression.
+    // Builds subscript expressions.
     internal SubscriptExpression BuildSubscript(ParserRuleContext primaryContext,
                                                 IToken openBrackToken,
                                                 ParserRuleContext exprContext,
@@ -241,7 +241,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds a call expression.
+    // Builds call expressions.
     internal CallExpression BuildCall(ParserRuleContext primaryContext, IToken openParenToken,
                                       ParserRuleContext[] exprContexts, ITerminalNode[] commaNodes,
                                       IToken closeParenToken,
@@ -270,7 +270,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an assignment statement.
+    // Builds assignment statements.
     internal AssignmentStatement BuildAssignment(ParserRuleContext[] targetContexts,
                                                  ITerminalNode[] targetCommaNodes,
                                                  IToken equalToken,
@@ -290,7 +290,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an block statement.
+    // Builds block statements.
     internal static BlockStatement BuildBlock(ParserRuleContext[] statementContexts,
                                               AbstractParseTreeVisitor<AstNode> visitor) {
       var statements = new Statement[statementContexts.Length];
@@ -300,7 +300,7 @@ namespace SeedLang.X {
       return BuildBlock(statements);
     }
 
-    // Builds an expression statement.
+    // Builds expression statements.
     internal static ExpressionStatement BuildExpressionStatement(
         ParserRuleContext exprContext, AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(exprContext) is Expression expr) {
@@ -309,7 +309,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds a function declearation statement.
+    // Builds function define statements.
     internal FuncDefStatement BuildFuncDef(IToken defToken, IToken nameToken,
                                            IToken openParenToken, ITerminalNode[] parameterNodes,
                                            ITerminalNode[] commaNodes, IToken closeParenToken,
@@ -340,7 +340,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an if statement for if ... elif statements.
+    // Builds "if" statements of "if ... elif" statements.
     internal AstNode BuildIfElif(IToken ifToken, ParserRuleContext exprContext, IToken colonToken,
                                  ParserRuleContext blockContext, ParserRuleContext elifContext,
                                  AbstractParseTreeVisitor<AstNode> visitor) {
@@ -357,7 +357,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an if statement for if ... else statements.
+    // Builds "if" statements of "if ... else" statements.
     internal IfStatement BuildIfElse(IToken ifToken, ParserRuleContext exprContext,
                                      IToken colonToken, ParserRuleContext blockContext,
                                      ParserRuleContext elseBlockContext,
@@ -376,7 +376,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds an else block statement
+    // Builds "else" statements.
     internal Statement BuildElse(IToken elseToken, IToken colonToken,
                                  ParserRuleContext blockContext,
                                  AbstractParseTreeVisitor<AstNode> visitor) {
@@ -385,7 +385,7 @@ namespace SeedLang.X {
       return visitor.Visit(blockContext) as Statement;
     }
 
-    // Builds a return statement
+    // Builds return statements.
     internal ReturnStatement BuildReturn(IToken returnToken, ParserRuleContext exprContext,
                                          AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange returnRange = CodeReferenceUtils.RangeOfToken(returnToken);
@@ -401,7 +401,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds a block for simple statements.
+    // Builds a block of simple statements.
     internal BlockStatement BuildSimpleStatements(ParserRuleContext[] statementContexts,
                                                   ITerminalNode[] semicolonNodes,
                                                   AbstractParseTreeVisitor<AstNode> visitor) {
@@ -418,7 +418,7 @@ namespace SeedLang.X {
       return BuildBlock(statements);
     }
 
-    // Builds a while statement.
+    // Builds while statements.
     internal WhileStatement BuildWhile(IToken whileToken, ParserRuleContext exprContext,
                                        IToken colonToken, ParserRuleContext blockContext,
                                        AbstractParseTreeVisitor<AstNode> visitor) {
@@ -457,7 +457,7 @@ namespace SeedLang.X {
             AddSyntaxToken(SyntaxType.Symbol, commaRange);
           }
         } else {
-          Debug.Fail("");
+          Debug.Fail($"Expression at position {i} shall be validated by ANTLR.");
         }
       }
       return exprs;

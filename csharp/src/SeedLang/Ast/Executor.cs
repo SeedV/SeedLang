@@ -266,9 +266,10 @@ namespace SeedLang.Ast {
             Value list = _expressionResult;
             Visit(subscript.Index);
             list[_expressionResult.AsNumber()] = values[i];
+            // TODO: send an assignment event to visualizers.
             break;
           default:
-            // TODO: throw a runtime error.
+            // TODO: throw a runtime error for invalid assignment targets.
             break;
         }
       }

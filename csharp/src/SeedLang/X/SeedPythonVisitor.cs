@@ -246,7 +246,7 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitIdentifier(
-      [NotNull] SeedPythonParser.IdentifierContext context) {
+        [NotNull] SeedPythonParser.IdentifierContext context) {
       return _helper.BuildIdentifier(context.NAME().Symbol);
     }
 

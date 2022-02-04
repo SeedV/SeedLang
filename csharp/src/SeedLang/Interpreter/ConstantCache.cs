@@ -62,6 +62,7 @@ namespace SeedLang.Interpreter {
 
     private uint IdOfLastConst() {
       Debug.Assert(Constants.Count >= 1);
+      // Id of constants starts from MaxRegisterCount defined in Chunk.
       return (uint)Constants.Count - 1 + Chunk.MaxRegisterCount;
     }
   }

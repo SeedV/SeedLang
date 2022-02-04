@@ -117,7 +117,7 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitIdentifier(
-      [NotNull] SeedBlockInlineTextParser.IdentifierContext context) {
+        [NotNull] SeedBlockInlineTextParser.IdentifierContext context) {
       return _helper.BuildIdentifier(context.NAME().Symbol);
     }
 

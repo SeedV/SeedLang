@@ -304,6 +304,43 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 2, Col 10 - Ln 2, Col 10]," +
                 "Keyword [Ln 3, Col 2 - Ln 3, Col 7]," +
                 "Variable [Ln 3, Col 9 - Ln 3, Col 9]")]
+
+    [InlineData("for n in [1, 2, 3]: n",
+
+                "[Ln 1, Col 0 - Ln 1, Col 20] BlockStatement\n" +
+                "  [Ln 1, Col 9 - Ln 1, Col 17] AssignmentStatement\n" +
+                "    [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
+                "    [Ln 1, Col 9 - Ln 1, Col 17] CallExpression\n" +
+                "      [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (iter)\n" +
+                "      [Ln 1, Col 9 - Ln 1, Col 17] ListExpression\n" +
+                "        [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)\n" +
+                "        [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (2)\n" +
+                "        [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (3)\n" +
+                "  [Ln 1, Col 20 - Ln 1, Col 20] WhileStatement\n" +
+                "    [Ln 1, Col 20 - Ln 1, Col 20] CallExpression\n" +
+                "      [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (has_next)\n" +
+                "      [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
+                "    [Ln 1, Col 20 - Ln 1, Col 20] BlockStatement\n" +
+                "      [Ln 1, Col 20 - Ln 1, Col 20] AssignmentStatement\n" +
+                "        [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (n)\n" +
+                "        [Ln 1, Col 20 - Ln 1, Col 20] CallExpression\n" +
+                "          [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (next)\n" +
+                "          [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
+                "      [Ln 1, Col 20 - Ln 1, Col 20] ExpressionStatement\n" +
+                "        [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (n)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Variable [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Keyword [Ln 1, Col 6 - Ln 1, Col 7]," +
+                "Bracket [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Symbol [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Number [Ln 1, Col 13 - Ln 1, Col 13]," +
+                "Symbol [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Number [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Bracket [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "Symbol [Ln 1, Col 18 - Ln 1, Col 18]," +
+                "Variable [Ln 1, Col 20 - Ln 1, Col 20]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

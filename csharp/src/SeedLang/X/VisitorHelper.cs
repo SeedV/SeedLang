@@ -418,6 +418,38 @@ namespace SeedLang.X {
       return BuildBlock(statements);
     }
 
+    internal BlockStatement BuildFor(IToken forToken, ParserRuleContext identifierContext,
+                                     IToken inToken, ParserRuleContext exprContext,
+                                     IToken colonToken, ParserRuleContext blockContext,
+                                     AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange forRange = CodeReferenceUtils.RangeOfToken(forToken);
+      AddSyntaxToken(SyntaxType.Keyword, forRange);
+      if (visitor.Visit(identifierContext) is IdentifierExpression loopVar) {
+        AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(inToken));
+        if (visitor.Visit(exprContext) is Expression expr) {
+          var iterVariable = Expression.Identifier($"__for_{loopVar.Name}_iter__", expr.Range);
+          var iterFunc = Expression.Identifier("iter", expr.Range);
+          var iterator = Expression.Call(iterFunc, new Expression[] { expr }, expr.Range);
+          var initializer = Statement.Assignment(new Expression[] { iterVariable },
+                                                 new Expression[] { iterator }, expr.Range);
+          AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+          if (visitor.Visit(blockContext) is Statement block) {
+            var hasNextFunc = Expression.Identifier("has_next", block.Range);
+            var test = Expression.Call(hasNextFunc, new Expression[] { iterVariable }, block.Range);
+            var nextFunc = Expression.Identifier("next", block.Range);
+            var next = Expression.Call(nextFunc, new Expression[] { iterVariable }, block.Range);
+            var assign = Statement.Assignment(new Expression[] { loopVar },
+                                              new Expression[] { next }, block.Range);
+            var body = Statement.Block(new Statement[] { assign, block, }, block.Range);
+            var @while = Statement.While(test, body, block.Range);
+            TextRange range = CodeReferenceUtils.CombineRanges(forRange, block.Range as TextRange);
+            return Statement.Block(new Statement[] { initializer, @while }, range);
+          }
+        }
+      }
+      return null;
+    }
+
     // Builds while statements.
     internal WhileStatement BuildWhile(IToken whileToken, ParserRuleContext exprContext,
                                        IToken colonToken, ParserRuleContext blockContext,

@@ -34,6 +34,7 @@ program: statements? EOF;
 
 statements: statement+;
 statement: compound_stmt | simple_stmts;
+
 simple_stmts:
   simple_stmt (SEMICOLON simple_stmt)* SEMICOLON? NEWLINE;
 simple_stmt:
@@ -43,7 +44,12 @@ simple_stmt:
   | 'pass'      # pass
   | 'break'     # break
   | 'continue'  # continue;
-compound_stmt: function_def | if_stmt | while_stmt;
+
+compound_stmt:
+  function_def
+  | for_stmt
+  | if_stmt
+  | while_stmt;
 
 assignment: targets EQUAL expressions;
 targets: target (COMMA target)*;
@@ -58,6 +64,8 @@ elif_stmt:
   ELIF expression COLON block elif_stmt       # elif_elif
   | ELIF expression COLON block (else_block)? # elif_else;
 else_block: ELSE COLON block;
+
+for_stmt: FOR identifier IN expression COLON block;
 
 while_stmt: WHILE expression COLON block;
 
@@ -79,6 +87,8 @@ block:
 IF: 'if';
 ELIF: 'elif';
 ELSE: 'else';
+FOR: 'for';
+IN: 'in';
 WHILE: 'while';
 DEF: 'def';
 RETURN: 'return';

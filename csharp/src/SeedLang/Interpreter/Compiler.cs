@@ -120,7 +120,8 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BooleanConstantExpression booleanConstant) {
-      throw new System.NotImplementedException();
+      _chunk.Emit(Opcode.LOADBOOL, _registerForSubExpr, booleanConstant.Value ? 1u : 0, 0,
+                  booleanConstant.Range);
     }
 
     protected override void Visit(NumberConstantExpression numberConstant) {
@@ -133,7 +134,8 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ListExpression list) {
-      var call = Expression.Call(Expression.Identifier("list", list.Range), list.Exprs, list.Range);
+      var call = Expression.Call(Expression.Identifier(NativeFunctions.List, list.Range),
+                                 list.Exprs, list.Range);
       Visit(call);
     }
 
@@ -238,7 +240,7 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(IfStatement @if) {
       _nestedJumpStack.PushFrame();
-      Visit(@if.Test);
+      VisitTest(@if.Test);
       PatchJumps(_nestedJumpStack.TrueJumps);
       Visit(@if.ThenBody);
       if (!(@if.ElseBody is null)) {
@@ -267,11 +269,31 @@ namespace SeedLang.Interpreter {
     protected override void Visit(WhileStatement @while) {
       _nestedJumpStack.PushFrame();
       int start = _chunk.Bytecode.Count;
-      Visit(@while.Test);
+      VisitTest(@while.Test);
       Visit(@while.Body);
       _chunk.Emit(Opcode.JMP, start - (_chunk.Bytecode.Count + 1), @while.Range);
       PatchJumps(_nestedJumpStack.FalseJumps);
       _nestedJumpStack.PopFrame();
+    }
+
+    private void VisitTest(Expression test) {
+      if (test is ComparisonExpression || test is BooleanExpression) {
+        Visit(test);
+      } else {
+        if (GetRegisterId(test) is uint registerId) {
+          _chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
+        } else {
+          _variableResolver.BeginExpressionScope();
+          registerId = _variableResolver.AllocateVariable();
+          _registerForSubExpr = registerId;
+          Visit(test);
+          _chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
+          _variableResolver.EndExpressionScope();
+        }
+        _chunk.Emit(Opcode.JMP, 0, test.Range);
+        int jump = GetCurrentCodePos();
+        _nestedJumpStack.FalseJumps.Add(jump);
+      }
     }
 
     private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,

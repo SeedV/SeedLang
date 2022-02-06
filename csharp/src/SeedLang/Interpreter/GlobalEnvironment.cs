@@ -24,14 +24,14 @@ namespace SeedLang.Interpreter {
 
     internal GlobalEnvironment(NativeFunction[] nativeFunctions) {
       foreach (var func in nativeFunctions) {
-        _values.Add(Value.Function(func));
+        _values.Add(new Value(func));
         _globals[func.Name] = (uint)_values.Count - 1;
       }
     }
 
     internal uint DefineVariable(string name) {
       Debug.Assert(!_globals.ContainsKey(name));
-      _values.Add(Value.None());
+      _values.Add(new Value());
       _globals[name] = (uint)_values.Count - 1;
       return _globals[name];
     }

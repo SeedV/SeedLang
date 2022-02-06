@@ -22,6 +22,7 @@ namespace SeedLang.Runtime {
   // The native function class to encapsulate build-in functions written by the host language.
   internal class NativeFunction : IFunction {
     public readonly string Name;
+
     private readonly NativeFunctionType _func;
 
     internal NativeFunction(string name, NativeFunctionType func) {
@@ -40,16 +41,62 @@ namespace SeedLang.Runtime {
 
   // The static class to define all the build-in native functions.
   internal static class NativeFunctions {
+    public const string List = "list";
+    public const string Len = "len";
+    public const string Iter = "__iter__";
+    public const string HasNext = "__has_next__";
+    public const string Next = "__next__";
+
     public static NativeFunction[] Funcs = new NativeFunction[] {
-      new NativeFunction("list", (IList<Value> arguments) => {
-        return Value.List(new List<Value>(arguments));
+      new NativeFunction(List, (IList<Value> arguments) => {
+        return new Value(new List<Value>(arguments));
       }),
-      new NativeFunction("len", (IList<Value> arguments) => {
+
+      new NativeFunction(Len, (IList<Value> arguments) => {
         if (arguments.Count != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
-        return Value.Number(arguments[0].Count());
+        return new Value(arguments[0].Count());
+      }),
+
+      new NativeFunction(Iter, (IList<Value> arguments) => {
+        if (arguments.Count != 1) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        if (!arguments[0].IsList) {
+          // TODO: throw uniterable...
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        return new Value(new ListIterator(arguments[0].AsList()));
+      }),
+
+      new NativeFunction(HasNext, (IList<Value> arguments) => {
+        if (arguments.Count != 1) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        if (!arguments[0].IsIterator) {
+          // TODO: throw uniterable...
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        return new Value(arguments[0].AsIterator().HasNext());
+      }),
+
+      new NativeFunction(Next, (IList<Value> arguments) => {
+        if (arguments.Count != 1) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        if (!arguments[0].IsIterator) {
+          // TODO: throw uniterable...
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        return arguments[0].AsIterator().Next();
       }),
     };
   }

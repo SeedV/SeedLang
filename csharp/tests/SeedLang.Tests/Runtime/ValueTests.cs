@@ -24,8 +24,8 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNoneValue() {
-      var none = Value.None();
-      Assert.True(none.IsNone());
+      var none = new Value();
+      Assert.True(none.IsNone);
       Assert.False(none.AsBoolean());
       Assert.Equal(0, none.AsNumber());
       Assert.Equal("None", none.AsString());
@@ -41,15 +41,15 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestBooleanValue() {
-      var boolean = Value.Boolean(false);
-      Assert.True(boolean.IsBoolean());
+      var boolean = new Value(false);
+      Assert.True(boolean.IsBoolean);
       Assert.False(boolean.AsBoolean());
       Assert.Equal(0, boolean.AsNumber());
       Assert.Equal(_expectedFalseString, boolean.AsString());
       Assert.Equal(_expectedFalseString, boolean.ToString());
 
-      boolean = Value.Boolean(true);
-      Assert.True(boolean.IsBoolean());
+      boolean = new Value(true);
+      Assert.True(boolean.IsBoolean);
       Assert.True(boolean.AsBoolean());
       Assert.Equal(1, boolean.AsNumber());
       Assert.Equal(_expectedTrueString, boolean.AsString());
@@ -65,15 +65,15 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNumberValue() {
-      var number = Value.Number(1);
-      Assert.True(number.IsNumber());
+      var number = new Value(1);
+      Assert.True(number.IsNumber);
       Assert.True(number.AsBoolean());
       Assert.Equal(1, number.AsNumber());
       Assert.Equal("1", number.AsString());
       Assert.Equal("1", number.ToString());
 
-      number = Value.Number(2.5);
-      Assert.True(number.IsNumber());
+      number = new Value(2.5);
+      Assert.True(number.IsNumber);
       Assert.True(number.AsBoolean());
       Assert.Equal(2.5, number.AsNumber());
       Assert.Equal("2.5", number.AsString());
@@ -89,22 +89,22 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestStringValue() {
-      var str = Value.String("");
-      Assert.True(str.IsString());
+      var str = new Value("");
+      Assert.True(str.IsString);
       Assert.False(str.AsBoolean());
       Assert.Equal(0, str.AsNumber());
       Assert.Equal("", str.AsString());
       Assert.Equal("", str.ToString());
 
-      str = Value.String(_expectedFalseString);
-      Assert.True(str.IsString());
+      str = new Value(_expectedFalseString);
+      Assert.True(str.IsString);
       Assert.True(str.AsBoolean());
       Assert.Equal(0, str.AsNumber());
       Assert.Equal(_expectedFalseString, str.AsString());
       Assert.Equal(_expectedFalseString, str.ToString());
 
-      str = Value.String(_expectedTrueString);
-      Assert.True(str.IsString());
+      str = new Value(_expectedTrueString);
+      Assert.True(str.IsString);
       Assert.True(str.AsBoolean());
       Assert.Equal(0, str.AsNumber());
       Assert.Equal(_expectedTrueString, str.AsString());
@@ -119,23 +119,23 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestListValue() {
       var values = new List<Value>() {
-        Value.Number(1),
-        Value.Number(2),
-        Value.Number(3),
+        new Value(1),
+        new Value(2),
+        new Value(3),
       };
-      var list = Value.List(values);
-      Assert.True(list.IsList());
+      var list = new Value(values);
+      Assert.True(list.IsList);
       Assert.Equal(3, list.Count());
-      Assert.True(list[0].IsNumber());
+      Assert.True(list[0].IsNumber);
       Assert.Equal(1, list[0].AsNumber());
-      Assert.True(list[1].IsNumber());
+      Assert.True(list[1].IsNumber);
       Assert.Equal(2, list[1].AsNumber());
-      Assert.True(list[2].IsNumber());
+      Assert.True(list[2].IsNumber);
       Assert.Equal(3, list[2].AsNumber());
 
       string testString = "test";
-      list[1] = Value.String(testString);
-      Assert.True(list[1].IsString());
+      list[1] = new Value(testString);
+      Assert.True(list[1].IsString);
       Assert.Equal(testString, list[1].AsString());
     }
 
@@ -143,75 +143,75 @@ namespace SeedLang.Runtime.Tests {
     public void TestNativeFunction() {
       var nativeFunc = new NativeFunction("add", (IList<Value> parameters) => {
         if (parameters.Count == 2) {
-          return Value.Number(parameters[0].AsNumber() + parameters[1].AsNumber());
+          return new Value(parameters[0].AsNumber() + parameters[1].AsNumber());
         }
         throw new NotImplementedException();
       });
-      var func = Value.Function(nativeFunc);
+      var func = new Value(nativeFunc);
       Assert.Equal("NativeFunction <add>", func.AsString());
       Assert.Equal("NativeFunction <add>", func.ToString());
-      Assert.True(func.IsFunction());
-      var result = func.Call(new Value[] { Value.Number(1), Value.Number(2) });
+      Assert.True(func.IsFunction);
+      var result = func.Call(new Value[] { new Value(1), new Value(2) });
       Assert.Equal(3, result.AsNumber());
     }
 
     [Fact]
     public void TestValueEquality() {
-      Assert.NotEqual(Value.None(), Value.Boolean(false));
-      Assert.NotEqual(Value.None(), Value.Number(0));
-      Assert.NotEqual(Value.None(), Value.String(""));
-      Assert.Equal(Value.None(), Value.None());
+      Assert.NotEqual(new Value(), new Value(false));
+      Assert.NotEqual(new Value(), new Value(0));
+      Assert.NotEqual(new Value(), new Value(""));
+      Assert.Equal(new Value(), new Value());
 
-      Assert.NotEqual(Value.Boolean(false), Value.None());
-      Assert.NotEqual(Value.Boolean(false), Value.String(""));
-      Assert.Equal(Value.Boolean(false), Value.Boolean(false));
-      Assert.Equal(Value.Boolean(true), Value.Boolean(true));
-      Assert.NotEqual(Value.Boolean(false), Value.Boolean(true));
+      Assert.NotEqual(new Value(false), new Value());
+      Assert.NotEqual(new Value(false), new Value(""));
+      Assert.Equal(new Value(false), new Value(false));
+      Assert.Equal(new Value(true), new Value(true));
+      Assert.NotEqual(new Value(false), new Value(true));
 
-      Assert.NotEqual(Value.Boolean(false), Value.Number(1));
-      Assert.NotEqual(Value.Boolean(false), Value.Number(2));
-      Assert.NotEqual(Value.Boolean(true), Value.Number(0));
-      Assert.NotEqual(Value.Boolean(true), Value.Number(2));
-      Assert.Equal(Value.Boolean(false), Value.Number(0));
-      Assert.Equal(Value.Boolean(true), Value.Number(1));
+      Assert.NotEqual(new Value(false), new Value(1));
+      Assert.NotEqual(new Value(false), new Value(2));
+      Assert.NotEqual(new Value(true), new Value(0));
+      Assert.NotEqual(new Value(true), new Value(2));
+      Assert.Equal(new Value(false), new Value(0));
+      Assert.Equal(new Value(true), new Value(1));
 
-      Assert.NotEqual(Value.Number(0), Value.None());
-      Assert.NotEqual(Value.Number(0), Value.String(""));
+      Assert.NotEqual(new Value(0), new Value());
+      Assert.NotEqual(new Value(0), new Value(""));
 
-      Assert.NotEqual(Value.Number(1), Value.Boolean(false));
-      Assert.NotEqual(Value.Number(2), Value.Boolean(false));
-      Assert.NotEqual(Value.Number(0), Value.Boolean(true));
-      Assert.NotEqual(Value.Number(2), Value.Boolean(true));
-      Assert.Equal(Value.Number(0), Value.Boolean(false));
-      Assert.Equal(Value.Number(1), Value.Boolean(true));
+      Assert.NotEqual(new Value(1), new Value(false));
+      Assert.NotEqual(new Value(2), new Value(false));
+      Assert.NotEqual(new Value(0), new Value(true));
+      Assert.NotEqual(new Value(2), new Value(true));
+      Assert.Equal(new Value(0), new Value(false));
+      Assert.Equal(new Value(1), new Value(true));
 
-      Assert.NotEqual(Value.String(""), Value.None());
-      Assert.NotEqual(Value.String(""), Value.Boolean(false));
-      Assert.NotEqual(Value.String(""), Value.Number(0));
-      Assert.NotEqual(Value.String("0"), Value.String("1"));
-      Assert.Equal(Value.String("1"), Value.String("1"));
+      Assert.NotEqual(new Value(""), new Value());
+      Assert.NotEqual(new Value(""), new Value(false));
+      Assert.NotEqual(new Value(""), new Value(0));
+      Assert.NotEqual(new Value("0"), new Value("1"));
+      Assert.Equal(new Value("1"), new Value("1"));
 
-      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }), Value.None());
-      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }), Value.Boolean(false));
-      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }), Value.Number(0));
-      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }), Value.String("1"));
-      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }),
-                      Value.List(new List<Value>() { Value.Number(2) }));
-      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }),
-                      Value.List(new List<Value>() { Value.Number(1), Value.Number(2) }));
-      Assert.NotEqual(Value.List(new List<Value>() { Value.Number(1) }),
-                      Value.List(new List<Value>() { Value.Number(1) }));
-      var list = new List<Value>() { Value.Number(1) };
-      Assert.Equal(Value.List(list), Value.List(list));
+      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }), new Value());
+      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }), new Value(false));
+      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }), new Value(0));
+      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }), new Value("1"));
+      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }),
+                      new Value(new List<Value>() { new Value(2) }));
+      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }),
+                      new Value(new List<Value>() { new Value(1), new Value(2) }));
+      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }),
+                      new Value(new List<Value>() { new Value(1) }));
+      var list = new List<Value>() { new Value(1) };
+      Assert.Equal(new Value(list), new Value(list));
     }
 
     [Fact]
     public void TestListWithReferenceCycle() {
-      var a = Value.List(new List<Value>() {
-        Value.Number(1),
-        Value.Number(2),
+      var a = new Value(new List<Value>() {
+        new Value(1),
+        new Value(2),
       });
-      var b = Value.List(new List<Value>() { a });
+      var b = new Value(new List<Value>() { a });
       a[1] = b;
       Assert.Equal("[1, [[...]]]", a.ToString());
       Assert.Equal("[[1, [...]]]", b.ToString());

@@ -182,6 +182,30 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileIfTrue() {
+      var @if = AstHelper.If(
+        AstHelper.BooleanConstant(true),
+        AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
+        AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADBOOL  0 1 0                                {AstHelper.TextRange}\n" +
+          $"  2    TEST      0 0 1                                {AstHelper.TextRange}\n" +
+          $"  3    JMP       0 3              ; to 7              {AstHelper.TextRange}\n" +
+          $"  4    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  5    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  6    JMP       0 2              ; to 9              {AstHelper.TextRange}\n" +
+          $"  7    LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  8    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  9    RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileIfWithNullElse() {
       var @if = AstHelper.If(
         AstHelper.Comparison(AstHelper.NumberConstant(1),
@@ -584,10 +608,10 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
           $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    SETGLOB   0 2                                  {AstHelper.TextRange}\n" +
-          $"  7    GETGLOB   0 2                                  {AstHelper.TextRange}\n" +
+          $"  6    SETGLOB   0 5                                  {AstHelper.TextRange}\n" +
+          $"  7    GETGLOB   0 5                                  {AstHelper.TextRange}\n" +
           $"  8    SETELEM   0 -1 -4          ; 1 5               {AstHelper.TextRange}\n" +
-          $"  9    GETGLOB   1 2                                  {AstHelper.TextRange}\n" +
+          $"  9    GETGLOB   1 5                                  {AstHelper.TextRange}\n" +
           $"  10   GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
           $"  11   EVAL      0                                    {AstHelper.TextRange}\n" +
           $"  12   RETURN    0                                    \n"
@@ -621,14 +645,14 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
           $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    SETGLOB   0 2                                  {AstHelper.TextRange}\n" +
-          $"  7    GETGLOB   1 2                                  {AstHelper.TextRange}\n" +
+          $"  6    SETGLOB   0 5                                  {AstHelper.TextRange}\n" +
+          $"  7    GETGLOB   1 5                                  {AstHelper.TextRange}\n" +
           $"  8    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
-          $"  9    GETGLOB   2 2                                  {AstHelper.TextRange}\n" +
+          $"  9    GETGLOB   2 5                                  {AstHelper.TextRange}\n" +
           $"  10   GETELEM   1 2 -4           ; 0                 {AstHelper.TextRange}\n" +
-          $"  11   GETGLOB   2 2                                  {AstHelper.TextRange}\n" +
+          $"  11   GETGLOB   2 5                                  {AstHelper.TextRange}\n" +
           $"  12   SETELEM   2 -4 0           ; 0                 {AstHelper.TextRange}\n" +
-          $"  13   GETGLOB   3 2                                  {AstHelper.TextRange}\n" +
+          $"  13   GETGLOB   3 5                                  {AstHelper.TextRange}\n" +
           $"  14   SETELEM   3 -1 1           ; 1                 {AstHelper.TextRange}\n" +
           $"  15   RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);

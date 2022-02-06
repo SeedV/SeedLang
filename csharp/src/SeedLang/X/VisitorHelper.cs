@@ -428,15 +428,15 @@ namespace SeedLang.X {
         AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(inToken));
         if (visitor.Visit(exprContext) is Expression expr) {
           var iterVariable = Expression.Identifier($"__for_{loopVar.Name}_iter__", expr.Range);
-          var iterFunc = Expression.Identifier("iter", expr.Range);
+          var iterFunc = Expression.Identifier(NativeFunctions.Iter, expr.Range);
           var iterator = Expression.Call(iterFunc, new Expression[] { expr }, expr.Range);
           var initializer = Statement.Assignment(new Expression[] { iterVariable },
                                                  new Expression[] { iterator }, expr.Range);
           AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
           if (visitor.Visit(blockContext) is Statement block) {
-            var hasNextFunc = Expression.Identifier("has_next", block.Range);
+            var hasNextFunc = Expression.Identifier(NativeFunctions.HasNext, block.Range);
             var test = Expression.Call(hasNextFunc, new Expression[] { iterVariable }, block.Range);
-            var nextFunc = Expression.Identifier("next", block.Range);
+            var nextFunc = Expression.Identifier(NativeFunctions.Next, block.Range);
             var next = Expression.Call(nextFunc, new Expression[] { iterVariable }, block.Range);
             var assign = Statement.Assignment(new Expression[] { loopVar },
                                               new Expression[] { next }, block.Range);

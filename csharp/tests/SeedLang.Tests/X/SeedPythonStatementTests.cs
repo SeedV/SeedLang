@@ -311,20 +311,20 @@ namespace SeedLang.X.Tests {
                 "  [Ln 1, Col 9 - Ln 1, Col 17] AssignmentStatement\n" +
                 "    [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
                 "    [Ln 1, Col 9 - Ln 1, Col 17] CallExpression\n" +
-                "      [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (iter)\n" +
+                "      [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__iter__)\n" +
                 "      [Ln 1, Col 9 - Ln 1, Col 17] ListExpression\n" +
                 "        [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)\n" +
                 "        [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (2)\n" +
                 "        [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (3)\n" +
                 "  [Ln 1, Col 20 - Ln 1, Col 20] WhileStatement\n" +
                 "    [Ln 1, Col 20 - Ln 1, Col 20] CallExpression\n" +
-                "      [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (has_next)\n" +
+                "      [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (__has_next__)\n" +
                 "      [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
                 "    [Ln 1, Col 20 - Ln 1, Col 20] BlockStatement\n" +
                 "      [Ln 1, Col 20 - Ln 1, Col 20] AssignmentStatement\n" +
                 "        [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (n)\n" +
                 "        [Ln 1, Col 20 - Ln 1, Col 20] CallExpression\n" +
-                "          [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (next)\n" +
+                "          [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (__next__)\n" +
                 "          [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
                 "      [Ln 1, Col 20 - Ln 1, Col 20] ExpressionStatement\n" +
                 "        [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (n)",

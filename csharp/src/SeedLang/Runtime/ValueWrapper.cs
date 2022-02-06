@@ -22,12 +22,12 @@ namespace SeedLang.Runtime {
       _value = value;
     }
 
-    public bool IsNone => _value.IsNone();
-    public bool IsBoolean => _value.IsBoolean();
-    public bool IsNumber => _value.IsNumber();
-    public bool IsString => _value.IsString();
-    public bool IsList => _value.IsList();
-    public bool IsFunction => _value.IsFunction();
+    public bool IsNone => _value.IsNone;
+    public bool IsBoolean => _value.IsBoolean;
+    public bool IsNumber => _value.IsNumber;
+    public bool IsString => _value.IsString;
+    public bool IsList => _value.IsList;
+    public bool IsFunction => _value.IsFunction;
 
     public bool Boolean => _value.AsBoolean();
     public double Number => _value.AsNumber();

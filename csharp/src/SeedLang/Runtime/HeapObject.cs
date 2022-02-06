@@ -18,21 +18,20 @@ using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
+  using List = List<Value>;
+
   internal class HeapObject : IEquatable<HeapObject> {
+    public bool IsString => _object is string;
+    public bool IsList => _object is List;
+    public bool IsFunction => _object is IFunction;
+    public bool IsIterator => _object is IIterator;
+
     private static readonly HashSet<HeapObject> _visitedObjects = new HashSet<HeapObject>();
+
     private readonly object _object;
-    private string _unsupportedObjectTypeMessage => $"Unsupported heap object type: {_object}";
 
-    private HeapObject(string str) {
-      _object = str;
-    }
-
-    private HeapObject(List<Value> list) {
-      _object = list;
-    }
-
-    private HeapObject(IFunction func) {
-      _object = func;
+    public HeapObject(object obj) {
+      _object = obj;
     }
 
     public static bool operator ==(HeapObject lhs, HeapObject rhs) {
@@ -76,16 +75,25 @@ namespace SeedLang.Runtime {
       return AsString();
     }
 
-    internal static HeapObject String(string str) {
-      return new HeapObject(str);
+    internal bool AsBoolean() {
+      switch (_object) {
+        case string str:
+          return ValueHelper.StringToBoolean(str);
+        case List _:
+          return Count() != 0;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
     }
 
-    internal static HeapObject List(List<Value> list) {
-      return new HeapObject(list);
-    }
-
-    internal static HeapObject Function(IFunction value) {
-      return new HeapObject(value);
+    internal double AsNumber() {
+      if (_object is string str) {
+        return ValueHelper.StringToNumber(str);
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidCast);
+      }
     }
 
     internal string AsString() {
@@ -97,20 +105,35 @@ namespace SeedLang.Runtime {
         case IFunction func:
           return func.ToString();
         default:
-          throw new NotImplementedException(_unsupportedObjectTypeMessage);
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal List AsList() {
+      if (_object is List list) {
+        return list;
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidCast);
       }
     }
 
     internal IFunction AsFunction() {
-      switch (_object) {
-        case string _:
-        case List<Value> _:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCallable);
-        case IFunction func:
-          return func;
-        default:
-          throw new NotImplementedException(_unsupportedObjectTypeMessage);
+      if (_object is IFunction func) {
+        return func;
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCallable);
+      }
+    }
+
+    internal IIterator AsIterator() {
+      if (_object is IIterator iter) {
+        return iter;
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCallable);
       }
     }
 
@@ -120,11 +143,9 @@ namespace SeedLang.Runtime {
           return str.Length;
         case List<Value> list:
           return list.Count;
-        case IFunction _:
+        default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorNotCountable);
-        default:
-          throw new NotImplementedException(_unsupportedObjectTypeMessage);
       }
     }
 
@@ -132,14 +153,12 @@ namespace SeedLang.Runtime {
       get {
         switch (_object) {
           case string str:
-            return Value.String(str[ToIntIndex(index, str.Length)].ToString());
+            return new Value(str[ToIntIndex(index, str.Length)].ToString());
           case List<Value> list:
             return list[ToIntIndex(index, list.Count)];
-          case IFunction _:
+          default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
-          default:
-            throw new NotImplementedException(_unsupportedObjectTypeMessage);
         }
       }
       set {
@@ -149,25 +168,19 @@ namespace SeedLang.Runtime {
           case List<Value> list:
             list[ToIntIndex(index, list.Count)] = value;
             break;
-          case IFunction _:
+          default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
-          default:
-            throw new NotImplementedException(_unsupportedObjectTypeMessage);
         }
       }
     }
 
     internal Value Call(Value[] arguments) {
-      switch (_object) {
-        case string _:
-        case List<Value> _:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCallable);
-        case IFunction func:
-          return func.Call(arguments);
-        default:
-          throw new NotImplementedException(_unsupportedObjectTypeMessage);
+      if (_object is IFunction func) {
+        return func.Call(arguments);
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCallable);
       }
     }
 

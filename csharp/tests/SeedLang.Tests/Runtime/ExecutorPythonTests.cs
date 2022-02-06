@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -33,7 +34,15 @@ while i <= 10:
 sum
 ",
 
-"55")]
+    "55")]
+
+    [InlineData(@"sum = 0
+for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
+  sum = sum + i
+sum
+",
+
+    "55")]
 
     [InlineData(@"def func():
   sum = 0
@@ -45,7 +54,7 @@ sum
 func()
 ",
 
-"55")]
+    "55")]
 
     [InlineData(@"def sum(n):
   if n == 1:
@@ -55,7 +64,7 @@ func()
 sum(10)
 ",
 
-"55")]
+    "55")]
 
     [InlineData(@"a, b = 0, 1
 i = 1
@@ -65,7 +74,7 @@ while i < 10:
 b
 ",
 
-"55")]
+    "55")]
 
     [InlineData(@"def fib(n):
   a, b = 0, 1
@@ -77,7 +86,7 @@ b
 fib(10)
 ",
 
-"55")]
+    "55")]
 
     [InlineData(@"def fib(n):
   if n == 1 or n == 2:
@@ -87,7 +96,7 @@ fib(10)
 fib(10)
 ",
 
-"55")]
+    "55")]
 
     [InlineData(@"def func():
   def inner_func():
@@ -96,7 +105,7 @@ fib(10)
 func()
 ",
 
-"2")]
+    "2")]
 
     [InlineData(@"array = [64, 34, 25, 12, 22, 11, 90]
 n = len(array)
@@ -111,7 +120,7 @@ while i < n:
 array
 ",
 
-"[11, 12, 22, 25, 34, 64, 90]")]
+    "[11, 12, 22, 25, 34, 64, 90]")]
     public void TestExecutor(string source, string result) {
       TestWithRunType(source, result, RunType.Ast);
       TestWithRunType(source, result, RunType.Bytecode);
@@ -121,7 +130,8 @@ array
       var executor = new Executor();
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
-      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, type));
+      var collection = new DiagnosticCollection();
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, type, collection));
       Assert.Equal(result, visualizer.Result.ToString());
     }
   }

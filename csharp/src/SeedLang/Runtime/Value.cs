@@ -29,33 +29,43 @@ namespace SeedLang.Runtime {
       None,
       Boolean,
       Number,
-      String,
-      List,
-      Function,
+      Object,
     }
+
+    public bool IsNone => _type == ValueType.None;
+    public bool IsBoolean => _type == ValueType.Boolean;
+    public bool IsNumber => _type == ValueType.Number;
+    public bool IsString => _type == ValueType.Object && _object.IsString;
+    public bool IsList => _type == ValueType.Object && _object.IsList;
+    public bool IsFunction => _type == ValueType.Object && _object.IsFunction;
+    public bool IsIterator => _type == ValueType.Object && _object.IsIterator;
 
     private readonly ValueType _type;
     private readonly double _number;
     private readonly HeapObject _object;
 
-    private Value(bool value) {
+    public Value() {
+      _type = ValueType.None;
+      _number = 0;
+      _object = null;
+    }
+
+    internal Value(bool value) {
       _type = ValueType.Boolean;
       _number = ValueHelper.BooleanToNumber(value);
       _object = null;
     }
 
-    private Value(double value) {
+    internal Value(double value) {
       _type = ValueType.Number;
       _number = value;
       _object = null;
     }
 
-    private Value(string value) : this(ValueType.String, HeapObject.String(value)) { }
-
-    private Value(ValueType type, HeapObject obj) {
-      _type = type;
+    internal Value(object obj) {
+      _type = ValueType.Object;
       _number = 0;
-      _object = obj;
+      _object = new HeapObject(obj);
     }
 
     public static bool operator ==(in Value lhs, in Value rhs) {
@@ -74,9 +84,7 @@ namespace SeedLang.Runtime {
         case ValueType.Number:
           return (other._type == ValueType.Boolean || other._type == ValueType.Number) &&
                  _number == other._number;
-        case ValueType.String:
-        case ValueType.List:
-        case ValueType.Function:
+        case ValueType.Object:
           return _type == other._type && _object.Equals(other._object);
         default:
           throw new NotImplementedException($"Unsupported value type: {_type}.");
@@ -94,9 +102,7 @@ namespace SeedLang.Runtime {
         case ValueType.Boolean:
         case ValueType.Number:
           return (_type, _number).GetHashCode();
-        case ValueType.String:
-        case ValueType.List:
-        case ValueType.Function:
+        case ValueType.Object:
           return (_type, _object).GetHashCode();
         default:
           throw new NotImplementedException($"Unsupported value type: {_type}.");
@@ -109,79 +115,31 @@ namespace SeedLang.Runtime {
         case ValueType.Boolean:
         case ValueType.Number:
           return AsString();
-        case ValueType.String:
-        case ValueType.List:
-        case ValueType.Function:
+        case ValueType.Object:
           return _object.ToString();
         default:
           throw new NotImplementedException($"Unsupported value type: {_type}.");
       }
     }
 
-    internal static Value None() {
-      return new Value();
-    }
-
-    internal static Value Boolean(bool value) {
-      return new Value(value);
-    }
-
-    internal static Value Number(double value) {
-      return new Value(value);
-    }
-
-    internal static Value String(string value) {
-      return new Value(value);
-    }
-
-    internal static Value List(List<Value> values) {
-      return new Value(ValueType.List, HeapObject.List(values));
-    }
-
-    internal static Value Function(IFunction value) {
-      return new Value(ValueType.Function, HeapObject.Function(value));
-    }
-
     internal Value this[double index] {
       get {
-        switch (_type) {
-          case ValueType.None:
-          case ValueType.Boolean:
-          case ValueType.Number:
-          case ValueType.Function:
-            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                          Message.RuntimeErrorNotSubscriptable);
-          case ValueType.String:
-          case ValueType.List:
-            return _object[index];
-          default:
-            throw new NotImplementedException($"Unsupported value type: {_type}.");
+        if (_type == ValueType.Object) {
+          return _object[index];
+        } else {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotSubscriptable);
         }
       }
       set {
-        switch (_type) {
-          case ValueType.None:
-          case ValueType.Boolean:
-          case ValueType.Number:
-          case ValueType.Function:
-            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                          Message.RuntimeErrorNotSubscriptable);
-          case ValueType.String:
-          case ValueType.List:
-            _object[index] = value;
-            break;
-          default:
-            throw new NotImplementedException($"Unsupported value type: {_type}.");
+        if (_type == ValueType.Object) {
+          _object[index] = value;
+        } else {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotSubscriptable);
         }
       }
     }
-
-    internal bool IsNone() { return _type == ValueType.None; }
-    internal bool IsBoolean() { return _type == ValueType.Boolean; }
-    internal bool IsNumber() { return _type == ValueType.Number; }
-    internal bool IsString() { return _type == ValueType.String; }
-    internal bool IsList() { return _type == ValueType.List; }
-    internal bool IsFunction() { return _type == ValueType.Function; }
 
     internal bool AsBoolean() {
       switch (_type) {
@@ -190,15 +148,11 @@ namespace SeedLang.Runtime {
         case ValueType.Boolean:
         case ValueType.Number:
           return ValueHelper.NumberToBoolean(_number);
-        case ValueType.String:
-          return ValueHelper.StringToBoolean(_object.AsString());
-        case ValueType.List:
-          return Count() != 0;
-        case ValueType.Function:
+        case ValueType.Object:
+          return _object.AsBoolean();
+        default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
-        default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
       }
     }
 
@@ -209,14 +163,11 @@ namespace SeedLang.Runtime {
         case ValueType.Boolean:
         case ValueType.Number:
           return _number;
-        case ValueType.String:
-          return ValueHelper.StringToNumber(_object.AsString());
-        case ValueType.List:
-        case ValueType.Function:
+        case ValueType.Object:
+          return _object.AsNumber();
+        default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
-        default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
       }
     }
 
@@ -228,61 +179,56 @@ namespace SeedLang.Runtime {
           return ValueHelper.BooleanToString(ValueHelper.NumberToBoolean(_number));
         case ValueType.Number:
           return ValueHelper.NumberToString(_number);
-        case ValueType.String:
-        case ValueType.List:
-        case ValueType.Function:
+        case ValueType.Object:
           return _object.AsString();
         default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal List<Value> AsList() {
+      if (_type == ValueType.Object) {
+        return _object.AsList();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCallable);
       }
     }
 
     internal IFunction AsFunction() {
-      switch (_type) {
-        case ValueType.None:
-        case ValueType.Boolean:
-        case ValueType.Number:
-        case ValueType.String:
-        case ValueType.List:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCallable);
-        case ValueType.Function:
-          return _object.AsFunction();
-        default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
+      if (_type == ValueType.Object) {
+        return _object.AsFunction();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCallable);
       }
+    }
 
+    internal IIterator AsIterator() {
+      if (_type == ValueType.Object) {
+        return _object.AsIterator();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCallable);
+      }
     }
 
     internal int Count() {
-      switch (_type) {
-        case ValueType.None:
-        case ValueType.Boolean:
-        case ValueType.Number:
-        case ValueType.Function:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCountable);
-        case ValueType.String:
-        case ValueType.List:
-          return _object.Count();
-        default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
+      if (_type == ValueType.Object) {
+        return _object.Count();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCountable);
       }
     }
 
     internal Value Call(Value[] arguments) {
-      switch (_type) {
-        case ValueType.None:
-        case ValueType.Boolean:
-        case ValueType.Number:
-        case ValueType.String:
-        case ValueType.List:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCallable);
-        case ValueType.Function:
-          return _object.Call(arguments);
-        default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
+      if (_type == ValueType.Object) {
+        return _object.Call(arguments);
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCallable);
       }
     }
   }

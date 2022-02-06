@@ -177,7 +177,7 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();
 
-      var program = AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id("list"),
+      var program = AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(NativeFunctions.List),
                                                             AstHelper.NumberConstant(1),
                                                             AstHelper.NumberConstant(2),
                                                             AstHelper.NumberConstant(3)));

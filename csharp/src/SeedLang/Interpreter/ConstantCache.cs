@@ -29,7 +29,7 @@ namespace SeedLang.Interpreter {
 
     internal uint IdOfNone() {
       if (!_idOfNone.HasValue) {
-        Constants.Add(Value.None());
+        Constants.Add(new Value());
         _idOfNone = IdOfLastConst();
       }
       return (uint)_idOfNone;
@@ -39,7 +39,7 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {
-        Constants.Add(Value.Number(number));
+        Constants.Add(new Value(number));
         _numbers[number] = IdOfLastConst();
       }
       return _numbers[number];
@@ -49,14 +49,14 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(string str) {
       if (!_strings.ContainsKey(str)) {
-        Constants.Add(Value.String(str));
+        Constants.Add(new Value(str));
         _strings[str] = IdOfLastConst();
       }
       return _strings[str];
     }
 
     internal uint IdOfConstant(Function func) {
-      Constants.Add(Value.Function(func));
+      Constants.Add(new Value(func));
       return IdOfLastConst();
     }
 

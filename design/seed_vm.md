@@ -185,8 +185,8 @@ NOT A B                     # R(A) := not R(B)
 EQ A B C                    # if (RK(B) == RK(C)) != A then PC++
 LT A B C                    # if (RK(B) < RK(C)) != A then PC++
 LE A B C                    # if (RK(B) <= RK(C)) != A then PC++
-TEST A C                    # if R(A) != C then PC++
-TESTSET A B C               # if R(B) == C then R(A) := R(B) else PC++
+TEST A C                    # if R(A) == C then PC++
+TESTSET A B C               # if R(B) != C then R(A) := R(B) else PC++
 ```
 
 ### Jumps and Calls

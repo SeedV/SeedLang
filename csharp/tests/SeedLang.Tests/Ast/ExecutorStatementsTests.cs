@@ -162,7 +162,7 @@ namespace SeedLang.Ast.Tests {
 
       private void AddNativeFunctionCall() {
         var eval = AstHelper.ExpressionStmt(AstHelper.Call(
-          AstHelper.Id("len"),
+          AstHelper.Id(NativeFunctions.Len),
           AstHelper.List(AstHelper.NumberConstant(1),
                          AstHelper.NumberConstant(2),
                          AstHelper.NumberConstant(3))

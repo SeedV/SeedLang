@@ -72,7 +72,7 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.UNM:
               _stack[baseRegister + instr.A] =
-                  Value.Number(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
+                  new Value(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
               break;
             case Opcode.JMP:
               pc += instr.SBx;
@@ -92,6 +92,11 @@ namespace SeedLang.Interpreter {
             case Opcode.LE:
               if ((ValueOfRK(chunk, instr.B, baseRegister).AsNumber() <=
                    ValueOfRK(chunk, instr.C, baseRegister).AsNumber()) == (instr.A == 1)) {
+                pc++;
+              }
+              break;
+            case Opcode.TEST:
+              if (_stack[baseRegister + instr.A].AsBoolean() == (instr.C == 1)) {
                 pc++;
               }
               break;
@@ -162,7 +167,7 @@ namespace SeedLang.Interpreter {
           result = ValueHelper.Divide(left, right);
           break;
       }
-      _stack[baseRegister + instr.A] = Value.Number(result);
+      _stack[baseRegister + instr.A] = new Value(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
                                  new ValueWrapper(_stack[baseRegister + instr.A]), range);

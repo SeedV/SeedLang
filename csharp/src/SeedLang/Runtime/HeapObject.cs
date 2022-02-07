@@ -188,9 +188,9 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value Call(Value[] arguments) {
+    internal Value Call(Value[] args, int offset, int length) {
       if (_object is IFunction func) {
-        return func.Call(arguments);
+        return func.Call(args, offset, length);
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorNotCallable);

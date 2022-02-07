@@ -27,7 +27,7 @@ namespace SeedLang.Interpreter {
       Name = name;
     }
 
-    public Value Call(IList<Value> arguments) {
+    public Value Call(Value[] args, int offset, int length) {
       throw new NotImplementedException();
     }
 

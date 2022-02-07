@@ -27,8 +27,8 @@ namespace SeedLang.Ast {
       _executor = executor;
     }
 
-    public Value Call(IList<Value> arguments) {
-      return _executor.Call(_funcDef, arguments);
+    public Value Call(Value[] args, int offset, int length) {
+      return _executor.Call(_funcDef, args, offset, length);
     }
   }
 }

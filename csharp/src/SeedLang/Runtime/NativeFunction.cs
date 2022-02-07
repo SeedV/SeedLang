@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
-  using NativeFunctionType = Func<IList<Value>, Value>;
+  using NativeFunctionType = Func<Value[], int, int, Value>;
 
   // The native function class to encapsulate build-in functions written by the host language.
   internal class NativeFunction : IFunction {
@@ -30,8 +30,8 @@ namespace SeedLang.Runtime {
       _func = func;
     }
 
-    public Value Call(IList<Value> parameters) {
-      return _func(parameters);
+    public Value Call(Value[] args, int offset, int length) {
+      return _func(args, offset, length);
     }
 
     public override string ToString() {
@@ -49,62 +49,66 @@ namespace SeedLang.Runtime {
     public const string Range = "range";
 
     public static NativeFunction[] Funcs = new NativeFunction[] {
-      new NativeFunction(HasNext, (IList<Value> arguments) => {
-        if (arguments.Count != 1) {
+      new NativeFunction(HasNext, (Value[] args, int offset, int length) => {
+        if (length != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
-        if (!arguments[0].IsIterator) {
+        if (!args[offset].IsIterator) {
           // TODO: throw uniterable...
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
-        return new Value(arguments[0].AsIterator().HasNext());
+        return new Value(args[offset].AsIterator().HasNext());
       }),
 
-      new NativeFunction(Iter, (IList<Value> arguments) => {
-        if (arguments.Count != 1) {
+      new NativeFunction(Iter, (Value[] args, int offset, int length) => {
+        if (length != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
-        return new Value(new Iterator(arguments[0]));
+        return new Value(new Iterator(args[offset]));
       }),
 
-      new NativeFunction(Len, (IList<Value> arguments) => {
-        if (arguments.Count != 1) {
+      new NativeFunction(Len, (Value[] args, int offset, int length) => {
+        if (length != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
-        return new Value(arguments[0].Length());
+        return new Value(args[offset].Length());
       }),
 
-      new NativeFunction(List, (IList<Value> arguments) => {
-        return new Value(new List<Value>(arguments));
+      new NativeFunction(List, (Value[] args, int offset, int length) => {
+        var list = new List<Value>();
+        for (int i = 0; i < length; i++) {
+          list.Add(args[offset + i]);
+        }
+        return new Value(list);
       }),
 
-      new NativeFunction(Next, (IList<Value> arguments) => {
-        if (arguments.Count != 1) {
+      new NativeFunction(Next, (Value[] args, int offset, int length) => {
+        if (length != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
-        if (!arguments[0].IsIterator) {
+        if (!args[offset].IsIterator) {
           // TODO: throw uniterable...
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
-        return arguments[0].AsIterator().Next();
+        return args[offset].AsIterator().Next();
       }),
 
-      new NativeFunction(Range, (IList<Value> arguments) => {
-        if (arguments.Count == 1) {
-          return new Value(new NumberRange((int)arguments[0].AsNumber()));
-        } else if (arguments.Count == 2) {
-          return new Value(new NumberRange((int)arguments[0].AsNumber(),
-                                           (int)arguments[1].AsNumber()));
-        } else if (arguments.Count == 3) {
-          return new Value(new NumberRange((int)arguments[0].AsNumber(),
-                                           (int)arguments[1].AsNumber(),
-                                           (int)arguments[2].AsNumber()));
+      new NativeFunction(Range, (Value[] args, int offset, int length) => {
+        if (length == 1) {
+          return new Value(new NumberRange((int)args[offset].AsNumber()));
+        } else if (length == 2) {
+          return new Value(new NumberRange((int)args[offset].AsNumber(),
+                                           (int)args[offset + 1].AsNumber()));
+        } else if (length == 3) {
+          return new Value(new NumberRange((int)args[offset].AsNumber(),
+                                           (int)args[offset + 1].AsNumber(),
+                                           (int)args[offset + 2].AsNumber()));
         }
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);

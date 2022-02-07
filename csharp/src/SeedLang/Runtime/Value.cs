@@ -217,9 +217,9 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value Call(Value[] arguments) {
+    internal Value Call(Value[] args, int offset, int length) {
       if (_type == ValueType.Object) {
-        return _object.Call(arguments);
+        return _object.Call(args, offset, length);
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorNotCallable);

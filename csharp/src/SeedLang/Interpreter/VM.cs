@@ -181,8 +181,7 @@ namespace SeedLang.Interpreter {
       var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
         case NativeFunction nativeFunc:
-          var arguments = new System.ArraySegment<Value>(_stack, calleeRegister + 1, (int)instr.B);
-          _stack[calleeRegister] = nativeFunc.Call(arguments);
+          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B);
           break;
         case Function func:
           baseRegister += instr.A + 1;

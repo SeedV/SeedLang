@@ -43,14 +43,14 @@ namespace SeedLang.Ast {
     }
 
     // Calls a AST function with given arguments.
-    internal Value Call(FuncDefStatement funcDef, IList<Value> arguments) {
-      if (funcDef.Parameters.Length != arguments.Count) {
+    internal Value Call(FuncDefStatement funcDef, Value[] args, int offset, int length) {
+      if (funcDef.Parameters.Length != length) {
         throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
       _env.EnterScope();
       for (int i = 0; i < funcDef.Parameters.Length; i++) {
-        _env.SetVariable(funcDef.Parameters[i], arguments[i]);
+        _env.SetVariable(funcDef.Parameters[i], args[offset + i]);
       }
       var result = new Value();
       try {
@@ -240,7 +240,7 @@ namespace SeedLang.Ast {
         Visit(call.Arguments[i]);
         values[i] = _expressionResult;
       }
-      _expressionResult = func.Call(values);
+      _expressionResult = func.Call(values, 0, values.Length);
     }
 
     protected override void Visit(AssignmentStatement assignment) {

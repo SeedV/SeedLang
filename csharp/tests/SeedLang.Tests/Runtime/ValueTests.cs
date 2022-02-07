@@ -35,7 +35,9 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => none[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
-      var exception3 = Assert.Throws<DiagnosticException>(() => none.Call(Array.Empty<Value>()));
+      var exception3 = Assert.Throws<DiagnosticException>(() => none.Call(Array.Empty<Value>(),
+                                                                          0,
+                                                                          0));
       Assert.Equal(Message.RuntimeErrorNotCallable, exception3.Diagnostic.MessageId);
     }
 
@@ -59,7 +61,9 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => boolean[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
-      var exception3 = Assert.Throws<DiagnosticException>(() => boolean.Call(Array.Empty<Value>()));
+      var exception3 = Assert.Throws<DiagnosticException>(() => boolean.Call(Array.Empty<Value>(),
+                                                                             0,
+                                                                             0));
       Assert.Equal(Message.RuntimeErrorNotCallable, exception3.Diagnostic.MessageId);
     }
 
@@ -83,7 +87,9 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => number[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
-      var exception3 = Assert.Throws<DiagnosticException>(() => number.Call(Array.Empty<Value>()));
+      var exception3 = Assert.Throws<DiagnosticException>(() => number.Call(Array.Empty<Value>(),
+                                                                            0,
+                                                                            0));
       Assert.Equal(Message.RuntimeErrorNotCallable, exception3.Diagnostic.MessageId);
     }
 
@@ -141,9 +147,9 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNativeFunction() {
-      var nativeFunc = new NativeFunction("add", (IList<Value> parameters) => {
-        if (parameters.Count == 2) {
-          return new Value(parameters[0].AsNumber() + parameters[1].AsNumber());
+      var nativeFunc = new NativeFunction("add", (Value[] args, int offset, int length) => {
+        if (length == 2) {
+          return new Value(args[offset].AsNumber() + args[offset + 1].AsNumber());
         }
         throw new NotImplementedException();
       });
@@ -151,7 +157,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal("NativeFunction <add>", func.AsString());
       Assert.Equal("NativeFunction <add>", func.ToString());
       Assert.True(func.IsFunction);
-      var result = func.Call(new Value[] { new Value(1), new Value(2) });
+      var result = func.Call(new Value[] { new Value(1), new Value(2) }, 0, 2);
       Assert.Equal(3, result.AsNumber());
     }
 

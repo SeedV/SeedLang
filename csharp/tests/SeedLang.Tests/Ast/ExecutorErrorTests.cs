@@ -63,7 +63,7 @@ namespace SeedLang.Ast.Tests {
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
       var exception = Assert.Throws<DiagnosticException>(() => executor.Run(subscript));
-      Assert.Equal(Message.RuntimeErrorInvalidListIndex, exception.Diagnostic.MessageId);
+      Assert.Equal(Message.RuntimeErrorInvalidIndex, exception.Diagnostic.MessageId);
     }
 
     private static (Executor, MockupVisualizer) NewExecutorWithVisualizer() {

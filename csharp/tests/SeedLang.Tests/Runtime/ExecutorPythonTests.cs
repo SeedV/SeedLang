@@ -56,6 +56,16 @@ func()
 
     "55")]
 
+    [InlineData(@"def func():
+  sum = 0
+  for i in range(1, 11):
+    sum = sum + i
+  return sum
+func()
+",
+
+    "55")]
+
     [InlineData(@"def sum(n):
   if n == 1:
     return 1
@@ -109,14 +119,10 @@ func()
 
     [InlineData(@"array = [64, 34, 25, 12, 22, 11, 90]
 n = len(array)
-i = 0
-while i < n:
-  j = 0
-  while j < n - i - 1:
+for i in range(n):
+  for j in range(n - i - 1):
     if array[j] > array[j + 1]:
       array[j], array[j + 1] = array[j + 1], array[j]
-    j = j + 1
-  i = i + 1
 array
 ",
 

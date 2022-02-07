@@ -33,7 +33,7 @@ namespace SeedLang.Runtime {
     public double Number => _value.AsNumber();
     public string String => _value.AsString();
 
-    public int Count => _value.Count();
+    public int Count => _value.Length();
 
     public IValue this[int index] {
       get => new ValueWrapper(_value[index]);

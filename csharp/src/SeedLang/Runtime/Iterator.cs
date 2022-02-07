@@ -12,30 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace SeedLang.Runtime {
-  internal interface IIterator {
-    bool HasNext();
-    Value Next();
-  }
-
-  internal class ListIterator : IIterator {
-    private readonly IReadOnlyList<Value> _list;
+  internal class Iterator {
+    private readonly Value _sequence;
     private int _nextPos = 0;
 
-    internal ListIterator(IReadOnlyList<Value> list) {
-      _list = list;
+    internal Iterator(in Value sequence) {
+      _sequence = sequence;
     }
 
     public bool HasNext() {
-      return _nextPos < _list.Count;
+      return _nextPos < _sequence.Length();
     }
 
     public Value Next() {
-      Debug.Assert(_nextPos >= 0 && _nextPos < _list.Count);
-      return _list[_nextPos++];
+      Debug.Assert(_nextPos >= 0 && _nextPos < _sequence.Length());
+      return _sequence[_nextPos++];
     }
   }
 }

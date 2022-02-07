@@ -24,7 +24,8 @@ namespace SeedLang.Runtime {
     public bool IsString => _object is string;
     public bool IsList => _object is List;
     public bool IsFunction => _object is IFunction;
-    public bool IsIterator => _object is IIterator;
+    public bool IsIterator => _object is Iterator;
+    public bool IsRange => _object is NumberRange;
 
     private static readonly HashSet<HeapObject> _visitedObjects = new HashSet<HeapObject>();
 
@@ -79,8 +80,10 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return ValueHelper.StringToBoolean(str);
-        case List _:
-          return Count() != 0;
+        case List list:
+          return list.Count != 0;
+        case NumberRange range:
+          return range.Length() != 0;
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -104,6 +107,8 @@ namespace SeedLang.Runtime {
           return ToString(list);
         case IFunction func:
           return func.ToString();
+        case NumberRange range:
+          return range.ToString();
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -128,8 +133,8 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal IIterator AsIterator() {
-      if (_object is IIterator iter) {
+    internal Iterator AsIterator() {
+      if (_object is Iterator iter) {
         return iter;
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -137,12 +142,14 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal int Count() {
+    internal int Length() {
       switch (_object) {
         case string str:
           return str.Length;
         case List<Value> list:
           return list.Count;
+        case NumberRange range:
+          return range.Length();
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorNotCountable);
@@ -156,6 +163,8 @@ namespace SeedLang.Runtime {
             return new Value(str[ToIntIndex(index, str.Length)].ToString());
           case List<Value> list:
             return list[ToIntIndex(index, list.Count)];
+          case NumberRange range:
+            return range[ToIntIndex(index, range.Length())];
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
@@ -168,6 +177,10 @@ namespace SeedLang.Runtime {
           case List<Value> list:
             list[ToIntIndex(index, list.Count)] = value;
             break;
+          case NumberRange _:
+            // TODO: throw
+            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                          Message.RuntimeErrorNotSubscriptable);
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
@@ -188,7 +201,7 @@ namespace SeedLang.Runtime {
       var intIndex = (int)index;
       if (intIndex != index) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidListIndex);
+                                      Message.RuntimeErrorInvalidIndex);
       } else if (intIndex < 0 || intIndex >= length) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorOutOfRange);

@@ -23,7 +23,7 @@ namespace SeedLang.Runtime.Tests {
     private readonly string _expectedTrueString = "True";
 
     [Fact]
-    public void TestNoneValue() {
+    public void TestNone() {
       var none = new Value();
       Assert.True(none.IsNone);
       Assert.False(none.AsBoolean());
@@ -31,7 +31,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal("None", none.AsString());
       Assert.Equal("None", none.ToString());
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => none.Count());
+      var exception1 = Assert.Throws<DiagnosticException>(() => none.Length());
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => none[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
@@ -40,7 +40,7 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestBooleanValue() {
+    public void TestBoolean() {
       var boolean = new Value(false);
       Assert.True(boolean.IsBoolean);
       Assert.False(boolean.AsBoolean());
@@ -55,7 +55,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(_expectedTrueString, boolean.AsString());
       Assert.Equal(_expectedTrueString, boolean.ToString());
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => boolean.Count());
+      var exception1 = Assert.Throws<DiagnosticException>(() => boolean.Length());
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => boolean[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
@@ -64,7 +64,7 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestNumberValue() {
+    public void TestNumber() {
       var number = new Value(1);
       Assert.True(number.IsNumber);
       Assert.True(number.AsBoolean());
@@ -79,7 +79,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal("2.5", number.AsString());
       Assert.Equal("2.5", number.ToString());
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => number.Count());
+      var exception1 = Assert.Throws<DiagnosticException>(() => number.Length());
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => number[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
@@ -88,7 +88,7 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestStringValue() {
+    public void TestString() {
       var str = new Value("");
       Assert.True(str.IsString);
       Assert.False(str.AsBoolean());
@@ -110,14 +110,14 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(_expectedTrueString, str.AsString());
       Assert.Equal(_expectedTrueString, str.ToString());
 
-      Assert.Equal(_expectedTrueString.Length, str.Count());
+      Assert.Equal(_expectedTrueString.Length, str.Length());
       for (int i = 0; i < _expectedTrueString.Length; i++) {
         Assert.Equal(_expectedTrueString[i].ToString(), str[i].AsString());
       }
     }
 
     [Fact]
-    public void TestListValue() {
+    public void TestList() {
       var values = new List<Value>() {
         new Value(1),
         new Value(2),
@@ -125,7 +125,7 @@ namespace SeedLang.Runtime.Tests {
       };
       var list = new Value(values);
       Assert.True(list.IsList);
-      Assert.Equal(3, list.Count());
+      Assert.Equal(3, list.Length());
       Assert.True(list[0].IsNumber);
       Assert.Equal(1, list[0].AsNumber());
       Assert.True(list[1].IsNumber);

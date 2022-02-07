@@ -17,8 +17,7 @@ using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
   public class SumBenchmark {
-    private readonly Executor _executor = new Executor();
-    private readonly string _source = @"sum = 0
+    private readonly string _globalScopeSum = @"sum = 0
 i = 1
 while i <= 10000000:
   sum = sum + i
@@ -26,19 +25,13 @@ while i <= 10000000:
 sum
 ";
 
-    [Benchmark]
-    public void BenchmarkAstSum() {
-      _executor.Run(_source, "", SeedXLanguage.SeedPython, RunType.Ast);
-    }
+    private readonly string _globalScopeForSum = @"sum = 0
+for i in range(1, 10000001):
+  sum = sum + i
+sum
+";
 
-    [Benchmark]
-    public void BenchmarkBytecodeGlobalScopeSum() {
-      _executor.Run(_source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
-    }
-
-    [Benchmark]
-    public void BenchmarkBytecodeLocalScopeSum() {
-      string source = @"def func():
+    private readonly string _localScopeSum = @"def func():
   sum = 0
   i = 1
   while i <= 10000000:
@@ -47,7 +40,44 @@ sum
   return sum
 func()
 ";
-      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+
+    private readonly string _localScopeForSum = @"def func():
+  sum = 0
+  for i in range(1, 10000001):
+    sum = sum + i
+  return sum
+func()
+";
+
+    [Benchmark]
+    public void BenchmarkAstSum() {
+      var executor = new Executor();
+      executor.Run(_globalScopeSum, "", SeedXLanguage.SeedPython, RunType.Ast);
+    }
+
+    [Benchmark]
+    public void BenchmarkBytecodeGlobalScopeSum() {
+      var executor = new Executor();
+      executor.Run(_globalScopeSum, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+    }
+
+    [Benchmark]
+    public void BenchmarkBytecodeGlobalScopeForSum() {
+      var executor = new Executor();
+      executor.Run(_globalScopeForSum, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+    }
+
+
+    [Benchmark]
+    public void BenchmarkBytecodeLocalScopeSum() {
+      var executor = new Executor();
+      executor.Run(_localScopeSum, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+    }
+
+    [Benchmark]
+    public void BenchmarkBytecodeLocalScopeForSum() {
+      var executor = new Executor();
+      executor.Run(_localScopeForSum, "", SeedXLanguage.SeedPython, RunType.Bytecode);
     }
   }
 }

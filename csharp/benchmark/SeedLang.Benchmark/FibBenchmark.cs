@@ -17,11 +17,7 @@ using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
   public class FibBenchmark {
-    private readonly Executor _executor = new Executor();
-
-    [Benchmark]
-    public void BenchmarkBytecodeFib() {
-      string source = @"def fib(n):
+    private readonly string _fibSource = @"def fib(n):
   a, b = 0, 1
   i = 1
   while i < n:
@@ -30,19 +26,39 @@ namespace SeedLang.Benchmark {
   return b
 fib(35)
 ";
-      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
-    }
 
-    [Benchmark]
-    public void BenchmarkBytecodeRecursiveFib() {
-      string source = @"def fib(n):
+    private readonly string _forFibSource = @"def fib(n):
+  a, b = 0, 1
+  for i in range(1, n):
+    a, b = b, a + b
+  return b
+fib(35)
+";
+
+    private readonly string _recursiveFibSource = @"def fib(n):
   if n == 1 or n == 2:
     return 1
   else:
     return fib(n - 1) + fib(n - 2)
 fib(35)
 ";
-      _executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+
+    [Benchmark]
+    public void BenchmarkBytecodeFib() {
+      var executor = new Executor();
+      executor.Run(_fibSource, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+    }
+
+    [Benchmark]
+    public void BenchmarkBytecodeForFib() {
+      var executor = new Executor();
+      executor.Run(_forFibSource, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+    }
+
+    [Benchmark]
+    public void BenchmarkBytecodeRecursiveFib() {
+      var executor = new Executor();
+      executor.Run(_recursiveFibSource, "", SeedXLanguage.SeedPython, RunType.Bytecode);
     }
   }
 }

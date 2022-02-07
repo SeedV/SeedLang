@@ -44,12 +44,6 @@ namespace SeedLang.Runtime {
     private readonly double _number;
     private readonly HeapObject _object;
 
-    public Value() {
-      _type = ValueType.None;
-      _number = 0;
-      _object = null;
-    }
-
     internal Value(bool value) {
       _type = ValueType.Boolean;
       _number = ValueHelper.BooleanToNumber(value);
@@ -205,7 +199,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal IIterator AsIterator() {
+    internal Iterator AsIterator() {
       if (_type == ValueType.Object) {
         return _object.AsIterator();
       } else {
@@ -214,9 +208,9 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal int Count() {
+    internal int Length() {
       if (_type == ValueType.Object) {
-        return _object.Count();
+        return _object.Length();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorNotCountable);

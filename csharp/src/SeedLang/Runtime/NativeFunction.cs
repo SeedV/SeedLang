@@ -41,38 +41,14 @@ namespace SeedLang.Runtime {
 
   // The static class to define all the build-in native functions.
   internal static class NativeFunctions {
-    public const string List = "list";
+    public const string HasNext = "hasnext";
+    public const string Iter = "iter";
     public const string Len = "len";
-    public const string Iter = "__iter__";
-    public const string HasNext = "__has_next__";
-    public const string Next = "__next__";
+    public const string List = "list";
+    public const string Next = "next";
+    public const string Range = "range";
 
     public static NativeFunction[] Funcs = new NativeFunction[] {
-      new NativeFunction(List, (IList<Value> arguments) => {
-        return new Value(new List<Value>(arguments));
-      }),
-
-      new NativeFunction(Len, (IList<Value> arguments) => {
-        if (arguments.Count != 1) {
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorIncorrectArgsCount);
-        }
-        return new Value(arguments[0].Count());
-      }),
-
-      new NativeFunction(Iter, (IList<Value> arguments) => {
-        if (arguments.Count != 1) {
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorIncorrectArgsCount);
-        }
-        if (!arguments[0].IsList) {
-          // TODO: throw uniterable...
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorIncorrectArgsCount);
-        }
-        return new Value(new ListIterator(arguments[0].AsList()));
-      }),
-
       new NativeFunction(HasNext, (IList<Value> arguments) => {
         if (arguments.Count != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -86,6 +62,26 @@ namespace SeedLang.Runtime {
         return new Value(arguments[0].AsIterator().HasNext());
       }),
 
+      new NativeFunction(Iter, (IList<Value> arguments) => {
+        if (arguments.Count != 1) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        return new Value(new Iterator(arguments[0]));
+      }),
+
+      new NativeFunction(Len, (IList<Value> arguments) => {
+        if (arguments.Count != 1) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        return new Value(arguments[0].Length());
+      }),
+
+      new NativeFunction(List, (IList<Value> arguments) => {
+        return new Value(new List<Value>(arguments));
+      }),
+
       new NativeFunction(Next, (IList<Value> arguments) => {
         if (arguments.Count != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -97,6 +93,21 @@ namespace SeedLang.Runtime {
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
         return arguments[0].AsIterator().Next();
+      }),
+
+      new NativeFunction(Range, (IList<Value> arguments) => {
+        if (arguments.Count == 1) {
+          return new Value(new NumberRange((int)arguments[0].AsNumber()));
+        } else if (arguments.Count == 2) {
+          return new Value(new NumberRange((int)arguments[0].AsNumber(),
+                                           (int)arguments[1].AsNumber()));
+        } else if (arguments.Count == 3) {
+          return new Value(new NumberRange((int)arguments[0].AsNumber(),
+                                           (int)arguments[1].AsNumber(),
+                                           (int)arguments[2].AsNumber()));
+        }
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorIncorrectArgsCount);
       }),
     };
   }

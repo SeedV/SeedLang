@@ -17,6 +17,8 @@ using System.Collections.Generic;
 namespace SeedLang.Runtime {
   // The function interface of function value types.
   internal interface IFunction {
+    // Calls the function with given arguments that locate in the "args" array starting from
+    // "offset". The number of arguments is "length".
     Value Call(Value[] args, int offset, int length);
   }
 }

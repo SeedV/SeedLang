@@ -15,6 +15,7 @@
 using System;
 
 namespace SeedLang.Runtime {
+  // A class to store the range information of "for in range" statements.
   internal class NumberRange {
     private readonly int _start;
     private readonly int _stop;

@@ -45,6 +45,9 @@ namespace SeedLang.Interpreter {
             case Opcode.MOVE:
               _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B];
               break;
+            case Opcode.LOADBOOL:
+              // TODO: implement the LOADBOOL opcode.
+              break;
             case Opcode.LOADK:
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
@@ -99,6 +102,9 @@ namespace SeedLang.Interpreter {
               if (_stack[baseRegister + instr.A].AsBoolean() == (instr.C == 1)) {
                 pc++;
               }
+              break;
+            case Opcode.TESTSET:
+              // TODO: implement the TESTSET opcode.
               break;
             case Opcode.EVAL:
               if (!_visualizerCenter.EvalPublisher.IsEmpty()) {

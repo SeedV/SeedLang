@@ -15,6 +15,8 @@
 using System.Diagnostics;
 
 namespace SeedLang.Runtime {
+  // A class to hold and iterate sequence values. The sequence value must support length and
+  // subscript interfaces.
   internal class Iterator {
     private readonly Value _sequence;
     private int _nextPos = 0;

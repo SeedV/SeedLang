@@ -42,7 +42,8 @@ namespace SeedLang.Ast {
       Visit(node);
     }
 
-    // Calls a AST function with given arguments.
+    // Calls an AST function with given arguments that locate in the "args" array starting from
+    // "offset". The number of arguments is "length".
     internal Value Call(FuncDefStatement funcDef, Value[] args, int offset, int length) {
       if (funcDef.Parameters.Length != length) {
         throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", null,

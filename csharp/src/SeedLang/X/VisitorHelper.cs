@@ -418,6 +418,10 @@ namespace SeedLang.X {
       return BuildBlock(statements);
     }
 
+    // Builds "for in" statements.
+    // TODO: The "for in" statement is converted to a block of initializer and while statements.
+    // It's possible to compile the "for in range" statement into a "FORPREP" opcode for
+    // optimization.
     internal BlockStatement BuildFor(IToken forToken, ParserRuleContext identifierContext,
                                      IToken inToken, ParserRuleContext exprContext,
                                      IToken colonToken, ParserRuleContext blockContext,

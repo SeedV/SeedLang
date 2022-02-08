@@ -606,7 +606,7 @@ namespace SeedLang.Interpreter.Tests {
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(program, env);
       int listFuncId = 3;
-      int firstGlobalId = 6;
+      int firstGlobalId = NativeFunctions.Funcs.Length;
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {listFuncId}" +
@@ -649,7 +649,7 @@ namespace SeedLang.Interpreter.Tests {
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(program, env);
       int listFuncId = 3;
-      int firstGlobalId = 6;
+      int firstGlobalId = NativeFunctions.Funcs.Length;
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {listFuncId}" +

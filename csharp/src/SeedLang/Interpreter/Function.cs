@@ -27,6 +27,8 @@ namespace SeedLang.Interpreter {
       Name = name;
     }
 
+    // Calls the function with given arguments that locate in the "args" array starting from
+    // "offset". The number of arguments is "length".
     public Value Call(Value[] args, int offset, int length) {
       throw new NotImplementedException();
     }

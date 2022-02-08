@@ -33,8 +33,8 @@ namespace SeedLang.Interpreter {
     EQ,           // if (RK(B) == RK(C)) != A then PC++
     LT,           // if (RK(B) < RK(C)) != A then PC++
     LE,           // if (RK(B) <= RK(C)) != A then PC++
-    TEST,         // if R(A) != C then PC++
-    TESTSET,      // if R(B) == C then R(A) := R(B) else PC++
+    TEST,         // if R(A) == C then PC++
+    TESTSET,      // if R(B) != C then R(A) := R(B) else PC++
     EVAL,         // Eval R(A). Evaluates the expresion statement. TODO: do we need this?
     CALL,         // call function R(A), parameters are R(A + 1), ..., R(A + B)
     RETURN,       // Return R(A)

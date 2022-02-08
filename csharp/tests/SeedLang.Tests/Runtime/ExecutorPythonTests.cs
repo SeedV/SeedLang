@@ -136,8 +136,7 @@ array
       var executor = new Executor();
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
-      var collection = new DiagnosticCollection();
-      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, type, collection));
+      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, type));
       Assert.Equal(result, visualizer.Result.ToString());
     }
   }

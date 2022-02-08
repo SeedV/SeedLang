@@ -72,10 +72,11 @@ namespace SeedLang.Common {
     RuntimeErrorInvalidCast,            // Invalid cast of value types runtime error.
     RuntimeErrorDivideByZero,           // Divide by zero runtime error.
     RuntimeErrorIncorrectArgsCount,     // Incorrect arguments count runtime error.
-    RuntimeErrorInvalidIndex,           // Invalid list index runtime error.
+    RuntimeErrorInvalidIndex,           // Not a valid integer index runtime error.
     RuntimeErrorNotCallable,            // Value type not callable runtime error.
     RuntimeErrorNotCountable,           // Value type not countable runtime error.
     RuntimeErrorNotSubscriptable,       // Value type not subscriptable runtime error.
+    RuntimeErrorNotSupportAssignment,   // The value type is not support assignment runtime error.
     RuntimeErrorOutOfRange,             // Index out of range runtime error.
     RuntimeErrorOverflow,               // Overflow runtime error.
     RuntimeErrorVariableNotDefined,     // Variable not defined runtime error.

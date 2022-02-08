@@ -20,6 +20,7 @@ using SeedLang.Common;
 namespace SeedLang.Runtime {
   using List = List<Value>;
 
+  // A class to hold heap allocated objects.
   internal class HeapObject : IEquatable<HeapObject> {
     public bool IsString => _object is string;
     public bool IsList => _object is List;
@@ -91,11 +92,12 @@ namespace SeedLang.Runtime {
     }
 
     internal double AsNumber() {
-      if (_object is string str) {
-        return ValueHelper.StringToNumber(str);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidCast);
+      switch (_object) {
+        case string str:
+          return ValueHelper.StringToNumber(str);
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
       }
     }
 
@@ -103,7 +105,7 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return str;
-        case List<Value> list:
+        case List list:
           return ToString(list);
         case IFunction func:
           return func.ToString();
@@ -116,29 +118,32 @@ namespace SeedLang.Runtime {
     }
 
     internal List AsList() {
-      if (_object is List list) {
-        return list;
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidCast);
+      switch (_object) {
+        case List list:
+          return list;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
       }
     }
 
     internal IFunction AsFunction() {
-      if (_object is IFunction func) {
-        return func;
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCallable);
+      switch (_object) {
+        case IFunction func:
+          return func;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotCallable);
       }
     }
 
     internal Iterator AsIterator() {
-      if (_object is Iterator iter) {
-        return iter;
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCallable);
+      switch (_object) {
+        case Iterator iter:
+          return iter;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotCallable);
       }
     }
 
@@ -146,7 +151,7 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return str.Length;
-        case List<Value> list:
+        case List list:
           return list.Count;
         case NumberRange range:
           return range.Length();
@@ -161,7 +166,7 @@ namespace SeedLang.Runtime {
         switch (_object) {
           case string str:
             return new Value(str[ToIntIndex(index, str.Length)].ToString());
-          case List<Value> list:
+          case List list:
             return list[ToIntIndex(index, list.Count)];
           case NumberRange range:
             return range[ToIntIndex(index, range.Length())];
@@ -174,13 +179,12 @@ namespace SeedLang.Runtime {
         switch (_object) {
           case string _:
             throw new NotImplementedException();
-          case List<Value> list:
+          case List list:
             list[ToIntIndex(index, list.Count)] = value;
             break;
           case NumberRange _:
-            // TODO: throw
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                          Message.RuntimeErrorNotSubscriptable);
+                                          Message.RuntimeErrorNotSupportAssignment);
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
@@ -189,11 +193,12 @@ namespace SeedLang.Runtime {
     }
 
     internal Value Call(Value[] args, int offset, int length) {
-      if (_object is IFunction func) {
-        return func.Call(args, offset, length);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCallable);
+      switch (_object) {
+        case IFunction func:
+          return func.Call(args, offset, length);
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotCallable);
       }
     }
 

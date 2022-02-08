@@ -27,6 +27,8 @@ namespace SeedLang.Ast {
       _executor = executor;
     }
 
+    // Calls the function with given arguments that locate in the "args" array starting from
+    // "offset". The number of arguments is "length".
     public Value Call(Value[] args, int offset, int length) {
       return _executor.Call(_funcDef, args, offset, length);
     }

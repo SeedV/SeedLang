@@ -30,6 +30,8 @@ namespace SeedLang.Runtime {
       _func = func;
     }
 
+    // Calls the function with given arguments that locate in the "args" array starting from
+    // "offset". The number of arguments is "length".
     public Value Call(Value[] args, int offset, int length) {
       return _func(args, offset, length);
     }

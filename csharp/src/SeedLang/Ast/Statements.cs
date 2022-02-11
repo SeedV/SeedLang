@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics;
 using SeedLang.Common;
 
 namespace SeedLang.Ast {
@@ -32,6 +31,12 @@ namespace SeedLang.Ast {
     // The factory method to create an expression statement.
     internal static ExpressionStatement Expression(Expression expr, Range range) {
       return new ExpressionStatement(expr, range);
+    }
+
+    // The factory method to create a for in statement.
+    internal static ForInStatement ForIn(IdentifierExpression id, Expression expr, Statement body,
+                                         Range range) {
+      return new ForInStatement(id, expr, body, range);
     }
 
     // The factory method to create a function define statement.
@@ -87,6 +92,19 @@ namespace SeedLang.Ast {
 
     internal ExpressionStatement(Expression expr, Range range) : base(range) {
       Expr = expr;
+    }
+  }
+
+  internal class ForInStatement : Statement {
+    public IdentifierExpression Id { get; }
+    public Expression Expr { get; }
+    public Statement Body { get; }
+
+    internal ForInStatement(IdentifierExpression id, Expression expr, Statement body, Range range) :
+        base(range) {
+      Id = id;
+      Expr = expr;
+      Body = body;
     }
   }
 

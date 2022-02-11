@@ -290,6 +290,10 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(ForInStatement forIn) {
+
+    }
+
     protected override void Visit(FuncDefStatement funcDef) {
       _env.SetVariable(funcDef.Name, new Value(new Function(funcDef, this)));
     }

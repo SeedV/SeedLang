@@ -221,6 +221,10 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    protected override void Visit(ForInStatement forIn) {
+
+    }
+
     protected override void Visit(FuncDefStatement funcDef) {
       VariableResolver.VariableInfo info = _variableResolver.DefineVariable(funcDef.Name);
       PushFunc(funcDef.Name);

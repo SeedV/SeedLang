@@ -17,6 +17,14 @@ using System;
 namespace SeedLang.Runtime {
   // A class to store the range information of "for in range" statements.
   internal class NumberRange {
+    public int Length {
+      get {
+        int distance = _stop - _start;
+        int length = distance / _step + (distance % _step == 0 ? 0 : 1);
+        return Math.Max(length, 0);
+      }
+    }
+
     private readonly int _start;
     private readonly int _stop;
     private readonly int _step;
@@ -31,12 +39,6 @@ namespace SeedLang.Runtime {
 
     public override string ToString() {
       return $"range({_start}, {_stop}, {_step})";
-    }
-
-    internal int Length() {
-      int distance = _stop - _start;
-      int length = distance / _step + (distance % _step == 0 ? 0 : 1);
-      return Math.Max(length, 0);
     }
 
     internal Value this[double index] {

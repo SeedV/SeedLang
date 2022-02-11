@@ -29,11 +29,11 @@ namespace SeedLang.Runtime {
     public bool IsList => _value.IsList;
     public bool IsFunction => _value.IsFunction;
 
+    public int Length => _value.Length;
+
     public bool Boolean => _value.AsBoolean();
     public double Number => _value.AsNumber();
     public string String => _value.AsString();
-
-    public int Count => _value.Length();
 
     public IValue this[int index] {
       get => new ValueWrapper(_value[index]);

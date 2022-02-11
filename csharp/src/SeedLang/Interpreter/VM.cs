@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -50,6 +51,13 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.LOADK:
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
+              break;
+            case Opcode.NEWLIST:
+              var list = new List<Value>();
+              for (int i = 0; i < instr.C; i++) {
+                list.Add(_stack[baseRegister + instr.B + i]);
+              }
+              _stack[baseRegister + instr.A] = new Value(list);
               break;
             case Opcode.GETGLOB:
               _stack[baseRegister + instr.A] = Env.GetVariable(instr.Bx);

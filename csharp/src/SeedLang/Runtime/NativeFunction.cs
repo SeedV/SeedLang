@@ -77,24 +77,31 @@ namespace SeedLang.Runtime {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }
-        return new Value(args[offset].Length());
+        return new Value(args[offset].Length);
       }),
 
+      // Creates an empty list if the length of arguments is empty. The argument shall be a
+      // subscriptable value if there is only one argument.
       new NativeFunction(List, (Value[] args, int offset, int length) => {
+        if (length < 0 || length > 1) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        if (length == 0) {
+          return new Value(new List<Value>());
+        }
+        if (args[offset].IsList) {
+          return args[offset];
+        }
         var list = new List<Value>();
-        for (int i = 0; i < length; i++) {
-          list.Add(args[offset + i]);
+        for (int i = 0; i < args[offset].Length; i++) {
+          list.Add(args[offset][i]);
         }
         return new Value(list);
       }),
 
       new NativeFunction(Next, (Value[] args, int offset, int length) => {
         if (length != 1) {
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorIncorrectArgsCount);
-        }
-        if (!args[offset].IsIterator) {
-          // TODO: throw uniterable...
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorIncorrectArgsCount);
         }

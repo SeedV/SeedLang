@@ -28,6 +28,22 @@ namespace SeedLang.Runtime {
     public bool IsIterator => _object is Iterator;
     public bool IsRange => _object is NumberRange;
 
+    public int Length {
+      get {
+        switch (_object) {
+          case string str:
+            return str.Length;
+          case List list:
+            return list.Count;
+          case NumberRange range:
+            return range.Length;
+          default:
+            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                          Message.RuntimeErrorNotCountable);
+        }
+      }
+    }
+
     private static readonly HashSet<HeapObject> _visitedObjects = new HashSet<HeapObject>();
 
     private readonly object _object;
@@ -84,7 +100,7 @@ namespace SeedLang.Runtime {
         case List list:
           return list.Count != 0;
         case NumberRange range:
-          return range.Length() != 0;
+          return range.Length != 0;
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -147,20 +163,6 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal int Length() {
-      switch (_object) {
-        case string str:
-          return str.Length;
-        case List list:
-          return list.Count;
-        case NumberRange range:
-          return range.Length();
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCountable);
-      }
-    }
-
     internal Value this[double index] {
       get {
         switch (_object) {
@@ -169,7 +171,7 @@ namespace SeedLang.Runtime {
           case List list:
             return list[ToIntIndex(index, list.Count)];
           case NumberRange range:
-            return range[ToIntIndex(index, range.Length())];
+            return range[ToIntIndex(index, range.Length)];
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);

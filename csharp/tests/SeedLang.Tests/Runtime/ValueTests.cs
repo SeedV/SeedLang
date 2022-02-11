@@ -31,7 +31,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal("None", none.AsString());
       Assert.Equal("None", none.ToString());
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => none.Length());
+      var exception1 = Assert.Throws<DiagnosticException>(() => none.Length);
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => none[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
@@ -57,7 +57,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(_expectedTrueString, boolean.AsString());
       Assert.Equal(_expectedTrueString, boolean.ToString());
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => boolean.Length());
+      var exception1 = Assert.Throws<DiagnosticException>(() => boolean.Length);
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => boolean[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
@@ -83,7 +83,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal("2.5", number.AsString());
       Assert.Equal("2.5", number.ToString());
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => number.Length());
+      var exception1 = Assert.Throws<DiagnosticException>(() => number.Length);
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
       var exception2 = Assert.Throws<DiagnosticException>(() => number[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
@@ -116,7 +116,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(_expectedTrueString, str.AsString());
       Assert.Equal(_expectedTrueString, str.ToString());
 
-      Assert.Equal(_expectedTrueString.Length, str.Length());
+      Assert.Equal(_expectedTrueString.Length, str.Length);
       for (int i = 0; i < _expectedTrueString.Length; i++) {
         Assert.Equal(_expectedTrueString[i].ToString(), str[i].AsString());
       }
@@ -131,7 +131,7 @@ namespace SeedLang.Runtime.Tests {
       };
       var list = new Value(values);
       Assert.True(list.IsList);
-      Assert.Equal(3, list.Length());
+      Assert.Equal(3, list.Length);
       Assert.True(list[0].IsNumber);
       Assert.Equal(1, list[0].AsNumber());
       Assert.True(list[1].IsNumber);

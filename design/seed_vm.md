@@ -102,6 +102,7 @@ All the SeedLang instructions are listed as follows:
 |   2    | `LOADK`    | Load a constant into a register                     |
 |   3    | `GETGLOB`  | Read a global variable into a register              |
 |   4    | `SETGLOB`  | Write a register value into a global variable       |
+|   5    | `NEWLIST`  | Create a new list with the initial elements         |
 |   5    | `GETELEM`  | Read a list or table element into a register        |
 |   6    | `SETELEM`  | Write a register value into a list or table element |
 |   7    | `ADD`      | Addition operation                                  |
@@ -156,6 +157,7 @@ SETGLOB A Bx                # Gbl[Kst(Bx)] := R[A]
 ### List and Table Operations
 
 ```shell
+NEWLIST A B C               # R(A) := [R(B), R(B + 1), ..., R(B + C - 1)]
 GETELEM A B C               # R(A) := R(B)[RK(C)]
 SETELEM A B C               # R(A)[RK(B)] := RK(C)
 ```

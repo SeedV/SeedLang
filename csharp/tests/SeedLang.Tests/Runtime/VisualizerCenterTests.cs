@@ -33,7 +33,7 @@ namespace SeedLang.Runtime.Tests {
     public bool Boolean => false;
     public double Number => 0;
     public string String => "false";
-    public int Count => 0;
+    public int Length => 0;
     public IValue this[int index] => new ValueWrapper(new Value());
   }
 

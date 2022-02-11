@@ -547,17 +547,14 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(list, env);
-      int listFuncId = 3;
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {listFuncId}" +
-          $"                                  {AstHelper.TextRange}\n" +
-          $"  2    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
-          $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  7    RETURN    0                                    \n"
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   0 1 3                                {AstHelper.TextRange}\n" +
+          $"  5    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  6    RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -573,18 +570,15 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(subscript, env);
-      int listFuncId = 3;
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   1 {listFuncId}" +
-          $"                                  {AstHelper.TextRange}\n" +
-          $"  2    LOADK     2 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  3    LOADK     3 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  4    LOADK     4 -3             ; 3                 {AstHelper.TextRange}\n" +
-          $"  5    CALL      1 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    GETELEM   0 1 -4           ; 0                 {AstHelper.TextRange}\n" +
-          $"  7    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  8    RETURN    0                                    \n"
+          $"  1    LOADK     2 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     3 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     4 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   1 2 3                                {AstHelper.TextRange}\n" +
+          $"  5    GETELEM   0 1 -4           ; 0                 {AstHelper.TextRange}\n" +
+          $"  6    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  7    RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -605,26 +599,23 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(program, env);
-      int listFuncId = 3;
       int firstGlobalId = NativeFunctions.Funcs.Length;
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {listFuncId}" +
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   0 1 3                                {AstHelper.TextRange}\n" +
+          $"  5    SETGLOB   0 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  2    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
-          $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    SETGLOB   0 {firstGlobalId}" +
+          $"  6    GETGLOB   0 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  7    GETGLOB   0 {firstGlobalId}" +
+          $"  7    SETELEM   0 -1 -4          ; 1 5               {AstHelper.TextRange}\n" +
+          $"  8    GETGLOB   1 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  8    SETELEM   0 -1 -4          ; 1 5               {AstHelper.TextRange}\n" +
-          $"  9    GETGLOB   1 {firstGlobalId}" +
-          $"                                  {AstHelper.TextRange}\n" +
-          $"  10   GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
-          $"  11   EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  12   RETURN    0                                    \n"
+          $"  9    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  10   EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  11   RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -648,31 +639,28 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(program, env);
-      int listFuncId = 3;
       int firstGlobalId = NativeFunctions.Funcs.Length;
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {listFuncId}" +
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   0 1 3                                {AstHelper.TextRange}\n" +
+          $"  5    SETGLOB   0 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  2    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
-          $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    SETGLOB   0 {firstGlobalId}" +
+          $"  6    GETGLOB   1 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  7    GETGLOB   1 {firstGlobalId}" +
+          $"  7    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  8    GETGLOB   2 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  8    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
-          $"  9    GETGLOB   2 {firstGlobalId}" +
+          $"  9    GETELEM   1 2 -4           ; 0                 {AstHelper.TextRange}\n" +
+          $"  10   GETGLOB   2 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  10   GETELEM   1 2 -4           ; 0                 {AstHelper.TextRange}\n" +
-          $"  11   GETGLOB   2 {firstGlobalId}" +
+          $"  11   SETELEM   2 -4 0           ; 0                 {AstHelper.TextRange}\n" +
+          $"  12   GETGLOB   3 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  12   SETELEM   2 -4 0           ; 0                 {AstHelper.TextRange}\n" +
-          $"  13   GETGLOB   3 {firstGlobalId}" +
-          $"                                  {AstHelper.TextRange}\n" +
-          $"  14   SETELEM   3 -1 1           ; 1                 {AstHelper.TextRange}\n" +
-          $"  15   RETURN    0                                    \n"
+          $"  13   SETELEM   3 -1 1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  14   RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

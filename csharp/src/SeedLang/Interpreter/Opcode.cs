@@ -22,6 +22,7 @@ namespace SeedLang.Interpreter {
     LOADK,        // R(A) := Kst(Bx)
     GETGLOB,      // R[A] := Gbl[Kst(Bx)]
     SETGLOB,      // Gbl[Kst(Bx)] := R[A]
+    NEWLIST,      // R(A) := [R(B), R(B + 1), ..., R(B + C - 1)]
     GETELEM,      // R(A) := R(B)[RK(C)]
     SETELEM,      // R(A)[RK(B)] := RK(C)
     ADD,          // R(A) := RK(B) + RK(C)
@@ -57,6 +58,7 @@ namespace SeedLang.Interpreter {
           return OpcodeType.A;
         case Opcode.MOVE:
         case Opcode.LOADBOOL:
+        case Opcode.NEWLIST:
         case Opcode.GETELEM:
         case Opcode.SETELEM:
         case Opcode.ADD:

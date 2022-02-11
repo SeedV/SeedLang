@@ -19,7 +19,7 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestNumberRange() {
       var range = new NumberRange(10);
-      Assert.Equal(10, range.Length());
+      Assert.Equal(10, range.Length);
       for (int i = 0; i < 10; i++) {
         Assert.Equal(i, range[i].AsNumber());
       }
@@ -29,7 +29,7 @@ namespace SeedLang.Runtime.Tests {
       int step = 2;
       int length = 4;
       range = new NumberRange(start, stop, step);
-      Assert.Equal(length, range.Length());
+      Assert.Equal(length, range.Length);
       for (int i = 0; i < length; i++) {
         Assert.Equal(start + i * step, range[i].AsNumber());
       }
@@ -39,7 +39,7 @@ namespace SeedLang.Runtime.Tests {
       step = -3;
       length = 3;
       range = new NumberRange(start, stop, step);
-      Assert.Equal(length, range.Length());
+      Assert.Equal(length, range.Length);
       for (int i = 0; i < length; i++) {
         Assert.Equal(start + i * step, range[i].AsNumber());
       }
@@ -49,7 +49,7 @@ namespace SeedLang.Runtime.Tests {
       step = -1;
       length = 0;
       range = new NumberRange(start, stop, step);
-      Assert.Equal(length, range.Length());
+      Assert.Equal(length, range.Length);
     }
   }
 }

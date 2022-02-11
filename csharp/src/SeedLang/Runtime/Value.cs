@@ -40,6 +40,17 @@ namespace SeedLang.Runtime {
     public bool IsFunction => _type == ValueType.Object && _object.IsFunction;
     public bool IsIterator => _type == ValueType.Object && _object.IsIterator;
 
+    public int Length {
+      get {
+        if (_type == ValueType.Object) {
+          return _object.Length;
+        } else {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorNotCountable);
+        }
+      }
+    }
+
     private readonly ValueType _type;
     private readonly double _number;
     private readonly HeapObject _object;
@@ -203,17 +214,9 @@ namespace SeedLang.Runtime {
       if (_type == ValueType.Object) {
         return _object.AsIterator();
       } else {
+        // TODO: throw
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorNotCallable);
-      }
-    }
-
-    internal int Length() {
-      if (_type == ValueType.Object) {
-        return _object.Length();
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCountable);
       }
     }
 

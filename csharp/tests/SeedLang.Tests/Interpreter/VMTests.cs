@@ -173,26 +173,6 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestNativeFuncCall() {
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-
-      var program = AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(NativeFunctions.List),
-                                                            AstHelper.NumberConstant(1),
-                                                            AstHelper.NumberConstant(2),
-                                                            AstHelper.NumberConstant(3)));
-
-      Function func = compiler.Compile(program, vm.Env);
-      vm.Run(func);
-
-      Assert.True(visualizer.Result.IsList);
-      for (int i = 0; i < visualizer.Result.Count; i++) {
-        Assert.Equal(i + 1, visualizer.Result[i].Number);
-      }
-      Assert.Equal(AstHelper.TextRange, visualizer.Range);
-    }
-
-    [Fact]
     public void TestSubscript() {
       var compiler = new Compiler();
       (var vm, var visualizer) = NewVMWithVisualizer();

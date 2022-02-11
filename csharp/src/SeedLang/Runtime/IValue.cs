@@ -24,7 +24,7 @@ namespace SeedLang.Runtime {
     bool Boolean { get; }
     double Number { get; }
     string String { get; }
-    int Count { get; }
+    int Length { get; }
     IValue this[int index] { get; }
   }
 }

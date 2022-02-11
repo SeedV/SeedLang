@@ -134,9 +134,18 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ListExpression list) {
-      var call = Expression.Call(Expression.Identifier(NativeFunctions.List, list.Range),
-                                 list.Exprs, list.Range);
-      Visit(call);
+      _variableResolver.BeginExpressionScope();
+      uint target = _registerForSubExpr;
+      uint? first = null;
+      foreach (var expr in list.Exprs) {
+        _registerForSubExpr = _variableResolver.AllocateVariable();
+        if (!first.HasValue) {
+          first = _registerForSubExpr;
+        }
+        Visit(expr);
+      }
+      _chunk.Emit(Opcode.NEWLIST, target, first.Value, (uint)list.Exprs.Length, list.Range);
+      _variableResolver.EndExpressionScope();
     }
 
     protected override void Visit(SubscriptExpression subscript) {

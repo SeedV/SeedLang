@@ -26,11 +26,11 @@ namespace SeedLang.Runtime {
     }
 
     public bool HasNext() {
-      return _nextPos < _sequence.Length();
+      return _nextPos < _sequence.Length;
     }
 
     public Value Next() {
-      Debug.Assert(_nextPos >= 0 && _nextPos < _sequence.Length());
+      Debug.Assert(_nextPos >= 0 && _nextPos < _sequence.Length);
       return _sequence[_nextPos++];
     }
   }

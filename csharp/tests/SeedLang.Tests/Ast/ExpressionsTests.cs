@@ -20,22 +20,22 @@ namespace SeedLang.Ast.Tests {
   public class ExpressionsTests {
     internal class TestData : TheoryData<Expression, string> {
       public TestData() {
-        AddBinaryExpression();
-        AddBooleanExpression();
-        AddComplexBooleanExpression();
-        AddComparisonExpression();
-        AddUnaryExpression();
-        AddIdentifierExpression();
-        AddBooleanConstantExpression();
-        AddNoneConstantExpression();
-        AddNumberConstantExpression();
-        AddStringConstantExpression();
-        AddListExpression();
-        AddSubscriptExpression();
-        AddCallExpression();
+        AddBinary();
+        AddBoolean();
+        AddComplexBoolean();
+        AddComparison();
+        AddUnary();
+        AddIdentifier();
+        AddBooleanConstant();
+        AddNoneConstant();
+        AddNumberConstant();
+        AddStringConstant();
+        AddList();
+        AddSubscript();
+        AddCall();
       }
 
-      private void AddBinaryExpression() {
+      private void AddBinary() {
         var binary = AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                                       AstHelper.NumberConstant(2));
         var expectedOutput = $"{AstHelper.TextRange} BinaryExpression (+)\n" +
@@ -44,7 +44,7 @@ namespace SeedLang.Ast.Tests {
         Add(binary, expectedOutput);
       }
 
-      private void AddBooleanExpression() {
+      private void AddBoolean() {
         var boolean = AstHelper.Boolean(BooleanOperator.And, AstHelper.BooleanConstant(false),
                                         AstHelper.BooleanConstant(true));
         var expectedOutput = $"{AstHelper.TextRange} BooleanExpression (And)\n" +
@@ -53,7 +53,7 @@ namespace SeedLang.Ast.Tests {
         Add(boolean, expectedOutput);
       }
 
-      private void AddComplexBooleanExpression() {
+      private void AddComplexBoolean() {
         var boolean = AstHelper.Boolean(
           BooleanOperator.Or,
           AstHelper.Boolean(BooleanOperator.And, AstHelper.BooleanConstant(false),
@@ -68,7 +68,7 @@ namespace SeedLang.Ast.Tests {
         Add(boolean, expectedOutput);
       }
 
-      private void AddComparisonExpression() {
+      private void AddComparison() {
         var comparison = AstHelper.Comparison(AstHelper.NumberConstant(1),
                                               AstHelper.CompOps(ComparisonOperator.Less,
                                                                 ComparisonOperator.Greater),
@@ -81,21 +81,21 @@ namespace SeedLang.Ast.Tests {
         Add(comparison, expectedOutput);
       }
 
-      private void AddUnaryExpression() {
+      private void AddUnary() {
         var unary = AstHelper.Unary(UnaryOperator.Negative, AstHelper.NumberConstant(1));
         var expectedOutput = $"{AstHelper.TextRange} UnaryExpression (-)\n" +
                              $"  {AstHelper.TextRange} NumberConstantExpression (1)";
         Add(unary, expectedOutput);
       }
 
-      private void AddIdentifierExpression() {
+      private void AddIdentifier() {
         var name = "test name";
         var identifier = AstHelper.Id(name);
         var expectedOutput = $"{AstHelper.TextRange} IdentifierExpression ({name})";
         Add(identifier, expectedOutput);
       }
 
-      private void AddBooleanConstantExpression() {
+      private void AddBooleanConstant() {
         var falseConstant = AstHelper.BooleanConstant(false);
         var expectedFalseOutput = $"{AstHelper.TextRange} BooleanConstantExpression (False)";
         Add(falseConstant, expectedFalseOutput);
@@ -104,27 +104,27 @@ namespace SeedLang.Ast.Tests {
         Add(trueConstant, expectedTrueOutput);
       }
 
-      private void AddNoneConstantExpression() {
+      private void AddNoneConstant() {
         var noneConstant = AstHelper.NoneConstant();
         var expectedTrueOutput = $"{AstHelper.TextRange} NoneConstantExpression";
         Add(noneConstant, expectedTrueOutput);
       }
 
-      private void AddNumberConstantExpression() {
+      private void AddNumberConstant() {
         double value = 1.5;
         var numberConstant = AstHelper.NumberConstant(value);
         var expectedOutput = $"{AstHelper.TextRange} NumberConstantExpression ({value})";
         Add(numberConstant, expectedOutput);
       }
 
-      private void AddStringConstantExpression() {
+      private void AddStringConstant() {
         string strValue = "test string";
         var str = AstHelper.StringConstant(strValue);
         var expectedOutput = $"{AstHelper.TextRange} StringConstantExpression ({strValue})";
         Add(str, expectedOutput);
       }
 
-      private void AddListExpression() {
+      private void AddList() {
         var list = AstHelper.List(AstHelper.NumberConstant(1),
                                   AstHelper.NumberConstant(2),
                                   AstHelper.NumberConstant(3));
@@ -135,7 +135,7 @@ namespace SeedLang.Ast.Tests {
         Add(list, expectedOutput);
       }
 
-      private void AddSubscriptExpression() {
+      private void AddSubscript() {
         var subscript = AstHelper.Subscript(AstHelper.List(AstHelper.NumberConstant(1),
                                                            AstHelper.NumberConstant(2)),
                                             AstHelper.NumberConstant(1));
@@ -147,7 +147,7 @@ namespace SeedLang.Ast.Tests {
         Add(subscript, expectedOutput);
       }
 
-      private void AddCallExpression() {
+      private void AddCall() {
         string name = "func";
         var call = AstHelper.Call(AstHelper.Id(name), AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
         var expectedOutput = $"{AstHelper.TextRange} CallExpression\n" +

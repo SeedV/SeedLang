@@ -32,6 +32,7 @@ namespace SeedLang.Ast.Tests {
         AddNativeFunctionCall();
         AddVoidFunctionCall();
         AddFunctionCall();
+        AddForIn();
       }
 
       private void AddAssignment() {
@@ -201,6 +202,29 @@ namespace SeedLang.Ast.Tests {
         );
         var expectedOutput = $"{AstHelper.TextRange} {a} = 3\n" +
                              $"{AstHelper.TextRange} 1 Add 2 = 3\n";
+        Add(block, expectedOutput);
+      }
+
+      private void AddForIn() {
+        string sum = "sum";
+        string i = "i";
+        var block = AstHelper.Block(
+          AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)), AstHelper.NumberConstant(0)),
+          AstHelper.ForIn(
+            AstHelper.Id(i),
+            AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)),
+            AstHelper.Block(
+              AstHelper.Assign(
+                AstHelper.Targets(AstHelper.Id(sum)),
+                AstHelper.Binary(AstHelper.Id(sum), BinaryOperator.Add, AstHelper.Id(i))
+              )
+            )
+          ),
+          AstHelper.ExpressionStmt(AstHelper.Id(sum))
+        );
+        var expectedOutput = $"{AstHelper.TextRange} {sum} = 3\n" +
+                             $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
+                             $"{AstHelper.TextRange} Eval 3\n";
         Add(block, expectedOutput);
       }
     }

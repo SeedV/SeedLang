@@ -291,7 +291,12 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(ForInStatement forIn) {
-
+      Visit(forIn.Expr);
+      Value sequence = _expressionResult;
+      for (int i = 0; i < sequence.Length; i++) {
+        _env.SetVariable(forIn.Id.Name, sequence[i]);
+        Visit(forIn.Body);
+      }
     }
 
     protected override void Visit(FuncDefStatement funcDef) {

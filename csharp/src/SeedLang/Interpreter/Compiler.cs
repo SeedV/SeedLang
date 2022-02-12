@@ -222,16 +222,52 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ForInStatement forIn) {
+      VariableResolver.VariableInfo loopVar = GetVariableInfo(forIn.Id.Name);
 
+      _variableResolver.BeginBlockScope();
+      if (!(GetRegisterId(forIn.Expr) is uint sequence)) {
+        sequence = _variableResolver.AllocateVariable();
+        _registerForSubExpr = sequence;
+        Visit(forIn.Expr);
+      }
+      uint index = _variableResolver.AllocateVariable();
+      _chunk.Emit(Opcode.LOADK, index, _constantCache.IdOfConstant(0), forIn.Range);
+      uint limit = _variableResolver.AllocateVariable();
+      _chunk.Emit(Opcode.LEN, limit, sequence, 0, forIn.Range);
+      uint step = _variableResolver.AllocateVariable();
+      _chunk.Emit(Opcode.LOADK, step, _constantCache.IdOfConstant(1), forIn.Range);
+      _chunk.Emit(Opcode.FORPREP, index, 0, forIn.Range);
+      int bodyStart = _chunk.Bytecode.Count;
+      switch (loopVar.Type) {
+        case VariableResolver.VariableType.Global:
+          _variableResolver.BeginExpressionScope();
+          uint targetId = _variableResolver.AllocateVariable();
+          _chunk.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
+          _chunk.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
+          _variableResolver.EndExpressionScope();
+          break;
+        case VariableResolver.VariableType.Local:
+          _chunk.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
+          break;
+        case VariableResolver.VariableType.Upvalue:
+          // TODO: handle upvalues.
+          break;
+      }
+      Visit(forIn.Body);
+      _chunk.PatchSBXAt(bodyStart - 1, _chunk.Bytecode.Count - bodyStart);
+      _chunk.Emit(Opcode.FORLOOP, index, bodyStart - (_chunk.Bytecode.Count + 1), forIn.Range);
+      _variableResolver.EndBlockScope();
     }
 
     protected override void Visit(FuncDefStatement funcDef) {
-      VariableResolver.VariableInfo info = _variableResolver.DefineVariable(funcDef.Name);
+      VariableResolver.VariableInfo info = GetVariableInfo(funcDef.Name);
       PushFunc(funcDef.Name);
       foreach (string parameterName in funcDef.Parameters) {
         _variableResolver.DefineVariable(parameterName);
       }
       Visit(funcDef.Body);
+      // Emits a default return opcode.
+      _chunk.Emit(Opcode.RETURN, 0, null);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
@@ -257,7 +293,7 @@ namespace SeedLang.Interpreter {
       PatchJumps(_nestedJumpStack.TrueJumps);
       Visit(@if.ThenBody);
       if (!(@if.ElseBody is null)) {
-        _chunk.Emit(Opcode.JMP, 0, @if.Range);
+        _chunk.Emit(Opcode.JMP, 0, 0, @if.Range);
         int jumpEnd = GetCurrentCodePos();
         PatchJumps(_nestedJumpStack.FalseJumps);
         Visit(@if.ElseBody);
@@ -284,7 +320,7 @@ namespace SeedLang.Interpreter {
       int start = _chunk.Bytecode.Count;
       VisitTest(@while.Test);
       Visit(@while.Body);
-      _chunk.Emit(Opcode.JMP, start - (_chunk.Bytecode.Count + 1), @while.Range);
+      _chunk.Emit(Opcode.JMP, 0, start - (_chunk.Bytecode.Count + 1), @while.Range);
       PatchJumps(_nestedJumpStack.FalseJumps);
       _nestedJumpStack.PopFrame();
     }
@@ -303,7 +339,7 @@ namespace SeedLang.Interpreter {
           _chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
           _variableResolver.EndExpressionScope();
         }
-        _chunk.Emit(Opcode.JMP, 0, test.Range);
+        _chunk.Emit(Opcode.JMP, 0, 0, test.Range);
         int jump = GetCurrentCodePos();
         _nestedJumpStack.FalseJumps.Add(jump);
       }
@@ -318,7 +354,7 @@ namespace SeedLang.Interpreter {
         checkFlag = !checkFlag;
       }
       _chunk.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
-      _chunk.Emit(Opcode.JMP, 0, range);
+      _chunk.Emit(Opcode.JMP, 0, 0, range);
       int jump = GetCurrentCodePos();
       switch (_nextBooleanOp) {
         case BooleanOperator.And:
@@ -333,11 +369,7 @@ namespace SeedLang.Interpreter {
     private void VisitSingleAssignment(Expression target, Expression expr, Range range) {
       switch (target) {
         case IdentifierExpression identifier:
-          string name = identifier.Name;
-          if (_variableResolver.FindVariable(name) is null) {
-            _variableResolver.DefineVariable(name);
-          }
-          VariableResolver.VariableInfo info = _variableResolver.FindVariable(name).Value;
+          VariableResolver.VariableInfo info = GetVariableInfo(identifier.Name);
           switch (info.Type) {
             case VariableResolver.VariableType.Global:
               _variableResolver.BeginExpressionScope();
@@ -380,11 +412,7 @@ namespace SeedLang.Interpreter {
       var isTargetGlobals = new bool[targets.Length];
       for (int i = 0; i < targets.Length; i++) {
         if (targets[i] is IdentifierExpression id) {
-          string name = id.Name;
-          if (_variableResolver.FindVariable(name) is null) {
-            _variableResolver.DefineVariable(name);
-          }
-          VariableResolver.VariableInfo info = _variableResolver.FindVariable(name).Value;
+          VariableResolver.VariableInfo info = GetVariableInfo(id.Name);
           isTargetGlobals[i] = info.Type == VariableResolver.VariableType.Global;
         }
       }
@@ -454,6 +482,13 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExpressionScope();
     }
 
+    private VariableResolver.VariableInfo GetVariableInfo(string name) {
+      if (_variableResolver.FindVariable(name) is VariableResolver.VariableInfo info) {
+        return info;
+      }
+      return _variableResolver.DefineVariable(name);
+    }
+
     private int GetCurrentCodePos() {
       return _chunk.Bytecode.Count - 1;
     }
@@ -466,7 +501,7 @@ namespace SeedLang.Interpreter {
     }
 
     private void PatchJump(int jump) {
-      _chunk.PatchJumpAt(jump, _chunk.Bytecode.Count - jump - 1);
+      _chunk.PatchSBXAt(jump, _chunk.Bytecode.Count - jump - 1);
     }
 
     private void PushFunc(string name) {

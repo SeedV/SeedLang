@@ -419,35 +419,19 @@ namespace SeedLang.X {
     }
 
     // Builds "for in" statements.
-    // TODO: The "for in" statement is converted to a block of initializer and while statements.
-    // It's possible to compile the "for in range" statement into a "FORPREP" opcode for
-    // optimization.
-    internal BlockStatement BuildFor(IToken forToken, ParserRuleContext identifierContext,
-                                     IToken inToken, ParserRuleContext exprContext,
-                                     IToken colonToken, ParserRuleContext blockContext,
-                                     AbstractParseTreeVisitor<AstNode> visitor) {
+    internal ForInStatement BuildForIn(IToken forToken, ParserRuleContext identifierContext,
+                                       IToken inToken, ParserRuleContext exprContext,
+                                       IToken colonToken, ParserRuleContext blockContext,
+                                       AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange forRange = CodeReferenceUtils.RangeOfToken(forToken);
       AddSyntaxToken(SyntaxType.Keyword, forRange);
       if (visitor.Visit(identifierContext) is IdentifierExpression loopVar) {
         AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(inToken));
         if (visitor.Visit(exprContext) is Expression expr) {
-          var iterVariable = Expression.Identifier($"__for_{loopVar.Name}_iter__", expr.Range);
-          var iterFunc = Expression.Identifier(NativeFunctions.Iter, expr.Range);
-          var iterator = Expression.Call(iterFunc, new Expression[] { expr }, expr.Range);
-          var initializer = Statement.Assignment(new Expression[] { iterVariable },
-                                                 new Expression[] { iterator }, expr.Range);
           AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
           if (visitor.Visit(blockContext) is Statement block) {
-            var hasNextFunc = Expression.Identifier(NativeFunctions.HasNext, block.Range);
-            var test = Expression.Call(hasNextFunc, new Expression[] { iterVariable }, block.Range);
-            var nextFunc = Expression.Identifier(NativeFunctions.Next, block.Range);
-            var next = Expression.Call(nextFunc, new Expression[] { iterVariable }, block.Range);
-            var assign = Statement.Assignment(new Expression[] { loopVar },
-                                              new Expression[] { next }, block.Range);
-            var body = Statement.Block(new Statement[] { assign, block, }, block.Range);
-            var @while = Statement.While(test, body, block.Range);
             TextRange range = CodeReferenceUtils.CombineRanges(forRange, block.Range as TextRange);
-            return Statement.Block(new Statement[] { initializer, @while }, range);
+            return Statement.ForIn(loopVar, expr, block, range);
           }
         }
       }

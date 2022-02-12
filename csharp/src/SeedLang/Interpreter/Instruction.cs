@@ -64,9 +64,9 @@ namespace SeedLang.Interpreter {
       _code = (uint)opcode | a << _posA | bx << _posBx;
     }
 
-    internal Instruction(Opcode opcode, int sbx) {
+    internal Instruction(Opcode opcode, uint a, int sbx) {
       CheckOpcodeType(opcode, OpcodeType.SBx);
-      _code = (uint)opcode | (uint)(_maxSBx + sbx) << _posBx;
+      _code = (uint)opcode | a << _posA | (uint)(_maxSBx + sbx) << _posBx;
     }
 
     private static void CheckOpcodeType(Opcode opcode, OpcodeType type) {

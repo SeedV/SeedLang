@@ -85,6 +85,9 @@ namespace SeedLang.Interpreter {
               _stack[baseRegister + instr.A] =
                   new Value(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
               break;
+            case Opcode.LEN:
+              _stack[baseRegister + instr.A] = new Value(_stack[baseRegister + instr.B].Length);
+              break;
             case Opcode.JMP:
               pc += instr.SBx;
               break;
@@ -117,8 +120,23 @@ namespace SeedLang.Interpreter {
             case Opcode.EVAL:
               if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
                 var ee = new EvalEvent(new ValueWrapper(_stack[baseRegister + instr.A]),
-                                                        chunk.Ranges[pc]);
+                                       chunk.Ranges[pc]);
                 _visualizerCenter.EvalPublisher.Notify(ee);
+              }
+              break;
+            case Opcode.FORPREP:
+              _stack[baseRegister + instr.A] = new Value(
+                  ValueHelper.Subtract(_stack[baseRegister + instr.A],
+                                       _stack[baseRegister + instr.A + 2]));
+              pc += instr.SBx;
+              break;
+            case Opcode.FORLOOP:
+              _stack[baseRegister + instr.A] = new Value(
+                  ValueHelper.Add(_stack[baseRegister + instr.A],
+                                  _stack[baseRegister + instr.A + 2]));
+              if (_stack[baseRegister + instr.A].AsNumber() <
+                  _stack[baseRegister + instr.A + 1].AsNumber()) {
+                pc += instr.SBx;
               }
               break;
             case Opcode.CALL:

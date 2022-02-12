@@ -103,25 +103,28 @@ All the SeedLang instructions are listed as follows:
 |   3    | `GETGLOB`  | Read a global variable into a register              |
 |   4    | `SETGLOB`  | Write a register value into a global variable       |
 |   5    | `NEWLIST`  | Create a new list with the initial elements         |
-|   5    | `GETELEM`  | Read a list or table element into a register        |
-|   6    | `SETELEM`  | Write a register value into a list or table element |
-|   7    | `ADD`      | Addition operation                                  |
-|   8    | `SUB`      | Subtract operation                                  |
-|   9    | `MUL`      | Multiply operation                                  |
-|   10   | `DIV`      | Divide operation                                    |
-|   11   | `MOD`      | Modulus (reminder) operation                        |
-|   12   | `POW`      | Exponentiation operation                            |
-|   13   | `UNM`      | Unary minus operation                               |
-|   14   | `NOT`      | Logical not operation                               |
-|   15   | `LEN`      | Length operation                                    |
-|   16   | `JMP`      | Unconditional jump                                  |
-|   17   | `EQ`       | Equality test                                       |
-|   18   | `LT`       | Less than test                                      |
-|   19   | `LE`       | Less than or equal to test                          |
-|   20   | `TEST`     | Boolean test, with conditional jump                 |
-|   21   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
-|   22   | `CALL`     | Call a function                                     |
-|   23   | `RETURN`   | Return from a function call                         |
+|   6    | `GETELEM`  | Read a list or table element into a register        |
+|   7    | `SETELEM`  | Write a register value into a list or table element |
+|   8    | `ADD`      | Addition operation                                  |
+|   9    | `SUB`      | Subtract operation                                  |
+|   10   | `MUL`      | Multiply operation                                  |
+|   11   | `DIV`      | Divide operation                                    |
+|   12   | `MOD`      | Modulus (reminder) operation                        |
+|   13   | `POW`      | Exponentiation operation                            |
+|   14   | `UNM`      | Unary minus operation                               |
+|   15   | `NOT`      | Logical not operation                               |
+|   16   | `LEN`      | Length operation                                    |
+|   17   | `JMP`      | Unconditional jump                                  |
+|   18   | `EQ`       | Equality test                                       |
+|   19   | `LT`       | Less than test                                      |
+|   20   | `LE`       | Less than or equal to test                          |
+|   21   | `TEST`     | Boolean test, with conditional jump                 |
+|   22   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
+|   23   | `FORPREP`  | For loop preparation                                |
+|   24   | `FORLOOP`  | For loop check                                      |
+|   25   | `EVAL`     | Expression evaluation                               |
+|   26   | `CALL`     | Call a function                                     |
+|   27   | `RETURN`   | Return from a function call                         |
 
 ### Move and Load Constant
 
@@ -191,10 +194,23 @@ TEST A C                    # if R(A) == C then PC++
 TESTSET A B C               # if R(B) != C then R(A) := R(B) else PC++
 ```
 
+### For Loop
+
+```shell
+FORPREP A sBx               # R(A) -= R(A+2); pc += sBx
+FORLOOP A sBx               # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
+```
+
 ### Jumps and Calls
 
 ```shell
 JMP sBx                     # PC += sBx
 CALL A                      # call function R(A), parameters are R(A+1), ...
 RETURN A                    # return R(A) from function
+```
+
+### Expression Evaluation
+
+```shell
+Eval A                      # Evaluate R(A)
 ```

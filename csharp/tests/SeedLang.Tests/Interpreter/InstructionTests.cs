@@ -30,17 +30,17 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(2u, add.B);
       Assert.Equal(3u, add.C);
 
-      var loadK = new Instruction(Opcode.LOADK, 1, 2);
+      var loadK = new Instruction(Opcode.LOADK, 1, 2u);
       Assert.Equal(Opcode.LOADK, loadK.Opcode);
       Assert.Equal(1u, loadK.A);
       Assert.Equal(2u, loadK.Bx);
 
-      var jmp = new Instruction(Opcode.JMP, 2);
+      var jmp = new Instruction(Opcode.JMP, 0, 2);
       Assert.Equal(Opcode.JMP, jmp.Opcode);
       Assert.Equal(0u, jmp.A);
       Assert.Equal(2, jmp.SBx);
 
-      jmp = new Instruction(Opcode.JMP, -2);
+      jmp = new Instruction(Opcode.JMP, 0, -2);
       Assert.Equal(Opcode.JMP, jmp.Opcode);
       Assert.Equal(0u, jmp.A);
       Assert.Equal(-2, jmp.SBx);

@@ -48,6 +48,7 @@ namespace SeedLang.Interpreter {
     private readonly Stack<Scope> _scopes = new Stack<Scope>();
     // The stack of the current allocated registers count of function scopes.
     private readonly Stack<uint> _registerCounts = new Stack<uint>();
+    private readonly Stack<uint> _baseOfBlockScopes = new Stack<uint>();
     // A Stack to store the base of registers before parsing an expression. The expresion visitor
     // should call EnterExpressionScope() before allocating temporary variables for intermediate
     // results. The ExitExpressionScope() call will deallocate all temporary variables that are
@@ -75,11 +76,12 @@ namespace SeedLang.Interpreter {
     }
 
     internal void BeginBlockScope() {
-      _scopes.Push(new Scope());
+      _baseOfBlockScopes.Push(_currentRegisterCount);
     }
 
     internal void EndBlockScope() {
-      _scopes.Pop();
+      SetCurrentRegisterCount(_baseOfBlockScopes.Peek());
+      _baseOfBlockScopes.Pop();
     }
 
     internal void BeginExpressionScope() {

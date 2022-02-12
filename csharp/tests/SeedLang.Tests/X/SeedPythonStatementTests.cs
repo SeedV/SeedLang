@@ -307,27 +307,14 @@ namespace SeedLang.X.Tests {
 
     [InlineData("for n in [1, 2, 3]: n",
 
-                "[Ln 1, Col 0 - Ln 1, Col 20] BlockStatement\n" +
-                "  [Ln 1, Col 9 - Ln 1, Col 17] AssignmentStatement\n" +
-                "    [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
-                "    [Ln 1, Col 9 - Ln 1, Col 17] CallExpression\n" +
-                "      [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (iter)\n" +
-                "      [Ln 1, Col 9 - Ln 1, Col 17] ListExpression\n" +
-                "        [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)\n" +
-                "        [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (2)\n" +
-                "        [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (3)\n" +
-                "  [Ln 1, Col 20 - Ln 1, Col 20] WhileStatement\n" +
-                "    [Ln 1, Col 20 - Ln 1, Col 20] CallExpression\n" +
-                "      [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (hasnext)\n" +
-                "      [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
-                "    [Ln 1, Col 20 - Ln 1, Col 20] BlockStatement\n" +
-                "      [Ln 1, Col 20 - Ln 1, Col 20] AssignmentStatement\n" +
-                "        [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (n)\n" +
-                "        [Ln 1, Col 20 - Ln 1, Col 20] CallExpression\n" +
-                "          [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (next)\n" +
-                "          [Ln 1, Col 9 - Ln 1, Col 17] IdentifierExpression (__for_n_iter__)\n" +
-                "      [Ln 1, Col 20 - Ln 1, Col 20] ExpressionStatement\n" +
-                "        [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (n)",
+                "[Ln 1, Col 0 - Ln 1, Col 20] ForInStatement\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (n)\n" +
+                "  [Ln 1, Col 9 - Ln 1, Col 17] ListExpression\n" +
+                "    [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (3)\n" +
+                "  [Ln 1, Col 20 - Ln 1, Col 20] ExpressionStatement\n" +
+                "    [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (n)",
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
                 "Variable [Ln 1, Col 4 - Ln 1, Col 4]," +
@@ -344,28 +331,15 @@ namespace SeedLang.X.Tests {
 
     [InlineData("for n in range(2, 10, 3): n",
 
-                "[Ln 1, Col 0 - Ln 1, Col 26] BlockStatement\n" +
-                "  [Ln 1, Col 9 - Ln 1, Col 23] AssignmentStatement\n" +
-                "    [Ln 1, Col 9 - Ln 1, Col 23] IdentifierExpression (__for_n_iter__)\n" +
-                "    [Ln 1, Col 9 - Ln 1, Col 23] CallExpression\n" +
-                "      [Ln 1, Col 9 - Ln 1, Col 23] IdentifierExpression (iter)\n" +
-                "      [Ln 1, Col 9 - Ln 1, Col 23] CallExpression\n" +
-                "        [Ln 1, Col 9 - Ln 1, Col 13] IdentifierExpression (range)\n" +
-                "        [Ln 1, Col 15 - Ln 1, Col 15] NumberConstantExpression (2)\n" +
-                "        [Ln 1, Col 18 - Ln 1, Col 19] NumberConstantExpression (10)\n" +
-                "        [Ln 1, Col 22 - Ln 1, Col 22] NumberConstantExpression (3)\n" +
-                "  [Ln 1, Col 26 - Ln 1, Col 26] WhileStatement\n" +
-                "    [Ln 1, Col 26 - Ln 1, Col 26] CallExpression\n" +
-                "      [Ln 1, Col 26 - Ln 1, Col 26] IdentifierExpression (hasnext)\n" +
-                "      [Ln 1, Col 9 - Ln 1, Col 23] IdentifierExpression (__for_n_iter__)\n" +
-                "    [Ln 1, Col 26 - Ln 1, Col 26] BlockStatement\n" +
-                "      [Ln 1, Col 26 - Ln 1, Col 26] AssignmentStatement\n" +
-                "        [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (n)\n" +
-                "        [Ln 1, Col 26 - Ln 1, Col 26] CallExpression\n" +
-                "          [Ln 1, Col 26 - Ln 1, Col 26] IdentifierExpression (next)\n" +
-                "          [Ln 1, Col 9 - Ln 1, Col 23] IdentifierExpression (__for_n_iter__)\n" +
-                "      [Ln 1, Col 26 - Ln 1, Col 26] ExpressionStatement\n" +
-                "        [Ln 1, Col 26 - Ln 1, Col 26] IdentifierExpression (n)",
+                "[Ln 1, Col 0 - Ln 1, Col 26] ForInStatement\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (n)\n" +
+                "  [Ln 1, Col 9 - Ln 1, Col 23] CallExpression\n" +
+                "    [Ln 1, Col 9 - Ln 1, Col 13] IdentifierExpression (range)\n" +
+                "    [Ln 1, Col 15 - Ln 1, Col 15] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 18 - Ln 1, Col 19] NumberConstantExpression (10)\n" +
+                "    [Ln 1, Col 22 - Ln 1, Col 22] NumberConstantExpression (3)\n" +
+                "  [Ln 1, Col 26 - Ln 1, Col 26] ExpressionStatement\n" +
+                "    [Ln 1, Col 26 - Ln 1, Col 26] IdentifierExpression (n)",
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
                 "Variable [Ln 1, Col 4 - Ln 1, Col 4]," +

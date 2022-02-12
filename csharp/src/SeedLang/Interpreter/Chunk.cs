@@ -57,13 +57,13 @@ namespace SeedLang.Interpreter {
     }
 
     // Emits an instruction with the opcode of type SBx.
-    internal void Emit(Opcode opcode, int sbx, Range range) {
-      _bytecode.Add(new Instruction(opcode, sbx));
+    internal void Emit(Opcode opcode, uint a, int sbx, Range range) {
+      _bytecode.Add(new Instruction(opcode, a, sbx));
       _ranges.Add(range);
     }
 
-    internal void PatchJumpAt(int pos, int sbx) {
-      _bytecode[pos] = new Instruction(_bytecode[pos].Opcode, sbx);
+    internal void PatchSBXAt(int pos, int sbx) {
+      _bytecode[pos] = new Instruction(_bytecode[pos].Opcode, _bytecode[pos].A, sbx);
     }
 
     // Sets the constant list. It must be called by the compiler after compilation.

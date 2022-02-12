@@ -47,7 +47,7 @@ simple_stmt:
 
 compound_stmt:
   function_def
-  | for_stmt
+  | for_in_stmt
   | if_stmt
   | while_stmt;
 
@@ -65,7 +65,8 @@ elif_stmt:
   | ELIF expression COLON block (else_block)? # elif_else;
 else_block: ELSE COLON block;
 
-for_stmt: FOR identifier IN expression COLON block;
+for_in_stmt:
+  FOR identifier IN expression COLON block;
 
 while_stmt: WHILE expression COLON block;
 

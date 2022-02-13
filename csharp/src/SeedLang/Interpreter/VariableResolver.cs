@@ -25,8 +25,9 @@ namespace SeedLang.Interpreter {
       Upvalue,
     }
 
+    // The structure to hold and return variable information.
     internal struct VariableInfo {
-      // TODO: add information for upvalues
+      // TODO: add information for upvalues.
       public VariableType Type { get; }
       public uint Id { get; }
 

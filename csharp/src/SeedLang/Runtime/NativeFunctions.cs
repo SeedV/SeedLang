@@ -34,8 +34,8 @@ namespace SeedLang.Runtime {
         return new Value(args[offset].Length);
       }),
 
-      // Creates an empty list if the length of arguments is empty. The argument shall be a
-      // subscriptable value if there is only one argument.
+      // Creates an empty list if the length of arguments is empty, and a list if the argument is a
+      // subscriptable value.
       new NativeFunction(List, (Value[] args, int offset, int length) => {
         if (length < 0 || length > 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,

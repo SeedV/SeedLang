@@ -18,9 +18,11 @@ namespace SeedLang.Interpreter {
   // All the opcodes of SeedLang virtual machine.
   internal enum Opcode {
     MOVE,         // R(A) := RK(B)
+    LOADBOOL,     // R(A) := (Bool)B; if C then PC++
     LOADK,        // R(A) := Kst(Bx)
     GETGLOB,      // R[A] := Gbl[Kst(Bx)]
     SETGLOB,      // Gbl[Kst(Bx)] := R[A]
+    NEWLIST,      // R(A) := [R(B), R(B + 1), ..., R(B + C - 1)]
     GETELEM,      // R(A) := R(B)[RK(C)]
     SETELEM,      // R(A)[RK(B)] := RK(C)
     ADD,          // R(A) := RK(B) + RK(C)
@@ -28,10 +30,15 @@ namespace SeedLang.Interpreter {
     MUL,          // R(A) := RK(B) * RK(C)
     DIV,          // R(A) := RK(B) / RK(C)
     UNM,          // R(A) := -RK(B)
+    LEN,          // R(A) := length of R(B)
     JMP,          // PC += sBx
     EQ,           // if (RK(B) == RK(C)) != A then PC++
     LT,           // if (RK(B) < RK(C)) != A then PC++
     LE,           // if (RK(B) <= RK(C)) != A then PC++
+    TEST,         // if R(A) == C then PC++
+    TESTSET,      // if R(B) != C then R(A) := R(B) else PC++
+    FORPREP,      // R(A) -= R(A+2); pc += sBx
+    FORLOOP,      // R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
     EVAL,         // Eval R(A). Evaluates the expresion statement. TODO: do we need this?
     CALL,         // call function R(A), parameters are R(A + 1), ..., R(A + B)
     RETURN,       // Return R(A)
@@ -53,6 +60,8 @@ namespace SeedLang.Interpreter {
         case Opcode.RETURN:
           return OpcodeType.A;
         case Opcode.MOVE:
+        case Opcode.LOADBOOL:
+        case Opcode.NEWLIST:
         case Opcode.GETELEM:
         case Opcode.SETELEM:
         case Opcode.ADD:
@@ -60,9 +69,12 @@ namespace SeedLang.Interpreter {
         case Opcode.MUL:
         case Opcode.DIV:
         case Opcode.UNM:
+        case Opcode.LEN:
         case Opcode.EQ:
         case Opcode.LT:
         case Opcode.LE:
+        case Opcode.TEST:
+        case Opcode.TESTSET:
         case Opcode.CALL:
           return OpcodeType.ABC;
         case Opcode.LOADK:
@@ -70,6 +82,8 @@ namespace SeedLang.Interpreter {
         case Opcode.SETGLOB:
           return OpcodeType.ABx;
         case Opcode.JMP:
+        case Opcode.FORPREP:
+        case Opcode.FORLOOP:
           return OpcodeType.SBx;
         default:
           throw new NotImplementedException($"Unsupported opcode: {op}.");

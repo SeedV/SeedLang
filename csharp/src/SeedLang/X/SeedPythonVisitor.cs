@@ -105,6 +105,13 @@ namespace SeedLang.X {
                                this);
     }
 
+    public override AstNode VisitFor_in_stmt(
+        [NotNull] SeedPythonParser.For_in_stmtContext context) {
+      return _helper.BuildForIn(context.FOR().Symbol, context.identifier(), context.IN().Symbol,
+                                context.expression(), context.COLON().Symbol, context.block(),
+                                this);
+    }
+
     public override AstNode VisitWhile_stmt([NotNull] SeedPythonParser.While_stmtContext context) {
       return _helper.BuildWhile(context.WHILE().Symbol, context.expression(),
                                 context.COLON().Symbol, context.block(), this);

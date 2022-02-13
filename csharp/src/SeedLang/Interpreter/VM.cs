@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -45,8 +46,18 @@ namespace SeedLang.Interpreter {
             case Opcode.MOVE:
               _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B];
               break;
+            case Opcode.LOADBOOL:
+              // TODO: implement the LOADBOOL opcode.
+              break;
             case Opcode.LOADK:
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
+              break;
+            case Opcode.NEWLIST:
+              var list = new List<Value>();
+              for (int i = 0; i < instr.C; i++) {
+                list.Add(_stack[baseRegister + instr.B + i]);
+              }
+              _stack[baseRegister + instr.A] = new Value(list);
               break;
             case Opcode.GETGLOB:
               _stack[baseRegister + instr.A] = Env.GetVariable(instr.Bx);
@@ -72,7 +83,10 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.UNM:
               _stack[baseRegister + instr.A] =
-                  Value.Number(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
+                  new Value(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
+              break;
+            case Opcode.LEN:
+              _stack[baseRegister + instr.A] = new Value(_stack[baseRegister + instr.B].Length);
               break;
             case Opcode.JMP:
               pc += instr.SBx;
@@ -95,11 +109,34 @@ namespace SeedLang.Interpreter {
                 pc++;
               }
               break;
+            case Opcode.TEST:
+              if (_stack[baseRegister + instr.A].AsBoolean() == (instr.C == 1)) {
+                pc++;
+              }
+              break;
+            case Opcode.TESTSET:
+              // TODO: implement the TESTSET opcode.
+              break;
             case Opcode.EVAL:
               if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
                 var ee = new EvalEvent(new ValueWrapper(_stack[baseRegister + instr.A]),
-                                                        chunk.Ranges[pc]);
+                                       chunk.Ranges[pc]);
                 _visualizerCenter.EvalPublisher.Notify(ee);
+              }
+              break;
+            case Opcode.FORPREP:
+              _stack[baseRegister + instr.A] = new Value(
+                  ValueHelper.Subtract(_stack[baseRegister + instr.A],
+                                       _stack[baseRegister + instr.A + 2]));
+              pc += instr.SBx;
+              break;
+            case Opcode.FORLOOP:
+              _stack[baseRegister + instr.A] = new Value(
+                  ValueHelper.Add(_stack[baseRegister + instr.A],
+                                  _stack[baseRegister + instr.A + 2]));
+              if (_stack[baseRegister + instr.A].AsNumber() <
+                  _stack[baseRegister + instr.A + 1].AsNumber()) {
+                pc += instr.SBx;
               }
               break;
             case Opcode.CALL:
@@ -162,7 +199,7 @@ namespace SeedLang.Interpreter {
           result = ValueHelper.Divide(left, right);
           break;
       }
-      _stack[baseRegister + instr.A] = Value.Number(result);
+      _stack[baseRegister + instr.A] = new Value(result);
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
                                  new ValueWrapper(_stack[baseRegister + instr.A]), range);
@@ -172,11 +209,11 @@ namespace SeedLang.Interpreter {
 
     private void CallFunction(ref Chunk chunk, ref int pc, ref uint baseRegister,
                               Instruction instr) {
-      var callee = _stack[baseRegister + instr.A].AsFunction();
+      int calleeRegister = (int)(baseRegister + instr.A);
+      var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
-        case NativeFunction nativeFunc:
-          var arguments = new System.ArraySegment<Value>(_stack, (int)instr.A + 1, (int)instr.B);
-          _stack[baseRegister + instr.A] = nativeFunc.Call(arguments);
+        case HeapObject.NativeFunction nativeFunc:
+          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B);
           break;
         case Function func:
           baseRegister += instr.A + 1;

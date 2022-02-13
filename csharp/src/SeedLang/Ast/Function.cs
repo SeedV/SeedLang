@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // A function value type that is only used in SeedAst component to encapsulate AST function
   // declearation statement.
-  internal class Function : IFunction {
+  internal class Function : HeapObject.IFunction {
     private readonly FuncDefStatement _funcDef;
     private readonly Executor _executor;
 
@@ -27,8 +26,10 @@ namespace SeedLang.Ast {
       _executor = executor;
     }
 
-    public Value Call(IList<Value> arguments) {
-      return _executor.Call(_funcDef, arguments);
+    // Calls the function with given arguments that locate in the "args" array starting from
+    // "offset". The number of arguments is "length".
+    public Value Call(Value[] args, int offset, int length) {
+      return _executor.Call(_funcDef, args, offset, length);
     }
   }
 }

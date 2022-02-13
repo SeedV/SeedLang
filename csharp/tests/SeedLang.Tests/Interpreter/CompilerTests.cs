@@ -18,6 +18,8 @@ using SeedLang.Tests.Helper;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
+  using NativeFunction = HeapObject.NativeFunction;
+
   public class CompilerTests {
     private static GlobalEnvironment _env => new GlobalEnvironment(Array.Empty<NativeFunction>());
 
@@ -177,6 +179,30 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  7    EVAL      0                                    {AstHelper.TextRange}\n" +
           $"  8    RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileIfTrue() {
+      var @if = AstHelper.If(
+        AstHelper.BooleanConstant(true),
+        AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
+        AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADBOOL  0 1 0                                {AstHelper.TextRange}\n" +
+          $"  2    TEST      0 0 1                                {AstHelper.TextRange}\n" +
+          $"  3    JMP       0 3              ; to 7              {AstHelper.TextRange}\n" +
+          $"  4    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  5    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  6    JMP       0 2              ; to 9              {AstHelper.TextRange}\n" +
+          $"  7    LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  8    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  9    RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -462,7 +488,8 @@ namespace SeedLang.Interpreter.Tests {
           $"\n" +
           $"Function <eval>\n" +
           $"  1    ADD       2 0 1                                {AstHelper.TextRange}\n" +
-          $"  2    RETURN    2                                    {AstHelper.TextRange}\n"
+          $"  2    RETURN    2                                    {AstHelper.TextRange}\n" +
+          $"  3    RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -510,7 +537,8 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    SUB       3 0 -1           ; 1                 {AstHelper.TextRange}\n" +
           $"  8    CALL      2 1 0                                {AstHelper.TextRange}\n" +
           $"  9    ADD       1 0 2                                {AstHelper.TextRange}\n" +
-          $"  10   RETURN    1                                    {AstHelper.TextRange}\n"
+          $"  10   RETURN    1                                    {AstHelper.TextRange}\n" +
+          $"  11   RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -525,13 +553,12 @@ namespace SeedLang.Interpreter.Tests {
       var func = compiler.Compile(list, env);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 0                                  {AstHelper.TextRange}\n" +
-          $"  2    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
-          $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  7    RETURN    0                                    \n"
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   0 1 3                                {AstHelper.TextRange}\n" +
+          $"  5    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  6    RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -549,14 +576,13 @@ namespace SeedLang.Interpreter.Tests {
       var func = compiler.Compile(subscript, env);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   1 0                                  {AstHelper.TextRange}\n" +
-          $"  2    LOADK     2 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  3    LOADK     3 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  4    LOADK     4 -3             ; 3                 {AstHelper.TextRange}\n" +
-          $"  5    CALL      1 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    GETELEM   0 1 -4           ; 0                 {AstHelper.TextRange}\n" +
-          $"  7    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  8    RETURN    0                                    \n"
+          $"  1    LOADK     2 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     3 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     4 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   1 2 3                                {AstHelper.TextRange}\n" +
+          $"  5    GETELEM   0 1 -4           ; 0                 {AstHelper.TextRange}\n" +
+          $"  6    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  7    RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -577,20 +603,23 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(program, env);
+      int firstGlobalId = NativeFunctions.Funcs.Length;
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 0                                  {AstHelper.TextRange}\n" +
-          $"  2    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
-          $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    SETGLOB   0 2                                  {AstHelper.TextRange}\n" +
-          $"  7    GETGLOB   0 2                                  {AstHelper.TextRange}\n" +
-          $"  8    SETELEM   0 -1 -4          ; 1 5               {AstHelper.TextRange}\n" +
-          $"  9    GETGLOB   1 2                                  {AstHelper.TextRange}\n" +
-          $"  10   GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
-          $"  11   EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  12   RETURN    0                                    \n"
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   0 1 3                                {AstHelper.TextRange}\n" +
+          $"  5    SETGLOB   0 {firstGlobalId}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  6    GETGLOB   0 {firstGlobalId}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  7    SETELEM   0 -1 -4          ; 1 5               {AstHelper.TextRange}\n" +
+          $"  8    GETGLOB   1 {firstGlobalId}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  9    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  10   EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  11   RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -614,23 +643,104 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(program, env);
+      int firstGlobalId = NativeFunctions.Funcs.Length;
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 0                                  {AstHelper.TextRange}\n" +
-          $"  2    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  3    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  4    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
-          $"  5    CALL      0 3 0                                {AstHelper.TextRange}\n" +
-          $"  6    SETGLOB   0 2                                  {AstHelper.TextRange}\n" +
-          $"  7    GETGLOB   1 2                                  {AstHelper.TextRange}\n" +
-          $"  8    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
-          $"  9    GETGLOB   2 2                                  {AstHelper.TextRange}\n" +
-          $"  10   GETELEM   1 2 -4           ; 0                 {AstHelper.TextRange}\n" +
-          $"  11   GETGLOB   2 2                                  {AstHelper.TextRange}\n" +
-          $"  12   SETELEM   2 -4 0           ; 0                 {AstHelper.TextRange}\n" +
-          $"  13   GETGLOB   3 2                                  {AstHelper.TextRange}\n" +
-          $"  14   SETELEM   3 -1 1           ; 1                 {AstHelper.TextRange}\n" +
-          $"  15   RETURN    0                                    \n"
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   0 1 3                                {AstHelper.TextRange}\n" +
+          $"  5    SETGLOB   0 {firstGlobalId}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  6    GETGLOB   1 {firstGlobalId}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  7    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  8    GETGLOB   2 {firstGlobalId}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  9    GETELEM   1 2 -4           ; 0                 {AstHelper.TextRange}\n" +
+          $"  10   GETGLOB   2 {firstGlobalId}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  11   SETELEM   2 -4 0           ; 0                 {AstHelper.TextRange}\n" +
+          $"  12   GETGLOB   3 {firstGlobalId}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  13   SETELEM   3 -1 1           ; 1                 {AstHelper.TextRange}\n" +
+          $"  14   RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileForIn() {
+      string a = "a";
+      var program = AstHelper.ForIn(
+        AstHelper.Id(a),
+        AstHelper.List(AstHelper.NumberConstant(1),
+                       AstHelper.NumberConstant(2),
+                       AstHelper.NumberConstant(3)),
+        AstHelper.ExpressionStmt(AstHelper.Id(a))
+      );
+      var compiler = new Compiler();
+      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var func = compiler.Compile(program, env);
+      int startOfGlobalVariables = NativeFunctions.Funcs.Length;
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   0 1 3                                {AstHelper.TextRange}\n" +
+          $"  5    LOADK     1 -4             ; 0                 {AstHelper.TextRange}\n" +
+          $"  6    LEN       2 0 0                                {AstHelper.TextRange}\n" +
+          $"  7    LOADK     3 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  8    FORPREP   1 4              ; to 13             {AstHelper.TextRange}\n" +
+          $"  9    GETELEM   4 0 1                                {AstHelper.TextRange}\n" +
+          $"  10   SETGLOB   4 {startOfGlobalVariables}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  11   GETGLOB   4 {startOfGlobalVariables}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  12   EVAL      4                                    {AstHelper.TextRange}\n" +
+          $"  13   FORLOOP   1 -5             ; to 9              {AstHelper.TextRange}\n" +
+          $"  14   RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileLocalScopeForIn() {
+      string a = "a";
+      var program = AstHelper.FuncDef("func", Array.Empty<string>(), AstHelper.Block(
+        AstHelper.ForIn(
+          AstHelper.Id(a),
+          AstHelper.List(AstHelper.NumberConstant(1),
+                         AstHelper.NumberConstant(2),
+                         AstHelper.NumberConstant(3)),
+          AstHelper.ExpressionStmt(AstHelper.Id(a))
+        )
+      ));
+      var compiler = new Compiler();
+      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var func = compiler.Compile(program, env);
+      int startOfGlobalVariables = NativeFunctions.Funcs.Length;
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; Func <func>       {AstHelper.TextRange}\n" +
+          $"  2    SETGLOB   0 {startOfGlobalVariables}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  3    RETURN    0                                    \n" +
+          $"\n" +
+          $"Function <func>\n" +
+          $"  1    LOADK     2 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     3 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    LOADK     4 -3             ; 3                 {AstHelper.TextRange}\n" +
+          $"  4    NEWLIST   1 2 3                                {AstHelper.TextRange}\n" +
+          $"  5    LOADK     2 -4             ; 0                 {AstHelper.TextRange}\n" +
+          $"  6    LEN       3 1 0                                {AstHelper.TextRange}\n" +
+          $"  7    LOADK     4 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  8    FORPREP   2 2              ; to 11             {AstHelper.TextRange}\n" +
+          $"  9    GETELEM   0 1 2                                {AstHelper.TextRange}\n" +
+          $"  10   EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  11   FORLOOP   2 -3             ; to 9              {AstHelper.TextRange}\n" +
+          $"  12   RETURN    0                                    \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

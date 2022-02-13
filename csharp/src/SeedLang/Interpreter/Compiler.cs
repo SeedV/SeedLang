@@ -120,7 +120,8 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BooleanConstantExpression booleanConstant) {
-      throw new System.NotImplementedException();
+      _chunk.Emit(Opcode.LOADBOOL, _registerForSubExpr, booleanConstant.Value ? 1u : 0, 0,
+                  booleanConstant.Range);
     }
 
     protected override void Visit(NumberConstantExpression numberConstant) {
@@ -133,8 +134,18 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ListExpression list) {
-      var call = Expression.Call(Expression.Identifier("list", list.Range), list.Exprs, list.Range);
-      Visit(call);
+      _variableResolver.BeginExpressionScope();
+      uint target = _registerForSubExpr;
+      uint? first = null;
+      foreach (var expr in list.Exprs) {
+        _registerForSubExpr = _variableResolver.AllocateRegister();
+        if (!first.HasValue) {
+          first = _registerForSubExpr;
+        }
+        Visit(expr);
+      }
+      _chunk.Emit(Opcode.NEWLIST, target, first.Value, (uint)list.Exprs.Length, list.Range);
+      _variableResolver.EndExpressionScope();
     }
 
     protected override void Visit(SubscriptExpression subscript) {
@@ -153,7 +164,7 @@ namespace SeedLang.Interpreter {
         if (_variableResolver.FindVariable(identifier.Name) is VariableResolver.VariableInfo info) {
           uint resultRegister = _registerForSubExpr;
           bool needRegister = resultRegister != _variableResolver.LastRegister;
-          uint funcRegister = needRegister ? _variableResolver.AllocateVariable() : resultRegister;
+          uint funcRegister = needRegister ? _variableResolver.AllocateRegister() : resultRegister;
           switch (info.Type) {
             case VariableResolver.VariableType.Global:
               _chunk.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
@@ -166,7 +177,7 @@ namespace SeedLang.Interpreter {
               break;
           }
           foreach (Expression expr in call.Arguments) {
-            _registerForSubExpr = _variableResolver.AllocateVariable();
+            _registerForSubExpr = _variableResolver.AllocateRegister();
             Visit(expr);
           }
           _chunk.Emit(Opcode.CALL, funcRegister, (uint)call.Arguments.Length, 0, call.Range);
@@ -202,7 +213,7 @@ namespace SeedLang.Interpreter {
         _chunk.Emit(Opcode.EVAL, id, expr.Range);
       } else {
         _variableResolver.BeginExpressionScope();
-        id = _variableResolver.AllocateVariable();
+        id = _variableResolver.AllocateRegister();
         _registerForSubExpr = id;
         Visit(expr.Expr);
         _variableResolver.EndExpressionScope();
@@ -210,19 +221,59 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    protected override void Visit(ForInStatement forIn) {
+      VariableResolver.VariableInfo loopVar = GetVariableInfo(forIn.Id.Name);
+
+      _variableResolver.BeginBlockScope();
+      if (!(GetRegisterId(forIn.Expr) is uint sequence)) {
+        sequence = _variableResolver.AllocateRegister();
+        _registerForSubExpr = sequence;
+        Visit(forIn.Expr);
+      }
+      uint index = _variableResolver.AllocateRegister();
+      _chunk.Emit(Opcode.LOADK, index, _constantCache.IdOfConstant(0), forIn.Range);
+      uint limit = _variableResolver.AllocateRegister();
+      _chunk.Emit(Opcode.LEN, limit, sequence, 0, forIn.Range);
+      uint step = _variableResolver.AllocateRegister();
+      _chunk.Emit(Opcode.LOADK, step, _constantCache.IdOfConstant(1), forIn.Range);
+      _chunk.Emit(Opcode.FORPREP, index, 0, forIn.Range);
+      int bodyStart = _chunk.Bytecode.Count;
+      switch (loopVar.Type) {
+        case VariableResolver.VariableType.Global:
+          _variableResolver.BeginExpressionScope();
+          uint targetId = _variableResolver.AllocateRegister();
+          _chunk.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
+          _chunk.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
+          _variableResolver.EndExpressionScope();
+          break;
+        case VariableResolver.VariableType.Local:
+          _chunk.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
+          break;
+        case VariableResolver.VariableType.Upvalue:
+          // TODO: handle upvalues.
+          break;
+      }
+      Visit(forIn.Body);
+      _chunk.PatchSBXAt(bodyStart - 1, _chunk.Bytecode.Count - bodyStart);
+      _chunk.Emit(Opcode.FORLOOP, index, bodyStart - (_chunk.Bytecode.Count + 1), forIn.Range);
+      _variableResolver.EndBlockScope();
+    }
+
     protected override void Visit(FuncDefStatement funcDef) {
-      VariableResolver.VariableInfo info = _variableResolver.DefineVariable(funcDef.Name);
+      VariableResolver.VariableInfo info = GetVariableInfo(funcDef.Name);
       PushFunc(funcDef.Name);
       foreach (string parameterName in funcDef.Parameters) {
         _variableResolver.DefineVariable(parameterName);
       }
       Visit(funcDef.Body);
+      // Emits a default return opcode.
+      _chunk.Emit(Opcode.RETURN, 0, null);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
         case VariableResolver.VariableType.Global:
           _variableResolver.BeginExpressionScope();
-          uint registerId = _variableResolver.AllocateVariable();
+          uint registerId = _variableResolver.AllocateRegister();
           _chunk.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
           _chunk.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
           _variableResolver.EndExpressionScope();
@@ -238,11 +289,11 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(IfStatement @if) {
       _nestedJumpStack.PushFrame();
-      Visit(@if.Test);
+      VisitTest(@if.Test);
       PatchJumps(_nestedJumpStack.TrueJumps);
       Visit(@if.ThenBody);
       if (!(@if.ElseBody is null)) {
-        _chunk.Emit(Opcode.JMP, 0, @if.Range);
+        _chunk.Emit(Opcode.JMP, 0, 0, @if.Range);
         int jumpEnd = GetCurrentCodePos();
         PatchJumps(_nestedJumpStack.FalseJumps);
         Visit(@if.ElseBody);
@@ -256,7 +307,7 @@ namespace SeedLang.Interpreter {
     protected override void Visit(ReturnStatement @return) {
       if (!(GetRegisterId(@return.Result) is uint result)) {
         _variableResolver.BeginExpressionScope();
-        result = _variableResolver.AllocateVariable();
+        result = _variableResolver.AllocateRegister();
         _registerForSubExpr = result;
         Visit(@return.Result);
         _variableResolver.EndExpressionScope();
@@ -267,11 +318,31 @@ namespace SeedLang.Interpreter {
     protected override void Visit(WhileStatement @while) {
       _nestedJumpStack.PushFrame();
       int start = _chunk.Bytecode.Count;
-      Visit(@while.Test);
+      VisitTest(@while.Test);
       Visit(@while.Body);
-      _chunk.Emit(Opcode.JMP, start - (_chunk.Bytecode.Count + 1), @while.Range);
+      _chunk.Emit(Opcode.JMP, 0, start - (_chunk.Bytecode.Count + 1), @while.Range);
       PatchJumps(_nestedJumpStack.FalseJumps);
       _nestedJumpStack.PopFrame();
+    }
+
+    private void VisitTest(Expression test) {
+      if (test is ComparisonExpression || test is BooleanExpression) {
+        Visit(test);
+      } else {
+        if (GetRegisterId(test) is uint registerId) {
+          _chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
+        } else {
+          _variableResolver.BeginExpressionScope();
+          registerId = _variableResolver.AllocateRegister();
+          _registerForSubExpr = registerId;
+          Visit(test);
+          _chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
+          _variableResolver.EndExpressionScope();
+        }
+        _chunk.Emit(Opcode.JMP, 0, 0, test.Range);
+        int jump = GetCurrentCodePos();
+        _nestedJumpStack.FalseJumps.Add(jump);
+      }
     }
 
     private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
@@ -283,7 +354,7 @@ namespace SeedLang.Interpreter {
         checkFlag = !checkFlag;
       }
       _chunk.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
-      _chunk.Emit(Opcode.JMP, 0, range);
+      _chunk.Emit(Opcode.JMP, 0, 0, range);
       int jump = GetCurrentCodePos();
       switch (_nextBooleanOp) {
         case BooleanOperator.And:
@@ -298,15 +369,11 @@ namespace SeedLang.Interpreter {
     private void VisitSingleAssignment(Expression target, Expression expr, Range range) {
       switch (target) {
         case IdentifierExpression identifier:
-          string name = identifier.Name;
-          if (_variableResolver.FindVariable(name) is null) {
-            _variableResolver.DefineVariable(name);
-          }
-          VariableResolver.VariableInfo info = _variableResolver.FindVariable(name).Value;
+          VariableResolver.VariableInfo info = GetVariableInfo(identifier.Name);
           switch (info.Type) {
             case VariableResolver.VariableType.Global:
               _variableResolver.BeginExpressionScope();
-              uint resultRegister = _variableResolver.AllocateVariable();
+              uint resultRegister = _variableResolver.AllocateRegister();
               _registerForSubExpr = resultRegister;
               Visit(expr);
               _chunk.Emit(Opcode.SETGLOB, resultRegister, info.Id, range);
@@ -345,11 +412,7 @@ namespace SeedLang.Interpreter {
       var isTargetGlobals = new bool[targets.Length];
       for (int i = 0; i < targets.Length; i++) {
         if (targets[i] is IdentifierExpression id) {
-          string name = id.Name;
-          if (_variableResolver.FindVariable(name) is null) {
-            _variableResolver.DefineVariable(name);
-          }
-          VariableResolver.VariableInfo info = _variableResolver.FindVariable(name).Value;
+          VariableResolver.VariableInfo info = GetVariableInfo(id.Name);
           isTargetGlobals[i] = info.Type == VariableResolver.VariableType.Global;
         }
       }
@@ -365,7 +428,7 @@ namespace SeedLang.Interpreter {
             isExprConstants[i] = false;
           } else if (GetConstantId(exprs[i]) is uint constantId) {
             if (isTargetGlobals[i]) {
-              exprIds[i] = _variableResolver.AllocateVariable();
+              exprIds[i] = _variableResolver.AllocateRegister();
               _chunk.Emit(Opcode.LOADK, exprIds[i], constantId, range);
               isExprConstants[i] = false;
             } else {
@@ -373,13 +436,13 @@ namespace SeedLang.Interpreter {
               isExprConstants[i] = true;
             }
           } else {
-            exprIds[i] = _variableResolver.AllocateVariable();
+            exprIds[i] = _variableResolver.AllocateRegister();
             _registerForSubExpr = exprIds[i];
             Visit(exprs[i]);
           }
         } else {
           if (isTargetGlobals[i]) {
-            exprIds[i] = _variableResolver.AllocateVariable();
+            exprIds[i] = _variableResolver.AllocateRegister();
             _chunk.Emit(Opcode.LOADK, exprIds[i], _constantCache.IdOfNone(), range);
             isExprConstants[i] = false;
           } else {
@@ -419,6 +482,13 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExpressionScope();
     }
 
+    private VariableResolver.VariableInfo GetVariableInfo(string name) {
+      if (_variableResolver.FindVariable(name) is VariableResolver.VariableInfo info) {
+        return info;
+      }
+      return _variableResolver.DefineVariable(name);
+    }
+
     private int GetCurrentCodePos() {
       return _chunk.Bytecode.Count - 1;
     }
@@ -431,7 +501,7 @@ namespace SeedLang.Interpreter {
     }
 
     private void PatchJump(int jump) {
-      _chunk.PatchJumpAt(jump, _chunk.Bytecode.Count - jump - 1);
+      _chunk.PatchSBXAt(jump, _chunk.Bytecode.Count - jump - 1);
     }
 
     private void PushFunc(string name) {
@@ -454,7 +524,7 @@ namespace SeedLang.Interpreter {
 
     private uint VisitExpressionForRegisterId(Expression expr) {
       if (!(GetRegisterId(expr) is uint exprId)) {
-        exprId = _variableResolver.AllocateVariable();
+        exprId = _variableResolver.AllocateRegister();
         _registerForSubExpr = exprId;
         Visit(expr);
       }
@@ -463,7 +533,7 @@ namespace SeedLang.Interpreter {
 
     private uint VisitExpressionForRKId(Expression expr) {
       if (!(GetRegisterOrConstantId(expr) is uint exprId)) {
-        exprId = _variableResolver.AllocateVariable();
+        exprId = _variableResolver.AllocateRegister();
         _registerForSubExpr = exprId;
         Visit(expr);
       }

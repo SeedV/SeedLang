@@ -20,21 +20,21 @@ namespace SeedLang.Ast.Tests {
     [Fact]
     public void TestEnvironment() {
       var env = new ScopedEnvironment();
-      env.SetVariable("a", Value.Number(1));
+      env.SetVariable("a", new Value(1));
       Assert.True(env.ContainsVariable("a"));
       Assert.False(env.ContainsVariable("b"));
-      Assert.Equal(Value.Number(1), env.GetVariable("a"));
+      Assert.Equal(new Value(1), env.GetVariable("a"));
 
       env.EnterScope();
-      env.SetVariable("a", Value.Number(2));
+      env.SetVariable("a", new Value(2));
       Assert.True(env.ContainsVariable("a"));
       Assert.False(env.ContainsVariable("b"));
-      Assert.Equal(Value.Number(2), env.GetVariable("a"));
+      Assert.Equal(new Value(2), env.GetVariable("a"));
 
       env.ExitScope();
       Assert.True(env.ContainsVariable("a"));
       Assert.False(env.ContainsVariable("b"));
-      Assert.Equal(Value.Number(1), env.GetVariable("a"));
+      Assert.Equal(new Value(1), env.GetVariable("a"));
     }
   }
 }

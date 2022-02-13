@@ -215,6 +215,14 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(ForInStatement forIn) {
+      Enter(forIn);
+      Visit(forIn.Id);
+      Visit(forIn.Expr);
+      Visit(forIn.Body);
+      Exit();
+    }
+
     protected override void Visit(FuncDefStatement funcDef) {
       Enter(funcDef);
       _out.Append($" ({funcDef.Name}:{string.Join(",", funcDef.Parameters)})");

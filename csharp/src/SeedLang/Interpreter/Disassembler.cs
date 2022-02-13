@@ -51,7 +51,7 @@ namespace SeedLang.Interpreter {
 
           if (instr.Opcode == Opcode.LOADK) {
             Value value = _chunk.ValueOfConstId(instr.Bx);
-            if (value.IsFunction() && value.AsFunction() is Function func) {
+            if (value.IsFunction && value.AsFunction() is Function func) {
               _functions.Enqueue(func);
             }
           }

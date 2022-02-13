@@ -61,6 +61,10 @@ namespace SeedLang.Tests.Helper {
       return Statement.Expression(expr, TextRange);
     }
 
+    internal static ForInStatement ForIn(IdentifierExpression id, Expression expr, Statement body) {
+      return Statement.ForIn(id, expr, body, TextRange);
+    }
+
     internal static FuncDefStatement FuncDef(string name, string[] parameters, Statement body) {
       return Statement.FuncDef(name, parameters, body, TextRange);
     }

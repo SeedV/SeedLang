@@ -19,23 +19,20 @@ namespace SeedLang.Runtime.Tests {
   public class ValueHelperTests {
     [Fact]
     public void TestDivide() {
-      Assert.Equal(2.5, ValueHelper.Divide(Value.Number(5), Value.Number(2)));
-      Assert.Throws<DiagnosticException>(() => ValueHelper.Divide(Value.Number(5),
-                                                                  Value.Number(0)));
+      Assert.Equal(2.5, ValueHelper.Divide(new Value(5), new Value(2)));
+      Assert.Throws<DiagnosticException>(() => ValueHelper.Divide(new Value(5), new Value(0)));
     }
 
     [Fact]
     public void TestFloorDivide() {
-      Assert.Equal(2, ValueHelper.FloorDivide(Value.Number(5), Value.Number(2)));
-      Assert.Throws<DiagnosticException>(() => ValueHelper.FloorDivide(Value.Number(5),
-                                                                       Value.Number(0)));
+      Assert.Equal(2, ValueHelper.FloorDivide(new Value(5), new Value(2)));
+      Assert.Throws<DiagnosticException>(() => ValueHelper.FloorDivide(new Value(5), new Value(0)));
     }
 
     [Fact]
     public void TestModulo() {
-      Assert.Equal(1, ValueHelper.Modulo(Value.Number(5), Value.Number(2)));
-      Assert.Throws<DiagnosticException>(() => ValueHelper.Modulo(Value.Number(5),
-                                                                  Value.Number(0)));
+      Assert.Equal(1, ValueHelper.Modulo(new Value(5), new Value(2)));
+      Assert.Throws<DiagnosticException>(() => ValueHelper.Modulo(new Value(5), new Value(0)));
     }
   }
 }

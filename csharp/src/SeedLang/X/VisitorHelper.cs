@@ -418,6 +418,26 @@ namespace SeedLang.X {
       return BuildBlock(statements);
     }
 
+    // Builds "for in" statements.
+    internal ForInStatement BuildForIn(IToken forToken, ParserRuleContext identifierContext,
+                                       IToken inToken, ParserRuleContext exprContext,
+                                       IToken colonToken, ParserRuleContext blockContext,
+                                       AbstractParseTreeVisitor<AstNode> visitor) {
+      TextRange forRange = CodeReferenceUtils.RangeOfToken(forToken);
+      AddSyntaxToken(SyntaxType.Keyword, forRange);
+      if (visitor.Visit(identifierContext) is IdentifierExpression loopVar) {
+        AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(inToken));
+        if (visitor.Visit(exprContext) is Expression expr) {
+          AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+          if (visitor.Visit(blockContext) is Statement block) {
+            TextRange range = CodeReferenceUtils.CombineRanges(forRange, block.Range as TextRange);
+            return Statement.ForIn(loopVar, expr, block, range);
+          }
+        }
+      }
+      return null;
+    }
+
     // Builds while statements.
     internal WhileStatement BuildWhile(IToken whileToken, ParserRuleContext exprContext,
                                        IToken colonToken, ParserRuleContext blockContext,

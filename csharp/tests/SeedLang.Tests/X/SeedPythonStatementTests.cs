@@ -304,6 +304,56 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 2, Col 10 - Ln 2, Col 10]," +
                 "Keyword [Ln 3, Col 2 - Ln 3, Col 7]," +
                 "Variable [Ln 3, Col 9 - Ln 3, Col 9]")]
+
+    [InlineData("for n in [1, 2, 3]: n",
+
+                "[Ln 1, Col 0 - Ln 1, Col 20] ForInStatement\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (n)\n" +
+                "  [Ln 1, Col 9 - Ln 1, Col 17] ListExpression\n" +
+                "    [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 13 - Ln 1, Col 13] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (3)\n" +
+                "  [Ln 1, Col 20 - Ln 1, Col 20] ExpressionStatement\n" +
+                "    [Ln 1, Col 20 - Ln 1, Col 20] IdentifierExpression (n)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Variable [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Keyword [Ln 1, Col 6 - Ln 1, Col 7]," +
+                "Bracket [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Symbol [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "Number [Ln 1, Col 13 - Ln 1, Col 13]," +
+                "Symbol [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Number [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Bracket [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "Symbol [Ln 1, Col 18 - Ln 1, Col 18]," +
+                "Variable [Ln 1, Col 20 - Ln 1, Col 20]")]
+
+    [InlineData("for n in range(2, 10, 3): n",
+
+                "[Ln 1, Col 0 - Ln 1, Col 26] ForInStatement\n" +
+                "  [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (n)\n" +
+                "  [Ln 1, Col 9 - Ln 1, Col 23] CallExpression\n" +
+                "    [Ln 1, Col 9 - Ln 1, Col 13] IdentifierExpression (range)\n" +
+                "    [Ln 1, Col 15 - Ln 1, Col 15] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 18 - Ln 1, Col 19] NumberConstantExpression (10)\n" +
+                "    [Ln 1, Col 22 - Ln 1, Col 22] NumberConstantExpression (3)\n" +
+                "  [Ln 1, Col 26 - Ln 1, Col 26] ExpressionStatement\n" +
+                "    [Ln 1, Col 26 - Ln 1, Col 26] IdentifierExpression (n)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Variable [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Keyword [Ln 1, Col 6 - Ln 1, Col 7]," +
+                "Variable [Ln 1, Col 9 - Ln 1, Col 13]," +
+                "Parenthesis [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "Number [Ln 1, Col 15 - Ln 1, Col 15]," +
+                "Symbol [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Number [Ln 1, Col 18 - Ln 1, Col 19]," +
+                "Symbol [Ln 1, Col 20 - Ln 1, Col 20]," +
+                "Number [Ln 1, Col 22 - Ln 1, Col 22]," +
+                "Parenthesis [Ln 1, Col 23 - Ln 1, Col 23]," +
+                "Symbol [Ln 1, Col 24 - Ln 1, Col 24]," +
+                "Variable [Ln 1, Col 26 - Ln 1, Col 26]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

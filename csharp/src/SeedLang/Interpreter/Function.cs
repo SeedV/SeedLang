@@ -13,13 +13,12 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // A function value type that is only used in SeedVM component to encapsulate a compiled bytecode
   // chunk.
-  internal class Function : IFunction {
+  internal class Function : HeapObject.IFunction {
     public string Name { get; }
     public Chunk Chunk { get; } = new Chunk();
 
@@ -27,7 +26,9 @@ namespace SeedLang.Interpreter {
       Name = name;
     }
 
-    public Value Call(IList<Value> arguments) {
+    // Calls the function with given arguments that locate in the "args" array starting from
+    // "offset". The number of arguments is "length".
+    public Value Call(Value[] args, int offset, int length) {
       throw new NotImplementedException();
     }
 

@@ -18,6 +18,8 @@ using SeedLang.Tests.Helper;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
+  using NativeFunction = HeapObject.NativeFunction;
+
   public class CompilerTests {
     private static GlobalEnvironment _env => new GlobalEnvironment(Array.Empty<NativeFunction>());
 
@@ -680,6 +682,7 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(program, env);
+      int startOfGlobalVariables = NativeFunctions.Funcs.Length;
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
@@ -691,8 +694,10 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    LOADK     3 -1             ; 1                 {AstHelper.TextRange}\n" +
           $"  8    FORPREP   1 4              ; to 13             {AstHelper.TextRange}\n" +
           $"  9    GETELEM   4 0 1                                {AstHelper.TextRange}\n" +
-          $"  10   SETGLOB   4 6                                  {AstHelper.TextRange}\n" +
-          $"  11   GETGLOB   4 6                                  {AstHelper.TextRange}\n" +
+          $"  10   SETGLOB   4 {startOfGlobalVariables}" +
+          $"                                  {AstHelper.TextRange}\n" +
+          $"  11   GETGLOB   4 {startOfGlobalVariables}" +
+          $"                                  {AstHelper.TextRange}\n" +
           $"  12   EVAL      4                                    {AstHelper.TextRange}\n" +
           $"  13   FORLOOP   1 -5             ; to 9              {AstHelper.TextRange}\n" +
           $"  14   RETURN    0                                    \n"
@@ -715,10 +720,12 @@ namespace SeedLang.Interpreter.Tests {
       var compiler = new Compiler();
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var func = compiler.Compile(program, env);
+      int startOfGlobalVariables = NativeFunctions.Funcs.Length;
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <func>       {AstHelper.TextRange}\n" +
-          $"  2    SETGLOB   0 6                                  {AstHelper.TextRange}\n" +
+          $"  2    SETGLOB   0 {startOfGlobalVariables}" +
+          $"                                  {AstHelper.TextRange}\n" +
           $"  3    RETURN    0                                    \n" +
           $"\n" +
           $"Function <func>\n" +

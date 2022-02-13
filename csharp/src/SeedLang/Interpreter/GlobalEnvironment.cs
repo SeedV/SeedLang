@@ -22,7 +22,7 @@ namespace SeedLang.Interpreter {
     private readonly Dictionary<string, uint> _globals = new Dictionary<string, uint>();
     private readonly List<Value> _values = new List<Value>();
 
-    internal GlobalEnvironment(NativeFunction[] nativeFunctions) {
+    internal GlobalEnvironment(HeapObject.NativeFunction[] nativeFunctions) {
       foreach (var func in nativeFunctions) {
         _values.Add(new Value(func));
         _globals[func.Name] = (uint)_values.Count - 1;

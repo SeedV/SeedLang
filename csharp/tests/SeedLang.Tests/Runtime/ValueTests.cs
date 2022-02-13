@@ -18,6 +18,8 @@ using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
+  using NativeFunction = HeapObject.NativeFunction;
+
   public class ValueTests {
     private readonly string _expectedFalseString = "False";
     private readonly string _expectedTrueString = "True";

@@ -17,6 +17,7 @@ using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
+  using NativeFunction = HeapObject.NativeFunction;
   using VariableInfo = VariableResolver.VariableInfo;
   using VariableType = VariableResolver.VariableType;
 

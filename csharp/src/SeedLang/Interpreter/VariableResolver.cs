@@ -46,10 +46,8 @@ namespace SeedLang.Interpreter {
     }
 
     private class GlobalScope : IScope {
-      public const int GlobalFuncLevel = -1;
-
       public uint FreeRegister { get; } = 0;
-      public int FuncLevel { get; } = GlobalFuncLevel;
+      public int FuncLevel { get; } = -1;
 
       private readonly GlobalEnvironment _env;
 

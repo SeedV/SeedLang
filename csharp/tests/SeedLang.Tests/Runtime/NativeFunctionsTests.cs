@@ -17,6 +17,9 @@ using System.Collections.Generic;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
+  using Range = HeapObject.Range;
+  using NativeFunction = HeapObject.NativeFunction;
+
   public class NativeFunctionsTests {
     [Fact]
     public void TestEmptyList() {
@@ -46,7 +49,7 @@ namespace SeedLang.Runtime.Tests {
     public void TestListOfRange() {
       var listFunc = Function("list");
       var length = 10;
-      var args = new Value[] { new Value(new NumberRange(length)) };
+      var args = new Value[] { new Value(new Range(length)) };
       Value list = listFunc.Call(args, 0, args.Length);
       Assert.True(list.IsList);
       Assert.Equal(length, list.Length);

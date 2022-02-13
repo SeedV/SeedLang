@@ -21,12 +21,11 @@ namespace SeedLang.Runtime {
   using List = List<Value>;
 
   // A class to hold heap allocated objects.
-  internal class HeapObject : IEquatable<HeapObject> {
+  internal partial class HeapObject : IEquatable<HeapObject> {
     public bool IsString => _object is string;
     public bool IsList => _object is List;
     public bool IsFunction => _object is IFunction;
-    public bool IsIterator => _object is Iterator;
-    public bool IsRange => _object is NumberRange;
+    public bool IsRange => _object is Range;
 
     public int Length {
       get {
@@ -35,7 +34,7 @@ namespace SeedLang.Runtime {
             return str.Length;
           case List list:
             return list.Count;
-          case NumberRange range:
+          case Range range:
             return range.Length;
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -99,7 +98,7 @@ namespace SeedLang.Runtime {
           return ValueHelper.StringToBoolean(str);
         case List list:
           return list.Count != 0;
-        case NumberRange range:
+        case Range range:
           return range.Length != 0;
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -125,7 +124,7 @@ namespace SeedLang.Runtime {
           return ToString(list);
         case IFunction func:
           return func.ToString();
-        case NumberRange range:
+        case Range range:
           return range.ToString();
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -153,16 +152,6 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Iterator AsIterator() {
-      switch (_object) {
-        case Iterator iter:
-          return iter;
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCallable);
-      }
-    }
-
     internal Value this[double index] {
       get {
         switch (_object) {
@@ -170,7 +159,7 @@ namespace SeedLang.Runtime {
             return new Value(str[ToIntIndex(index, str.Length)].ToString());
           case List list:
             return list[ToIntIndex(index, list.Count)];
-          case NumberRange range:
+          case Range range:
             return range[ToIntIndex(index, range.Length)];
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -184,7 +173,7 @@ namespace SeedLang.Runtime {
           case List list:
             list[ToIntIndex(index, list.Count)] = value;
             break;
-          case NumberRange _:
+          case Range _:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSupportAssignment);
           default:

@@ -62,7 +62,10 @@ namespace SeedLang.Interpreter {
       }
 
       public uint? FindVariable(string name) {
-        return _env.FindVariable(name) is uint id ? id : null;
+        if (_env.FindVariable(name) is uint id) {
+          return id;
+        }
+        return null;
       }
 
       public uint AllocateRegister() {
@@ -108,7 +111,10 @@ namespace SeedLang.Interpreter {
       }
 
       public override uint? FindVariable(string name) {
-        return _variables.ContainsKey(name) ? _variables[name] : null;
+        if (_variables.ContainsKey(name)) {
+          return _variables[name];
+        }
+        return null;
       }
     }
 

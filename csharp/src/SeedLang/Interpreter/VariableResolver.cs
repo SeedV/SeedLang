@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
-  using Scope = Dictionary<string, uint>;
-
   // The class to resolve global and local variables. It defines and finds global variables in the
   // global environment, and allocates register slots for local and temporary variables.
   internal class VariableResolver {
@@ -38,106 +36,147 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    private interface IScope {
+      uint FreeRegister { get; }
+      int FuncLevel { get; }
+
+      VariableInfo DefineVariable(string name);
+      uint? FindVariable(string name);
+      uint AllocateRegister();
+    }
+
+    private class GlobalScope : IScope {
+      public const int GlobalFuncLevel = -1;
+
+      public uint FreeRegister { get; } = 0;
+      public int FuncLevel { get; } = GlobalFuncLevel;
+
+      private readonly GlobalEnvironment _env;
+
+      internal GlobalScope(GlobalEnvironment env) {
+        _env = env;
+      }
+
+      public VariableInfo DefineVariable(string name) {
+        return new VariableInfo(VariableType.Global, _env.DefineVariable(name));
+      }
+
+      public uint? FindVariable(string name) {
+        return _env.FindVariable(name) is uint id ? id : null;
+      }
+
+      public uint AllocateRegister() {
+        throw new NotImplementedException("Cannot allocate registers in the global scope.");
+      }
+    }
+
+    private class ExpressionScope : IScope {
+      public uint FreeRegister { get; private set; }
+      public int FuncLevel { get; }
+
+      internal ExpressionScope(uint freeRegister, int currentFuncLevel) {
+        FreeRegister = freeRegister;
+        FuncLevel = currentFuncLevel;
+      }
+
+      public virtual VariableInfo DefineVariable(string name) {
+        throw new NotImplementedException("Cannot define variables in the expression scope.");
+      }
+
+      public virtual uint? FindVariable(string name) {
+        return null;
+      }
+
+      public uint AllocateRegister() {
+        if (FreeRegister == Chunk.MaxRegisterCount) {
+          // TODO: throw a compile error exception and handle it in the executor to generate the
+          // corresponding diagnostic information.
+        }
+        return FreeRegister++;
+      }
+    }
+
+    private class BlockScope : ExpressionScope {
+      private readonly Dictionary<string, uint> _variables = new Dictionary<string, uint>();
+
+      internal BlockScope(uint freeRegister, int currentFuncLevel) :
+          base(freeRegister, currentFuncLevel) { }
+
+      public override VariableInfo DefineVariable(string name) {
+        _variables[name] = AllocateRegister();
+        return new VariableInfo(VariableType.Local, _variables[name]);
+      }
+
+      public override uint? FindVariable(string name) {
+        return _variables.ContainsKey(name) ? _variables[name] : null;
+      }
+    }
+
+    private class FunctionScope : BlockScope {
+      internal FunctionScope(uint freeRegister, int currentFuncLevel) :
+          base(freeRegister, currentFuncLevel + 1) { }
+    }
+
     // The last allocated register in the current scope.
-    public uint LastRegister => _currentRegisterCount - 1;
+    public uint LastRegister => _currentScope.FreeRegister - 1;
 
-    // The global environment.
-    private readonly GlobalEnvironment _env;
-    // A stack of dictionaries to store names and register indices of local variables for function
-    // and block scopes.
-    private readonly Stack<Scope> _scopes = new Stack<Scope>();
-    // The stack of the current allocated registers count of function scopes.
-    private readonly Stack<uint> _registerCounts = new Stack<uint>();
-    private readonly Stack<uint> _baseOfBlockScopes = new Stack<uint>();
-    // A Stack to store the base of registers before parsing an expression. The expresion visitor
-    // should call EnterExpressionScope() before allocating temporary variables for intermediate
-    // results. The ExitExpressionScope() call will deallocate all temporary variables that are
-    // allocated in this expression scope.
-    private readonly Stack<uint> _baseOfExpressionScopes = new Stack<uint>();
+    private readonly List<IScope> _scopes = new List<IScope>();
 
-    private uint _currentRegisterCount => _registerCounts.Peek();
-    // The flag to indicate if it's in the global scope.
-    private bool _isInGlobalScope => _scopes.Count == 1;
+    private IScope _currentScope => _scopes[_scopes.Count - 1];
 
     internal VariableResolver(GlobalEnvironment env) {
-      _env = env;
-      // Begins global scope. It's used for temporary variables in the global scope.
-      BeginFunctionScope();
-    }
-
-    internal void BeginFunctionScope() {
-      _scopes.Push(new Scope());
-      _registerCounts.Push(0);
-    }
-
-    internal void EndFunctionScope() {
-      _scopes.Pop();
-      _registerCounts.Pop();
-    }
-
-    internal void BeginBlockScope() {
-      _baseOfBlockScopes.Push(_currentRegisterCount);
-    }
-
-    internal void EndBlockScope() {
-      SetCurrentRegisterCount(_baseOfBlockScopes.Peek());
-      _baseOfBlockScopes.Pop();
+      _scopes.Add(new GlobalScope(env));
     }
 
     internal void BeginExpressionScope() {
-      _baseOfExpressionScopes.Push(_currentRegisterCount);
+      _scopes.Add(new ExpressionScope(_currentScope.FreeRegister, _currentScope.FuncLevel));
     }
 
     internal void EndExpressionScope() {
-      SetCurrentRegisterCount(_baseOfExpressionScopes.Peek());
-      _baseOfExpressionScopes.Pop();
+      EndScope();
+    }
+
+    internal void BeginBlockScope() {
+      _scopes.Add(new BlockScope(_currentScope.FreeRegister, _currentScope.FuncLevel));
+    }
+
+    internal void EndBlockScope() {
+      EndScope();
+    }
+
+    internal void BeginFunctionScope() {
+      _scopes.Add(new FunctionScope(0, _currentScope.FuncLevel + 1));
+    }
+
+    internal void EndFunctionScope() {
+      EndScope();
     }
 
     internal VariableInfo DefineVariable(string name) {
-      if (_isInGlobalScope) {
-        return new VariableInfo(VariableType.Global, _env.DefineVariable(name));
-      } else {
-        // Temporary variables are allocated and deallocated within one statement. So all expression
-        // scopes shall be ended before allocating registers for local variables.
-        Debug.Assert(_baseOfExpressionScopes.Count == 0);
-        Scope scope = _scopes.Peek();
-        Debug.Assert(!scope.ContainsKey(name));
-        scope[name] = AllocateVariable();
-        return new VariableInfo(VariableType.Local, scope[name]);
-      }
+      return _currentScope.DefineVariable(name);
     }
 
     internal VariableInfo? FindVariable(string name) {
-      bool isIncurrentScope = true;
-      foreach (var scope in _scopes) {
-        if (scope.ContainsKey(name)) {
-          if (isIncurrentScope) {
-            return new VariableInfo(VariableType.Local, scope[name]);
+      for (int i = _scopes.Count - 1; i >= 0; i--) {
+        if (_scopes[i].FindVariable(name) is uint id) {
+          if (_scopes[i] is GlobalScope) {
+            return new VariableInfo(VariableType.Global, id);
+          } else if (_scopes[i].FuncLevel < _currentScope.FuncLevel) {
+            return new VariableInfo(VariableType.Upvalue, id);
           } else {
-            return new VariableInfo(VariableType.Upvalue, scope[name]);
+            return new VariableInfo(VariableType.Local, id);
           }
         }
-        isIncurrentScope = false;
-      }
-      if (_env.FindVariable(name) is uint id) {
-        return new VariableInfo(VariableType.Global, id);
       }
       return null;
     }
 
-    internal uint AllocateVariable() {
-      uint registerCount = _currentRegisterCount + 1;
-      if (registerCount > Chunk.MaxRegisterCount) {
-        // TODO: throw a compile error exception and handle it in the executor to generate the
-        // corresponding diagnostic information.
-      }
-      SetCurrentRegisterCount(registerCount);
-      return registerCount - 1;
+    internal uint AllocateRegister() {
+      return _currentScope.AllocateRegister();
     }
 
-    private void SetCurrentRegisterCount(uint registerCount) {
-      _registerCounts.Pop();
-      _registerCounts.Push(registerCount);
+    private void EndScope() {
+      _scopes.RemoveAt(_scopes.Count - 1);
     }
   }
 }

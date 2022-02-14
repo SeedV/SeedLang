@@ -77,8 +77,15 @@ namespace SeedLang.Ast {
       return new SubscriptExpression(expr, index, range);
     }
 
+    // The factory method to create a call expression.
     internal static CallExpression Call(Expression func, Expression[] arguments, Range range) {
       return new CallExpression(func, arguments, range);
+    }
+
+    // The factory method to create an attribute expression.
+    internal static AttributeExpression Attribute(Expression expr, IdentifierExpression attr,
+                                                  Range range) {
+      return new AttributeExpression(expr, attr, range);
     }
 
     internal Expression(Range range) : base(range) { }
@@ -194,6 +201,17 @@ namespace SeedLang.Ast {
     internal CallExpression(Expression func, Expression[] arguments, Range range) : base(range) {
       Func = func;
       Arguments = arguments;
+    }
+  }
+
+  internal class AttributeExpression : Expression {
+    public Expression Value { get; }
+    public IdentifierExpression Attr { get; }
+
+    internal AttributeExpression(Expression value, IdentifierExpression attr, Range range) :
+        base(range) {
+      Value = value;
+      Attr = attr;
     }
   }
 }

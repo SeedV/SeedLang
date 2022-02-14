@@ -236,6 +236,11 @@ namespace SeedLang.X {
                                     context.expression(), context.CLOSE_BRACK().Symbol, this);
     }
 
+    public override AstNode VisitAttribute([NotNull] SeedPythonParser.AttributeContext context) {
+      return _helper.BuildAttribute(context.primary(), context.DOT().Symbol, context.identifier(),
+                                    this);
+    }
+
     public override AstNode VisitTrue([NotNull] SeedPythonParser.TrueContext context) {
       return _helper.BuildBooleanConstant(context.TRUE().Symbol, true);
     }

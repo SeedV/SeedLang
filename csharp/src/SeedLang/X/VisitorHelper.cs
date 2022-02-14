@@ -241,19 +241,49 @@ namespace SeedLang.X {
       return null;
     }
 
+    // Builds attribute expressions.
+    internal AttributeExpression BuildAttribute(ParserRuleContext primaryContext, IToken dotToken,
+                                                ParserRuleContext identifierContext,
+                                                AbstractParseTreeVisitor<AstNode> visitor) {
+      if (visitor.Visit(primaryContext) is Expression value) {
+        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(dotToken));
+        if (visitor.Visit(identifierContext) is IdentifierExpression identifier) {
+          Debug.Assert(value.Range is TextRange && identifier.Range is TextRange);
+          var primaryRange = value.Range as TextRange;
+          var identifierRange = identifier.Range as TextRange;
+          TextRange range = CodeReferenceUtils.CombineRanges(primaryRange, identifierRange);
+          return Expression.Attribute(value, identifier, range);
+        }
+      }
+      return null;
+    }
+
     // Builds call expressions.
     internal CallExpression BuildCall(ParserRuleContext primaryContext, IToken openParenToken,
                                       ParserRuleContext[] exprContexts, ITerminalNode[] commaNodes,
                                       IToken closeParenToken,
                                       AbstractParseTreeVisitor<AstNode> visitor) {
-      if (visitor.Visit(primaryContext) is Expression func) {
+      AstNode callee = visitor.Visit(primaryContext);
+      Expression func = null;
+      Expression firstParam = null;
+      if (callee is AttributeExpression attr) {
+        func = attr.Attr;
+        firstParam = attr.Value;
+      } else if (callee is Expression expr) {
+        func = expr;
+      }
+      if (!(func is null)) {
         AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
         Debug.Assert(exprContexts.Length == 0 && commaNodes.Length == 0 ||
                      exprContexts.Length == commaNodes.Length + 1);
-        var exprs = new Expression[exprContexts.Length];
+        int additionalParam = firstParam is null ? 0 : 1;
+        var exprs = new Expression[exprContexts.Length + additionalParam];
+        if (!(firstParam is null)) {
+          exprs[0] = firstParam;
+        }
         for (int i = 0; i < exprContexts.Length; i++) {
           if (visitor.Visit(exprContexts[i]) is Expression expr) {
-            exprs[i] = expr;
+            exprs[i + additionalParam] = expr;
           }
           if (i < commaNodes.Length) {
             AddSyntaxToken(SyntaxType.Symbol,

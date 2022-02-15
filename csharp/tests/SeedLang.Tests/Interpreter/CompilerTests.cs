@@ -544,6 +544,21 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileEmptyList() {
+      var list = AstHelper.ExpressionStmt(AstHelper.List());
+      var compiler = new Compiler();
+      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var func = compiler.Compile(list, env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    NEWLIST   0 0 0                                {AstHelper.TextRange}\n" +
+          $"  2    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  3    RETURN    0                                    \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileList() {
       var list = AstHelper.ExpressionStmt(AstHelper.List(AstHelper.NumberConstant(1),
                                                          AstHelper.NumberConstant(2),

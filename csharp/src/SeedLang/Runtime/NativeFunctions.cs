@@ -27,6 +27,8 @@ namespace SeedLang.Runtime {
     public const string Range = "range";
 
     public static NativeFunction[] Funcs = new NativeFunction[] {
+      // Appends a value to a list. The first argument is the list, the second argument is the
+      // value to be appended to the list.
       new NativeFunction(Append, (Value[] args, int offset, int length) => {
         if (length != 2) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,

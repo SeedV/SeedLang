@@ -144,7 +144,7 @@ namespace SeedLang.Interpreter {
         }
         Visit(expr);
       }
-      _chunk.Emit(Opcode.NEWLIST, target, first.Value, (uint)list.Exprs.Length, list.Range);
+      _chunk.Emit(Opcode.NEWLIST, target, first ?? 0, (uint)list.Exprs.Length, list.Range);
       _variableResolver.EndExpressionScope();
     }
 

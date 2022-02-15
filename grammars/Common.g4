@@ -64,7 +64,6 @@ factor:
   | primary POWER factor # power
   | primary              # primary_as_factor;
 
-// There is duplicate for subscript and subscript_target, because ANTLR doesn't support left recursion.
 primary:
   primary DOT identifier                      # attribute
   | primary OPEN_BRACK expression CLOSE_BRACK # subscript

@@ -39,7 +39,7 @@ namespace SeedLang.Runtime {
           List<Value> list = value.AsList();
           list.Add(args[offset + 1]);
         }
-        return new Value(true);
+        return new Value();
       }),
 
       new NativeFunction(Len, (Value[] args, int offset, int length) => {

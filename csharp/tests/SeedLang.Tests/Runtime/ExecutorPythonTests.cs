@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -127,6 +126,14 @@ array
 ",
 
     "[11, 12, 22, 25, 34, 64, 90]")]
+
+    [InlineData(@"array = []
+for i in range(5):
+  array.append(i)
+array
+",
+
+    "[0, 1, 2, 3, 4]")]
     public void TestExecutor(string source, string result) {
       TestWithRunType(source, result, RunType.Ast);
       TestWithRunType(source, result, RunType.Bytecode);

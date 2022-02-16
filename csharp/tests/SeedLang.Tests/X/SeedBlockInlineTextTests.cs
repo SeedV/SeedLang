@@ -189,12 +189,12 @@ namespace SeedLang.X.Tests {
 
     [InlineData(".",
 
-                "Unknown [Ln 1, Col 0 - Ln 1, Col 0]")]
+                "Symbol [Ln 1, Col 0 - Ln 1, Col 0]")]
 
     [InlineData(".3.",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +
-                "Unknown [Ln 1, Col 2 - Ln 1, Col 2]")]
+                "Symbol [Ln 1, Col 2 - Ln 1, Col 2]")]
 
     [InlineData(".3@",
 

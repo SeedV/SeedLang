@@ -21,11 +21,27 @@ namespace SeedLang.Runtime {
 
   // The static class to define all the build-in native functions.
   internal static class NativeFunctions {
+    public const string Append = "append";
     public const string Len = "len";
     public const string List = "list";
     public const string Range = "range";
 
     public static NativeFunction[] Funcs = new NativeFunction[] {
+      // Appends a value to a list. The first argument is the list, the second argument is the
+      // value to be appended to the list.
+      new NativeFunction(Append, (Value[] args, int offset, int length) => {
+        if (length != 2) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        Value value = args[offset];
+        if (value.IsList) {
+          List<Value> list = value.AsList();
+          list.Add(args[offset + 1]);
+        }
+        return new Value();
+      }),
+
       new NativeFunction(Len, (Value[] args, int offset, int length) => {
         if (length != 1) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,

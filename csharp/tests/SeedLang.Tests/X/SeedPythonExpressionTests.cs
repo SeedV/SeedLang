@@ -279,6 +279,21 @@ namespace SeedLang.X.Tests {
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
+
+    [InlineData("a.append(1)",
+
+                "[Ln 1, Col 2 - Ln 1, Col 10] ExpressionStatement\n" +
+                "  [Ln 1, Col 2 - Ln 1, Col 10] CallExpression\n" +
+                "    [Ln 1, Col 2 - Ln 1, Col 7] IdentifierExpression (append)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
+                "    [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (1)",
+
+                "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Symbol [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Variable [Ln 1, Col 2 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

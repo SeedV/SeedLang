@@ -63,8 +63,10 @@ factor:
   | SUBTRACT factor      # negative
   | primary POWER factor # power
   | primary              # primary_as_factor;
+
 primary:
-  primary OPEN_BRACK expression CLOSE_BRACK   # subscript
+  primary DOT identifier                      # attribute
+  | primary OPEN_BRACK expression CLOSE_BRACK # subscript
   | primary OPEN_PAREN arguments? CLOSE_PAREN # call
   | atom                                      # atom_as_primary;
 atom:
@@ -119,6 +121,7 @@ CLOSE_BRACK: ']';
 OPEN_BRACE: '{';
 CLOSE_BRACE: '}';
 
+DOT: '.';
 COMMA: ',';
 
 NAME: ID_START ID_CONTINUE*;
@@ -145,13 +148,13 @@ UNKNOWN_CHAR: .;
 
 fragment POINT_FLOAT:
   INT_PART? FRACTION
-  | INT_PART '.';
+  | INT_PART DOT;
 
 fragment EXPONENT_FLOAT: (INT_PART | POINT_FLOAT) EXPONENT;
 
 fragment INT_PART: DIGIT+;
 
-fragment FRACTION: '.' DIGIT+;
+fragment FRACTION: DOT DIGIT+;
 
 fragment EXPONENT: [eE] [+-]? DIGIT+;
 

@@ -40,6 +40,7 @@ namespace SeedLang.X {
       { SeedBlockInlineTextParser.GREATER, SyntaxType.Operator},
       { SeedBlockInlineTextParser.OPEN_PAREN, SyntaxType.Parenthesis},
       { SeedBlockInlineTextParser.CLOSE_PAREN, SyntaxType.Parenthesis},
+      { SeedBlockInlineTextParser.DOT, SyntaxType.Symbol},
       { SeedBlockInlineTextParser.UNKNOWN_CHAR, SyntaxType.Unknown },
     };
 

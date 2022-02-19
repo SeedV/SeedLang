@@ -134,33 +134,11 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ListExpression list) {
-      _variableResolver.BeginExpressionScope();
-      uint target = _registerForSubExpr;
-      uint? first = null;
-      foreach (var expr in list.Exprs) {
-        _registerForSubExpr = _variableResolver.AllocateRegister();
-        if (!first.HasValue) {
-          first = _registerForSubExpr;
-        }
-        Visit(expr);
-      }
-      _chunk.Emit(Opcode.NEWLIST, target, first ?? 0, (uint)list.Exprs.Length, list.Range);
-      _variableResolver.EndExpressionScope();
+      CreateTupleOrList(Opcode.NEWLIST, list.Exprs, list.Range);
     }
 
-    protected override void Visit(TupleExpression list) {
-      _variableResolver.BeginExpressionScope();
-      uint target = _registerForSubExpr;
-      uint? first = null;
-      foreach (var expr in list.Exprs) {
-        _registerForSubExpr = _variableResolver.AllocateRegister();
-        if (!first.HasValue) {
-          first = _registerForSubExpr;
-        }
-        Visit(expr);
-      }
-      _chunk.Emit(Opcode.NEWLIST, target, first ?? 0, (uint)list.Exprs.Length, list.Range);
-      _variableResolver.EndExpressionScope();
+    protected override void Visit(TupleExpression tuple) {
+      CreateTupleOrList(Opcode.NEWTUPLE, tuple.Exprs, tuple.Range);
     }
 
     protected override void Visit(SubscriptExpression subscript) {
@@ -505,6 +483,21 @@ namespace SeedLang.Interpreter {
             break;
         }
       }
+      _variableResolver.EndExpressionScope();
+    }
+
+    private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs, Range range) {
+      _variableResolver.BeginExpressionScope();
+      uint target = _registerForSubExpr;
+      uint? first = null;
+      foreach (var expr in exprs) {
+        _registerForSubExpr = _variableResolver.AllocateRegister();
+        if (!first.HasValue) {
+          first = _registerForSubExpr;
+        }
+        Visit(expr);
+      }
+      _chunk.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);
       _variableResolver.EndExpressionScope();
     }
 

@@ -116,8 +116,8 @@ namespace SeedLang.Ast.Tests {
         var expectedPositiveOutput = $"{AstHelper.TextRange} Positive 1 = 1\n";
         Add(positive, expectedPositiveOutput);
         var negative = AstHelper.Unary(UnaryOperator.Negative, AstHelper.NumberConstant(1));
-        var expectedOutput = $"{AstHelper.TextRange} Negative 1 = -1\n";
-        Add(negative, expectedOutput);
+        var expectedNegativeOutput = $"{AstHelper.TextRange} Negative 1 = -1\n";
+        Add(negative, expectedNegativeOutput);
         var not = AstHelper.Unary(UnaryOperator.Not, AstHelper.BooleanConstant(true));
         var expectedNotOutput = $"{AstHelper.TextRange} Not True = False\n";
         Add(not, expectedNotOutput);
@@ -141,3 +141,4 @@ namespace SeedLang.Ast.Tests {
     }
   }
 }
+

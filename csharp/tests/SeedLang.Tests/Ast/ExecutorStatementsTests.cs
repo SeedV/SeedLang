@@ -26,6 +26,7 @@ namespace SeedLang.Ast.Tests {
         AddIf();
         AddIfElse();
         AddList();
+        AddTuple();
         AddSubscript();
         AddSubscriptAssignment();
         AddWhile();
@@ -102,6 +103,16 @@ namespace SeedLang.Ast.Tests {
                          AstHelper.NumberConstant(3))
         );
         var expectedOutput = $"{AstHelper.TextRange} Eval [1, 2, 3]\n";
+        Add(eval, expectedOutput);
+      }
+
+      private void AddTuple() {
+        var eval = AstHelper.ExpressionStmt(
+          AstHelper.Tuple(AstHelper.NumberConstant(1),
+                          AstHelper.NumberConstant(2),
+                          AstHelper.NumberConstant(3))
+        );
+        var expectedOutput = $"{AstHelper.TextRange} Eval (1, 2, 3)\n";
         Add(eval, expectedOutput);
       }
 

@@ -214,6 +214,24 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
+    [Fact]
+    public void TestTuple() {
+      var compiler = new Compiler();
+      (var vm, var visualizer) = NewVMWithVisualizer();
+
+      var program = AstHelper.ExpressionStmt(
+        AstHelper.Tuple(AstHelper.NumberConstant(1),
+                        AstHelper.NumberConstant(2),
+                        AstHelper.NumberConstant(3))
+      );
+
+      Function func = compiler.Compile(program, vm.Env);
+      vm.Run(func);
+
+      Assert.Equal("(1, 2, 3)", visualizer.Result.ToString());
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
+    }
+
     private static (VM, MockupVisualizer) NewVMWithVisualizer() {
       var visualizer = new MockupVisualizer();
       var visualizerCenter = new VisualizerCenter();

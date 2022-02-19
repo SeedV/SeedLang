@@ -102,29 +102,30 @@ All the SeedLang instructions are listed as follows:
 |   2    | `LOADK`    | Load a constant into a register                     |
 |   3    | `GETGLOB`  | Read a global variable into a register              |
 |   4    | `SETGLOB`  | Write a register value into a global variable       |
-|   5    | `NEWLIST`  | Create a new list with the initial elements         |
-|   6    | `GETELEM`  | Read a list or table element into a register        |
-|   7    | `SETELEM`  | Write a register value into a list or table element |
-|   8    | `ADD`      | Addition operation                                  |
-|   9    | `SUB`      | Subtract operation                                  |
-|   10   | `MUL`      | Multiply operation                                  |
-|   11   | `DIV`      | Divide operation                                    |
-|   12   | `MOD`      | Modulus (reminder) operation                        |
-|   13   | `POW`      | Exponentiation operation                            |
-|   14   | `UNM`      | Unary minus operation                               |
-|   15   | `NOT`      | Logical not operation                               |
-|   16   | `LEN`      | Length operation                                    |
-|   17   | `JMP`      | Unconditional jump                                  |
-|   18   | `EQ`       | Equality test                                       |
-|   19   | `LT`       | Less than test                                      |
-|   20   | `LE`       | Less than or equal to test                          |
-|   21   | `TEST`     | Boolean test, with conditional jump                 |
-|   22   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
-|   23   | `FORPREP`  | For loop preparation                                |
-|   24   | `FORLOOP`  | For loop check                                      |
-|   25   | `EVAL`     | Expression evaluation                               |
-|   26   | `CALL`     | Call a function                                     |
-|   27   | `RETURN`   | Return from a function call                         |
+|   5    | `NEWTUPLE` | Create a new tuple with the initial elements        |
+|   6    | `NEWLIST`  | Create a new list with the initial elements         |
+|   7    | `GETELEM`  | Read a list or table element into a register        |
+|   8    | `SETELEM`  | Write a register value into a list or table element |
+|   9    | `ADD`      | Addition operation                                  |
+|   10   | `SUB`      | Subtract operation                                  |
+|   11   | `MUL`      | Multiply operation                                  |
+|   12   | `DIV`      | Divide operation                                    |
+|   13   | `MOD`      | Modulus (reminder) operation                        |
+|   14   | `POW`      | Exponentiation operation                            |
+|   15   | `UNM`      | Unary minus operation                               |
+|   16   | `NOT`      | Logical not operation                               |
+|   17   | `LEN`      | Length operation                                    |
+|   18   | `JMP`      | Unconditional jump                                  |
+|   19   | `EQ`       | Equality test                                       |
+|   20   | `LT`       | Less than test                                      |
+|   21   | `LE`       | Less than or equal to test                          |
+|   22   | `TEST`     | Boolean test, with conditional jump                 |
+|   23   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
+|   24   | `FORPREP`  | For loop preparation                                |
+|   25   | `FORLOOP`  | For loop check                                      |
+|   26   | `EVAL`     | Expression evaluation                               |
+|   27   | `CALL`     | Call a function                                     |
+|   28   | `RETURN`   | Return from a function call                         |
 
 ### Move and Load Constant
 
@@ -153,29 +154,30 @@ to 256.
 ### Globals
 
 ```shell
-GETGLOB A Bx                # R[A] := Gbl[Kst(Bx)]
-SETGLOB A Bx                # Gbl[Kst(Bx)] := R[A]
+GETGLOB A Bx            # R[A] := Gbl[Kst(Bx)]
+SETGLOB A Bx            # Gbl[Kst(Bx)] := R[A]
 ```
 
 ### List and Table Operations
 
 ```shell
-NEWLIST A B C               # R(A) := [R(B), R(B+1), ..., R(B+C-1)]
-GETELEM A B C               # R(A) := R(B)[RK(C)]
-SETELEM A B C               # R(A)[RK(B)] := RK(C)
+NEWTUPLE A B C          # R(A) := (R(B), R(B+1), ..., R(B+C-1))
+NEWLIST A B C           # R(A) := [R(B), R(B+1), ..., R(B+C-1)]
+GETELEM A B C           # R(A) := R(B)[RK(C)]
+SETELEM A B C           # R(A)[RK(B)] := RK(C)
 ```
 
 ### Arithmetic and Logic Operations
 
 ```shell
-ADD A B C                   # R(A) := RK(B) + RK(C)
-SUB A B C                   # R(A) := RK(B) - RK(C)
-MUL A B C                   # R(A) := RK(B) * RK(C)
-DIV A B C                   # R(A) := RK(B) / RK(C)
-MOD A B C                   # R(A) := RK(B) % RK(C)
-POW A B C                   # R(A) := RK(B) ^ RK(C)
-UNM A B                     # R(A) := -RK(B)
-LEN A B                     # R(A) := length of R(B)
+ADD A B C               # R(A) := RK(B) + RK(C)
+SUB A B C               # R(A) := RK(B) - RK(C)
+MUL A B C               # R(A) := RK(B) * RK(C)
+DIV A B C               # R(A) := RK(B) / RK(C)
+MOD A B C               # R(A) := RK(B) % RK(C)
+POW A B C               # R(A) := RK(B) ^ RK(C)
+UNM A B                 # R(A) := -RK(B)
+LEN A B                 # R(A) := length of R(B)
 ```
 
 The operand `B` of `LEN` instruction can be any SeedLang value type:
@@ -186,32 +188,31 @@ The operand `B` of `LEN` instruction can be any SeedLang value type:
 ### Rational and Logic Instructions
 
 ```shell
-NOT A B                     # R(A) := not R(B)
-EQ A B C                    # if (RK(B) == RK(C)) != A then PC++
-LT A B C                    # if (RK(B) < RK(C)) != A then PC++
-LE A B C                    # if (RK(B) <= RK(C)) != A then PC++
-TEST A C                    # if R(A) == C then PC++
-TESTSET A B C               # if R(B) != C then R(A) := R(B) else PC++
+NOT A B                 # R(A) := not R(B)
+EQ A B C                # if (RK(B) == RK(C)) != A then PC++
+LT A B C                # if (RK(B) < RK(C)) != A then PC++
+LE A B C                # if (RK(B) <= RK(C)) != A then PC++
+TEST A C                # if R(A) == C then PC++
+TESTSET A B C           # if R(B) != C then R(A) := R(B) else PC++
 ```
 
 ### For Loop
 
 ```shell
-FORPREP A sBx               # R(A) -= R(A+2); pc += sBx
-FORLOOP A sBx               # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
+FORPREP A sBx           # R(A) -= R(A+2); pc += sBx
+FORLOOP A sBx           # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
 ```
 
 ### Jumps and Calls
 
 ```shell
-JMP sBx                     # PC += sBx
-CALL A                      # call function R(A)
-                            # parameters are R(A+1), ..., R(A+B)
-RETURN A B                  # return R(A), R(A+1), ..., R(A+B+1)
+JMP sBx                 # PC += sBx
+CALL A                  # call function R(A), parameters are R(A+1), ..., R(A+B)
+RETURN A B              # return R(A), R(A+1), ..., R(A+B+1)
 ```
 
 ### Expression Evaluation
 
 ```shell
-Eval A                      # Evaluate R(A)
+Eval A                  # Evaluate R(A)
 ```

@@ -52,6 +52,13 @@ namespace SeedLang.Interpreter {
             case Opcode.LOADK:
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
+            case Opcode.NEWTUPLE:
+              var tuple = new Value[instr.C];
+              for (int i = 0; i < instr.C; i++) {
+                tuple[i] = _stack[baseRegister + instr.B + i];
+              }
+              _stack[baseRegister + instr.A] = new Value(tuple);
+              break;
             case Opcode.NEWLIST:
               var list = new List<Value>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {

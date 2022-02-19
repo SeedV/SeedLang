@@ -317,11 +317,20 @@ namespace SeedLang.Ast {
     protected override void Visit(ReturnStatement @return) {
       // Throws a return exception carried with the result value to break current execution flow and
       // return from current function.
-      if (!(@return.Result is null)) {
-        Visit(@return.Result);
+      if (@return.Exprs.Length == 0) {
+        throw new ReturnException(new Value());
+      } else if (@return.Exprs.Length == 1) {
+        Visit(@return.Exprs[0]);
         throw new ReturnException(_expressionResult);
       } else {
-        throw new ReturnException(new Value());
+        // The result value is a list that holds all the return values if there are multiple
+        // return values.
+        var list = new List<Value>(@return.Exprs.Length);
+        foreach (Expression expr in @return.Exprs) {
+          Visit(expr);
+          list.Add(_expressionResult);
+        }
+        throw new ReturnException(new Value(list));
       }
     }
 

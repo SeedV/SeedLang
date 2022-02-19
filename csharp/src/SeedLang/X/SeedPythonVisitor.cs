@@ -134,7 +134,8 @@ namespace SeedLang.X {
 
     public override AstNode VisitReturn_stmt(
         [NotNull] SeedPythonParser.Return_stmtContext context) {
-      return _helper.BuildReturn(context.RETURN().Symbol, context.expression(), this);
+      return _helper.BuildReturn(context.RETURN().Symbol, context.expressions().expression(),
+                                 context.expressions().COMMA(), this);
     }
 
     public override AstNode VisitStatements_as_block(

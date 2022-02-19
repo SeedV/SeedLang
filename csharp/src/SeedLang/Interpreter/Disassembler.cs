@@ -66,7 +66,8 @@ namespace SeedLang.Interpreter {
 
 
     private string OperandsToString(Instruction instr) {
-      bool ignoreC = instr.Opcode == Opcode.MOVE || instr.Opcode == Opcode.UNM;
+      bool ignoreC = instr.Opcode == Opcode.MOVE || instr.Opcode == Opcode.UNM ||
+                     instr.Opcode == Opcode.RETURN;
       OpcodeType type = instr.Opcode.Type();
       switch (type) {
         case OpcodeType.A:

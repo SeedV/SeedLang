@@ -53,7 +53,7 @@ namespace SeedLang.Interpreter {
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
             case Opcode.NEWLIST:
-              var list = new List<Value>();
+              var list = new List<Value>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
                 list.Add(_stack[baseRegister + instr.B + i]);
               }

@@ -160,7 +160,7 @@ SETGLOB A Bx                # Gbl[Kst(Bx)] := R[A]
 ### List and Table Operations
 
 ```shell
-NEWLIST A B C               # R(A) := [R(B), R(B + 1), ..., R(B + C - 1)]
+NEWLIST A B C               # R(A) := [R(B), R(B+1), ..., R(B+C-1)]
 GETELEM A B C               # R(A) := R(B)[RK(C)]
 SETELEM A B C               # R(A)[RK(B)] := RK(C)
 ```
@@ -205,8 +205,9 @@ FORLOOP A sBx               # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
 
 ```shell
 JMP sBx                     # PC += sBx
-CALL A                      # call function R(A), parameters are R(A+1), ...
-RETURN A                    # return R(A) from function
+CALL A                      # call function R(A)
+                            # parameters are R(A+1), ..., R(A+B)
+RETURN A B                  # return R(A), R(A+1), ..., R(A+B+1)
 ```
 
 ### Expression Evaluation

@@ -178,7 +178,7 @@ namespace SeedLang.Ast.Tests {
         var block = AstHelper.Block(
           AstHelper.FuncDef(func, AstHelper.Params(), AstHelper.Block(
             AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
-            AstHelper.Return(null)
+            AstHelper.Return()
           )),
           AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)), AstHelper.Call(AstHelper.Id(func)))
         );

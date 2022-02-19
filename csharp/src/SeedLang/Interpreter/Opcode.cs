@@ -40,8 +40,8 @@ namespace SeedLang.Interpreter {
     FORPREP,      // R(A) -= R(A+2); pc += sBx
     FORLOOP,      // R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
     EVAL,         // Eval R(A). Evaluates the expresion statement. TODO: do we need this?
-    CALL,         // call function R(A), parameters are R(A + 1), ..., R(A + B)
-    RETURN,       // Return R(A)
+    CALL,         // call function R(A), parameters are R(A+1), ..., R(A+B)
+    RETURN,       // return R(A), R(A+1), ..., R(A+B-1)
   }
 
   // The types of opcodes.
@@ -57,7 +57,6 @@ namespace SeedLang.Interpreter {
     internal static OpcodeType Type(this Opcode op) {
       switch (op) {
         case Opcode.EVAL:
-        case Opcode.RETURN:
           return OpcodeType.A;
         case Opcode.MOVE:
         case Opcode.LOADBOOL:
@@ -76,6 +75,7 @@ namespace SeedLang.Interpreter {
         case Opcode.TEST:
         case Opcode.TESTSET:
         case Opcode.CALL:
+        case Opcode.RETURN:
           return OpcodeType.ABC;
         case Opcode.LOADK:
         case Opcode.GETGLOB:

@@ -239,7 +239,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("def func(): x = 1",
 
-                "[Ln 1, Col 0 - Ln 1, Col 16] FuncDefStatement (func:)\n" +
+                "[Ln 1, Col 0 - Ln 1, Col 16] FuncDefStatement (func)\n" +
                 "  [Ln 1, Col 12 - Ln 1, Col 16] AssignmentStatement\n" +
                 "    [Ln 1, Col 12 - Ln 1, Col 12] IdentifierExpression (x)\n" +
                 "    [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (1)",
@@ -304,6 +304,27 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 2, Col 10 - Ln 2, Col 10]," +
                 "Keyword [Ln 3, Col 2 - Ln 3, Col 7]," +
                 "Variable [Ln 3, Col 9 - Ln 3, Col 9]")]
+
+    [InlineData("def func():\n" +
+                "  return 1, 2, 3",
+
+                "[Ln 1, Col 0 - Ln 2, Col 15] FuncDefStatement (func)\n" +
+                "  [Ln 2, Col 2 - Ln 2, Col 15] ReturnStatement\n" +
+                "    [Ln 2, Col 9 - Ln 2, Col 9] NumberConstantExpression (1)\n" +
+                "    [Ln 2, Col 12 - Ln 2, Col 12] NumberConstantExpression (2)\n" +
+                "    [Ln 2, Col 15 - Ln 2, Col 15] NumberConstantExpression (3)",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Function [Ln 1, Col 4 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Keyword [Ln 2, Col 2 - Ln 2, Col 7]," +
+                "Number [Ln 2, Col 9 - Ln 2, Col 9]," +
+                "Symbol [Ln 2, Col 10 - Ln 2, Col 10]," +
+                "Number [Ln 2, Col 12 - Ln 2, Col 12]," +
+                "Symbol [Ln 2, Col 13 - Ln 2, Col 13]," +
+                "Number [Ln 2, Col 15 - Ln 2, Col 15]")]
 
     [InlineData("for n in [1, 2, 3]: n",
 

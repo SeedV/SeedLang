@@ -32,7 +32,7 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
           $"  2    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  3    RETURN    0                                    \n"
+          $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -48,7 +48,7 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    ADD       0 -1 -2          ; 1 2               {AstHelper.TextRange}\n" +
           $"  2    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  3    RETURN    0                                    \n"
+          $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -68,7 +68,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    ADD       1 -2 -3          ; 2 3               {AstHelper.TextRange}\n" +
           $"  2    SUB       0 -1 1           ; 1                 {AstHelper.TextRange}\n" +
           $"  3    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  4    RETURN    0                                    \n"
+          $"  4    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -88,7 +88,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    ADD       1 -1 -2          ; 1 2               {AstHelper.TextRange}\n" +
           $"  2    SUB       0 -1 1           ; 1                 {AstHelper.TextRange}\n" +
           $"  3    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  4    RETURN    0                                    \n"
+          $"  4    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -103,7 +103,7 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    UNM       0 -1             ; 1                 {AstHelper.TextRange}\n" +
           $"  2    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  3    RETURN    0                                    \n"
+          $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -118,7 +118,7 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
           $"  2    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
-          $"  3    RETURN    0                                    \n"
+          $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -135,7 +135,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    LOADK     1 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  3    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
           $"  4    SETGLOB   1 1                                  {AstHelper.TextRange}\n" +
-          $"  5    RETURN    0                                    \n"
+          $"  5    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -153,7 +153,7 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    ADD       0 -1 -2          ; 1 2               {AstHelper.TextRange}\n" +
           $"  2    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
-          $"  3    RETURN    0                                    \n"
+          $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -178,7 +178,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  5    JMP       0 2              ; to 8              {AstHelper.TextRange}\n" +
           $"  6    LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  7    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  8    RETURN    0                                    \n"
+          $"  8    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -202,7 +202,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    JMP       0 2              ; to 9              {AstHelper.TextRange}\n" +
           $"  7    LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  8    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  9    RETURN    0                                    \n"
+          $"  9    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -224,7 +224,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    JMP       0 2              ; to 5              {AstHelper.TextRange}\n" +
           $"  3    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
           $"  4    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  5    RETURN    0                                    \n"
+          $"  5    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -254,7 +254,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    JMP       0 2              ; to 10             {AstHelper.TextRange}\n" +
           $"  8    LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  9    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  10   RETURN    0                                    \n"
+          $"  10   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -292,7 +292,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  9    JMP       0 2              ; to 12             {AstHelper.TextRange}\n" +
           $"  10   LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  11   EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  12   RETURN    0                                    \n"
+          $"  12   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -330,7 +330,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  9    JMP       0 2              ; to 12             {AstHelper.TextRange}\n" +
           $"  10   LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  11   EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  12   RETURN    0                                    \n"
+          $"  12   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -373,7 +373,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  11   JMP       0 2              ; to 14             {AstHelper.TextRange}\n" +
           $"  12   LOADK     0 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  13   EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  14   RETURN    0                                    \n"
+          $"  14   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -409,7 +409,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  10   JMP       0 2              ; to 13             {AstHelper.TextRange}\n" +
           $"  11   LOADK     0 -3             ; 3                 {AstHelper.TextRange}\n" +
           $"  12   EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  13   RETURN    0                                    \n"
+          $"  13   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -456,7 +456,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  15   JMP       0 -11            ; to 5              {AstHelper.TextRange}\n" +
           $"  16   GETGLOB   0 0                                  {AstHelper.TextRange}\n" +
           $"  17   EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  18   RETURN    0                                    \n"
+          $"  18   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -484,12 +484,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  5    LOADK     2 -3             ; 2                 {AstHelper.TextRange}\n" +
           $"  6    CALL      0 2 0                                {AstHelper.TextRange}\n" +
           $"  7    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  8    RETURN    0                                    \n" +
+          $"  8    RETURN    0 0                                  \n" +
           $"\n" +
           $"Function <eval>\n" +
           $"  1    ADD       2 0 1                                {AstHelper.TextRange}\n" +
-          $"  2    RETURN    2                                    {AstHelper.TextRange}\n" +
-          $"  3    RETURN    0                                    \n"
+          $"  2    RETURN    2 1                                  {AstHelper.TextRange}\n" +
+          $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -525,20 +525,20 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    LOADK     1 -2             ; 10                {AstHelper.TextRange}\n" +
           $"  5    CALL      0 1 0                                {AstHelper.TextRange}\n" +
           $"  6    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  7    RETURN    0                                    \n" +
+          $"  7    RETURN    0 0                                  \n" +
           $"\n" +
           $"Function <sum>\n" +
           $"  1    EQ        1 0 -1           ; 1                 {AstHelper.TextRange}\n" +
           $"  2    JMP       0 3              ; to 6              {AstHelper.TextRange}\n" +
           $"  3    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  4    RETURN    1                                    {AstHelper.TextRange}\n" +
+          $"  4    RETURN    1 1                                  {AstHelper.TextRange}\n" +
           $"  5    JMP       0 5              ; to 11             {AstHelper.TextRange}\n" +
           $"  6    GETGLOB   2 0                                  {AstHelper.TextRange}\n" +
           $"  7    SUB       3 0 -1           ; 1                 {AstHelper.TextRange}\n" +
           $"  8    CALL      2 1 0                                {AstHelper.TextRange}\n" +
           $"  9    ADD       1 0 2                                {AstHelper.TextRange}\n" +
-          $"  10   RETURN    1                                    {AstHelper.TextRange}\n" +
-          $"  11   RETURN    0                                    \n"
+          $"  10   RETURN    1 1                                  {AstHelper.TextRange}\n" +
+          $"  11   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -553,7 +553,7 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    NEWLIST   0 0 0                                {AstHelper.TextRange}\n" +
           $"  2    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  3    RETURN    0                                    \n"
+          $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -573,7 +573,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    LOADK     3 -3             ; 3                 {AstHelper.TextRange}\n" +
           $"  4    NEWLIST   0 1 3                                {AstHelper.TextRange}\n" +
           $"  5    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  6    RETURN    0                                    \n"
+          $"  6    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -597,7 +597,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    NEWLIST   1 2 3                                {AstHelper.TextRange}\n" +
           $"  5    GETELEM   0 1 -4           ; 0                 {AstHelper.TextRange}\n" +
           $"  6    EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  7    RETURN    0                                    \n"
+          $"  7    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -634,7 +634,7 @@ namespace SeedLang.Interpreter.Tests {
           $"                                  {AstHelper.TextRange}\n" +
           $"  9    GETELEM   0 1 -1           ; 1                 {AstHelper.TextRange}\n" +
           $"  10   EVAL      0                                    {AstHelper.TextRange}\n" +
-          $"  11   RETURN    0                                    \n"
+          $"  11   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -679,7 +679,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  12   GETGLOB   3 {firstGlobalId}" +
           $"                                  {AstHelper.TextRange}\n" +
           $"  13   SETELEM   3 -1 1           ; 1                 {AstHelper.TextRange}\n" +
-          $"  14   RETURN    0                                    \n"
+          $"  14   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -715,7 +715,7 @@ namespace SeedLang.Interpreter.Tests {
           $"                                  {AstHelper.TextRange}\n" +
           $"  12   EVAL      4                                    {AstHelper.TextRange}\n" +
           $"  13   FORLOOP   1 -5             ; to 9              {AstHelper.TextRange}\n" +
-          $"  14   RETURN    0                                    \n"
+          $"  14   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -741,7 +741,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    LOADK     0 -1             ; Func <func>       {AstHelper.TextRange}\n" +
           $"  2    SETGLOB   0 {startOfGlobalVariables}" +
           $"                                  {AstHelper.TextRange}\n" +
-          $"  3    RETURN    0                                    \n" +
+          $"  3    RETURN    0 0                                  \n" +
           $"\n" +
           $"Function <func>\n" +
           $"  1    LOADK     2 -1             ; 1                 {AstHelper.TextRange}\n" +
@@ -755,7 +755,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  9    GETELEM   0 1 2                                {AstHelper.TextRange}\n" +
           $"  10   EVAL      0                                    {AstHelper.TextRange}\n" +
           $"  11   FORLOOP   2 -3             ; to 9              {AstHelper.TextRange}\n" +
-          $"  12   RETURN    0                                    \n"
+          $"  12   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

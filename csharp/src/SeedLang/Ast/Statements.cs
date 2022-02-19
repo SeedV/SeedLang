@@ -52,8 +52,8 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a return statement.
-    internal static ReturnStatement Return(Expression result, Range range) {
-      return new ReturnStatement(result, range);
+    internal static ReturnStatement Return(Expression[] exprs, Range range) {
+      return new ReturnStatement(exprs, range);
     }
 
     // The factory method to create an while statement.
@@ -136,10 +136,10 @@ namespace SeedLang.Ast {
   }
 
   internal class ReturnStatement : Statement {
-    public Expression Result { get; }
+    public Expression[] Exprs { get; }
 
-    internal ReturnStatement(Expression result, Range range) : base(range) {
-      Result = result;
+    internal ReturnStatement(Expression[] exprs, Range range) : base(range) {
+      Exprs = exprs;
     }
   }
 

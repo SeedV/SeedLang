@@ -93,8 +93,8 @@ namespace SeedLang.Tests.Helper {
       return Expression.NumberConstant(value, TextRange);
     }
 
-    internal static ReturnStatement Return(Expression result) {
-      return Statement.Return(result, TextRange);
+    internal static ReturnStatement Return(params Expression[] exprs) {
+      return Statement.Return(exprs, TextRange);
     }
 
     internal static StringConstantExpression StringConstant(string value) {

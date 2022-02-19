@@ -416,19 +416,21 @@ namespace SeedLang.X {
     }
 
     // Builds return statements.
-    internal ReturnStatement BuildReturn(IToken returnToken, ParserRuleContext exprContext,
+    internal ReturnStatement BuildReturn(IToken returnToken, ParserRuleContext[] exprContexts,
+                                         ITerminalNode[] commaNodes,
                                          AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange returnRange = CodeReferenceUtils.RangeOfToken(returnToken);
       AddSyntaxToken(SyntaxType.Keyword, returnRange);
-      if (exprContext is null) {
+      if (exprContexts is null) {
         return Statement.Return(null, returnRange);
       }
-      if (visitor.Visit(exprContext) is Expression expr) {
-        Debug.Assert(expr.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(returnRange, expr.Range as TextRange);
-        return Statement.Return(expr, range);
+      Expression[] exprs = BuildExpressions(exprContexts, commaNodes, visitor);
+      TextRange range = returnRange;
+      if (exprs.Length > 0) {
+        range = CodeReferenceUtils.CombineRanges(returnRange,
+                                                 exprs[exprs.Length - 1].Range as TextRange);
       }
-      return null;
+      return Statement.Return(exprs, range);
     }
 
     // Builds a block of simple statements.

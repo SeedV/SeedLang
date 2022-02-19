@@ -44,7 +44,7 @@ namespace SeedLang.Interpreter {
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
       Visit(node);
-      _chunk.Emit(Opcode.RETURN, 0u, null);
+      _chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
       return _nestedFuncStack.PopFunc();
     }
 
@@ -267,7 +267,7 @@ namespace SeedLang.Interpreter {
       }
       Visit(funcDef.Body);
       // Emits a default return opcode.
-      _chunk.Emit(Opcode.RETURN, 0, null);
+      _chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
@@ -305,14 +305,25 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ReturnStatement @return) {
-      if (!(GetRegisterId(@return.Result) is uint result)) {
+      if (@return.Exprs.Length == 0) {
+        _chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
+      } else if (@return.Exprs.Length == 1) {
+        if (!(GetRegisterId(@return.Exprs[0]) is uint result)) {
+          _variableResolver.BeginExpressionScope();
+          result = _variableResolver.AllocateRegister();
+          _registerForSubExpr = result;
+          Visit(@return.Exprs[0]);
+          _variableResolver.EndExpressionScope();
+        }
+        _chunk.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
+      } else {
         _variableResolver.BeginExpressionScope();
-        result = _variableResolver.AllocateRegister();
-        _registerForSubExpr = result;
-        Visit(@return.Result);
+        uint listRegister = _variableResolver.AllocateRegister();
+        _registerForSubExpr = listRegister;
+        Visit(Expression.List(@return.Exprs, @return.Range));
         _variableResolver.EndExpressionScope();
+        _chunk.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
       }
-      _chunk.Emit(Opcode.RETURN, result, @return.Range);
     }
 
     protected override void Visit(WhileStatement @while) {

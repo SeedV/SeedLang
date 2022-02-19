@@ -148,6 +148,21 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExpressionScope();
     }
 
+    protected override void Visit(TupleExpression list) {
+      _variableResolver.BeginExpressionScope();
+      uint target = _registerForSubExpr;
+      uint? first = null;
+      foreach (var expr in list.Exprs) {
+        _registerForSubExpr = _variableResolver.AllocateRegister();
+        if (!first.HasValue) {
+          first = _registerForSubExpr;
+        }
+        Visit(expr);
+      }
+      _chunk.Emit(Opcode.NEWLIST, target, first ?? 0, (uint)list.Exprs.Length, list.Range);
+      _variableResolver.EndExpressionScope();
+    }
+
     protected override void Visit(SubscriptExpression subscript) {
       _variableResolver.BeginExpressionScope();
       uint targetId = _registerForSubExpr;

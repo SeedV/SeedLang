@@ -281,6 +281,19 @@ namespace SeedLang.X {
                                context.CLOSE_BRACK().Symbol, this);
     }
 
+    public override AstNode VisitTuple([NotNull] SeedPythonParser.TupleContext context) {
+      // There isn't a corresponding AST node for the parse rule "expressions". Parses them by the
+      // BuildTuple function.
+      var exprContexts = Array.Empty<ParserRuleContext>();
+      ITerminalNode[] commaNodes = Array.Empty<ITerminalNode>();
+      if (!(context.expressions() is null)) {
+        exprContexts = context.expressions().expression();
+        commaNodes = context.expressions().COMMA();
+      }
+      return _helper.BuildTuple(context.OPEN_PAREN().Symbol, exprContexts, commaNodes,
+                                context.CLOSE_PAREN().Symbol, this);
+    }
+
     private static ComparisonOperator ToComparisonOperator(IToken token) {
       switch (token.Type) {
         case SeedPythonParser.LESS:

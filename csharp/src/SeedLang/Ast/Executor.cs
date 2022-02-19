@@ -212,10 +212,19 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(ListExpression list) {
-      var initialValues = new List<Value>();
+      var initialValues = new List<Value>(list.Exprs.Length);
       foreach (Expression expr in list.Exprs) {
         Visit(expr);
         initialValues.Add(_expressionResult);
+      }
+      _expressionResult = new Value(initialValues);
+    }
+
+    protected override void Visit(TupleExpression list) {
+      var initialValues = new Value[list.Exprs.Length];
+      for (int i = 0; i < list.Exprs.Length; i++) {
+        Visit(list.Exprs[i]);
+        initialValues[i] = _expressionResult;
       }
       _expressionResult = new Value(initialValues);
     }

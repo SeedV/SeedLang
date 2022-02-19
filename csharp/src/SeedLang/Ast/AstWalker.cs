@@ -64,6 +64,9 @@ namespace SeedLang.Ast {
         case ListExpression list:
           Visit(list);
           break;
+        case TupleExpression tuple:
+          Visit(tuple);
+          break;
         case SubscriptExpression subscript:
           Visit(subscript);
           break;
@@ -119,6 +122,7 @@ namespace SeedLang.Ast {
     protected abstract void Visit(NumberConstantExpression numberConstant);
     protected abstract void Visit(StringConstantExpression stringConstant);
     protected abstract void Visit(ListExpression list);
+    protected abstract void Visit(TupleExpression tuple);
     protected abstract void Visit(SubscriptExpression subscript);
     protected abstract void Visit(CallExpression call);
 

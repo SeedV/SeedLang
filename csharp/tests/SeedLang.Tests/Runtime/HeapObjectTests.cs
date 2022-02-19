@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -61,6 +62,8 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal(1, tuple[0].AsNumber());
       Assert.Equal(2, tuple[1].AsNumber());
       Assert.Equal("(1, 2)", tuple.AsString());
+
+      Assert.Throws<DiagnosticException>(() => tuple[1] = new Value());
     }
   }
 }

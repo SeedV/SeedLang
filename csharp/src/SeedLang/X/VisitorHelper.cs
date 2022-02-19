@@ -221,6 +221,22 @@ namespace SeedLang.X {
       return null;
     }
 
+    internal TupleExpression BuildTuple(IToken openParenToken, ParserRuleContext[] exprContexts,
+                                        ITerminalNode[] commaNodes, IToken closeParenToken,
+                                        AbstractParseTreeVisitor<AstNode> visitor) {
+      Debug.Assert(exprContexts.Length == commaNodes.Length ||
+                   exprContexts.Length == commaNodes.Length + 1);
+      TextRange openParenRange = CodeReferenceUtils.RangeOfToken(openParenToken);
+      AddSyntaxToken(SyntaxType.Parenthesis, openParenRange);
+      if (BuildExpressions(exprContexts, commaNodes, visitor) is Expression[] exprs) {
+        TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
+        AddSyntaxToken(SyntaxType.Parenthesis, closeParenRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(openParenRange, closeParenRange);
+        return Expression.Tuple(exprs, range);
+      }
+      return null;
+    }
+
     // Builds subscript expressions.
     internal SubscriptExpression BuildSubscript(ParserRuleContext primaryContext,
                                                 IToken openBrackToken,

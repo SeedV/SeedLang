@@ -174,6 +174,14 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(TupleExpression tuple) {
+      Enter(tuple);
+      foreach (Expression expr in tuple.Exprs) {
+        Visit(expr);
+      }
+      Exit();
+    }
+
     protected override void Visit(SubscriptExpression subscript) {
       Enter(subscript);
       Visit(subscript.Expr);

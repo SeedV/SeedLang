@@ -294,6 +294,41 @@ namespace SeedLang.X.Tests {
                 "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
                 "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
+
+    [InlineData("()",
+
+                "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] TupleExpression",
+
+                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Parenthesis [Ln 1, Col 1 - Ln 1, Col 1]")]
+
+    [InlineData("(1,)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 3] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 3] TupleExpression\n" +
+                "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)",
+
+                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Parenthesis [Ln 1, Col 3 - Ln 1, Col 3]")]
+
+    [InlineData("(1, 2, 3)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 8] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 8] TupleExpression\n" +
+                "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)",
+
+                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
+                "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

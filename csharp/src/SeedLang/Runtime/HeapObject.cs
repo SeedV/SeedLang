@@ -19,6 +19,7 @@ using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   using List = List<Value>;
+  using Tuple = IReadOnlyList<Value>;
 
   // A class to hold heap allocated objects.
   internal partial class HeapObject : IEquatable<HeapObject> {
@@ -26,6 +27,7 @@ namespace SeedLang.Runtime {
     public bool IsList => _object is List;
     public bool IsFunction => _object is IFunction;
     public bool IsRange => _object is Range;
+    public bool IsTuple => _object is Tuple;
 
     public int Length {
       get {
@@ -36,6 +38,8 @@ namespace SeedLang.Runtime {
             return list.Count;
           case Range range:
             return range.Length;
+          case Tuple tuple:
+            return tuple.Count;
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotCountable);
@@ -100,6 +104,8 @@ namespace SeedLang.Runtime {
           return list.Count != 0;
         case Range range:
           return range.Length != 0;
+        case Tuple tuple:
+          return tuple.Count != 0;
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -121,11 +127,13 @@ namespace SeedLang.Runtime {
         case string str:
           return str;
         case List list:
-          return ToString(list);
+          return ListToString(list);
         case IFunction func:
           return func.ToString();
         case Range range:
           return range.ToString();
+        case Tuple tuple:
+          return TupleToString(tuple);
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -161,6 +169,8 @@ namespace SeedLang.Runtime {
             return list[ToIntIndex(index, list.Count)];
           case Range range:
             return range[ToIntIndex(index, range.Length)];
+          case Tuple tuple:
+            return tuple[ToIntIndex(index, tuple.Count)];
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
@@ -174,6 +184,7 @@ namespace SeedLang.Runtime {
             list[ToIntIndex(index, list.Count)] = value;
             break;
           case Range _:
+          case Tuple _:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSupportAssignment);
           default:
@@ -205,7 +216,7 @@ namespace SeedLang.Runtime {
       return intIndex;
     }
 
-    private string ToString(IReadOnlyList<Value> values) {
+    private string ListToString(IReadOnlyList<Value> list) {
       var sb = new StringBuilder();
       sb.Append('[');
       if (_visitedObjects.Contains(this)) {
@@ -213,7 +224,7 @@ namespace SeedLang.Runtime {
       } else {
         _visitedObjects.Add(this);
         bool first = true;
-        foreach (Value value in values) {
+        foreach (Value value in list) {
           if (first) {
             first = false;
           } else {
@@ -224,6 +235,19 @@ namespace SeedLang.Runtime {
         _visitedObjects.Remove(this);
       }
       sb.Append(']');
+      return sb.ToString();
+    }
+
+    private string TupleToString(IReadOnlyList<Value> tuple) {
+      var sb = new StringBuilder();
+      sb.Append('(');
+      for (int i = 0; i < tuple.Count; i++) {
+        sb.Append(tuple[i]);
+        if (i < tuple.Count - 1) {
+          sb.Append(", ");
+        }
+      }
+      sb.Append(')');
       return sb.ToString();
     }
   }

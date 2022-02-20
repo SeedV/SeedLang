@@ -384,10 +384,10 @@ namespace SeedLang.Interpreter {
       } else {
         // If the length of targets is less than the one of the unpacked value, SeedPython will
         // unpack part of the value. And if the length of the targets is greater than the one of the
-        // unpacked value, a index out of range exception will be thrown.
+        // unpacked value, an index out of range exception will be thrown.
         // The behavior is different from the original Python. Python will throw an incorrect unpack
-        // count exception. The additional opcode or build-in function need be added to implement
-        // this behavior.
+        // count exception for both situations. The additional opcode or build-in function need be
+        // added to implement this behavior.
         for (int i = 0; i < targets.Length; i++) {
           if (targets[i] is IdentifierExpression id) {
             DefineVariableIfNeeded(id.Name);

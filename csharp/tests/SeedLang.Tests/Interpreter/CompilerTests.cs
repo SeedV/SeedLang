@@ -109,7 +109,7 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestCompileAssignNumberConstant() {
+    public void TestCompileAssignment() {
       var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("name")),
                                         AstHelper.NumberConstant(1));
       var compiler = new Compiler();
@@ -154,6 +154,62 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    ADD       0 -1 -2          ; 1 2               {AstHelper.TextRange}\n" +
           $"  2    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
           $"  3    RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompilePackAssignment() {
+      string name = "id";
+      var block = AstHelper.Block(
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
+                         AstHelper.NumberConstant(1),
+                         AstHelper.NumberConstant(2)),
+        AstHelper.ExpressionStmt(AstHelper.Id(name))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(block, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    NEWTUPLE  0 1 2                                {AstHelper.TextRange}\n" +
+          $"  4    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  5    GETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  6    EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  7    RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileUnpackAssignment() {
+      string a = "a";
+      string b = "b";
+      var block = AstHelper.Block(
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b)),
+                         AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2))),
+        AstHelper.ExpressionStmt(AstHelper.Id(a)),
+        AstHelper.ExpressionStmt(AstHelper.Id(b))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(block, _env);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     1 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  2    LOADK     2 -2             ; 2                 {AstHelper.TextRange}\n" +
+          $"  3    NEWLIST   0 1 2                                {AstHelper.TextRange}\n" +
+          $"  4    LOADK     2 -3             ; 0                 {AstHelper.TextRange}\n" +
+          $"  5    GETELEM   1 0 2                                {AstHelper.TextRange}\n" +
+          $"  6    SETGLOB   1 0                                  {AstHelper.TextRange}\n" +
+          $"  7    LOADK     2 -1             ; 1                 {AstHelper.TextRange}\n" +
+          $"  8    GETELEM   1 0 2                                {AstHelper.TextRange}\n" +
+          $"  9    SETGLOB   1 1                                  {AstHelper.TextRange}\n" +
+          $"  10   GETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  11   EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  12   GETGLOB   0 1                                  {AstHelper.TextRange}\n" +
+          $"  13   EVAL      0                                    {AstHelper.TextRange}\n" +
+          $"  14   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

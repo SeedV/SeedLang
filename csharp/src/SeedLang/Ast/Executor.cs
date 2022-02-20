@@ -307,14 +307,14 @@ namespace SeedLang.Ast {
         Visit(@return.Exprs[0]);
         throw new ReturnException(_expressionResult);
       } else {
-        // The result value is a list that holds all the return values if there are multiple
+        // The result value is a tuple that holds all the return values if there are multiple
         // return values.
-        var list = new List<Value>(@return.Exprs.Length);
-        foreach (Expression expr in @return.Exprs) {
-          Visit(expr);
-          list.Add(_expressionResult);
+        var values = new Value[@return.Exprs.Length];
+        for (int i = 0; i < @return.Exprs.Length; i++) {
+          Visit(@return.Exprs[i]);
+          values[i] = _expressionResult;
         }
-        throw new ReturnException(new Value(list));
+        throw new ReturnException(new Value(values));
       }
     }
 
@@ -375,9 +375,6 @@ namespace SeedLang.Ast {
           Visit(subscript.Index);
           list[_expressionResult.AsNumber()] = value;
           // TODO: send an assignment event to visualizers.
-          break;
-        default:
-          // TODO: throw a runtime error for invalid assignment targets.
           break;
       }
     }

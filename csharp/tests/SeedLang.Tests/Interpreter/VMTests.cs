@@ -145,7 +145,7 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestSingleAssignment() {
+    public void TestAssignment() {
       string name = "name";
       var program = AstHelper.Block(
         AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)), AstHelper.NumberConstant(1)),

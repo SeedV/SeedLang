@@ -216,6 +216,19 @@ namespace SeedLang.Runtime {
       return intIndex;
     }
 
+    private static string TupleToString(IReadOnlyList<Value> tuple) {
+      var sb = new StringBuilder();
+      sb.Append('(');
+      for (int i = 0; i < tuple.Count; i++) {
+        sb.Append(tuple[i]);
+        if (i < tuple.Count - 1) {
+          sb.Append(", ");
+        }
+      }
+      sb.Append(')');
+      return sb.ToString();
+    }
+
     private string ListToString(IReadOnlyList<Value> list) {
       var sb = new StringBuilder();
       sb.Append('[');
@@ -235,19 +248,6 @@ namespace SeedLang.Runtime {
         _visitedObjects.Remove(this);
       }
       sb.Append(']');
-      return sb.ToString();
-    }
-
-    private string TupleToString(IReadOnlyList<Value> tuple) {
-      var sb = new StringBuilder();
-      sb.Append('(');
-      for (int i = 0; i < tuple.Count; i++) {
-        sb.Append(tuple[i]);
-        if (i < tuple.Count - 1) {
-          sb.Append(", ");
-        }
-      }
-      sb.Append(')');
       return sb.ToString();
     }
   }

@@ -42,7 +42,7 @@ namespace SeedLang.Interpreter {
     FORLOOP,      // R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
     EVAL,         // Eval R(A). Evaluates the expresion statement. TODO: do we need this?
     CALL,         // call function R(A), parameters are R(A+1), ..., R(A+B)
-    RETURN,       // if B == 0 return else return R(A)
+    RETURN,       // return R(A), R(A+1), ..., R(A+B-1)
   }
 
   // The types of opcodes.

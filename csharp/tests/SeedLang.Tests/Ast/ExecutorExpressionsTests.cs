@@ -141,4 +141,3 @@ namespace SeedLang.Ast.Tests {
     }
   }
 }
-

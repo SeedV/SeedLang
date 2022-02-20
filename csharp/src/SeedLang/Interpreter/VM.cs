@@ -150,6 +150,7 @@ namespace SeedLang.Interpreter {
               CallFunction(ref chunk, ref pc, ref baseRegister, instr);
               break;
             case Opcode.RETURN:
+              // TODO: only support one return value now.
               if (instr.B > 0 && baseRegister > 0) {
                 _stack[baseRegister - 1] = _stack[baseRegister + instr.A];
               }

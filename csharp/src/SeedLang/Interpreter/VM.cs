@@ -150,9 +150,8 @@ namespace SeedLang.Interpreter {
               CallFunction(ref chunk, ref pc, ref baseRegister, instr);
               break;
             case Opcode.RETURN:
-              uint currentBase = _callStack.CurrentBase();
-              if (currentBase > 0) {
-                _stack[currentBase - 1] = _stack[currentBase + instr.A];
+              if (instr.B > 0 && baseRegister > 0) {
+                _stack[baseRegister - 1] = _stack[baseRegister + instr.A];
               }
               _callStack.PopFunc();
               if (!_callStack.IsEmpty) {

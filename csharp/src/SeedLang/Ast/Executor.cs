@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -92,7 +91,7 @@ namespace SeedLang.Ast {
             _expressionResult = new Value(ValueHelper.Modulo(left, right));
             break;
           default:
-            throw new NotImplementedException($"Unsupported binary operator: {binary.Op}");
+            throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
         }
       } catch (DiagnosticException ex) {
         // Throws a new diagnostic exception with more information.
@@ -118,7 +117,7 @@ namespace SeedLang.Ast {
         }
       }
       if (!_visualizerCenter.BooleanPublisher.IsEmpty()) {
-        var vs = Array.ConvertAll(values, value => new ValueWrapper(value));
+        var vs = System.Array.ConvertAll(values, value => new ValueWrapper(value));
         var be = new BooleanEvent(boolean.Op, vs, new ValueWrapper(_expressionResult),
                                   boolean.Range);
         _visualizerCenter.BooleanPublisher.Notify(be);
@@ -154,7 +153,7 @@ namespace SeedLang.Ast {
             currentResult = !left.Equals(values[i]);
             break;
           default:
-            throw new NotImplementedException(
+            throw new System.NotImplementedException(
                 $"Unsupported comparison operator: {comparison.Ops[i]}");
         }
         if (!currentResult) {
@@ -163,7 +162,7 @@ namespace SeedLang.Ast {
       }
       _expressionResult = new Value(currentResult);
       if (!_visualizerCenter.ComparisonPublisher.IsEmpty()) {
-        var vs = Array.ConvertAll(values, value => new ValueWrapper(value));
+        var vs = System.Array.ConvertAll(values, value => new ValueWrapper(value));
         var ce = new ComparisonEvent(new ValueWrapper(first), comparison.Ops, vs,
                                      new ValueWrapper(_expressionResult), comparison.Range);
         _visualizerCenter.ComparisonPublisher.Notify(ce);
@@ -254,34 +253,57 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
-      var values = new Value[assignment.Targets.Length];
-      for (int i = 0; i < assignment.Targets.Length; i++) {
-        if (i < assignment.Exprs.Length) {
+      if (assignment.Exprs.Length == 1) {
+        Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
+      } else {
+        var values = new Value[assignment.Exprs.Length];
+        for (int i = 0; i < assignment.Exprs.Length; i++) {
           Visit(assignment.Exprs[i]);
           values[i] = _expressionResult;
+        }
+        if (assignment.Targets.Length == 1) {
+          Assign(assignment.Targets[0], new Value(values), assignment.Range);
+        } else if (assignment.Targets.Length == values.Length) {
+          for (int i = 0; i < assignment.Targets.Length; i++) {
+            Assign(assignment.Targets[i], values[i], assignment.Range);
+          }
         } else {
-          values[i] = new Value();
+
         }
       }
-      for (int i = 0; i < assignment.Targets.Length; i++) {
-        switch (assignment.Targets[i]) {
-          case IdentifierExpression identifier:
-            _env.SetVariable(identifier.Name, values[i]);
-            var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(values[i]),
-                                         assignment.Range);
-            _visualizerCenter.AssignmentPublisher.Notify(ae);
-            break;
-          case SubscriptExpression subscript:
-            Visit(subscript.Expr);
-            Value list = _expressionResult;
-            Visit(subscript.Index);
-            list[_expressionResult.AsNumber()] = values[i];
-            // TODO: send an assignment event to visualizers.
-            break;
-          default:
-            // TODO: throw a runtime error for invalid assignment targets.
-            break;
+    }
+
+    private void Unpack(Expression[] targets, Expression expr, Range range) {
+      Visit(expr);
+      Value value = _expressionResult;
+      if (targets.Length == 1) {
+        Assign(targets[0], value, range);
+      } else if (targets.Length == value.Length) {
+        for (int i = 0; i < targets.Length; i++) {
+          Assign(targets[i], value[i], range);
         }
+      } else {
+
+      }
+    }
+
+    private void Assign(Expression target, Value value, Range range) {
+      switch (target) {
+        case IdentifierExpression identifier:
+          _env.SetVariable(identifier.Name, value);
+          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(value), range);
+          _visualizerCenter.AssignmentPublisher.Notify(ae);
+          break;
+        case SubscriptExpression subscript:
+          Visit(subscript.Expr);
+          Value list = _expressionResult;
+          Visit(subscript.Index);
+          list[_expressionResult.AsNumber()] = value;
+          // TODO: send an assignment event to visualizers.
+          break;
+        default:
+          // TODO: throw a runtime error for invalid assignment targets.
+          break;
       }
     }
 

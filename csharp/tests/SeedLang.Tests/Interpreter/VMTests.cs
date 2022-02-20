@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
@@ -50,16 +51,12 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestBinaryExpressionStatement() {
+    public void TestBinaryExpression() {
       var expr = AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.NumberConstant(1),
                                                            BinaryOperator.Add,
                                                            AstHelper.NumberConstant(2)));
 
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-      Function func = compiler.Compile(expr, vm.Env);
-      vm.Run(func);
-
+      MockupVisualizer visualizer = Run(expr);
       Assert.Equal(1, visualizer.Left.Number);
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.Number);
@@ -68,31 +65,11 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestAssignmentStatement() {
-      string name = "name";
-      var block = AstHelper.Block(AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
-                                                   AstHelper.NumberConstant(1)),
-                                  AstHelper.ExpressionStmt(AstHelper.Id(name)));
-
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-      Function func = compiler.Compile(block, vm.Env);
-      vm.Run(func);
-
-      Assert.Equal(1, visualizer.Result.Number);
-      Assert.Equal(AstHelper.TextRange, visualizer.Range);
-    }
-
-    [Fact]
-    public void TestUnaryExpressionStatement() {
+    public void TestUnaryExpression() {
       var expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
                                                           AstHelper.NumberConstant(1)));
 
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-      Function func = compiler.Compile(expr, vm.Env);
-      vm.Run(func);
-
+      MockupVisualizer visualizer = Run(expr);
       Assert.Equal(-1, visualizer.Result.Number);
       Assert.Equal(AstHelper.TextRange, visualizer.Range);
 
@@ -101,22 +78,17 @@ namespace SeedLang.Interpreter.Tests {
                          BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
       ));
-      func = compiler.Compile(expr, vm.Env);
-      vm.Run(func);
-
+      visualizer = Run(expr);
       Assert.Equal(-3, visualizer.Result.Number);
       Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
     public void TestFunctionCall() {
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-
       string name = "eval";
       string a = "a";
       string b = "b";
-      var block = AstHelper.Block(
+      var program = AstHelper.Block(
         AstHelper.FuncDef(name, AstHelper.Params(a, b),
           AstHelper.Return(AstHelper.Binary(AstHelper.Id(a),
                                             BinaryOperator.Add,
@@ -126,10 +98,7 @@ namespace SeedLang.Interpreter.Tests {
                                                 AstHelper.NumberConstant(1),
                                                 AstHelper.NumberConstant(2)))
       );
-
-      Function func = compiler.Compile(block, vm.Env);
-      vm.Run(func);
-
+      MockupVisualizer visualizer = Run(program);
       Assert.Equal(1, visualizer.Left.Number);
       Assert.Equal(BinaryOperator.Add, visualizer.Op);
       Assert.Equal(2, visualizer.Right.Number);
@@ -139,9 +108,6 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestRecursiveFib() {
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-
       string fib = "fib";
       string n = "n";
       var test = AstHelper.Boolean(BooleanOperator.Or,
@@ -164,37 +130,25 @@ namespace SeedLang.Interpreter.Tests {
         )),
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(fib), AstHelper.NumberConstant(10)))
       );
-
-      Function func = compiler.Compile(program, vm.Env);
-      vm.Run(func);
-
+      MockupVisualizer visualizer = Run(program);
       Assert.Equal(55, visualizer.Result.Number);
       Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
     public void TestSubscript() {
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-
       var program = AstHelper.ExpressionStmt(AstHelper.Subscript(
         AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2),
                        AstHelper.NumberConstant(3)),
         AstHelper.NumberConstant(1)
       ));
-
-      Function func = compiler.Compile(program, vm.Env);
-      vm.Run(func);
-
+      MockupVisualizer visualizer = Run(program);
       Assert.Equal(2, visualizer.Result.Number);
       Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
     public void TestSubscriptAssignment() {
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-
       string a = "a";
       var program = AstHelper.Block(
         AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
@@ -206,38 +160,44 @@ namespace SeedLang.Interpreter.Tests {
                          AstHelper.NumberConstant(5)),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
-
-      Function func = compiler.Compile(program, vm.Env);
-      vm.Run(func);
-
+      MockupVisualizer visualizer = Run(program);
       Assert.Equal(5, visualizer.Result.Number);
       Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
     [Fact]
     public void TestTuple() {
-      var compiler = new Compiler();
-      (var vm, var visualizer) = NewVMWithVisualizer();
-
       var program = AstHelper.ExpressionStmt(
         AstHelper.Tuple(AstHelper.NumberConstant(1),
                         AstHelper.NumberConstant(2),
                         AstHelper.NumberConstant(3))
       );
-
-      Function func = compiler.Compile(program, vm.Env);
-      vm.Run(func);
-
+      MockupVisualizer visualizer = Run(program);
       Assert.Equal("(1, 2, 3)", visualizer.Result.ToString());
       Assert.Equal(AstHelper.TextRange, visualizer.Range);
     }
 
-    private static (VM, MockupVisualizer) NewVMWithVisualizer() {
+    [Fact]
+    public void TestSingleAssignment() {
+      string name = "name";
+      var program = AstHelper.Block(
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)), AstHelper.NumberConstant(1)),
+        AstHelper.ExpressionStmt(AstHelper.Id(name))
+      );
+      MockupVisualizer visualizer = Run(program);
+      Assert.Equal(1, visualizer.Result.Number);
+      Assert.Equal(AstHelper.TextRange, visualizer.Range);
+    }
+
+    private static MockupVisualizer Run(Statement program) {
       var visualizer = new MockupVisualizer();
       var visualizerCenter = new VisualizerCenter();
       visualizerCenter.Register(visualizer);
       var vm = new VM(visualizerCenter);
-      return (vm, visualizer);
+      var compiler = new Compiler();
+      Function func = compiler.Compile(program, vm.Env);
+      vm.Run(func);
+      return visualizer;
     }
   }
 }

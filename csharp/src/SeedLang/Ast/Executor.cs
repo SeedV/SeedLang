@@ -256,54 +256,7 @@ namespace SeedLang.Ast {
       if (assignment.Exprs.Length == 1) {
         Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
       } else {
-        var values = new Value[assignment.Exprs.Length];
-        for (int i = 0; i < assignment.Exprs.Length; i++) {
-          Visit(assignment.Exprs[i]);
-          values[i] = _expressionResult;
-        }
-        if (assignment.Targets.Length == 1) {
-          Assign(assignment.Targets[0], new Value(values), assignment.Range);
-        } else if (assignment.Targets.Length == values.Length) {
-          for (int i = 0; i < assignment.Targets.Length; i++) {
-            Assign(assignment.Targets[i], values[i], assignment.Range);
-          }
-        } else {
-
-        }
-      }
-    }
-
-    private void Unpack(Expression[] targets, Expression expr, Range range) {
-      Visit(expr);
-      Value value = _expressionResult;
-      if (targets.Length == 1) {
-        Assign(targets[0], value, range);
-      } else if (targets.Length == value.Length) {
-        for (int i = 0; i < targets.Length; i++) {
-          Assign(targets[i], value[i], range);
-        }
-      } else {
-
-      }
-    }
-
-    private void Assign(Expression target, Value value, Range range) {
-      switch (target) {
-        case IdentifierExpression identifier:
-          _env.SetVariable(identifier.Name, value);
-          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(value), range);
-          _visualizerCenter.AssignmentPublisher.Notify(ae);
-          break;
-        case SubscriptExpression subscript:
-          Visit(subscript.Expr);
-          Value list = _expressionResult;
-          Visit(subscript.Index);
-          list[_expressionResult.AsNumber()] = value;
-          // TODO: send an assignment event to visualizers.
-          break;
-        default:
-          // TODO: throw a runtime error for invalid assignment targets.
-          break;
+        Pack(assignment.Targets, assignment.Exprs, assignment.Range);
       }
     }
 
@@ -373,6 +326,59 @@ namespace SeedLang.Ast {
         } else {
           break;
         }
+      }
+    }
+
+    private void Pack(Expression[] targets, Expression[] exprs, Range range) {
+      var values = new Value[exprs.Length];
+      for (int i = 0; i < exprs.Length; i++) {
+        Visit(exprs[i]);
+        values[i] = _expressionResult;
+      }
+      if (targets.Length == 1) {
+        Assign(targets[0], new Value(values), range);
+      } else if (targets.Length == values.Length) {
+        for (int i = 0; i < targets.Length; i++) {
+          Assign(targets[i], values[i], range);
+        }
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
+                                      Message.RuntimeErrorIncorrectUnpackCount);
+      }
+    }
+
+    private void Unpack(Expression[] targets, Expression expr, Range range) {
+      Visit(expr);
+      Value value = _expressionResult;
+      if (targets.Length == 1) {
+        Assign(targets[0], value, range);
+      } else if (targets.Length == value.Length) {
+        for (int i = 0; i < targets.Length; i++) {
+          Assign(targets[i], value[i], range);
+        }
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
+                                      Message.RuntimeErrorIncorrectUnpackCount);
+      }
+    }
+
+    private void Assign(Expression target, Value value, Range range) {
+      switch (target) {
+        case IdentifierExpression identifier:
+          _env.SetVariable(identifier.Name, value);
+          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(value), range);
+          _visualizerCenter.AssignmentPublisher.Notify(ae);
+          break;
+        case SubscriptExpression subscript:
+          Visit(subscript.Expr);
+          Value list = _expressionResult;
+          Visit(subscript.Index);
+          list[_expressionResult.AsNumber()] = value;
+          // TODO: send an assignment event to visualizers.
+          break;
+        default:
+          // TODO: throw a runtime error for invalid assignment targets.
+          break;
       }
     }
   }

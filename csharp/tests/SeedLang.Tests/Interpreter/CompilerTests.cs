@@ -132,8 +132,8 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {AstHelper.TextRange}\n" +
-          $"  2    LOADK     1 -2             ; 2                 {AstHelper.TextRange}\n" +
-          $"  3    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  2    SETGLOB   0 0                                  {AstHelper.TextRange}\n" +
+          $"  3    LOADK     1 -2             ; 2                 {AstHelper.TextRange}\n" +
           $"  4    SETGLOB   1 1                                  {AstHelper.TextRange}\n" +
           $"  5    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);

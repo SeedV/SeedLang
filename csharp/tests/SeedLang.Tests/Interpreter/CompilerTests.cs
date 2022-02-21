@@ -13,10 +13,10 @@
 // limitations under the License.
 
 using System;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using Xunit;
-using SeedLang.Common;
 
 namespace SeedLang.Interpreter.Tests {
   using NativeFunction = HeapObject.NativeFunction;

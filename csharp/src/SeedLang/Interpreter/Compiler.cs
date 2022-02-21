@@ -386,10 +386,10 @@ namespace SeedLang.Interpreter {
         // unpack part of the value. And if the length of the targets is greater than the one of the
         // unpacked value, an index out of range exception will be thrown.
         // The behavior is different from the original Python. Python will throw an incorrect unpack
-        // count exception for both situations. The additional opcode or build-in function need be
-        // added to implement this behavior.
-        for (int i = 0; i < targets.Length; i++) {
-          if (targets[i] is IdentifierExpression id) {
+        // count exception for both situations.
+        // TODO: Add a build-in function to check the length of the unpacked values.
+        foreach (Expression target in targets) {
+          if (target is IdentifierExpression id) {
             DefineVariableIfNeeded(id.Name);
           }
         }

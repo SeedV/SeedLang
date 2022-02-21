@@ -208,7 +208,7 @@ FORLOOP A sBx           # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
 ```shell
 JMP sBx                 # PC += sBx
 CALL A                  # call function R(A), parameters are R(A+1), ..., R(A+B)
-RETURN A B              # if B == 0 return else return R(A)
+RETURN A B              # return R(A), R(A+1), ..., R(A+B-1)
 ```
 
 ### Expression Evaluation

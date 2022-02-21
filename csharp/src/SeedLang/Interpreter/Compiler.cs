@@ -110,7 +110,8 @@ namespace SeedLang.Interpreter {
             break;
         }
       } else {
-        // TODO: throw a variable not defined runtime error.
+        throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorVariableNotDefined);
       }
     }
 

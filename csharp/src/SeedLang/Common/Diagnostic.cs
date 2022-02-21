@@ -20,6 +20,7 @@ namespace SeedLang.Common {
   public static class SystemReporters {
     public const string SeedAst = "SeedLang.Ast";
     public const string SeedBlock = "SeedLang.Block";
+    public const string SeedInterpreter = "SeedLang.Interpreter";
     public const string SeedRuntime = "SeedLang.Runtime";
     public const string SeedX = "SeedLang.X";
     public const string SeedVM = "SeedLang.VM";

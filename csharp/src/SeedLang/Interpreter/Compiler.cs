@@ -44,7 +44,7 @@ namespace SeedLang.Interpreter {
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
       Visit(node);
-      _chunk.Emit(Opcode.RETURN, 0u, null);
+      _chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
       return _nestedFuncStack.PopFunc();
     }
 
@@ -134,18 +134,11 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ListExpression list) {
-      _variableResolver.BeginExpressionScope();
-      uint target = _registerForSubExpr;
-      uint? first = null;
-      foreach (var expr in list.Exprs) {
-        _registerForSubExpr = _variableResolver.AllocateRegister();
-        if (!first.HasValue) {
-          first = _registerForSubExpr;
-        }
-        Visit(expr);
-      }
-      _chunk.Emit(Opcode.NEWLIST, target, first ?? 0, (uint)list.Exprs.Length, list.Range);
-      _variableResolver.EndExpressionScope();
+      CreateTupleOrList(Opcode.NEWLIST, list.Exprs, list.Range);
+    }
+
+    protected override void Visit(TupleExpression tuple) {
+      CreateTupleOrList(Opcode.NEWTUPLE, tuple.Exprs, tuple.Range);
     }
 
     protected override void Visit(SubscriptExpression subscript) {
@@ -192,13 +185,10 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
-      // Additional bytecode need to be generated for multiple assignments to evaluate all values,
-      // and then assign to the left variables. So using optimized implement for single assignments.
-      if (assignment.Targets.Length == 1) {
-        Debug.Assert(assignment.Exprs.Length > 0);
-        VisitSingleAssignment(assignment.Targets[0], assignment.Exprs[0], assignment.Range);
+      if (assignment.Exprs.Length == 1) {
+        Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
       } else {
-        VisitMultipleAssignment(assignment.Targets, assignment.Exprs, assignment.Range);
+        Pack(assignment.Targets, assignment.Exprs, assignment.Range);
       }
     }
 
@@ -222,7 +212,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ForInStatement forIn) {
-      VariableResolver.VariableInfo loopVar = GetVariableInfo(forIn.Id.Name);
+      VariableResolver.VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
 
       _variableResolver.BeginBlockScope();
       if (!(GetRegisterId(forIn.Expr) is uint sequence)) {
@@ -260,14 +250,14 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(FuncDefStatement funcDef) {
-      VariableResolver.VariableInfo info = GetVariableInfo(funcDef.Name);
+      VariableResolver.VariableInfo info = DefineVariableIfNeeded(funcDef.Name);
       PushFunc(funcDef.Name);
       foreach (string parameterName in funcDef.Parameters) {
         _variableResolver.DefineVariable(parameterName);
       }
       Visit(funcDef.Body);
       // Emits a default return opcode.
-      _chunk.Emit(Opcode.RETURN, 0, null);
+      _chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
@@ -305,14 +295,25 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ReturnStatement @return) {
-      if (!(GetRegisterId(@return.Result) is uint result)) {
+      if (@return.Exprs.Length == 0) {
+        _chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
+      } else if (@return.Exprs.Length == 1) {
+        if (!(GetRegisterId(@return.Exprs[0]) is uint result)) {
+          _variableResolver.BeginExpressionScope();
+          result = _variableResolver.AllocateRegister();
+          _registerForSubExpr = result;
+          Visit(@return.Exprs[0]);
+          _variableResolver.EndExpressionScope();
+        }
+        _chunk.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
+      } else {
         _variableResolver.BeginExpressionScope();
-        result = _variableResolver.AllocateRegister();
-        _registerForSubExpr = result;
-        Visit(@return.Result);
+        uint listRegister = _variableResolver.AllocateRegister();
+        _registerForSubExpr = listRegister;
+        Visit(Expression.Tuple(@return.Exprs, @return.Range));
+        _chunk.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
         _variableResolver.EndExpressionScope();
       }
-      _chunk.Emit(Opcode.RETURN, result, @return.Range);
     }
 
     protected override void Visit(WhileStatement @while) {
@@ -366,123 +367,128 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void VisitSingleAssignment(Expression target, Expression expr, Range range) {
-      switch (target) {
-        case IdentifierExpression identifier:
-          VariableResolver.VariableInfo info = GetVariableInfo(identifier.Name);
-          switch (info.Type) {
-            case VariableResolver.VariableType.Global:
-              _variableResolver.BeginExpressionScope();
-              uint resultRegister = _variableResolver.AllocateRegister();
-              _registerForSubExpr = resultRegister;
-              Visit(expr);
-              _chunk.Emit(Opcode.SETGLOB, resultRegister, info.Id, range);
-              _variableResolver.EndExpressionScope();
-              break;
-            case VariableResolver.VariableType.Local:
-              if (GetRegisterId(expr) is uint registerId) {
-                _chunk.Emit(Opcode.MOVE, info.Id, registerId, 0, range);
-              } else if (GetConstantId(expr) is uint constantId) {
-                _chunk.Emit(Opcode.LOADK, info.Id, constantId, range);
-              } else {
-                _registerForSubExpr = info.Id;
-                Visit(expr);
-              }
-              break;
-            case VariableResolver.VariableType.Upvalue:
-              // TODO: handle upvalues.
-              break;
-          }
-          break;
-        case SubscriptExpression subscript:
-          _variableResolver.BeginExpressionScope();
-          uint listId = VisitExpressionForRegisterId(subscript.Expr);
-          uint indexId = VisitExpressionForRKId(subscript.Index);
-          uint exprId = VisitExpressionForRKId(expr);
-          _chunk.Emit(Opcode.SETELEM, listId, indexId, exprId, subscript.Range);
-          _variableResolver.EndExpressionScope();
-          break;
+    private void Pack(Expression[] targets, Expression[] exprs, Range range) {
+      if (targets.Length == 1) {
+        Assign(targets[0], Expression.Tuple(exprs, range), range);
+      } else if (targets.Length == exprs.Length) {
+        AssignMultipleTargets(targets, exprs, range);
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
+                                      Message.RuntimeErrorIncorrectUnpackCount);
       }
     }
 
-    // TODO: temporary variables are allocated to evaluate the expressions for multiple assignments.
-    // It's possible to optimize the useage of temporary variables by the help of intermediate IR.
-    private void VisitMultipleAssignment(Expression[] targets, Expression[] exprs, Range range) {
-      // Defines variables for targets if needed.
-      var isTargetGlobals = new bool[targets.Length];
+    private void Unpack(Expression[] targets, Expression expr, Range range) {
+      if (targets.Length == 1) {
+        Assign(targets[0], expr, range);
+      } else {
+        // If the length of targets is less than the one of the unpacked value, SeedPython will
+        // unpack part of the value. And if the length of the targets is greater than the one of the
+        // unpacked value, an index out of range exception will be thrown.
+        // The behavior is different from the original Python. Python will throw an incorrect unpack
+        // count exception for both situations.
+        // TODO: Add a build-in function to check the length of the unpacked values.
+        foreach (Expression target in targets) {
+          if (target is IdentifierExpression id) {
+            DefineVariableIfNeeded(id.Name);
+          }
+        }
+        _variableResolver.BeginExpressionScope();
+        uint listId = VisitExpressionForRegisterId(expr);
+        uint valueId = _variableResolver.AllocateRegister();
+        for (int i = 0; i < targets.Length; i++) {
+          _variableResolver.BeginExpressionScope();
+          uint constId = _constantCache.IdOfConstant(i);
+          uint indexId = _variableResolver.AllocateRegister();
+          _chunk.Emit(Opcode.LOADK, indexId, constId, range);
+          _chunk.Emit(Opcode.GETELEM, valueId, listId, indexId, range);
+          Assign(targets[i], valueId, range);
+          _variableResolver.EndExpressionScope();
+        }
+        _variableResolver.EndExpressionScope();
+      }
+    }
+
+    private void Assign(Expression target, Expression expr, Range range) {
+      if (target is IdentifierExpression id) {
+        DefineVariableIfNeeded(id.Name);
+      }
+      _variableResolver.BeginExpressionScope();
+      uint valueId = VisitExpressionForRKId(expr);
+      Assign(target, valueId, range);
+      _variableResolver.EndExpressionScope();
+    }
+
+    private void AssignMultipleTargets(Expression[] targets, Expression[] exprs, Range range) {
       for (int i = 0; i < targets.Length; i++) {
         if (targets[i] is IdentifierExpression id) {
-          VariableResolver.VariableInfo info = GetVariableInfo(id.Name);
-          isTargetGlobals[i] = info.Type == VariableResolver.VariableType.Global;
+          DefineVariableIfNeeded(id.Name);
         }
       }
       _variableResolver.BeginExpressionScope();
-      // Evaluates expressions based on the length of the targets. Additional expressions will not
-      // be evaluated.
       var exprIds = new uint[targets.Length];
-      var isExprConstants = new bool[targets.Length];
       for (int i = 0; i < targets.Length; i++) {
-        if (i < exprs.Length) {
-          if (GetRegisterId(exprs[i]) is uint registerId) {
-            exprIds[i] = registerId;
-            isExprConstants[i] = false;
-          } else if (GetConstantId(exprs[i]) is uint constantId) {
-            if (isTargetGlobals[i]) {
-              exprIds[i] = _variableResolver.AllocateRegister();
-              _chunk.Emit(Opcode.LOADK, exprIds[i], constantId, range);
-              isExprConstants[i] = false;
-            } else {
-              exprIds[i] = constantId;
-              isExprConstants[i] = true;
-            }
-          } else {
-            exprIds[i] = _variableResolver.AllocateRegister();
-            _registerForSubExpr = exprIds[i];
-            Visit(exprs[i]);
-          }
-        } else {
-          if (isTargetGlobals[i]) {
-            exprIds[i] = _variableResolver.AllocateRegister();
-            _chunk.Emit(Opcode.LOADK, exprIds[i], _constantCache.IdOfNone(), range);
-            isExprConstants[i] = false;
-          } else {
-            exprIds[i] = _constantCache.IdOfNone();
-            isExprConstants[i] = true;
-          }
-        }
+        exprIds[i] = VisitExpressionForRKId(exprs[i]);
       }
-      // Assigns values to left targets.
       for (int i = 0; i < targets.Length; i++) {
-        switch (targets[i]) {
-          case IdentifierExpression id:
-            VariableResolver.VariableInfo info = _variableResolver.FindVariable(id.Name).Value;
-            switch (info.Type) {
-              case VariableResolver.VariableType.Global:
-                _chunk.Emit(Opcode.SETGLOB, exprIds[i], info.Id, range);
-                break;
-              case VariableResolver.VariableType.Local:
-                if (isExprConstants[i]) {
-                  _chunk.Emit(Opcode.LOADK, info.Id, exprIds[i], range);
-                } else {
-                  _chunk.Emit(Opcode.MOVE, info.Id, exprIds[i], 0, range);
-                }
-                break;
-              case VariableResolver.VariableType.Upvalue:
-                // TODO: handle upvalues.
-                break;
-            }
-            break;
-          case SubscriptExpression subscript:
-            uint listId = VisitExpressionForRegisterId(subscript.Expr);
-            uint indexId = VisitExpressionForRKId(subscript.Index);
-            _chunk.Emit(Opcode.SETELEM, listId, indexId, exprIds[i], subscript.Range);
-            break;
-        }
+        Assign(targets[i], exprIds[i], range);
       }
       _variableResolver.EndExpressionScope();
     }
 
-    private VariableResolver.VariableInfo GetVariableInfo(string name) {
+    private void Assign(Expression expr, uint valueId, Range range) {
+      switch (expr) {
+        case IdentifierExpression id:
+          Assign(id, valueId, range);
+          break;
+        case SubscriptExpression subscript:
+          uint listId = VisitExpressionForRegisterId(subscript.Expr);
+          uint indexId = VisitExpressionForRKId(subscript.Index);
+          _chunk.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
+          break;
+      }
+    }
+
+    private void Assign(IdentifierExpression id, uint valueId, Range range) {
+      VariableResolver.VariableInfo info = _variableResolver.FindVariable(id.Name).Value;
+      switch (info.Type) {
+        case VariableResolver.VariableType.Global:
+          uint tempRegister = valueId;
+          if (Chunk.IsConstId(valueId)) {
+            tempRegister = _variableResolver.AllocateRegister();
+            _chunk.Emit(Opcode.LOADK, tempRegister, valueId, range);
+          }
+          _chunk.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
+          break;
+        case VariableResolver.VariableType.Local:
+          if (Chunk.IsConstId(valueId)) {
+            _chunk.Emit(Opcode.LOADK, info.Id, valueId, range);
+          } else {
+            _chunk.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
+          }
+          break;
+        case VariableResolver.VariableType.Upvalue:
+          // TODO: handle upvalues.
+          break;
+      }
+    }
+
+    private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs, Range range) {
+      _variableResolver.BeginExpressionScope();
+      uint target = _registerForSubExpr;
+      uint? first = null;
+      foreach (var expr in exprs) {
+        _registerForSubExpr = _variableResolver.AllocateRegister();
+        if (!first.HasValue) {
+          first = _registerForSubExpr;
+        }
+        Visit(expr);
+      }
+      _chunk.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);
+      _variableResolver.EndExpressionScope();
+    }
+
+    private VariableResolver.VariableInfo DefineVariableIfNeeded(string name) {
       if (_variableResolver.FindVariable(name) is VariableResolver.VariableInfo info) {
         return info;
       }
@@ -540,6 +546,15 @@ namespace SeedLang.Interpreter {
       return exprId;
     }
 
+    private uint? GetRegisterOrConstantId(Expression expr) {
+      if (GetRegisterId(expr) is uint registerId) {
+        return registerId;
+      } else if (GetConstantId(expr) is uint constantId) {
+        return constantId;
+      }
+      return null;
+    }
+
     private uint? GetRegisterId(Expression expr) {
       if (expr is IdentifierExpression identifier &&
           _variableResolver.FindVariable(identifier.Name) is VariableResolver.VariableInfo info &&
@@ -558,15 +573,6 @@ namespace SeedLang.Interpreter {
         default:
           return null;
       }
-    }
-
-    private uint? GetRegisterOrConstantId(Expression expr) {
-      if (GetRegisterId(expr) is uint registerId) {
-        return registerId;
-      } else if (GetConstantId(expr) is uint constantId) {
-        return constantId;
-      }
-      return null;
     }
 
     private static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {

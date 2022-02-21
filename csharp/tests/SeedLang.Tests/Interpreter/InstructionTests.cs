@@ -18,11 +18,11 @@ namespace SeedLang.Interpreter.Tests {
   public class InstructionTests {
     [Fact]
     public void TestInstructions() {
-      var ret = new Instruction(Opcode.RETURN, 1u);
+      var ret = new Instruction(Opcode.RETURN, 1, 2, 3);
       Assert.Equal(Opcode.RETURN, ret.Opcode);
       Assert.Equal(1u, ret.A);
-      Assert.Equal(0u, ret.B);
-      Assert.Equal(0u, ret.C);
+      Assert.Equal(2u, ret.B);
+      Assert.Equal(3u, ret.C);
 
       var add = new Instruction(Opcode.ADD, 1, 2, 3);
       Assert.Equal(Opcode.ADD, add.Opcode);

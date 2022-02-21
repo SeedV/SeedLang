@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -92,7 +91,7 @@ namespace SeedLang.Ast {
             _expressionResult = new Value(ValueHelper.Modulo(left, right));
             break;
           default:
-            throw new NotImplementedException($"Unsupported binary operator: {binary.Op}");
+            throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
         }
       } catch (DiagnosticException ex) {
         // Throws a new diagnostic exception with more information.
@@ -118,7 +117,7 @@ namespace SeedLang.Ast {
         }
       }
       if (!_visualizerCenter.BooleanPublisher.IsEmpty()) {
-        var vs = Array.ConvertAll(values, value => new ValueWrapper(value));
+        var vs = System.Array.ConvertAll(values, value => new ValueWrapper(value));
         var be = new BooleanEvent(boolean.Op, vs, new ValueWrapper(_expressionResult),
                                   boolean.Range);
         _visualizerCenter.BooleanPublisher.Notify(be);
@@ -154,7 +153,7 @@ namespace SeedLang.Ast {
             currentResult = !left.Equals(values[i]);
             break;
           default:
-            throw new NotImplementedException(
+            throw new System.NotImplementedException(
                 $"Unsupported comparison operator: {comparison.Ops[i]}");
         }
         if (!currentResult) {
@@ -163,7 +162,7 @@ namespace SeedLang.Ast {
       }
       _expressionResult = new Value(currentResult);
       if (!_visualizerCenter.ComparisonPublisher.IsEmpty()) {
-        var vs = Array.ConvertAll(values, value => new ValueWrapper(value));
+        var vs = System.Array.ConvertAll(values, value => new ValueWrapper(value));
         var ce = new ComparisonEvent(new ValueWrapper(first), comparison.Ops, vs,
                                      new ValueWrapper(_expressionResult), comparison.Range);
         _visualizerCenter.ComparisonPublisher.Notify(ce);
@@ -212,10 +211,19 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(ListExpression list) {
-      var initialValues = new List<Value>();
+      var initialValues = new List<Value>(list.Exprs.Length);
       foreach (Expression expr in list.Exprs) {
         Visit(expr);
         initialValues.Add(_expressionResult);
+      }
+      _expressionResult = new Value(initialValues);
+    }
+
+    protected override void Visit(TupleExpression list) {
+      var initialValues = new Value[list.Exprs.Length];
+      for (int i = 0; i < list.Exprs.Length; i++) {
+        Visit(list.Exprs[i]);
+        initialValues[i] = _expressionResult;
       }
       _expressionResult = new Value(initialValues);
     }
@@ -245,34 +253,10 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
-      var values = new Value[assignment.Targets.Length];
-      for (int i = 0; i < assignment.Targets.Length; i++) {
-        if (i < assignment.Exprs.Length) {
-          Visit(assignment.Exprs[i]);
-          values[i] = _expressionResult;
-        } else {
-          values[i] = new Value();
-        }
-      }
-      for (int i = 0; i < assignment.Targets.Length; i++) {
-        switch (assignment.Targets[i]) {
-          case IdentifierExpression identifier:
-            _env.SetVariable(identifier.Name, values[i]);
-            var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(values[i]),
-                                         assignment.Range);
-            _visualizerCenter.AssignmentPublisher.Notify(ae);
-            break;
-          case SubscriptExpression subscript:
-            Visit(subscript.Expr);
-            Value list = _expressionResult;
-            Visit(subscript.Index);
-            list[_expressionResult.AsNumber()] = values[i];
-            // TODO: send an assignment event to visualizers.
-            break;
-          default:
-            // TODO: throw a runtime error for invalid assignment targets.
-            break;
-        }
+      if (assignment.Exprs.Length == 1) {
+        Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
+      } else {
+        Pack(assignment.Targets, assignment.Exprs, assignment.Range);
       }
     }
 
@@ -317,11 +301,20 @@ namespace SeedLang.Ast {
     protected override void Visit(ReturnStatement @return) {
       // Throws a return exception carried with the result value to break current execution flow and
       // return from current function.
-      if (!(@return.Result is null)) {
-        Visit(@return.Result);
+      if (@return.Exprs.Length == 0) {
+        throw new ReturnException(new Value());
+      } else if (@return.Exprs.Length == 1) {
+        Visit(@return.Exprs[0]);
         throw new ReturnException(_expressionResult);
       } else {
-        throw new ReturnException(new Value());
+        // The result value is a tuple that holds all the return values if there are multiple
+        // return values.
+        var values = new Value[@return.Exprs.Length];
+        for (int i = 0; i < @return.Exprs.Length; i++) {
+          Visit(@return.Exprs[i]);
+          values[i] = _expressionResult;
+        }
+        throw new ReturnException(new Value(values));
       }
     }
 
@@ -333,6 +326,56 @@ namespace SeedLang.Ast {
         } else {
           break;
         }
+      }
+    }
+
+    private void Pack(Expression[] targets, Expression[] exprs, Range range) {
+      var values = new Value[exprs.Length];
+      for (int i = 0; i < exprs.Length; i++) {
+        Visit(exprs[i]);
+        values[i] = _expressionResult;
+      }
+      if (targets.Length == 1) {
+        Assign(targets[0], new Value(values), range);
+      } else if (targets.Length == values.Length) {
+        for (int i = 0; i < targets.Length; i++) {
+          Assign(targets[i], values[i], range);
+        }
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
+                                      Message.RuntimeErrorIncorrectUnpackCount);
+      }
+    }
+
+    private void Unpack(Expression[] targets, Expression expr, Range range) {
+      Visit(expr);
+      Value value = _expressionResult;
+      if (targets.Length == 1) {
+        Assign(targets[0], value, range);
+      } else if (targets.Length == value.Length) {
+        for (int i = 0; i < targets.Length; i++) {
+          Assign(targets[i], value[i], range);
+        }
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
+                                      Message.RuntimeErrorIncorrectUnpackCount);
+      }
+    }
+
+    private void Assign(Expression target, Value value, Range range) {
+      switch (target) {
+        case IdentifierExpression identifier:
+          _env.SetVariable(identifier.Name, value);
+          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(value), range);
+          _visualizerCenter.AssignmentPublisher.Notify(ae);
+          break;
+        case SubscriptExpression subscript:
+          Visit(subscript.Expr);
+          Value list = _expressionResult;
+          Visit(subscript.Index);
+          list[_expressionResult.AsNumber()] = value;
+          // TODO: send an assignment event to visualizers.
+          break;
       }
     }
   }

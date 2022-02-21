@@ -174,6 +174,14 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(TupleExpression tuple) {
+      Enter(tuple);
+      foreach (Expression expr in tuple.Exprs) {
+        Visit(expr);
+      }
+      Exit();
+    }
+
     protected override void Visit(SubscriptExpression subscript) {
       Enter(subscript);
       Visit(subscript.Expr);
@@ -225,7 +233,11 @@ namespace SeedLang.Ast {
 
     protected override void Visit(FuncDefStatement funcDef) {
       Enter(funcDef);
-      _out.Append($" ({funcDef.Name}:{string.Join(",", funcDef.Parameters)})");
+      _out.Append($" ({funcDef.Name}");
+      if (funcDef.Parameters.Length > 0) {
+        _out.Append($":{string.Join(",", funcDef.Parameters)}");
+      }
+      _out.Append(')');
       Visit(funcDef.Body);
       Exit();
     }
@@ -242,8 +254,8 @@ namespace SeedLang.Ast {
 
     protected override void Visit(ReturnStatement @return) {
       Enter(@return);
-      if (!(@return.Result is null)) {
-        Visit(@return.Result);
+      foreach (Expression value in @return.Exprs) {
+        Visit(value);
       }
       Exit();
     }

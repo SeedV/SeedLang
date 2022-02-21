@@ -22,7 +22,8 @@ namespace SeedLang.Interpreter {
     LOADK,        // R(A) := Kst(Bx)
     GETGLOB,      // R[A] := Gbl[Kst(Bx)]
     SETGLOB,      // Gbl[Kst(Bx)] := R[A]
-    NEWLIST,      // R(A) := [R(B), R(B + 1), ..., R(B + C - 1)]
+    NEWTUPLE,     // R(A) := (R(B), R(B+1), ..., R(B+C-1))
+    NEWLIST,      // R(A) := [R(B), R(B+1), ..., R(B+C-1)]
     GETELEM,      // R(A) := R(B)[RK(C)]
     SETELEM,      // R(A)[RK(B)] := RK(C)
     ADD,          // R(A) := RK(B) + RK(C)
@@ -40,8 +41,8 @@ namespace SeedLang.Interpreter {
     FORPREP,      // R(A) -= R(A+2); pc += sBx
     FORLOOP,      // R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
     EVAL,         // Eval R(A). Evaluates the expresion statement. TODO: do we need this?
-    CALL,         // call function R(A), parameters are R(A + 1), ..., R(A + B)
-    RETURN,       // Return R(A)
+    CALL,         // call function R(A), parameters are R(A+1), ..., R(A+B)
+    RETURN,       // return R(A), R(A+1), ..., R(A+B-1)
   }
 
   // The types of opcodes.
@@ -57,10 +58,10 @@ namespace SeedLang.Interpreter {
     internal static OpcodeType Type(this Opcode op) {
       switch (op) {
         case Opcode.EVAL:
-        case Opcode.RETURN:
           return OpcodeType.A;
         case Opcode.MOVE:
         case Opcode.LOADBOOL:
+        case Opcode.NEWTUPLE:
         case Opcode.NEWLIST:
         case Opcode.GETELEM:
         case Opcode.SETELEM:
@@ -76,6 +77,7 @@ namespace SeedLang.Interpreter {
         case Opcode.TEST:
         case Opcode.TESTSET:
         case Opcode.CALL:
+        case Opcode.RETURN:
           return OpcodeType.ABC;
         case Opcode.LOADK:
         case Opcode.GETGLOB:

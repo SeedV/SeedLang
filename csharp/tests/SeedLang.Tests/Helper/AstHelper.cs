@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -85,6 +86,10 @@ namespace SeedLang.Tests.Helper {
       return Expression.List(exprs, TextRange);
     }
 
+    internal static TupleExpression Tuple(params Expression[] exprs) {
+      return Expression.Tuple(exprs, TextRange);
+    }
+
     internal static NoneConstantExpression NoneConstant() {
       return Expression.NoneConstant(TextRange);
     }
@@ -93,8 +98,8 @@ namespace SeedLang.Tests.Helper {
       return Expression.NumberConstant(value, TextRange);
     }
 
-    internal static ReturnStatement Return(Expression result) {
-      return Statement.Return(result, TextRange);
+    internal static ReturnStatement Return(params Expression[] exprs) {
+      return Statement.Return(exprs, TextRange);
     }
 
     internal static StringConstantExpression StringConstant(string value) {

@@ -52,8 +52,15 @@ namespace SeedLang.Interpreter {
             case Opcode.LOADK:
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
+            case Opcode.NEWTUPLE:
+              var tuple = new Value[instr.C];
+              for (int i = 0; i < instr.C; i++) {
+                tuple[i] = _stack[baseRegister + instr.B + i];
+              }
+              _stack[baseRegister + instr.A] = new Value(tuple);
+              break;
             case Opcode.NEWLIST:
-              var list = new List<Value>();
+              var list = new List<Value>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
                 list.Add(_stack[baseRegister + instr.B + i]);
               }
@@ -143,9 +150,9 @@ namespace SeedLang.Interpreter {
               CallFunction(ref chunk, ref pc, ref baseRegister, instr);
               break;
             case Opcode.RETURN:
-              uint currentBase = _callStack.CurrentBase();
-              if (currentBase > 0) {
-                _stack[currentBase - 1] = _stack[currentBase + instr.A];
+              // TODO: only support one return value now.
+              if (instr.B > 0 && baseRegister > 0) {
+                _stack[baseRegister - 1] = _stack[baseRegister + instr.A];
               }
               _callStack.PopFunc();
               if (!_callStack.IsEmpty) {

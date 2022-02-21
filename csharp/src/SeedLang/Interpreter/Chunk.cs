@@ -38,6 +38,10 @@ namespace SeedLang.Interpreter {
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
 
+    internal static bool IsConstId(uint id) {
+      return id >= MaxRegisterCount;
+    }
+
     // Emits an instruction with the opcode of type A.
     internal void Emit(Opcode opcode, uint a, Range range) {
       _bytecode.Add(new Instruction(opcode, a));
@@ -72,7 +76,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal bool IsConstIdValid(uint constId) {
-      return constId >= MaxRegisterCount && constId - MaxRegisterCount < _constants.Length;
+      return IsConstId(constId) && constId - MaxRegisterCount < _constants.Length;
     }
 
     // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.

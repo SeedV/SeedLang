@@ -72,6 +72,7 @@ namespace SeedLang.Common {
     RuntimeErrorInvalidCast,            // Invalid cast of value types runtime error.
     RuntimeErrorDivideByZero,           // Divide by zero runtime error.
     RuntimeErrorIncorrectArgsCount,     // Incorrect arguments count runtime error.
+    RuntimeErrorIncorrectUnpackCount,   // Incorrect number of values to be unpack runtime error.
     RuntimeErrorInvalidIndex,           // Not a valid integer index runtime error.
     RuntimeErrorNotCallable,            // Value type not callable runtime error.
     RuntimeErrorNotCountable,           // Value type not countable runtime error.

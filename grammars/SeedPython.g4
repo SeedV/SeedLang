@@ -74,8 +74,7 @@ function_def:
   DEF NAME OPEN_PAREN parameters? CLOSE_PAREN COLON block;
 parameters: NAME (COMMA NAME)*;
 
-// TODO: return multiply values
-return_stmt: RETURN expression?;
+return_stmt: RETURN expressions?;
 
 block:
   NEWLINE INDENT statements DEDENT # statements_as_block

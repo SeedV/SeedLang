@@ -66,7 +66,8 @@ namespace SeedLang.Interpreter {
 
 
     private string OperandsToString(Instruction instr) {
-      bool ignoreC = instr.Opcode == Opcode.MOVE || instr.Opcode == Opcode.UNM;
+      bool ignoreC = instr.Opcode == Opcode.MOVE || instr.Opcode == Opcode.UNM ||
+                     instr.Opcode == Opcode.RETURN;
       OpcodeType type = instr.Opcode.Type();
       switch (type) {
         case OpcodeType.A:
@@ -88,8 +89,7 @@ namespace SeedLang.Interpreter {
     }
 
     private string ConstOperandsToString(int index, Instruction instr) {
-      OpcodeType type = instr.Opcode.Type();
-      switch (type) {
+      switch (instr.Opcode.Type()) {
         case OpcodeType.ABC:
           string b = _chunk.IsConstIdValid(instr.B) ? $" {_chunk.ValueOfConstId(instr.B)}" : "";
           string c = _chunk.IsConstIdValid(instr.C) ? $" {_chunk.ValueOfConstId(instr.C)}" : "";

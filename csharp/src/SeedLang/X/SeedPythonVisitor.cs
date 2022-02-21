@@ -134,7 +134,8 @@ namespace SeedLang.X {
 
     public override AstNode VisitReturn_stmt(
         [NotNull] SeedPythonParser.Return_stmtContext context) {
-      return _helper.BuildReturn(context.RETURN().Symbol, context.expression(), this);
+      return _helper.BuildReturn(context.RETURN().Symbol, context.expressions().expression(),
+                                 context.expressions().COMMA(), this);
     }
 
     public override AstNode VisitStatements_as_block(
@@ -278,6 +279,19 @@ namespace SeedLang.X {
       }
       return _helper.BuildList(context.OPEN_BRACK().Symbol, exprContexts, commaNodes,
                                context.CLOSE_BRACK().Symbol, this);
+    }
+
+    public override AstNode VisitTuple([NotNull] SeedPythonParser.TupleContext context) {
+      // There isn't a corresponding AST node for the parse rule "expressions". Parses them by the
+      // BuildTuple function.
+      var exprContexts = Array.Empty<ParserRuleContext>();
+      ITerminalNode[] commaNodes = Array.Empty<ITerminalNode>();
+      if (!(context.expressions() is null)) {
+        exprContexts = context.expressions().expression();
+        commaNodes = context.expressions().COMMA();
+      }
+      return _helper.BuildTuple(context.OPEN_PAREN().Symbol, exprContexts, commaNodes,
+                                context.CLOSE_PAREN().Symbol, this);
     }
 
     private static ComparisonOperator ToComparisonOperator(IToken token) {

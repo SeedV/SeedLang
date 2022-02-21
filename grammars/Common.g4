@@ -27,7 +27,7 @@ grammar Common;
  * Parser rules
  */
 
-expressions: expression (COMMA expression)*;
+expressions: expression (COMMA expression)* COMMA?;
 
 expression: disjunction;
 
@@ -69,6 +69,7 @@ primary:
   | primary OPEN_BRACK expression CLOSE_BRACK # subscript
   | primary OPEN_PAREN arguments? CLOSE_PAREN # call
   | atom                                      # atom_as_primary;
+
 atom:
   identifier # identifier_as_atom
   | TRUE     # true
@@ -76,7 +77,9 @@ atom:
   | NONE     # none
   | NUMBER   # number
   | group    # group_as_atom
-  | list     # list_as_atom;
+  | list     # list_as_atom
+  | tuple    # tuple_as_atom;
+
 identifier: NAME;
 
 arguments: expression (COMMA expression)*;
@@ -84,6 +87,8 @@ arguments: expression (COMMA expression)*;
 group: OPEN_PAREN expression CLOSE_PAREN;
 
 list: OPEN_BRACK expressions? CLOSE_BRACK;
+
+tuple: OPEN_PAREN expressions? CLOSE_PAREN;
 
 /*
  * Lexer rules

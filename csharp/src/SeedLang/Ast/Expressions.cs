@@ -72,6 +72,11 @@ namespace SeedLang.Ast {
       return new ListExpression(exprs, range);
     }
 
+    // The factory method to create a tuple expression.
+    internal static TupleExpression Tuple(Expression[] exprs, Range range) {
+      return new TupleExpression(exprs, range);
+    }
+
     // The factory method to create a subscript expression.
     internal static SubscriptExpression Subscript(Expression expr, Expression index, Range range) {
       return new SubscriptExpression(expr, index, range);
@@ -180,6 +185,14 @@ namespace SeedLang.Ast {
     public Expression[] Exprs { get; }
 
     internal ListExpression(Expression[] exprs, Range range) : base(range) {
+      Exprs = exprs;
+    }
+  }
+
+  internal class TupleExpression : Expression {
+    public Expression[] Exprs { get; }
+
+    internal TupleExpression(Expression[] exprs, Range range) : base(range) {
       Exprs = exprs;
     }
   }

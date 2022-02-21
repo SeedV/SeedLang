@@ -221,6 +221,22 @@ namespace SeedLang.X {
       return null;
     }
 
+    internal TupleExpression BuildTuple(IToken openParenToken, ParserRuleContext[] exprContexts,
+                                        ITerminalNode[] commaNodes, IToken closeParenToken,
+                                        AbstractParseTreeVisitor<AstNode> visitor) {
+      Debug.Assert(exprContexts.Length == commaNodes.Length ||
+                   exprContexts.Length == commaNodes.Length + 1);
+      TextRange openParenRange = CodeReferenceUtils.RangeOfToken(openParenToken);
+      AddSyntaxToken(SyntaxType.Parenthesis, openParenRange);
+      if (BuildExpressions(exprContexts, commaNodes, visitor) is Expression[] exprs) {
+        TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
+        AddSyntaxToken(SyntaxType.Parenthesis, closeParenRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(openParenRange, closeParenRange);
+        return Expression.Tuple(exprs, range);
+      }
+      return null;
+    }
+
     // Builds subscript expressions.
     internal SubscriptExpression BuildSubscript(ParserRuleContext primaryContext,
                                                 IToken openBrackToken,
@@ -416,19 +432,21 @@ namespace SeedLang.X {
     }
 
     // Builds return statements.
-    internal ReturnStatement BuildReturn(IToken returnToken, ParserRuleContext exprContext,
+    internal ReturnStatement BuildReturn(IToken returnToken, ParserRuleContext[] exprContexts,
+                                         ITerminalNode[] commaNodes,
                                          AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange returnRange = CodeReferenceUtils.RangeOfToken(returnToken);
       AddSyntaxToken(SyntaxType.Keyword, returnRange);
-      if (exprContext is null) {
+      if (exprContexts is null) {
         return Statement.Return(null, returnRange);
       }
-      if (visitor.Visit(exprContext) is Expression expr) {
-        Debug.Assert(expr.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(returnRange, expr.Range as TextRange);
-        return Statement.Return(expr, range);
+      Expression[] exprs = BuildExpressions(exprContexts, commaNodes, visitor);
+      TextRange range = returnRange;
+      if (exprs.Length > 0) {
+        range = CodeReferenceUtils.CombineRanges(returnRange,
+                                                 exprs[exprs.Length - 1].Range as TextRange);
       }
-      return null;
+      return Statement.Return(exprs, range);
     }
 
     // Builds a block of simple statements.

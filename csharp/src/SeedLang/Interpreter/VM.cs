@@ -151,8 +151,9 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.RETURN:
               // TODO: only support one return value now.
-              if (instr.B > 0 && baseRegister > 0) {
-                _stack[baseRegister - 1] = _stack[baseRegister + instr.A];
+              if (baseRegister > 0) {
+                uint returnRegister = baseRegister - 1;
+                _stack[returnRegister] = instr.B > 0 ? _stack[baseRegister + instr.A] : new Value();
               }
               _callStack.PopFunc();
               if (!_callStack.IsEmpty) {

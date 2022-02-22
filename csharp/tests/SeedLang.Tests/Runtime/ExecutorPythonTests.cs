@@ -143,7 +143,7 @@ array
       var executor = new Executor();
       var visualizer = new MockupVisualizer();
       executor.Register(visualizer);
-      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, type));
+      executor.Run(source, "", SeedXLanguage.SeedPython, type);
       Assert.Equal(result, visualizer.Result.ToString());
     }
   }

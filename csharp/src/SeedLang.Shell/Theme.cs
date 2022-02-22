@@ -28,9 +28,33 @@ namespace SeedLang.Shell {
     public static IReadOnlyDictionary<SyntaxType, ThemeInfo> SyntaxToThemeInfoMap =
         new Dictionary<SyntaxType, ThemeInfo> {
           {
+            SyntaxType.Boolean,
+            new ThemeInfo {
+              ForegroundColor = ConsoleColor.Yellow,
+            }
+          },
+          {
+            SyntaxType.Bracket,
+            new ThemeInfo {
+              ForegroundColor = ConsoleColor.Gray,
+            }
+          },
+          {
+            SyntaxType.Function,
+            new ThemeInfo {
+              ForegroundColor = ConsoleColor.DarkBlue,
+            }
+          },
+          {
             SyntaxType.Keyword,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Magenta,
+            }
+          },
+          {
+            SyntaxType.None,
+            new ThemeInfo {
+              ForegroundColor = ConsoleColor.DarkYellow,
             }
           },
           {
@@ -43,6 +67,18 @@ namespace SeedLang.Shell {
             SyntaxType.Operator,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Blue,
+            }
+          },
+          {
+            SyntaxType.Parameter,
+            new ThemeInfo {
+              ForegroundColor = ConsoleColor.Blue,
+            }
+          },
+          {
+            SyntaxType.Parenthesis,
+            new ThemeInfo {
+              ForegroundColor = ConsoleColor.Gray,
             }
           },
           {

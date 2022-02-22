@@ -46,12 +46,15 @@ namespace SeedLang.Shell {
         _source.WriteSourceWithSyntaxTokens(syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var collection = new DiagnosticCollection();
-        executor.Run(_source.Source, "", _language, _runType, collection);
+        string result = executor.Run(_source.Source, "", _language, _runType, collection);
+        if (!(result is null)) {
+          Console.WriteLine(result);
+        }
         foreach (var diagnostic in collection.Diagnostics) {
           if (diagnostic.Range is TextRange range) {
             _source.WriteSourceWithHighlight(range);
           }
-          Console.WriteLine($": {diagnostic}");
+          Console.WriteLine($"{diagnostic}");
         }
       }
       _visualizerManager.UnregisterFromExecutor(executor);

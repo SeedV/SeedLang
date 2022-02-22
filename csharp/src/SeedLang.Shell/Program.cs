@@ -32,7 +32,7 @@ namespace SeedLang.Shell {
 
       [Option('v', "visualizers", Required = false,
               Default = new VisualizerType[] { VisualizerType.Eval },
-              HelpText = "The Visualizers to be enabled.")]
+              HelpText = "The Visualizers to be enabled. Use All to enable all visualizers.")]
       public IEnumerable<VisualizerType> VisualizerTypes { get; set; }
 
       [Option('f', "file", Required = false, Default = null,
@@ -77,11 +77,21 @@ namespace SeedLang.Shell {
         Console.WriteLine($"Read file error: {ex}.");
         return;
       }
+      var syntaxTokens = Executor.ParseSyntaxTokens(source.Source, "", language);
+      source.WriteSourceWithSyntaxTokens(syntaxTokens);
+
+      Console.WriteLine();
+      Console.WriteLine("---------- Run ----------");
       var visualizerManager = new VisualizerManager(source, visualizerTypes);
       var executor = new Executor();
       visualizerManager.RegisterToExecutor(executor);
       var collection = new DiagnosticCollection();
-      executor.Run(source.Source, "", language, runType, collection);
+
+      string result = executor.Run(source.Source, "", language, runType, collection);
+      if (!(result is null)) {
+        Console.WriteLine(result);
+      }
+
       foreach (var diagnostic in collection.Diagnostics) {
         if (diagnostic.Range is TextRange range) {
           source.WriteSourceWithHighlight(range);

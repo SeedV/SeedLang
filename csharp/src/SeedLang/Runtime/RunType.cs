@@ -21,7 +21,7 @@ namespace SeedLang.Runtime {
     Bytecode,
     // Dumps source code as AST tree.
     DumpAst,
-    // Disassembles source code to bytecode.
+    // Compiles source code to bytecode then prints the disassembled bytecode.
     Disassemble,
   }
 }

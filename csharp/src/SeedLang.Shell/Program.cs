@@ -30,9 +30,13 @@ namespace SeedLang.Shell {
       [Option('t', "type", Required = false, Default = RunType.Bytecode, HelpText = "Run type.")]
       public RunType RunType { get; set; }
 
-      [Option('v', "visualizers", Required = false,
+      [Option('v', "visualizers", Required = false, Separator = ',',
               Default = new VisualizerType[] { VisualizerType.Eval },
-              HelpText = "The Visualizers to be enabled. Use All to enable all visualizers.")]
+              HelpText = "The Visualizers to be enabled. " +
+                         "Valid values: Assignment, Binary, Comparison, Eval, All. " +
+                         "Use \"-v Binary,Eval\" or \"--visualizers=Binary,Comparison,Eval\" " +
+                         "to enable multiple visualizers. " +
+                         "Use \"-v All\" to enable all visualizers.")]
       public IEnumerable<VisualizerType> VisualizerTypes { get; set; }
 
       [Option('f', "file", Required = false, Default = null,
@@ -53,7 +57,7 @@ namespace SeedLang.Shell {
         Console.WriteLine();
         Run(options);
       }).WithNotParsed(errors => {
-        Console.Error.WriteLine(helpText);
+        Console.Error.Write(helpText);
       });
     }
 

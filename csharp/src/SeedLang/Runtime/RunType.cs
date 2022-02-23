@@ -15,9 +15,13 @@
 namespace SeedLang.Runtime {
   // The running type of SeedBlock and SeedX source code.
   public enum RunType {
-    // Parses the source code into an AST tree, and runs it by traversing the AST tree.
+    // Parses source code into an AST tree, and runs it by traversing the AST tree.
     Ast,
-    // Parses and compiles the source code into bytecode, and runs it in a VM.
+    // Parses and compiles source code into bytecode, and runs it in a VM.
     Bytecode,
+    // Dumps source code as AST tree.
+    DumpAst,
+    // Compiles source code to bytecode then prints the disassembled bytecode.
+    Disassemble,
   }
 }

@@ -110,8 +110,8 @@ namespace SeedLang.Interpreter {
             break;
         }
       } else {
-        throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorVariableNotDefined);
+        throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Fatal, "",
+                                      identifier.Range, Message.RuntimeErrorVariableNotDefined);
       }
     }
 

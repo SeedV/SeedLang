@@ -66,34 +66,42 @@ namespace SeedLang.Runtime {
       return syntaxTokens;
     }
 
-    // Runs SeedX source code based on the language and run type. Returns null if the source code is
-    // null, empty or invalid.
-    public bool Run(string source, string module, SeedXLanguage language, RunType runType,
-                    DiagnosticCollection collection = null) {
+    // Runs or dumps SeedX source code based on the language and run type. Returns string if the
+    // runType is DumpAst or Disassemble, otherwise returns null.
+    public string Run(string source, string module, SeedXLanguage language, RunType runType,
+                      DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
-        return false;
+        return null;
       }
       try {
         BaseParser parser = MakeParser(language);
         var localCollection = collection ?? new DiagnosticCollection();
         if (!parser.Parse(source, module, localCollection, out AstNode node, out _)) {
-          return false;
+          return null;
         }
         switch (runType) {
           case RunType.Ast:
             _executor.Run(node);
-            return true;
-          case RunType.Bytecode:
-            var compiler = new Compiler();
-            Interpreter.Function func = compiler.Compile(node, _vm.Env);
-            _vm.Run(func);
-            return true;
+            return null;
+          case RunType.Bytecode: {
+              var compiler = new Compiler();
+              Interpreter.Function func = compiler.Compile(node, _vm.Env);
+              _vm.Run(func);
+              return null;
+            }
+          case RunType.DumpAst:
+            return node.ToString();
+          case RunType.Disassemble: {
+              var compiler = new Compiler();
+              Interpreter.Function func = compiler.Compile(node, _vm.Env);
+              return new Disassembler(func).ToString();
+            }
           default:
             throw new NotImplementedException($"Unsupported run type: {runType}");
         }
       } catch (DiagnosticException exception) {
         collection?.Report(exception.Diagnostic);
-        return false;
+        return null;
       }
     }
 

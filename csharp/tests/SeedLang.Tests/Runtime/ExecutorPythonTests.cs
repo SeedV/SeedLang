@@ -28,8 +28,8 @@ namespace SeedLang.Runtime.Tests {
     [InlineData(@"sum = 0
 i = 1
 while i <= 10:
-  sum = sum + i
-  i = i + 1
+  sum += i
+  i += 1
 sum
 ",
 
@@ -58,7 +58,7 @@ func()
     [InlineData(@"def func():
   sum = 0
   for i in range(1, 11):
-    sum = sum + i
+    sum += i
   return sum
 func()
 ",
@@ -79,7 +79,7 @@ sum(10)
 i = 1
 while i < 10:
   a, b = b, a + b
-  i = i + 1
+  i += 1
 b
 ",
 

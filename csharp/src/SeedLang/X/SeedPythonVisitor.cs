@@ -65,11 +65,40 @@ namespace SeedLang.X {
       return VisitorHelper.BuildExpressionStatement(context.expressions(), this);
     }
 
-    public override AstNode VisitAssignment([NotNull] SeedPythonParser.AssignmentContext context) {
+    public override AstNode VisitAssign([NotNull] SeedPythonParser.AssignContext context) {
       SeedPythonParser.TargetsContext targets = context.targets();
       SeedPythonParser.ExpressionsContext exprs = context.expressions();
       return _helper.BuildAssignment(targets.target(), targets.COMMA(), context.EQUAL().Symbol,
                                      exprs.expression(), exprs.COMMA(), this);
+    }
+
+    public override AstNode VisitAdd_assign([NotNull] SeedPythonParser.Add_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.ADD_ASSIGN().Symbol,
+                                        BinaryOperator.Add, context.expression(), this);
+    }
+
+    public override AstNode VisitSubstract_assign(
+        [NotNull] SeedPythonParser.Substract_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.SUBSTRACT_ASSIGN().Symbol,
+                                        BinaryOperator.Subtract, context.expression(), this);
+    }
+
+    public override AstNode VisitMultiply_assign(
+        [NotNull] SeedPythonParser.Multiply_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.MULTIPLY_ASSIGN().Symbol,
+                                        BinaryOperator.Multiply, context.expression(), this);
+    }
+
+    public override AstNode VisitDivide_assign(
+        [NotNull] SeedPythonParser.Divide_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.DIVIDE_ASSIGN().Symbol,
+                                        BinaryOperator.Divide, context.expression(), this);
+    }
+
+    public override AstNode VisitModulo_assign(
+        [NotNull] SeedPythonParser.Modulo_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.MODULO_ASSIGN().Symbol,
+                                        BinaryOperator.Modulo, context.expression(), this);
     }
 
     public override AstNode VisitSubscript_target(

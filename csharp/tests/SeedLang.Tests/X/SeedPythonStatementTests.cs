@@ -34,6 +34,18 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
 
+    [InlineData("x += 1",
+
+                "[Ln 1, Col 0 - Ln 1, Col 5] AssignmentStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (x)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 5] BinaryExpression (+)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (x)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (1)",
+
+                "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 3]," +
+                "Number [Ln 1, Col 5 - Ln 1, Col 5]")]
+
     [InlineData("x, y = 1, 2",
 
                 "[Ln 1, Col 0 - Ln 1, Col 10] AssignmentStatement\n" +

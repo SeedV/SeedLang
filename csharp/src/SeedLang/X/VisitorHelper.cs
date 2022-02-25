@@ -39,20 +39,16 @@ namespace SeedLang.X {
                                           AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange range = _groupingRange;
       _groupingRange = null;
-
-      AstNode left = visitor.Visit(leftContext);
-      if (left is Expression leftExpr) {
+      if (visitor.Visit(leftContext) is Expression left) {
         AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
-        AstNode right = visitor.Visit(rightContext);
-
-        if (right is Expression rightExpr) {
+        if (visitor.Visit(rightContext) is Expression right) {
           if (range is null) {
             Debug.Assert(left.Range is TextRange);
             Debug.Assert(right.Range is TextRange);
             range = CodeReferenceUtils.CombineRanges(left.Range as TextRange,
                                                      right.Range as TextRange);
           }
-          return Expression.Binary(leftExpr, op, rightExpr, range);
+          return Expression.Binary(left, op, right, range);
         }
       }
       return null;
@@ -332,6 +328,25 @@ namespace SeedLang.X {
         TextRange range = CodeReferenceUtils.CombineRanges(
             targets[0].Range as TextRange, exprs[exprs.Length - 1].Range as TextRange);
         return Statement.Assignment(targets, exprs, range);
+      }
+      return null;
+    }
+
+    // Builds augmented assignment statements.
+    internal AstNode BuildAugAssignment(ParserRuleContext targetContext, IToken opToken,
+                                        BinaryOperator op, ParserRuleContext exprContext,
+                                        AbstractParseTreeVisitor<AstNode> visitor) {
+      if (visitor.Visit(targetContext) is Expression target) {
+        AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
+        if (visitor.Visit(exprContext) is Expression expr) {
+          Debug.Assert(target.Range is TextRange);
+          Debug.Assert(expr.Range is TextRange);
+          Range range = CodeReferenceUtils.CombineRanges(target.Range as TextRange,
+                                                         expr.Range as TextRange);
+          Expression binary = Expression.Binary(target, op, expr, range);
+          return Statement.Assignment(new Expression[] { target }, new Expression[] { binary },
+                                      range);
+        }
       }
       return null;
     }

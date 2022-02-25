@@ -1,10 +1,10 @@
-# [[ Data ]]
+# [[ Data, VReverse ]]
 a = [8, 1, 0, 5, 6, 3, 2, 4, 7, 1]
 
-# [[ Max number ]]
+# [[ MaxNumber ]]
 max = 10
 
-# [[ Temp Data ]]
+# [[ TempData ]]
 count = list(range(max + 1))
 for i in range(len(count)):
     count[i] = 0

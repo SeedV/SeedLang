@@ -1,4 +1,4 @@
-# [[ Data ]]
+# [[ Data, VReverse ]]
 a = [8, 1, 0, 5, 6, 3, 2, 4, 7, 1]
 
 
@@ -6,9 +6,9 @@ def merge_sort(a):
     if len(a) > 1:
         # [[ Partition ]]
         mid = len(a) // 2
-        # [[ Temp Data ]]
+        # [[ TempData ]]
         left = a[:mid]
-        # [[ Temp Data ]]
+        # [[ TempData ]]
         right = a[mid:]
         merge_sort(left)
         merge_sort(right)

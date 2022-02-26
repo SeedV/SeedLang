@@ -298,6 +298,9 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(PassStatement pass) {
+    }
+
     protected override void Visit(ReturnStatement @return) {
       // Throws a return exception carried with the result value to break current execution flow and
       // return from current function.

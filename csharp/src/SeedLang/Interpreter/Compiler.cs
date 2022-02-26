@@ -295,6 +295,9 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
+    protected override void Visit(PassStatement pass) {
+    }
+
     protected override void Visit(ReturnStatement @return) {
       if (@return.Exprs.Length == 0) {
         _chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);

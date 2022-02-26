@@ -1,5 +1,4 @@
 def fib(n):
-    """Print a Fibonacci series up to n."""
     a, b = 0, 1
     while a < n:
         a
@@ -13,7 +12,6 @@ f(100)  # 0 1 1 2 3 5 8 13 21 34 55 89
 
 
 def fib_list(n):
-    """Return a list containing the Fibonacci series up to n."""
     result = []
     a, b = 0, 1
     while a < n:
@@ -36,8 +34,4 @@ fib_recursive(10)  # 55
 
 
 def my_func():
-    """Do nothing, but document it.
-
-    No, really, it doesn't do anything.
-    """
     pass

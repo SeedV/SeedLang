@@ -10,12 +10,6 @@
 '"Yes," they said.'  # "Yes," they said.
 '"Isn\'t," they said.'  # "Isn\'t," they said.
 
-"""
-Usage: thingy [OPTIONS]
-     -h                        Display this usage message
-     -H hostname               Hostname to connect to
-"""
-
 3 * "un" + "ium"  # unununium
 "Py" "thon"  # Python
 

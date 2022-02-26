@@ -98,6 +98,10 @@ namespace SeedLang.Tests.Helper {
       return Expression.NumberConstant(value, TextRange);
     }
 
+    internal static PassStatement Pass() {
+      return Statement.Pass(TextRange);
+    }
+
     internal static ReturnStatement Return(params Expression[] exprs) {
       return Statement.Return(exprs, TextRange);
     }

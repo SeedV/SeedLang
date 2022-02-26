@@ -252,6 +252,11 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(PassStatement pass) {
+      Enter(pass);
+      Exit();
+    }
+
     protected override void Visit(ReturnStatement @return) {
       Enter(@return);
       foreach (Expression value in @return.Exprs) {

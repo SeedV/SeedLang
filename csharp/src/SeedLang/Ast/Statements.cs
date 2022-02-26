@@ -51,6 +51,11 @@ namespace SeedLang.Ast {
       return new IfStatement(test, thenBody, elseBody, range);
     }
 
+    // The factory method to create a pass statement.
+    internal static PassStatement Pass(Range range) {
+      return new PassStatement(range);
+    }
+
     // The factory method to create a return statement.
     internal static ReturnStatement Return(Expression[] exprs, Range range) {
       return new ReturnStatement(exprs, range);
@@ -133,6 +138,10 @@ namespace SeedLang.Ast {
       ThenBody = thenBody;
       ElseBody = elseBody;
     }
+  }
+
+  internal class PassStatement : Statement {
+    internal PassStatement(Range range) : base(range) { }
   }
 
   internal class ReturnStatement : Statement {

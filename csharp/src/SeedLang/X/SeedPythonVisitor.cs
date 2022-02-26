@@ -65,6 +65,10 @@ namespace SeedLang.X {
       return VisitorHelper.BuildExpressionStatement(context.expressions(), this);
     }
 
+    public override AstNode VisitPass([NotNull] SeedPythonParser.PassContext context) {
+      return _helper.BuildPass(context.PASS().Symbol);
+    }
+
     public override AstNode VisitAssign([NotNull] SeedPythonParser.AssignContext context) {
       SeedPythonParser.TargetsContext targets = context.targets();
       SeedPythonParser.ExpressionsContext exprs = context.expressions();

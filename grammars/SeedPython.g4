@@ -41,7 +41,7 @@ simple_stmt:
   assignment    # assignment_placeholder
   | expressions # expression_stmt
   | return_stmt # return_stmt_placeholder
-  | 'pass'      # pass
+  | PASS        # pass
   | 'break'     # break
   | 'continue'  # continue;
 
@@ -99,6 +99,7 @@ IN: 'in';
 WHILE: 'while';
 DEF: 'def';
 RETURN: 'return';
+PASS: 'pass';
 
 COLON: ':';
 SEMICOLON: ';';

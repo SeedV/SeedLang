@@ -100,6 +100,9 @@ namespace SeedLang.Ast {
         case IfStatement @if:
           Visit(@if);
           break;
+        case PassStatement pass:
+          Visit(pass);
+          break;
         case ReturnStatement @return:
           Visit(@return);
           break;
@@ -132,6 +135,7 @@ namespace SeedLang.Ast {
     protected abstract void Visit(ForInStatement forIn);
     protected abstract void Visit(FuncDefStatement funcDef);
     protected abstract void Visit(IfStatement @if);
+    protected abstract void Visit(PassStatement pass);
     protected abstract void Visit(ReturnStatement @return);
     protected abstract void Visit(WhileStatement @while);
   }

@@ -27,6 +27,7 @@ namespace SeedLang.Ast.Tests {
         AddForIn();
         AddFuncDef();
         AddIf();
+        AddPass();
         AddReturn();
         AddWhile();
       }
@@ -102,6 +103,12 @@ namespace SeedLang.Ast.Tests {
                              $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
                              $"    {AstHelper.TextRange} NumberConstantExpression (2)";
         Add(@if, expectedOutput);
+      }
+
+      private void AddPass() {
+        var pass = AstHelper.Pass();
+        var expectedOutput = $"{AstHelper.TextRange} PassStatement";
+        Add(pass, expectedOutput);
       }
 
       private void AddReturn() {

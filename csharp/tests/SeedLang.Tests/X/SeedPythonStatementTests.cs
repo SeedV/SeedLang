@@ -387,6 +387,24 @@ namespace SeedLang.X.Tests {
                 "Parenthesis [Ln 1, Col 23 - Ln 1, Col 23]," +
                 "Symbol [Ln 1, Col 24 - Ln 1, Col 24]," +
                 "Variable [Ln 1, Col 26 - Ln 1, Col 26]")]
+
+    [InlineData("if True:\n" +
+                "  pass\n" +
+                "else:\n" +
+                "  pass",
+
+                "[Ln 1, Col 0 - Ln 4, Col 5] IfStatement\n" +
+                "  [Ln 1, Col 3 - Ln 1, Col 6] BooleanConstantExpression (True)\n" +
+                "  [Ln 2, Col 2 - Ln 2, Col 5] PassStatement\n" +
+                "  [Ln 4, Col 2 - Ln 4, Col 5] PassStatement",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 1]," +
+                "Boolean [Ln 1, Col 3 - Ln 1, Col 6]," +
+                "Symbol [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Keyword [Ln 2, Col 2 - Ln 2, Col 5]," +
+                "Keyword [Ln 3, Col 0 - Ln 3, Col 3]," +
+                "Symbol [Ln 3, Col 4 - Ln 3, Col 4]," +
+                "Keyword [Ln 4, Col 2 - Ln 4, Col 5]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

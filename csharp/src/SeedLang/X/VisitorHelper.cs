@@ -501,6 +501,13 @@ namespace SeedLang.X {
       return null;
     }
 
+    // Builds pass statements.
+    internal AstNode BuildPass(IToken passToken) {
+      TextRange range = CodeReferenceUtils.RangeOfToken(passToken);
+      AddSyntaxToken(SyntaxType.Keyword, range);
+      return Statement.Pass(range);
+    }
+
     // Builds while statements.
     internal WhileStatement BuildWhile(IToken whileToken, ParserRuleContext exprContext,
                                        IToken colonToken, ParserRuleContext blockContext,

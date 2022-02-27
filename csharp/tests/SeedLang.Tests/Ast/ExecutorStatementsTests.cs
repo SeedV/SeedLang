@@ -109,7 +109,7 @@ namespace SeedLang.Ast.Tests {
     public void TestIf() {
       var ifTrue = AstHelper.If(AstHelper.BooleanConstant(true),
                                 AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)), null);
-      var expectedTrueOutput = $"{AstHelper.TextRange} Eval 1\n";
+      var expectedTrueOutput = $"{AstHelper.TextRange} Eval 1" + Environment.NewLine;
       MockupVisualizer visualizer = Run(ifTrue);
       Assert.Equal(expectedTrueOutput, visualizer.ToString());
 

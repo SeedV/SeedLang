@@ -69,7 +69,7 @@ namespace SeedLang.Runtime.Tests {
       var args = new Value[] { new Value(1), new Value(2), new Value(3) };
       var range = new TextRange(0, 1, 2, 3);
       print.Call(args, 0, args.Length, vc, range);
-      var expected = $"{range} Print 1, 2, 3\n";
+      var expected = $"{range} Print 1, 2, 3" + Environment.NewLine;
       Assert.Equal(expected, visualizer.ToString());
     }
 

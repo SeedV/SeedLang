@@ -304,8 +304,8 @@ namespace SeedLang.X {
         }
         TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
         AddSyntaxToken(SyntaxType.Parenthesis, closeParenRange);
-        Debug.Assert(func.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(func.Range as TextRange,
+        Debug.Assert(callee.Range is TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(callee.Range as TextRange,
                                                            closeParenRange);
         return Expression.Call(func, exprs, range);
       }
@@ -362,15 +362,23 @@ namespace SeedLang.X {
     }
 
     // Builds expression statements.
-    internal static ExpressionStatement BuildExpressionStatement(
-        ParserRuleContext exprContext, AbstractParseTreeVisitor<AstNode> visitor) {
-      if (visitor.Visit(exprContext) is Expression expr) {
+    internal ExpressionStatement BuildExpressionStmt(ParserRuleContext[] exprContexts,
+                                                     ITerminalNode[] commaNodes,
+                                                     AbstractParseTreeVisitor<AstNode> visitor) {
+      if (exprContexts.Length == 1 && visitor.Visit(exprContexts[0]) is Expression expr) {
         return Statement.Expression(expr, expr.Range);
       }
-      return null;
+      Expression[] exprs = BuildExpressions(exprContexts, commaNodes, visitor);
+      Debug.Assert(exprs.Length > 1);
+      Debug.Assert(exprs[0].Range is TextRange);
+      Debug.Assert(exprs[exprs.Length - 1].Range is TextRange);
+      var firstRange = exprs[0].Range as TextRange;
+      var lastRange = exprs[exprs.Length - 1].Range as TextRange;
+      TextRange range = CodeReferenceUtils.CombineRanges(firstRange, lastRange);
+      return Statement.Expression(Expression.Tuple(exprs, range), range);
     }
 
-    // Builds function define statements.
+    // Builds function definition statements.
     internal FuncDefStatement BuildFuncDef(IToken defToken, IToken nameToken,
                                            IToken openParenToken, ITerminalNode[] parameterNodes,
                                            ITerminalNode[] commaNodes, IToken closeParenToken,

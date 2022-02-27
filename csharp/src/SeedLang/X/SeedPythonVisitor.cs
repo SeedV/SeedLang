@@ -62,7 +62,8 @@ namespace SeedLang.X {
 
     public override AstNode VisitExpression_stmt(
         [NotNull] SeedPythonParser.Expression_stmtContext context) {
-      return VisitorHelper.BuildExpressionStatement(context.expressions(), this);
+      SeedPythonParser.ExpressionsContext exprs = context.expressions();
+      return _helper.BuildExpressionStmt(exprs.expression(), exprs.COMMA(), this);
     }
 
     public override AstNode VisitPass([NotNull] SeedPythonParser.PassContext context) {

@@ -22,8 +22,8 @@ namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
     private static GlobalEnvironment _env => new GlobalEnvironment(NativeFunctions.Funcs);
     private const int _evalFunc = 1;
+    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
     private readonly Common.Range _range = AstHelper.TextRange;
-    private int _firstGlob = NativeFunctions.Funcs.Length;
 
     [Fact]
     public void TestCompileNumberConstant() {

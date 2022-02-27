@@ -282,8 +282,8 @@ namespace SeedLang.X.Tests {
 
     [InlineData("a.append(1)",
 
-                "[Ln 1, Col 2 - Ln 1, Col 10] ExpressionStatement\n" +
-                "  [Ln 1, Col 2 - Ln 1, Col 10] CallExpression\n" +
+                "[Ln 1, Col 0 - Ln 1, Col 10] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 10] CallExpression\n" +
                 "    [Ln 1, Col 2 - Ln 1, Col 7] IdentifierExpression (append)\n" +
                 "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
                 "    [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (1)",

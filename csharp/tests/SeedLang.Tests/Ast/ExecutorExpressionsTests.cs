@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using Xunit;
@@ -29,50 +30,54 @@ namespace SeedLang.Ast.Tests {
       private void AddBinary() {
         var add = AstHelper.Binary(AstHelper.NumberConstant(3), BinaryOperator.Add,
                                    AstHelper.NumberConstant(2));
-        var expectedAddOutput = $"{AstHelper.TextRange} 3 Add 2 = 5\n";
+        var expectedAddOutput = $"{AstHelper.TextRange} 3 Add 2 = 5" + Environment.NewLine;
         Add(add, expectedAddOutput);
         var sub = AstHelper.Binary(AstHelper.NumberConstant(3), BinaryOperator.Subtract,
                                    AstHelper.NumberConstant(2));
-        var expectedSubOutput = $"{AstHelper.TextRange} 3 Subtract 2 = 1\n";
+        var expectedSubOutput = $"{AstHelper.TextRange} 3 Subtract 2 = 1" + Environment.NewLine;
         Add(sub, expectedSubOutput);
         var mul = AstHelper.Binary(AstHelper.NumberConstant(3), BinaryOperator.Multiply,
                                    AstHelper.NumberConstant(2));
-        var expectedMulOutput = $"{AstHelper.TextRange} 3 Multiply 2 = 6\n";
+        var expectedMulOutput = $"{AstHelper.TextRange} 3 Multiply 2 = 6" + Environment.NewLine;
         Add(mul, expectedMulOutput);
         var div = AstHelper.Binary(AstHelper.NumberConstant(3), BinaryOperator.Divide,
                                    AstHelper.NumberConstant(2));
-        var expectedDivOutput = $"{AstHelper.TextRange} 3 Divide 2 = 1.5\n";
+        var expectedDivOutput = $"{AstHelper.TextRange} 3 Divide 2 = 1.5" + Environment.NewLine;
         Add(div, expectedDivOutput);
         var floorDiv = AstHelper.Binary(AstHelper.NumberConstant(3), BinaryOperator.FloorDivide,
                                         AstHelper.NumberConstant(2));
-        var expectedFloorDivOutput = $"{AstHelper.TextRange} 3 FloorDivide 2 = 1\n";
+        var expectedFloorDivOutput = $"{AstHelper.TextRange} 3 FloorDivide 2 = 1" +
+                                     Environment.NewLine;
         Add(floorDiv, expectedFloorDivOutput);
         var power = AstHelper.Binary(AstHelper.NumberConstant(3), BinaryOperator.Power,
                                      AstHelper.NumberConstant(2));
-        var expectedPowerOutput = $"{AstHelper.TextRange} 3 Power 2 = 9\n";
+        var expectedPowerOutput = $"{AstHelper.TextRange} 3 Power 2 = 9" + Environment.NewLine;
         Add(power, expectedPowerOutput);
         var modulo = AstHelper.Binary(AstHelper.NumberConstant(3), BinaryOperator.Modulo,
                                       AstHelper.NumberConstant(2));
-        var expectedModuloOutput = $"{AstHelper.TextRange} 3 Modulo 2 = 1\n";
+        var expectedModuloOutput = $"{AstHelper.TextRange} 3 Modulo 2 = 1" + Environment.NewLine;
         Add(modulo, expectedModuloOutput);
       }
 
       private void AddBoolean() {
         var andFalse = AstHelper.Boolean(BooleanOperator.And, AstHelper.BooleanConstant(false),
                                          AstHelper.BooleanConstant(true));
-        var expectedAndFalseOutput = $"{AstHelper.TextRange} False And ? = False\n";
+        var expectedAndFalseOutput = $"{AstHelper.TextRange} False And ? = False" +
+                                     Environment.NewLine;
         Add(andFalse, expectedAndFalseOutput);
         var andTrue = AstHelper.Boolean(BooleanOperator.And, AstHelper.BooleanConstant(true),
                                         AstHelper.BooleanConstant(true));
-        var expectedAndTrueOutput = $"{AstHelper.TextRange} True And True = True\n";
+        var expectedAndTrueOutput = $"{AstHelper.TextRange} True And True = True" +
+                                    Environment.NewLine;
         Add(andTrue, expectedAndTrueOutput);
         var orFalse = AstHelper.Boolean(BooleanOperator.Or, AstHelper.BooleanConstant(false),
                                         AstHelper.BooleanConstant(false));
-        var expectedOrFalseOutput = $"{AstHelper.TextRange} False Or False = False\n";
+        var expectedOrFalseOutput = $"{AstHelper.TextRange} False Or False = False" +
+                                    Environment.NewLine;
         Add(orFalse, expectedOrFalseOutput);
         var orTrue = AstHelper.Boolean(BooleanOperator.Or, AstHelper.BooleanConstant(true),
                                        AstHelper.BooleanConstant(false));
-        var expectedOrTrueOutput = $"{AstHelper.TextRange} True Or ? = True\n";
+        var expectedOrTrueOutput = $"{AstHelper.TextRange} True Or ? = True" + Environment.NewLine;
         Add(orTrue, expectedOrTrueOutput);
       }
 
@@ -80,12 +85,13 @@ namespace SeedLang.Ast.Tests {
         var comparisonLess = AstHelper.Comparison(AstHelper.NumberConstant(1),
                                                   AstHelper.CompOps(ComparisonOperator.Less),
                                                   AstHelper.NumberConstant(2));
-        var expectedLessOutput = $"{AstHelper.TextRange} 1 Less 2 = True\n";
+        var expectedLessOutput = $"{AstHelper.TextRange} 1 Less 2 = True" + Environment.NewLine;
         Add(comparisonLess, expectedLessOutput);
         var comparisonGreater = AstHelper.Comparison(AstHelper.NumberConstant(1),
                                                      AstHelper.CompOps(ComparisonOperator.Greater),
                                                      AstHelper.NumberConstant(2));
-        var expectedGreaterOutput = $"{AstHelper.TextRange} 1 Greater 2 = False\n";
+        var expectedGreaterOutput = $"{AstHelper.TextRange} 1 Greater 2 = False" +
+                                    Environment.NewLine;
         Add(comparisonGreater, expectedGreaterOutput);
 
         var comparison1 = AstHelper.Comparison(AstHelper.NumberConstant(1),
@@ -93,33 +99,35 @@ namespace SeedLang.Ast.Tests {
                                                                  ComparisonOperator.Less),
                                                AstHelper.NumberConstant(2),
                                                AstHelper.NumberConstant(3));
-        var expectedOutput1 = $"{AstHelper.TextRange} 1 Less 2 Less 3 = True\n";
+        var expectedOutput1 = $"{AstHelper.TextRange} 1 Less 2 Less 3 = True" + Environment.NewLine;
         Add(comparison1, expectedOutput1);
         var comparison2 = AstHelper.Comparison(AstHelper.NumberConstant(1),
                                                AstHelper.CompOps(ComparisonOperator.Greater,
                                                                  ComparisonOperator.Less),
                                                AstHelper.NumberConstant(2),
                                                AstHelper.NumberConstant(3));
-        var expectedOutput2 = $"{AstHelper.TextRange} 1 Greater 2 Less ? = False\n";
+        var expectedOutput2 = $"{AstHelper.TextRange} 1 Greater 2 Less ? = False" +
+                              Environment.NewLine;
         Add(comparison2, expectedOutput2);
         var comparison3 = AstHelper.Comparison(AstHelper.NumberConstant(1),
                                                AstHelper.CompOps(ComparisonOperator.Less,
                                                                  ComparisonOperator.Greater),
                                                AstHelper.NumberConstant(2),
                                                AstHelper.NumberConstant(3));
-        var expectedOutput3 = $"{AstHelper.TextRange} 1 Less 2 Greater 3 = False\n";
+        var expectedOutput3 = $"{AstHelper.TextRange} 1 Less 2 Greater 3 = False" +
+                              Environment.NewLine;
         Add(comparison3, expectedOutput3);
       }
 
       private void AddUnary() {
         var positive = AstHelper.Unary(UnaryOperator.Positive, AstHelper.NumberConstant(1));
-        var expectedPositiveOutput = $"{AstHelper.TextRange} Positive 1 = 1\n";
+        var expectedPositiveOutput = $"{AstHelper.TextRange} Positive 1 = 1" + Environment.NewLine;
         Add(positive, expectedPositiveOutput);
         var negative = AstHelper.Unary(UnaryOperator.Negative, AstHelper.NumberConstant(1));
-        var expectedNegativeOutput = $"{AstHelper.TextRange} Negative 1 = -1\n";
+        var expectedNegativeOutput = $"{AstHelper.TextRange} Negative 1 = -1" + Environment.NewLine;
         Add(negative, expectedNegativeOutput);
         var not = AstHelper.Unary(UnaryOperator.Not, AstHelper.BooleanConstant(true));
-        var expectedNotOutput = $"{AstHelper.TextRange} Not True = False\n";
+        var expectedNotOutput = $"{AstHelper.TextRange} Not True = False" + Environment.NewLine;
         Add(not, expectedNotOutput);
       }
     }

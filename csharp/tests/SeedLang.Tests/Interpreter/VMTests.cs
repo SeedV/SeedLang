@@ -54,7 +54,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestFunctionCall() {
-      string name = "eval";
+      string name = "add";
       string a = "a";
       string b = "b";
       var program = AstHelper.Block(

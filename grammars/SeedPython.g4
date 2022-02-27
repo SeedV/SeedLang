@@ -30,9 +30,9 @@ tokens {
  * Parser rules
  */
 
-program: statements? EOF;
+program: statements EOF;
 
-statements: statement+;
+statements: (NEWLINE | statement)+;
 statement: compound_stmt | simple_stmts;
 
 simple_stmts:

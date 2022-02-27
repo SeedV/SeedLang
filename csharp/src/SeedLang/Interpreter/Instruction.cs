@@ -49,11 +49,6 @@ namespace SeedLang.Interpreter {
 
     private readonly uint _code;
 
-    internal Instruction(Opcode opcode, uint a) {
-      CheckOpcodeType(opcode, OpcodeType.A);
-      _code = (uint)opcode | a << _posA;
-    }
-
     internal Instruction(Opcode opcode, uint a, uint b, uint c) {
       CheckOpcodeType(opcode, OpcodeType.ABC);
       _code = (uint)opcode | a << _posA | b << _posB | c << _posC;

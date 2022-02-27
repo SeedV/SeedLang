@@ -276,7 +276,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(ExpressionStatement expr) {
       Visit(expr.Expr);
-      if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
+      if (!_visualizerCenter.EvalPublisher.IsEmpty() && !_expressionResult.IsNone) {
         var ee = new EvalEvent(new ValueWrapper(_expressionResult), expr.Range);
         _visualizerCenter.EvalPublisher.Notify(ee);
       }

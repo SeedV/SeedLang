@@ -21,6 +21,7 @@ namespace SeedLang.Runtime {
   // The static class to define all the build-in native functions.
   internal static class NativeFunctions {
     public const string Append = "append";
+    public const string Eval = "eval";
     public const string Len = "len";
     public const string List = "list";
     public const string Print = "print";
@@ -28,6 +29,7 @@ namespace SeedLang.Runtime {
 
     public static NativeFunction[] Funcs = new NativeFunction[] {
       new NativeFunction(Append, AppendFunc),
+      new NativeFunction(Eval, EvalFunc),
       new NativeFunction(Len, LenFunc),
       new NativeFunction(List, ListFunc),
       new NativeFunction(Print, PrintFunc),
@@ -46,6 +48,20 @@ namespace SeedLang.Runtime {
       if (value.IsList) {
         List<Value> list = value.AsList();
         list.Add(args[offset + 1]);
+      }
+      return new Value();
+    }
+
+    private static Value EvalFunc(Value[] args, int offset, int length, VisualizerCenter vc,
+                                  Range range) {
+      if (!vc.EvalPublisher.IsEmpty()) {
+        if (length != 1) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorIncorrectArgsCount);
+        }
+        if (!args[offset].IsNone) {
+          vc.EvalPublisher.Notify(new EvalEvent(new ValueWrapper(args[offset]), range));
+        }
       }
       return new Value();
     }

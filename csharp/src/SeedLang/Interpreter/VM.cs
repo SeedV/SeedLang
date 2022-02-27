@@ -124,13 +124,6 @@ namespace SeedLang.Interpreter {
             case Opcode.TESTSET:
               // TODO: implement the TESTSET opcode.
               break;
-            case Opcode.EVAL:
-              if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
-                var ee = new EvalEvent(new ValueWrapper(_stack[baseRegister + instr.A]),
-                                       chunk.Ranges[pc]);
-                _visualizerCenter.EvalPublisher.Notify(ee);
-              }
-              break;
             case Opcode.FORPREP:
               _stack[baseRegister + instr.A] = new Value(
                   ValueHelper.Subtract(_stack[baseRegister + instr.A],

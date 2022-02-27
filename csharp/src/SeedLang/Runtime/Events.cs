@@ -114,7 +114,7 @@ namespace SeedLang.Runtime {
     }
   }
 
-  // An event which is triggered when an expression statement is executed.
+  // An event which is triggered when an print build-in function is executed.
   public class PrintEvent : AbstractEvent {
     public IReadOnlyList<IValue> Values { get; }
 

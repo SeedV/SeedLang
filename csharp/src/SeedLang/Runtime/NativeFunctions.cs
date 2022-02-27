@@ -52,6 +52,8 @@ namespace SeedLang.Runtime {
       return new Value();
     }
 
+    // Evaluates a value when it's not none. It's used by SeedCalc and interactive mode SeedX
+    // primarily.
     private static Value EvalFunc(Value[] args, int offset, int length, VisualizerCenter vc,
                                   Range range) {
       if (!vc.EvalPublisher.IsEmpty()) {

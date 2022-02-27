@@ -25,7 +25,7 @@ namespace SeedLang.Interpreter {
     private NestedFuncStack _nestedFuncStack;
     private NestedJumpStack _nestedJumpStack;
 
-    // The register allocated for the result of sub-expressions. It must be set before compiling a
+    // The register allocated for the result of sub-expressions. It must be set before visiting a
     // sub-expression.
     private uint _registerForSubExpr;
     // The next boolean operator. A true condition check instruction is emitted if the next boolean

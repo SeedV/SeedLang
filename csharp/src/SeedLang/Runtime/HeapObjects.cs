@@ -18,7 +18,7 @@ namespace SeedLang.Runtime {
   using BuildinFunctionType = Func<Value[], int, int, VisualizerCenter, Common.Range, Value>;
 
   internal partial class HeapObject {
-    // A empty interface for all function value types.
+    // A empty interface for all function value types. It's only used to identify function types.
     internal interface IFunction {
     }
 
@@ -34,7 +34,7 @@ namespace SeedLang.Runtime {
       }
 
       // Calls the build-in function with given arguments that locate in the "args" array starting
-      // from "offset". The number of arguments is "length". The build-in function can notify the
+      // from "offset". The number of arguments is "length". The build-in function can notify
       // visualizers if needed.
       internal Value Call(Value[] args, int offset, int length, VisualizerCenter vc,
                           Common.Range range) {

@@ -14,6 +14,8 @@
 
 using System;
 using System.Collections.Generic;
+using SeedLang.Common;
+using SeedLang.Tests.Helper;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -23,22 +25,22 @@ namespace SeedLang.Runtime.Tests {
   public class NativeFunctionsTests {
     [Fact]
     public void TestEmptyList() {
-      var listFunc = Function("list");
-      Value list = listFunc.Call(Array.Empty<Value>(), 0, 0);
+      var listFunc = Function(NativeFunctions.List);
+      Value list = listFunc.Call(Array.Empty<Value>(), 0, 0, null, null);
       Assert.True(list.IsList);
       Assert.Equal(0, list.Length);
     }
 
     [Fact]
     public void TestListOfList() {
-      var listFunc = Function("list");
+      var listFunc = Function(NativeFunctions.List);
       var args = new Value[] {
         new Value(new List<Value>() {
           new Value(1),
           new Value(2)
         })
       };
-      Value list = listFunc.Call(args, 0, args.Length);
+      Value list = listFunc.Call(args, 0, args.Length, null, null);
       Assert.True(list.IsList);
       Assert.Equal(2, list.Length);
       Assert.Equal(1, list[0].AsNumber());
@@ -47,15 +49,28 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestListOfRange() {
-      var listFunc = Function("list");
+      var listFunc = Function(NativeFunctions.List);
       var length = 10;
       var args = new Value[] { new Value(new Range(length)) };
-      Value list = listFunc.Call(args, 0, args.Length);
+      Value list = listFunc.Call(args, 0, args.Length, null, null);
       Assert.True(list.IsList);
       Assert.Equal(length, list.Length);
       for (int i = 0; i < length; i++) {
         Assert.Equal(i, list[i].AsNumber());
       }
+    }
+
+    [Fact]
+    public void TestPrint() {
+      var print = Function(NativeFunctions.Print);
+      var vc = new VisualizerCenter();
+      var visualizer = new MockupVisualizer();
+      vc.Register(visualizer);
+      var args = new Value[] { new Value(1), new Value(2), new Value(3) };
+      var range = new TextRange(0, 1, 2, 3);
+      print.Call(args, 0, args.Length, vc, range);
+      var expected = $"{range} Print 1, 2, 3\n";
+      Assert.Equal(expected, visualizer.ToString());
     }
 
     private static NativeFunction Function(string name) {

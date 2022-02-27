@@ -15,31 +15,30 @@
 using System;
 
 namespace SeedLang.Runtime {
-  using NativeFunctionType = Func<Value[], int, int, Value>;
+  using BuildinFunctionType = Func<Value[], int, int, VisualizerCenter, Common.Range, Value>;
 
   internal partial class HeapObject {
-    // The function interface of function value types.
+    // A empty interface for all function value types.
     internal interface IFunction {
-      // Calls the function with given arguments that locate in the "args" array starting from
-      // "offset". The number of arguments is "length".
-      Value Call(Value[] args, int offset, int length);
     }
 
     // The native function class to encapsulate build-in functions written by the host language.
     internal class NativeFunction : IFunction {
       public readonly string Name;
 
-      private readonly NativeFunctionType _func;
+      private readonly BuildinFunctionType _func;
 
-      internal NativeFunction(string name, NativeFunctionType func) {
+      internal NativeFunction(string name, BuildinFunctionType func) {
         Name = name;
         _func = func;
       }
 
-      // Calls the function with given arguments that locate in the "args" array starting from
-      // "offset". The number of arguments is "length".
-      public Value Call(Value[] args, int offset, int length) {
-        return _func(args, offset, length);
+      // Calls the build-in function with given arguments that locate in the "args" array starting
+      // from "offset". The number of arguments is "length". The build-in function can notify the
+      // visualizers if needed.
+      internal Value Call(Value[] args, int offset, int length, VisualizerCenter vc,
+                          Common.Range range) {
+        return _func(args, offset, length, vc, range);
       }
 
       public override string ToString() {

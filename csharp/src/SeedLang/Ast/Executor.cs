@@ -243,13 +243,21 @@ namespace SeedLang.Ast {
 
     protected override void Visit(CallExpression call) {
       Visit(call.Func);
-      Value func = _expressionResult;
+      Value funcValue = _expressionResult;
       var values = new Value[call.Arguments.Length];
       for (int i = 0; i < call.Arguments.Length; i++) {
         Visit(call.Arguments[i]);
         values[i] = _expressionResult;
       }
-      _expressionResult = func.Call(values, 0, values.Length);
+      switch (funcValue.AsFunction()) {
+        case HeapObject.NativeFunction nativeFunc:
+          _expressionResult = nativeFunc.Call(values, 0, values.Length, _visualizerCenter,
+                                              call.Range);
+          break;
+        case Function func:
+          _expressionResult = Call(func.FuncDef, values, 0, values.Length);
+          break;
+      }
     }
 
     protected override void Visit(AssignmentStatement assignment) {
@@ -284,7 +292,7 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(FuncDefStatement funcDef) {
-      _env.SetVariable(funcDef.Name, new Value(new Function(funcDef, this)));
+      _env.SetVariable(funcDef.Name, new Value(new Function(funcDef)));
     }
 
     protected override void Visit(IfStatement @if) {

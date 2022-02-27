@@ -26,6 +26,7 @@ namespace SeedLang.Runtime {
     public Publisher<AssignmentEvent> AssignmentPublisher { get; } =
         new Publisher<AssignmentEvent>();
     public Publisher<EvalEvent> EvalPublisher { get; } = new Publisher<EvalEvent>();
+    public Publisher<PrintEvent> PrintPublisher { get; } = new Publisher<PrintEvent>();
 
     private readonly List<object> _publishers = new List<object>();
 

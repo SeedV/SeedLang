@@ -208,14 +208,5 @@ namespace SeedLang.Runtime {
                                       Message.RuntimeErrorNotCallable);
       }
     }
-
-    internal Value Call(Value[] args, int offset, int length) {
-      if (_type == ValueType.Object) {
-        return _object.Call(args, offset, length);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCallable);
-      }
-    }
   }
 }

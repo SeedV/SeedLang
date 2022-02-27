@@ -1,10 +1,10 @@
 x = 1
 
 if x < 0:
-    "Negative changed to zero"
+    print("Negative changed to zero")
 elif x == 0:
-    "Zero"
+    print("Zero")
 elif x == 1:
-    "Single"
+    print("Single")
 else:
-    "More"
+    print("More")

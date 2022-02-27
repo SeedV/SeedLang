@@ -31,9 +31,9 @@ namespace SeedLang.Shell {
       public RunType RunType { get; set; }
 
       [Option('v', "visualizers", Required = false, Separator = ',',
-              Default = new VisualizerType[] { VisualizerType.Eval },
               HelpText = "The Visualizers to be enabled. " +
-                         "Valid values: Assignment, Binary, Comparison, Eval, All. " +
+                         "Valid values: Assignment, Binary, Boolean, Comparison, Unary, " +
+                         "Eval, Print, All. " +
                          "Use \"-v Binary,Eval\" or \"--visualizers=Binary,Comparison,Eval\" " +
                          "to enable multiple visualizers. " +
                          "Use \"-v All\" to enable all visualizers.")]
@@ -63,8 +63,10 @@ namespace SeedLang.Shell {
 
     private static void Run(Options options) {
       if (!string.IsNullOrEmpty(options.Filename)) {
+        options.VisualizerTypes = new VisualizerType[] { VisualizerType.Print };
         RunFile(options.Filename, options.Language, options.RunType, options.VisualizerTypes);
       } else {
+        options.VisualizerTypes = new VisualizerType[] { VisualizerType.Eval, VisualizerType.Print };
         var repl = new Repl(options.Language, options.RunType, options.VisualizerTypes);
         repl.Execute();
       }

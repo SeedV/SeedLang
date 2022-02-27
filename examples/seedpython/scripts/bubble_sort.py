@@ -6,4 +6,4 @@ for i in range(n):
             array[j], array[j + 1] = array[j + 1], array[j]
 
 
-array
+print(array)

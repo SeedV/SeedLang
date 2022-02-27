@@ -147,7 +147,7 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.CALL:
-              CallFunction(ref chunk, ref pc, ref baseRegister, instr);
+              CallFunction(ref chunk, ref pc, ref baseRegister, instr, chunk.Ranges[pc]);
               break;
             case Opcode.RETURN:
               // TODO: only support one return value now.
@@ -216,12 +216,13 @@ namespace SeedLang.Interpreter {
     }
 
     private void CallFunction(ref Chunk chunk, ref int pc, ref uint baseRegister,
-                              Instruction instr) {
+                              Instruction instr, Range range) {
       int calleeRegister = (int)(baseRegister + instr.A);
       var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
         case HeapObject.NativeFunction nativeFunc:
-          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B);
+          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B,
+                                                   _visualizerCenter, range);
           break;
         case Function func:
           baseRegister += instr.A + 1;

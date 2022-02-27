@@ -113,4 +113,13 @@ namespace SeedLang.Runtime {
       Value = value;
     }
   }
+
+  // An event which is triggered when an expression statement is executed.
+  public class PrintEvent : AbstractEvent {
+    public IReadOnlyList<IValue> Values { get; }
+
+    public PrintEvent(IReadOnlyList<IValue> values, Range range) : base(range) {
+      Values = values;
+    }
+  }
 }

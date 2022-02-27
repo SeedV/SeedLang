@@ -23,8 +23,11 @@ namespace SeedLang.Shell {
   internal enum VisualizerType {
     Assignment,
     Binary,
+    Boolean,
     Comparison,
     Eval,
+    Print,
+    Unary,
     All,
   }
 
@@ -51,30 +54,47 @@ namespace SeedLang.Shell {
 
     private readonly Dictionary<BinaryOperator, string> _binaryOperatorStrings =
         new Dictionary<BinaryOperator, string>() {
-          {BinaryOperator.Add, "+"},
-          {BinaryOperator.Subtract, "-"},
-          {BinaryOperator.Multiply, "*"},
-          {BinaryOperator.Divide, "/"},
-          {BinaryOperator.FloorDivide, "//"},
-          {BinaryOperator.Power, "**"},
-          {BinaryOperator.Modulo, "%"},
+          [BinaryOperator.Add] = "+",
+          [BinaryOperator.Subtract] = "-",
+          [BinaryOperator.Multiply] = "*",
+          [BinaryOperator.Divide] = "/",
+          [BinaryOperator.FloorDivide] = "//",
+          [BinaryOperator.Power] = "**",
+          [BinaryOperator.Modulo] = "%",
+        };
+
+    private readonly Dictionary<BooleanOperator, string> _booleanOperatorStrings =
+        new Dictionary<BooleanOperator, string>() {
+          [BooleanOperator.And] = "and",
+          [BooleanOperator.Or] = "or",
         };
 
     private readonly Dictionary<ComparisonOperator, string> _comparisonOperatorStrings =
         new Dictionary<ComparisonOperator, string>() {
-          {ComparisonOperator.Less, "<"},
-          {ComparisonOperator.Greater, ">"},
-          {ComparisonOperator.LessEqual, "<="},
-          {ComparisonOperator.GreaterEqual, ">="},
-          {ComparisonOperator.EqEqual, "=="},
-          {ComparisonOperator.NotEqual, "!="},
+          [ComparisonOperator.Less] = "<",
+          [ComparisonOperator.Greater] = ">",
+          [ComparisonOperator.LessEqual] = "<=",
+          [ComparisonOperator.GreaterEqual] = ">=",
+          [ComparisonOperator.EqEqual] = "==",
+          [ComparisonOperator.NotEqual] = "!=",
         };
+
+    private readonly Dictionary<UnaryOperator, string> _unaryOperatorStrings =
+        new Dictionary<UnaryOperator, string>() {
+          [UnaryOperator.Positive] = "+",
+          [UnaryOperator.Negative] = "-",
+          [UnaryOperator.Not] = "not",
+        };
+
 
     private readonly SourceCode _source;
     private readonly Visualizer<AssignmentEvent> _assignmentVisualizer;
     private readonly Visualizer<BinaryEvent> _binaryVisualizer;
+    private readonly Visualizer<BooleanEvent> _booleanVisualizer;
     private readonly Visualizer<ComparisonEvent> _comparisonVisualizer;
     private readonly Visualizer<EvalEvent> _evalVisualizer;
+    private readonly Visualizer<PrintEvent> _printVisualizer;
+    private readonly Visualizer<UnaryEvent> _unaryVisualizer;
 
     internal VisualizerManager(SourceCode source, IEnumerable<VisualizerType> visualizerTypes) {
       _source = source;
@@ -92,6 +112,10 @@ namespace SeedLang.Shell {
             _binaryVisualizer = new Visualizer<BinaryEvent>(_source.WriteSourceWithHighlight,
                                                             WriteEvent);
             break;
+          case VisualizerType.Boolean:
+            _booleanVisualizer = new Visualizer<BooleanEvent>(_source.WriteSourceWithHighlight,
+                                                              WriteEvent);
+            break;
           case VisualizerType.Comparison:
             _comparisonVisualizer = new Visualizer<ComparisonEvent>(
                 _source.WriteSourceWithHighlight, WriteEvent);
@@ -99,6 +123,14 @@ namespace SeedLang.Shell {
           case VisualizerType.Eval:
             _evalVisualizer = new Visualizer<EvalEvent>(_source.WriteSourceWithHighlight,
                                                         WriteEvent);
+            break;
+          case VisualizerType.Print:
+            _printVisualizer = new Visualizer<PrintEvent>(_source.WriteSourceWithHighlight,
+                                                          WriteEvent);
+            break;
+          case VisualizerType.Unary:
+            _unaryVisualizer = new Visualizer<UnaryEvent>(_source.WriteSourceWithHighlight,
+                                                          WriteEvent);
             break;
           case VisualizerType.All:
             // Ignores.
@@ -112,15 +144,21 @@ namespace SeedLang.Shell {
     internal void RegisterToExecutor(Executor executor) {
       RegisterToExecutor(executor, _assignmentVisualizer);
       RegisterToExecutor(executor, _binaryVisualizer);
+      RegisterToExecutor(executor, _booleanVisualizer);
       RegisterToExecutor(executor, _comparisonVisualizer);
       RegisterToExecutor(executor, _evalVisualizer);
+      RegisterToExecutor(executor, _printVisualizer);
+      RegisterToExecutor(executor, _unaryVisualizer);
     }
 
     internal void UnregisterFromExecutor(Executor executor) {
       UnregisterFromExecutor(executor, _assignmentVisualizer);
       UnregisterFromExecutor(executor, _binaryVisualizer);
+      UnregisterFromExecutor(executor, _booleanVisualizer);
       UnregisterFromExecutor(executor, _comparisonVisualizer);
       UnregisterFromExecutor(executor, _evalVisualizer);
+      UnregisterFromExecutor(executor, _printVisualizer);
+      UnregisterFromExecutor(executor, _unaryVisualizer);
     }
 
     private static void RegisterToExecutor<Event>(Executor executor,
@@ -144,20 +182,44 @@ namespace SeedLang.Shell {
         case AssignmentEvent ae:
           Console.Write($"Assignment: {ae.Identifier} = {ae.Value}");
           break;
-        case BinaryEvent be:
-          var op = _binaryOperatorStrings[be.Op];
-          Console.Write($"Binary: {be.Left} {op} {be.Right} = {be.Result}");
-          break;
+        case BinaryEvent be: {
+            var op = _binaryOperatorStrings[be.Op];
+            Console.Write($"Binary: {be.Left} {op} {be.Right} = {be.Result}");
+            break;
+          }
+        case BooleanEvent be: {
+            var op = _booleanOperatorStrings[be.Op];
+            foreach (IValue value in be.Values) {
+              string valueString = value.IsBoolean ? value.String : "?";
+              Console.Write($"{op} {valueString} ");
+            }
+            Console.Write($"= {be.Result}");
+            break;
+          }
         case ComparisonEvent ce:
           Console.Write($"Comparison: {ce.First} ");
           for (int i = 0; i < ce.Ops.Count; i++) {
-            string exprString = ce.Values[i].IsNumber ? ce.Values[i].String : "?";
-            Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {exprString} ");
+            string valueString = ce.Values[i].IsNumber ? ce.Values[i].String : "?";
+            Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {valueString} ");
           }
           Console.Write($"= {ce.Result}");
           break;
         case EvalEvent ee:
-          Console.Write($"Eval result: {ee.Value}");
+          Console.Write($"Eval: {ee.Value}");
+          break;
+        case PrintEvent pe:
+          Console.Write($"Print: ");
+          for (int i = 0; i < pe.Values.Count; i++) {
+            Console.Write($"{pe.Values[i]}");
+            if (i < pe.Values.Count - 1) {
+              Console.Write(" ");
+            }
+          }
+          break;
+        case UnaryEvent ue: {
+            var op = _unaryOperatorStrings[ue.Op];
+            Console.Write($"Unary: {op} {ue.Value} = {ue.Result}");
+          }
           break;
         default:
           throw new NotImplementedException($"Unsupported event: {e}");

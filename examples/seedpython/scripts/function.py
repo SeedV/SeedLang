@@ -1,12 +1,12 @@
 def fib(n):
     a, b = 0, 1
     while a < n:
-        a
+        print(a)
         a, b = b, a + b
 
 
 fib(2000)  # 0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597
-fib  # <function fib at 10042ed0>
+print(fib)  # Func <fib>
 f = fib
 f(100)  # 0 1 1 2 3 5 8 13 21 34 55 89
 
@@ -20,7 +20,7 @@ def fib_list(n):
     return result
 
 
-fib_list(100)  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
+print(fib_list(100))  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
 
 
 def fib_recursive(n):
@@ -30,7 +30,7 @@ def fib_recursive(n):
         return fib_recursive(n - 1) + fib_recursive(n - 2)
 
 
-fib_recursive(10)  # 55
+print(fib_recursive(10))  # 55
 
 
 def my_func():

@@ -32,6 +32,14 @@ END
 
   cat <<END
 
+## Parser
+
+END
+
+  cat ${results_path}/SeedLang.Benchmark.ParserBenchmark-report-github.md
+
+  cat <<END
+
 ## Sum
 
 END

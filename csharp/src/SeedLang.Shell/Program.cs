@@ -64,19 +64,8 @@ namespace SeedLang.Shell {
 
     private static void Run(Options options) {
       if (!string.IsNullOrEmpty(options.Filename)) {
-        // Sets default visualizers if the option is empty.
-        if (!options.VisualizerTypes.GetEnumerator().MoveNext()) {
-          options.VisualizerTypes = new VisualizerType[] { VisualizerType.Print };
-        }
         RunFile(options.Filename, options.Language, options.RunType, options.VisualizerTypes);
       } else {
-        // Sets default visualizers if the option is empty.
-        if (!options.VisualizerTypes.GetEnumerator().MoveNext()) {
-          options.VisualizerTypes = new VisualizerType[] {
-            VisualizerType.Eval,
-            VisualizerType.Print
-          };
-        }
         var repl = new Repl(options.Language, options.RunType, options.VisualizerTypes);
         repl.Execute();
       }

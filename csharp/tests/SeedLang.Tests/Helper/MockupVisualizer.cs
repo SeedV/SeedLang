@@ -19,14 +19,11 @@ using SeedLang.Runtime;
 namespace SeedLang.Tests.Helper {
   internal class MockupVisualizer : IVisualizer<AssignmentEvent>, IVisualizer<BinaryEvent>,
                                     IVisualizer<BooleanEvent>, IVisualizer<ComparisonEvent>,
-                                    IVisualizer<EvalEvent>, IVisualizer<PrintEvent>,
                                     IVisualizer<UnaryEvent> {
     private readonly List<AssignmentEvent> _assignEvents = new List<AssignmentEvent>();
     private readonly List<BinaryEvent> _binaryEvents = new List<BinaryEvent>();
     private readonly List<BooleanEvent> _booleanEvents = new List<BooleanEvent>();
     private readonly List<ComparisonEvent> _comparisonEvents = new List<ComparisonEvent>();
-    private readonly List<EvalEvent> _evalEvents = new List<EvalEvent>();
-    private readonly List<PrintEvent> _printEvents = new List<PrintEvent>();
     private readonly List<UnaryEvent> _unaryEvents = new List<UnaryEvent>();
 
     public override string ToString() {
@@ -35,8 +32,6 @@ namespace SeedLang.Tests.Helper {
       BinaryEventsToString(sb);
       BooleanEventsToString(sb);
       ComparisonEventsToString(sb);
-      EvalEventsToString(sb);
-      PrintEventsToString(sb);
       UnaryEventsToString(sb);
       return sb.ToString();
     }
@@ -55,14 +50,6 @@ namespace SeedLang.Tests.Helper {
 
     public void On(ComparisonEvent ce) {
       _comparisonEvents.Add(ce);
-    }
-
-    public void On(EvalEvent ee) {
-      _evalEvents.Add(ee);
-    }
-
-    public void On(PrintEvent pe) {
-      _printEvents.Add(pe);
     }
 
     public void On(UnaryEvent ue) {
@@ -90,12 +77,6 @@ namespace SeedLang.Tests.Helper {
     internal string ComparisonEventsToString() {
       var sb = new StringBuilder();
       ComparisonEventsToString(sb);
-      return sb.ToString();
-    }
-
-    internal string EvalEventsToString() {
-      var sb = new StringBuilder();
-      EvalEventsToString(sb);
       return sb.ToString();
     }
 
@@ -138,25 +119,6 @@ namespace SeedLang.Tests.Helper {
           sb.Append($"{ce.Ops[i]} {valueStr} ");
         }
         sb.AppendLine($"= {ce.Result}");
-      }
-    }
-
-    private void EvalEventsToString(StringBuilder sb) {
-      foreach (var ee in _evalEvents) {
-        sb.AppendLine($"{ee.Range} Eval {ee.Value}");
-      }
-    }
-
-    private void PrintEventsToString(StringBuilder sb) {
-      foreach (var pe in _printEvents) {
-        sb.Append($"{pe.Range} Print ");
-        for (int i = 0; i < pe.Values.Count; i++) {
-          sb.Append($"{pe.Values[i]}");
-          if (i < pe.Values.Count - 1) {
-            sb.Append($", ");
-          }
-        }
-        sb.AppendLine();
       }
     }
 

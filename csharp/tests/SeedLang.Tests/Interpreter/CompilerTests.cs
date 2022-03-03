@@ -20,9 +20,10 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static GlobalEnvironment _env => new GlobalEnvironment(NativeFunctions.Funcs);
+    private static readonly HostSystem _sys = new HostSystem();
+    private static GlobalEnvironment _env => new GlobalEnvironment(_sys.NativeFuncs());
     private const int _evalFunc = 1;
-    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
+    private readonly int _firstGlob = _sys.NativeFuncs().Length;
     private readonly Common.Range _range = AstHelper.TextRange;
 
     [Fact]

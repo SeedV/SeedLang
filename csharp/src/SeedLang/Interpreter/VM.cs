@@ -1,3 +1,4 @@
+using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +20,8 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
-    public readonly GlobalEnvironment Env = new GlobalEnvironment(NativeFunctions.Funcs);
+    public readonly HostSystem Sys = new HostSystem();
+    public readonly GlobalEnvironment Env;
 
     // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
     // can hold maximun 100 recursive function calls.
@@ -30,7 +32,12 @@ namespace SeedLang.Interpreter {
     private CallStack _callStack;
 
     internal VM(VisualizerCenter visualizerCenter = null) {
+      Env = new GlobalEnvironment(Sys.NativeFuncs());
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
+    }
+
+    internal void RedirectStdout(TextWriter stdout) {
+      Sys.Stdout = stdout;
     }
 
     internal void Run(Function func) {

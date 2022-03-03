@@ -18,7 +18,7 @@ namespace SeedLang.Runtime {
   using BuildinFunctionType = Func<Value[], int, int, VisualizerCenter, Common.Range, Value>;
 
   internal partial class HeapObject {
-    // A empty interface for all function value types. It's only used to identify function types.
+    // An empty interface for all function value types. It's only used to identify function types.
     internal interface IFunction {
     }
 

@@ -203,7 +203,7 @@ namespace SeedLang.Interpreter {
     protected override void Visit(ExpressionStatement expr) {
       _variableResolver.BeginExpressionScope();
       _registerForSubExpr = _variableResolver.AllocateRegister();
-      Expression eval = Expression.Identifier(NativeFunctions.Eval, expr.Range);
+      Expression eval = Expression.Identifier(HostSystem.Eval, expr.Range);
       Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
       _variableResolver.EndExpressionScope();
     }

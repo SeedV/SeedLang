@@ -1,3 +1,4 @@
+using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,8 @@ using SeedLang.Runtime;
 namespace SeedLang.Ast {
   // An executor class to execute a program represented by an AST tree.
   internal sealed class Executor : AstWalker {
+    private readonly HostSystem _sys = new HostSystem();
+
     // The visualizer center to observe AST execution events and dispatch them to the registered
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
@@ -30,10 +33,14 @@ namespace SeedLang.Ast {
     private Value _expressionResult;
 
     internal Executor(VisualizerCenter visualizerCenter = null) {
-      foreach (var func in NativeFunctions.Funcs) {
+      foreach (var func in _sys.NativeFuncs()) {
         _env.SetVariable(func.Name, new Value(func));
       }
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
+    }
+
+    internal void RedirectStdout(TextWriter stdout) {
+      _sys.Stdout = stdout;
     }
 
     // Executes the given AST tree.
@@ -275,11 +282,8 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(ExpressionStatement expr) {
-      Visit(expr.Expr);
-      if (!_visualizerCenter.EvalPublisher.IsEmpty() && !_expressionResult.IsNone) {
-        var ee = new EvalEvent(new ValueWrapper(_expressionResult), expr.Range);
-        _visualizerCenter.EvalPublisher.Notify(ee);
-      }
+      Expression eval = Expression.Identifier(HostSystem.Eval, expr.Range);
+      Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
     }
 
     protected override void Visit(ForInStatement forIn) {

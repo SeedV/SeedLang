@@ -13,13 +13,14 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.IO;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   using NativeFunction = HeapObject.NativeFunction;
 
   // The static class to define all the build-in native functions.
-  internal static class NativeFunctions {
+  internal class HostSystem {
     public const string Append = "append";
     public const string Eval = "eval";
     public const string Len = "len";
@@ -27,19 +28,22 @@ namespace SeedLang.Runtime {
     public const string Print = "print";
     public const string Range = "range";
 
-    public static NativeFunction[] Funcs = new NativeFunction[] {
-      new NativeFunction(Append, AppendFunc),
-      new NativeFunction(Eval, EvalFunc),
-      new NativeFunction(Len, LenFunc),
-      new NativeFunction(List, ListFunc),
-      new NativeFunction(Print, PrintFunc),
-      new NativeFunction(Range, RangeFunc),
-    };
+    public TextWriter Stdout { get; set; } = System.Console.Out;
+
+    internal NativeFunction[] NativeFuncs() {
+      return new NativeFunction[] {
+        new NativeFunction(Append, AppendFunc),
+        new NativeFunction(Eval, EvalFunc),
+        new NativeFunction(Len, LenFunc),
+        new NativeFunction(List, ListFunc),
+        new NativeFunction(Print, PrintFunc),
+        new NativeFunction(Range, RangeFunc),
+      };
+    }
 
     // Appends a value to a list. The first argument is the list, the second argument is the
     // value to be appended to the list.
-    private static Value AppendFunc(Value[] args, int offset, int length, VisualizerCenter vc,
-                                    Range range) {
+    private Value AppendFunc(Value[] args, int offset, int length, VisualizerCenter vc, Range range) {
       if (length != 2) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -54,22 +58,18 @@ namespace SeedLang.Runtime {
 
     // Evaluates a value when it's not none. It's used by SeedCalc and interactive mode SeedX
     // primarily.
-    private static Value EvalFunc(Value[] args, int offset, int length, VisualizerCenter vc,
-                                  Range range) {
-      if (!vc.EvalPublisher.IsEmpty()) {
-        if (length != 1) {
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorIncorrectArgsCount);
-        }
-        if (!args[offset].IsNone) {
-          vc.EvalPublisher.Notify(new EvalEvent(new ValueWrapper(args[offset]), range));
-        }
+    private Value EvalFunc(Value[] args, int offset, int length, VisualizerCenter vc, Range range) {
+      if (length != 1) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorIncorrectArgsCount);
+      }
+      if (!args[offset].IsNone) {
+        Stdout.WriteLine(args[offset].AsString());
       }
       return new Value();
     }
 
-    private static Value LenFunc(Value[] args, int offset, int length, VisualizerCenter vc,
-                                 Range callRange) {
+    private Value LenFunc(Value[] args, int offset, int length, VisualizerCenter vc, Range callRange) {
       if (length != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -79,8 +79,7 @@ namespace SeedLang.Runtime {
 
     // Creates an empty list if the length of arguments is empty, and a list if the argument is a
     // subscriptable value.
-    private static Value ListFunc(Value[] args, int offset, int length, VisualizerCenter vc,
-                                  Range callRange) {
+    private Value ListFunc(Value[] args, int offset, int length, VisualizerCenter vc, Range callRange) {
       if (length < 0 || length > 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -98,21 +97,14 @@ namespace SeedLang.Runtime {
       return new Value(list);
     }
 
-    private static Value PrintFunc(Value[] args, int offset, int length, VisualizerCenter vc,
-                                   Range callRange) {
-      if (!vc.PrintPublisher.IsEmpty()) {
-        var values = new IValue[length];
-        for (int i = 0; i < length; i++) {
-          values[i] = new ValueWrapper(args[offset + i]);
-        }
-        var pe = new PrintEvent(values, callRange);
-        vc.PrintPublisher.Notify(pe);
+    private Value PrintFunc(Value[] args, int offset, int length, VisualizerCenter vc, Range callRange) {
+      for (int i = 0; i < length; i++) {
+        Stdout.WriteLine(args[offset + i].AsString());
       }
       return new Value();
     }
 
-    private static Value RangeFunc(Value[] args, int offset, int length, VisualizerCenter vc,
-                                   Range callRange) {
+    private Value RangeFunc(Value[] args, int offset, int length, VisualizerCenter vc, Range callRange) {
       if (length == 1) {
         return new Value(new HeapObject.Range((int)args[offset].AsNumber()));
       } else if (length == 2) {

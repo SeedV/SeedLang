@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +18,6 @@ using Xunit;
 
 namespace SeedLang.Runtime.Tests {
   public class ExecutorBytecodeTests {
-    private class MockupVisualizer : IVisualizer<EvalEvent> {
-      public IValue Result { get; private set; }
-
-      public void On(EvalEvent ee) {
-        Result = ee.Value;
-      }
-    }
-
     [Theory]
     [InlineData(@"sum = 0
 i = 1
@@ -141,10 +135,10 @@ array
 
     private static void TestWithRunType(string source, string result, RunType type) {
       var executor = new Executor();
-      var visualizer = new MockupVisualizer();
-      executor.Register(visualizer);
+      var stringWriter = new StringWriter();
+      executor.RedirectStdout(stringWriter);
       executor.Run(source, "", SeedXLanguage.SeedPython, type);
-      Assert.Equal(result, visualizer.Result.ToString());
+      Assert.Equal(result + Environment.NewLine, stringWriter.ToString());
     }
   }
 }

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.IO;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using Xunit;
@@ -24,8 +25,8 @@ namespace SeedLang.Ast.Tests {
       string name = "id";
       var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
                                         AstHelper.NumberConstant(1));
+      (string _, MockupVisualizer visualizer) = Run(assignment);
       var expectedOutput = $"{AstHelper.TextRange} {name} = 1" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(assignment);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -36,11 +37,11 @@ namespace SeedLang.Ast.Tests {
       var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b)),
                                         AstHelper.NumberConstant(1),
                                         AstHelper.NumberConstant(2));
+      (string _, MockupVisualizer visualizer) = Run(assignment);
       var expectedOutput = (
         $"{AstHelper.TextRange} {a} = 1\n" +
         $"{AstHelper.TextRange} {b} = 2\n"
       ).Replace("\n", Environment.NewLine);
-      MockupVisualizer visualizer = Run(assignment);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -50,8 +51,8 @@ namespace SeedLang.Ast.Tests {
       var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
                                         AstHelper.NumberConstant(1),
                                         AstHelper.NumberConstant(2));
+      (string _, MockupVisualizer visualizer) = Run(assignment);
       var expectedOutput = $"{AstHelper.TextRange} {name} = (1, 2)" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(assignment);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -63,11 +64,11 @@ namespace SeedLang.Ast.Tests {
         AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b)),
         AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2))
       );
+      (string _, MockupVisualizer visualizer) = Run(assignment);
       var expectedOutput = (
         $"{AstHelper.TextRange} {a} = 1\n" +
         $"{AstHelper.TextRange} {b} = 2\n"
       ).Replace("\n", Environment.NewLine);
-      MockupVisualizer visualizer = Run(assignment);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -79,12 +80,12 @@ namespace SeedLang.Ast.Tests {
         AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.Id(name), BinaryOperator.Add,
                                                   AstHelper.NumberConstant(2)))
       );
+      (string output, MockupVisualizer visualizer) = Run(block);
+      Assert.Equal("3" + Environment.NewLine, output);
       var expectedOutput = (
         $"{AstHelper.TextRange} {name} = 1\n" +
-        $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
-        $"{AstHelper.TextRange} Eval 3\n"
+        $"{AstHelper.TextRange} 1 Add 2 = 3\n"
       ).Replace("\n", Environment.NewLine);
-      MockupVisualizer visualizer = Run(block);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -96,12 +97,12 @@ namespace SeedLang.Ast.Tests {
         BinaryOperator.Multiply,
         AstHelper.NumberConstant(3)
       ));
+      (string output, MockupVisualizer visualizer) = Run(expr);
+      Assert.Equal("9" + Environment.NewLine, output);
       var expectedOutput = (
         $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
-        $"{AstHelper.TextRange} 3 Multiply 3 = 9\n" +
-        $"{AstHelper.TextRange} Eval 9\n"
+        $"{AstHelper.TextRange} 3 Multiply 3 = 9\n"
       ).Replace("\n", Environment.NewLine);
-      MockupVisualizer visualizer = Run(expr);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -109,14 +110,13 @@ namespace SeedLang.Ast.Tests {
     public void TestIf() {
       var ifTrue = AstHelper.If(AstHelper.BooleanConstant(true),
                                 AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)), null);
-      var expectedTrueOutput = $"{AstHelper.TextRange} Eval 1" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(ifTrue);
-      Assert.Equal(expectedTrueOutput, visualizer.ToString());
+      (string output, MockupVisualizer _) = Run(ifTrue);
+      Assert.Equal("1" + Environment.NewLine, output);
 
       var ifFalse = AstHelper.If(AstHelper.BooleanConstant(false),
                                  AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)), null);
-      visualizer = Run(ifFalse);
-      Assert.Equal("", visualizer.ToString());
+      (output, MockupVisualizer _) = Run(ifFalse);
+      Assert.Equal("", output);
     }
 
     [Fact]
@@ -126,18 +126,16 @@ namespace SeedLang.Ast.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
-      var expectedTrueOutput = $"{AstHelper.TextRange} Eval 1" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(ifTrue);
-      Assert.Equal(expectedTrueOutput, visualizer.ToString());
+      (string output, MockupVisualizer _) = Run(ifTrue);
+      Assert.Equal("1" + Environment.NewLine, output);
 
       var ifFalse = AstHelper.If(
         AstHelper.BooleanConstant(false),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
-      var expectedFalseOutput = $"{AstHelper.TextRange} Eval 2" + Environment.NewLine;
-      visualizer = Run(ifFalse);
-      Assert.Equal(expectedFalseOutput, visualizer.ToString());
+      (output, MockupVisualizer _) = Run(ifFalse);
+      Assert.Equal("2" + Environment.NewLine, output);
     }
 
     [Fact]
@@ -147,9 +145,8 @@ namespace SeedLang.Ast.Tests {
                        AstHelper.NumberConstant(2),
                        AstHelper.NumberConstant(3))
       );
-      var expectedOutput = $"{AstHelper.TextRange} Eval [1, 2, 3]" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(eval);
-      Assert.Equal(expectedOutput, visualizer.ToString());
+      (string output, MockupVisualizer _) = Run(eval);
+      Assert.Equal("[1, 2, 3]" + Environment.NewLine, output);
     }
 
     [Fact]
@@ -159,9 +156,8 @@ namespace SeedLang.Ast.Tests {
                         AstHelper.NumberConstant(2),
                         AstHelper.NumberConstant(3))
       );
-      var expectedOutput = $"{AstHelper.TextRange} Eval (1, 2, 3)" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(eval);
-      Assert.Equal(expectedOutput, visualizer.ToString());
+      (string output, MockupVisualizer _) = Run(eval);
+      Assert.Equal("(1, 2, 3)" + Environment.NewLine, output);
     }
 
     [Fact]
@@ -172,9 +168,8 @@ namespace SeedLang.Ast.Tests {
                        AstHelper.NumberConstant(3)),
         AstHelper.NumberConstant(1)
       ));
-      var expectedOutput = $"{AstHelper.TextRange} Eval 2" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(eval);
-      Assert.Equal(expectedOutput, visualizer.ToString());
+      (string output, MockupVisualizer _) = Run(eval);
+      Assert.Equal("2" + Environment.NewLine, output);
     }
 
     [Fact]
@@ -190,8 +185,8 @@ namespace SeedLang.Ast.Tests {
           AstHelper.NumberConstant(3)
         )
       );
+      (string _, MockupVisualizer visualizer) = Run(block);
       var expectedOutput = $"{AstHelper.TextRange} a = [1, 3, 3]" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(block);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -218,22 +213,20 @@ namespace SeedLang.Ast.Tests {
         ),
         AstHelper.ExpressionStmt(AstHelper.Id(sum))
       );
-      var expectedOutput = $"{AstHelper.TextRange} Eval 55" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(program);
-      Assert.Equal(expectedOutput, visualizer.EvalEventsToString());
+      (string output, MockupVisualizer _) = Run(program);
+      Assert.Equal("55" + Environment.NewLine, output);
     }
 
     [Fact]
     public void TestNativeFunctionCall() {
       var eval = AstHelper.ExpressionStmt(AstHelper.Call(
-        AstHelper.Id(NativeFunctions.Len),
+        AstHelper.Id(HostSystem.Len),
         AstHelper.List(AstHelper.NumberConstant(1),
                        AstHelper.NumberConstant(2),
                        AstHelper.NumberConstant(3))
       ));
-      var expectedOutput = $"{AstHelper.TextRange} Eval 3" + Environment.NewLine;
-      MockupVisualizer visualizer = Run(eval);
-      Assert.Equal(expectedOutput, visualizer.ToString());
+      (string output, MockupVisualizer _) = Run(eval);
+      Assert.Equal("3" + Environment.NewLine, output);
     }
 
     [Fact]
@@ -247,11 +240,10 @@ namespace SeedLang.Ast.Tests {
         )),
         AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)), AstHelper.Call(AstHelper.Id(func)))
       );
+      (string _, MockupVisualizer visualizer) = Run(block);
       var expectedOutput = (
-        $"{AstHelper.TextRange} {a} = None\n" +
-        $"{AstHelper.TextRange} Eval 1\n"
+        $"{AstHelper.TextRange} {a} = None\n"
       ).Replace("\n", Environment.NewLine);
-      MockupVisualizer visualizer = Run(block);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -269,11 +261,11 @@ namespace SeedLang.Ast.Tests {
                                         AstHelper.NumberConstant(1),
                                         AstHelper.NumberConstant(2)))
       );
+      (string _, MockupVisualizer visualizer) = Run(block);
       var expectedOutput = (
         $"{AstHelper.TextRange} {a} = 3\n" +
         $"{AstHelper.TextRange} 1 Add 2 = 3\n"
       ).Replace("\n", Environment.NewLine);
-      MockupVisualizer visualizer = Run(block);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
@@ -295,25 +287,27 @@ namespace SeedLang.Ast.Tests {
         ),
         AstHelper.ExpressionStmt(AstHelper.Id(sum))
       );
+      (string output, MockupVisualizer visualizer) = Run(block);
+      Assert.Equal("3\n", output);
       var expectedOutput = (
         $"{AstHelper.TextRange} {sum} = 0\n" +
         $"{AstHelper.TextRange} {sum} = 1\n" +
         $"{AstHelper.TextRange} {sum} = 3\n" +
         $"{AstHelper.TextRange} 0 Add 1 = 1\n" +
-        $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
-        $"{AstHelper.TextRange} Eval 3\n"
+        $"{AstHelper.TextRange} 1 Add 2 = 3\n"
       ).Replace("\n", Environment.NewLine);
-      MockupVisualizer visualizer = Run(block);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
-    private static MockupVisualizer Run(Statement program) {
+    private static (string, MockupVisualizer) Run(Statement program) {
       var visualizer = new MockupVisualizer();
       var visualizerCenter = new VisualizerCenter();
       visualizerCenter.Register(visualizer);
       var executor = new Executor(visualizerCenter);
+      var stringWriter = new StringWriter();
+      executor.RedirectStdout(stringWriter);
       executor.Run(program);
-      return visualizer;
+      return (stringWriter.ToString(), visualizer);
     }
   }
 }

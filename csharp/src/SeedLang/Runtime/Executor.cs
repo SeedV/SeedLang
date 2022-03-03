@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using SeedLang.Ast;
 using SeedLang.Block;
 using SeedLang.Common;
@@ -31,6 +32,11 @@ namespace SeedLang.Runtime {
     public Executor() {
       _executor = new Ast.Executor(_visualizerCenter);
       _vm = new VM(_visualizerCenter);
+    }
+
+    public void RedirectStdout(TextWriter stdout) {
+      _executor.RedirectStdout(stdout);
+      _vm.RedirectStdout(stdout);
     }
 
     public void Register<Visualizer>(Visualizer visualizer) {

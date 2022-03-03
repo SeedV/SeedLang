@@ -25,8 +25,6 @@ namespace SeedLang.Shell {
     Binary,
     Boolean,
     Comparison,
-    Eval,
-    Print,
     Unary,
     All,
   }
@@ -92,8 +90,6 @@ namespace SeedLang.Shell {
     private readonly Visualizer<BinaryEvent> _binaryVisualizer;
     private readonly Visualizer<BooleanEvent> _booleanVisualizer;
     private readonly Visualizer<ComparisonEvent> _comparisonVisualizer;
-    private readonly Visualizer<EvalEvent> _evalVisualizer;
-    private readonly Visualizer<PrintEvent> _printVisualizer;
     private readonly Visualizer<UnaryEvent> _unaryVisualizer;
 
     internal VisualizerManager(SourceCode source, IEnumerable<VisualizerType> visualizerTypes) {
@@ -120,14 +116,6 @@ namespace SeedLang.Shell {
             _comparisonVisualizer = new Visualizer<ComparisonEvent>(
                 _source.WriteSourceWithHighlight, WriteEvent);
             break;
-          case VisualizerType.Eval:
-            _evalVisualizer = new Visualizer<EvalEvent>(_source.WriteSourceWithHighlight,
-                                                        WriteEvent);
-            break;
-          case VisualizerType.Print:
-            _printVisualizer = new Visualizer<PrintEvent>(_source.WriteSourceWithHighlight,
-                                                          WriteEvent);
-            break;
           case VisualizerType.Unary:
             _unaryVisualizer = new Visualizer<UnaryEvent>(_source.WriteSourceWithHighlight,
                                                           WriteEvent);
@@ -146,8 +134,6 @@ namespace SeedLang.Shell {
       RegisterToExecutor(executor, _binaryVisualizer);
       RegisterToExecutor(executor, _booleanVisualizer);
       RegisterToExecutor(executor, _comparisonVisualizer);
-      RegisterToExecutor(executor, _evalVisualizer);
-      RegisterToExecutor(executor, _printVisualizer);
       RegisterToExecutor(executor, _unaryVisualizer);
     }
 
@@ -156,8 +142,6 @@ namespace SeedLang.Shell {
       UnregisterFromExecutor(executor, _binaryVisualizer);
       UnregisterFromExecutor(executor, _booleanVisualizer);
       UnregisterFromExecutor(executor, _comparisonVisualizer);
-      UnregisterFromExecutor(executor, _evalVisualizer);
-      UnregisterFromExecutor(executor, _printVisualizer);
       UnregisterFromExecutor(executor, _unaryVisualizer);
     }
 
@@ -203,18 +187,6 @@ namespace SeedLang.Shell {
             Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {valueString} ");
           }
           Console.Write($"= {ce.Result}");
-          break;
-        case EvalEvent ee:
-          Console.Write($"Eval: {ee.Value}");
-          break;
-        case PrintEvent pe:
-          Console.Write($"Print: ");
-          for (int i = 0; i < pe.Values.Count; i++) {
-            Console.Write($"{pe.Values[i]}");
-            if (i < pe.Values.Count - 1) {
-              Console.Write(" ");
-            }
-          }
           break;
         case UnaryEvent ue: {
             var op = _unaryOperatorStrings[ue.Op];

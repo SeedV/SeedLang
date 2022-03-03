@@ -1,3 +1,4 @@
+using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +16,17 @@
 using System;
 using System.Collections.Generic;
 using SeedLang.Common;
-using SeedLang.Tests.Helper;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
   using Range = HeapObject.Range;
   using NativeFunction = HeapObject.NativeFunction;
 
-  public class NativeFunctionsTests {
+  public class HostSystemTests {
     [Fact]
     public void TestEmptyList() {
-      var listFunc = Function(NativeFunctions.List);
+      var sys = new HostSystem() { Stdout = new StringWriter() };
+      var listFunc = Function(sys, HostSystem.List);
       Value list = listFunc.Call(Array.Empty<Value>(), 0, 0, null, null);
       Assert.True(list.IsList);
       Assert.Equal(0, list.Length);
@@ -33,7 +34,8 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestListOfList() {
-      var listFunc = Function(NativeFunctions.List);
+      var sys = new HostSystem() { Stdout = new StringWriter() };
+      var listFunc = Function(sys, HostSystem.List);
       var args = new Value[] {
         new Value(new List<Value>() {
           new Value(1),
@@ -49,7 +51,8 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestListOfRange() {
-      var listFunc = Function(NativeFunctions.List);
+      var sys = new HostSystem() { Stdout = new StringWriter() };
+      var listFunc = Function(sys, HostSystem.List);
       var length = 10;
       var args = new Value[] { new Value(new Range(length)) };
       Value list = listFunc.Call(args, 0, args.Length, null, null);
@@ -62,19 +65,18 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestPrint() {
-      var print = Function(NativeFunctions.Print);
+      var sys = new HostSystem() { Stdout = new StringWriter() };
+      var print = Function(sys, HostSystem.Print);
       var vc = new VisualizerCenter();
-      var visualizer = new MockupVisualizer();
-      vc.Register(visualizer);
       var args = new Value[] { new Value(1), new Value(2), new Value(3) };
       var range = new TextRange(0, 1, 2, 3);
       print.Call(args, 0, args.Length, vc, range);
-      var expected = $"{range} Print 1, 2, 3" + Environment.NewLine;
-      Assert.Equal(expected, visualizer.ToString());
+      var expected = $"1\n2\n3\n".Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, sys.Stdout.ToString());
     }
 
-    private static NativeFunction Function(string name) {
-      foreach (NativeFunction func in NativeFunctions.Funcs) {
+    private static NativeFunction Function(HostSystem sys, string name) {
+      foreach (NativeFunction func in sys.NativeFuncs()) {
         if (func.Name == name) {
           return func;
         }

@@ -104,22 +104,4 @@ namespace SeedLang.Runtime {
       Value = value;
     }
   }
-
-  // An event which is triggered when an expression statement is executed.
-  public class EvalEvent : AbstractEvent {
-    public IValue Value { get; }
-
-    public EvalEvent(IValue value, Range range) : base(range) {
-      Value = value;
-    }
-  }
-
-  // An event which is triggered when an print build-in function is executed.
-  public class PrintEvent : AbstractEvent {
-    public IReadOnlyList<IValue> Values { get; }
-
-    public PrintEvent(IReadOnlyList<IValue> values, Range range) : base(range) {
-      Values = values;
-    }
-  }
 }

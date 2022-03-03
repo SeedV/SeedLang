@@ -138,18 +138,17 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNativeFunction() {
-      var nativeFunc = new NativeFunction(
-          "add", (Value[] args, int offset, int length, VisualizerCenter vc, Range range) => {
-            if (length == 2) {
-              return new Value(args[offset].AsNumber() + args[offset + 1].AsNumber());
-            }
-            throw new NotImplementedException();
-          });
+      var nativeFunc = new NativeFunction("add", (Value[] args, int offset, int length) => {
+        if (length == 2) {
+          return new Value(args[offset].AsNumber() + args[offset + 1].AsNumber());
+        }
+        throw new NotImplementedException();
+      });
       var func = new Value(nativeFunc);
       Assert.Equal("NativeFunction <add>", func.AsString());
       Assert.Equal("NativeFunction <add>", func.ToString());
       Assert.True(func.IsFunction);
-      var result = nativeFunc.Call(new Value[] { new Value(1), new Value(2) }, 0, 2, null, null);
+      var result = nativeFunc.Call(new Value[] { new Value(1), new Value(2) }, 0, 2);
       Assert.Equal(3, result.AsNumber());
     }
 

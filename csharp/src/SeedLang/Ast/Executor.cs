@@ -258,8 +258,7 @@ namespace SeedLang.Ast {
       }
       switch (funcValue.AsFunction()) {
         case HeapObject.NativeFunction nativeFunc:
-          _expressionResult = nativeFunc.Call(values, 0, values.Length, _visualizerCenter,
-                                              call.Range);
+          _expressionResult = nativeFunc.Call(values, 0, values.Length);
           break;
         case Function func:
           _expressionResult = Call(func.FuncDef, values, 0, values.Length);

@@ -288,7 +288,7 @@ namespace SeedLang.Ast.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(sum))
       );
       (string output, MockupVisualizer visualizer) = Run(block);
-      Assert.Equal("3\n", output);
+      Assert.Equal("3" + Environment.NewLine, output);
       var expectedOutput = (
         $"{AstHelper.TextRange} {sum} = 0\n" +
         $"{AstHelper.TextRange} {sum} = 1\n" +

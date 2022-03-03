@@ -15,7 +15,7 @@
 using System;
 
 namespace SeedLang.Runtime {
-  using BuildinFunctionType = Func<Value[], int, int, VisualizerCenter, Common.Range, Value>;
+  using BuildinFunctionType = Func<Value[], int, int, Value>;
 
   internal partial class HeapObject {
     // An empty interface for all function value types. It's only used to identify function types.
@@ -34,11 +34,9 @@ namespace SeedLang.Runtime {
       }
 
       // Calls the build-in function with given arguments that locate in the "args" array starting
-      // from "offset". The number of arguments is "length". The build-in function can notify
-      // visualizers if needed.
-      internal Value Call(Value[] args, int offset, int length, VisualizerCenter vc,
-                          Common.Range range) {
-        return _func(args, offset, length, vc, range);
+      // from "offset". The number of arguments is "length".
+      internal Value Call(Value[] args, int offset, int length) {
+        return _func(args, offset, length);
       }
 
       public override string ToString() {

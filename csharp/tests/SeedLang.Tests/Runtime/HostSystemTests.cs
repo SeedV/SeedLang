@@ -15,7 +15,6 @@ using System.IO;
 
 using System;
 using System.Collections.Generic;
-using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -27,7 +26,7 @@ namespace SeedLang.Runtime.Tests {
     public void TestEmptyList() {
       var sys = new HostSystem() { Stdout = new StringWriter() };
       var listFunc = Function(sys, HostSystem.List);
-      Value list = listFunc.Call(Array.Empty<Value>(), 0, 0, null, null);
+      Value list = listFunc.Call(Array.Empty<Value>(), 0, 0);
       Assert.True(list.IsList);
       Assert.Equal(0, list.Length);
     }
@@ -42,7 +41,7 @@ namespace SeedLang.Runtime.Tests {
           new Value(2)
         })
       };
-      Value list = listFunc.Call(args, 0, args.Length, null, null);
+      Value list = listFunc.Call(args, 0, args.Length);
       Assert.True(list.IsList);
       Assert.Equal(2, list.Length);
       Assert.Equal(1, list[0].AsNumber());
@@ -55,7 +54,7 @@ namespace SeedLang.Runtime.Tests {
       var listFunc = Function(sys, HostSystem.List);
       var length = 10;
       var args = new Value[] { new Value(new Range(length)) };
-      Value list = listFunc.Call(args, 0, args.Length, null, null);
+      Value list = listFunc.Call(args, 0, args.Length);
       Assert.True(list.IsList);
       Assert.Equal(length, list.Length);
       for (int i = 0; i < length; i++) {
@@ -67,10 +66,8 @@ namespace SeedLang.Runtime.Tests {
     public void TestPrint() {
       var sys = new HostSystem() { Stdout = new StringWriter() };
       var print = Function(sys, HostSystem.Print);
-      var vc = new VisualizerCenter();
       var args = new Value[] { new Value(1), new Value(2), new Value(3) };
-      var range = new TextRange(0, 1, 2, 3);
-      print.Call(args, 0, args.Length, vc, range);
+      print.Call(args, 0, args.Length);
       var expected = $"1\n2\n3\n".Replace("\n", Environment.NewLine);
       Assert.Equal(expected, sys.Stdout.ToString());
     }

@@ -221,8 +221,7 @@ namespace SeedLang.Interpreter {
       var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
         case HeapObject.NativeFunction nativeFunc:
-          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B,
-                                                   _visualizerCenter, range);
+          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B);
           break;
         case Function func:
           baseRegister += instr.A + 1;

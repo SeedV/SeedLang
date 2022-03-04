@@ -23,7 +23,7 @@ jobs:
         run: dotnet build --no-restore
       - name: Benchmark
         working-directory: ./csharp
-        run: dotnet run -c Release --project benchmark/SeedLang.Benchmark
+        run: dotnet run -c Release --project benchmark/SeedLang.Benchmark -- -f '*'
       - name: Check out wiki
         uses: actions/checkout@v2
         with:

@@ -16,9 +16,8 @@ using BenchmarkDotNet.Running;
 
 namespace SeedLang.Benchmark {
   class Program {
-    static void Main(string[] _) {
-      BenchmarkRunner.Run<FibBenchmark>();
-      BenchmarkRunner.Run<SumBenchmark>();
+    static void Main(string[] args) {
+      BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
     }
   }
 }

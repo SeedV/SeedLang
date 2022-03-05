@@ -13,37 +13,45 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using System.IO;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   using NativeFunction = HeapObject.NativeFunction;
 
   // The static class to define all the build-in native functions.
-  internal class HostSystem {
+  internal static class NativeFunctions {
+    public const string PrintVal = "__printval__";
     public const string Append = "append";
-    public const string Eval = "eval";
     public const string Len = "len";
     public const string List = "list";
     public const string Print = "print";
     public const string Range = "range";
 
-    public TextWriter Stdout { get; set; } = System.Console.Out;
-
-    internal NativeFunction[] NativeFuncs() {
-      return new NativeFunction[] {
+    public static NativeFunction[] Funcs = new NativeFunction[] {
+        new NativeFunction(PrintVal, PrintValFunc),
         new NativeFunction(Append, AppendFunc),
-        new NativeFunction(Eval, EvalFunc),
         new NativeFunction(Len, LenFunc),
         new NativeFunction(List, ListFunc),
         new NativeFunction(Print, PrintFunc),
         new NativeFunction(Range, RangeFunc),
-      };
+    };
+
+    // Prints a value when it's not none. It's used in interactive mode to print the result of an
+    // expression statement.
+    private static Value PrintValFunc(Value[] args, int offset, int length, Sys sys) {
+      if (length != 1) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorIncorrectArgsCount);
+      }
+      if (!args[offset].IsNone) {
+        sys.Stdout.WriteLine(args[offset].AsString());
+      }
+      return new Value();
     }
 
     // Appends a value to a list. The first argument is the list, the second argument is the
     // value to be appended to the list.
-    private Value AppendFunc(Value[] args, int offset, int length) {
+    private static Value AppendFunc(Value[] args, int offset, int length, Sys _) {
       if (length != 2) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -56,20 +64,7 @@ namespace SeedLang.Runtime {
       return new Value();
     }
 
-    // Evaluates a value when it's not none. It's used by SeedCalc and interactive mode SeedX
-    // primarily.
-    private Value EvalFunc(Value[] args, int offset, int length) {
-      if (length != 1) {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorIncorrectArgsCount);
-      }
-      if (!args[offset].IsNone) {
-        Stdout.WriteLine(args[offset].AsString());
-      }
-      return new Value();
-    }
-
-    private Value LenFunc(Value[] args, int offset, int length) {
+    private static Value LenFunc(Value[] args, int offset, int length, Sys _) {
       if (length != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -79,7 +74,7 @@ namespace SeedLang.Runtime {
 
     // Creates an empty list if the length of arguments is empty, and a list if the argument is a
     // subscriptable value.
-    private Value ListFunc(Value[] args, int offset, int length) {
+    private static Value ListFunc(Value[] args, int offset, int length, Sys _) {
       if (length < 0 || length > 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -97,14 +92,14 @@ namespace SeedLang.Runtime {
       return new Value(list);
     }
 
-    private Value PrintFunc(Value[] args, int offset, int length) {
+    private static Value PrintFunc(Value[] args, int offset, int length, Sys sys) {
       for (int i = 0; i < length; i++) {
-        Stdout.WriteLine(args[offset + i].AsString());
+        sys.Stdout.WriteLine(args[offset + i].AsString());
       }
       return new Value();
     }
 
-    private Value RangeFunc(Value[] args, int offset, int length) {
+    private static Value RangeFunc(Value[] args, int offset, int length, Sys _) {
       if (length == 1) {
         return new Value(new HeapObject.Range((int)args[offset].AsNumber()));
       } else if (length == 2) {

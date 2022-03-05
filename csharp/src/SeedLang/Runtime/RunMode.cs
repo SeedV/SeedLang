@@ -12,21 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Runtime;
-
-namespace SeedLang.Interpreter {
-  // A function value type that is only used in SeedVM component to encapsulate a compiled bytecode
-  // chunk.
-  internal class Function : HeapObject.IFunction {
-    public string Name { get; }
-    public Chunk Chunk { get; } = new Chunk();
-
-    internal Function(string name) {
-      Name = name;
-    }
-
-    public override string ToString() {
-      return $"Func <{Name}>";
-    }
+namespace SeedLang.Runtime {
+  // The running mode of SeedBlock and SeedX source code.
+  //
+  // The only difference between interactive and script mode is that the evaluated value of
+  // expression statements will be printed if it's not none in the interactive mode.
+  public enum RunMode {
+    Interactive,
+    Script,
   }
 }

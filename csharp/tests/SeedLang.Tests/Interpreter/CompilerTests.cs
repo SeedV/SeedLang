@@ -20,20 +20,19 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static readonly HostSystem _sys = new HostSystem();
-    private static GlobalEnvironment _env => new GlobalEnvironment(_sys.NativeFuncs());
-    private const int _evalFunc = 1;
-    private readonly int _firstGlob = _sys.NativeFuncs().Length;
+    private static GlobalEnvironment _env => new GlobalEnvironment(NativeFunctions.Funcs);
+    private const int _printValFunc = 0;
+    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
     private readonly Common.Range _range = AstHelper.TextRange;
 
     [Fact]
     public void TestCompileNumberConstant() {
       var expr = AstHelper.ExpressionStmt(AstHelper.NumberConstant(1));
       var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env);
+      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
         $"Function <main>\n" +
-        $"  1    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+        $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
         $"  2    LOADK     1 -1             ; 1                 {_range}\n" +
         $"  3    CALL      0 1 0                                {_range}\n" +
         $"  4    RETURN    0 0                                  \n"
@@ -47,13 +46,11 @@ namespace SeedLang.Interpreter.Tests {
                                                            BinaryOperator.Add,
                                                            AstHelper.NumberConstant(2)));
       var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env);
+      var func = compiler.Compile(expr, _env, RunMode.Script);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
-          $"  2    ADD       1 -1 -2          ; 1 2               {_range}\n" +
-          $"  3    CALL      0 1 0                                {_range}\n" +
-          $"  4    RETURN    0 0                                  \n"
+          $"  1    ADD       0 -1 -2          ; 1 2               {_range}\n" +
+          $"  2    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -67,10 +64,10 @@ namespace SeedLang.Interpreter.Tests {
                          AstHelper.NumberConstant(3)))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env);
+      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    ADD       2 -2 -3          ; 2 3               {_range}\n" +
           $"  3    SUB       1 -1 2           ; 1                 {_range}\n" +
           $"  4    CALL      0 1 0                                {_range}\n" +
@@ -88,10 +85,10 @@ namespace SeedLang.Interpreter.Tests {
                          AstHelper.NumberConstant(2)))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env);
+      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    ADD       2 -1 -2          ; 1 2               {_range}\n" +
           $"  3    SUB       1 -1 2           ; 1                 {_range}\n" +
           $"  4    CALL      0 1 0                                {_range}\n" +
@@ -105,10 +102,10 @@ namespace SeedLang.Interpreter.Tests {
       var expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
                                                           AstHelper.NumberConstant(1)));
       var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env);
+      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    UNM       1 -1             ; 1                 {_range}\n" +
           $"  3    CALL      0 1 0                                {_range}\n" +
           $"  4    RETURN    0 0                                  \n"
@@ -121,7 +118,7 @@ namespace SeedLang.Interpreter.Tests {
       var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("name")),
                                         AstHelper.NumberConstant(1));
       var compiler = new Compiler();
-      var func = compiler.Compile(assignment, _env);
+      var func = compiler.Compile(assignment, _env, RunMode.Script);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
@@ -136,7 +133,7 @@ namespace SeedLang.Interpreter.Tests {
       var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y")),
                                         AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
       var compiler = new Compiler();
-      var func = compiler.Compile(assignment, _env);
+      var func = compiler.Compile(assignment, _env, RunMode.Script);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
@@ -156,7 +153,7 @@ namespace SeedLang.Interpreter.Tests {
                          AstHelper.NumberConstant(2))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(assignment, _env);
+      var func = compiler.Compile(assignment, _env, RunMode.Script);
       string expected = (
           $"Function <main>\n" +
           $"  1    ADD       0 -1 -2          ; 1 2               {_range}\n" +
@@ -176,14 +173,14 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(name))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(block, _env);
+      var func = compiler.Compile(block, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  2    LOADK     2 -2             ; 2                 {_range}\n" +
           $"  3    NEWTUPLE  0 1 2                                {_range}\n" +
           $"  4    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  5    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  5    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  6    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    RETURN    0 0                                  \n"
@@ -202,7 +199,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(b))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(block, _env);
+      var func = compiler.Compile(block, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -214,10 +211,10 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    LOADK     2 -1             ; 1                 {_range}\n" +
           $"  8    GETELEM   1 0 2                                {_range}\n" +
           $"  9    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
-          $"  10   GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  10   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  11   GETGLOB   1 {_firstGlob}                                  {_range}\n" +
           $"  12   CALL      0 1 0                                {_range}\n" +
-          $"  13   GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  13   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  14   GETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
           $"  15   CALL      0 1 0                                {_range}\n" +
           $"  16   RETURN    0 0                                  \n"
@@ -235,16 +232,16 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env);
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
           $"  2    JMP       0 4              ; to 7              {_range}\n" +
-          $"  3    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  3    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  4    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  5    CALL      0 1 0                                {_range}\n" +
           $"  6    JMP       0 3              ; to 10             {_range}\n" +
-          $"  7    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  7    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  8    LOADK     1 -2             ; 2                 {_range}\n" +
           $"  9    CALL      0 1 0                                {_range}\n" +
           $"  10   RETURN    0 0                                  \n"
@@ -260,17 +257,17 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env);
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADBOOL  0 1 0                                {_range}\n" +
           $"  2    TEST      0 0 1                                {_range}\n" +
           $"  3    JMP       0 4              ; to 8              {_range}\n" +
-          $"  4    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  4    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  5    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  6    CALL      0 1 0                                {_range}\n" +
           $"  7    JMP       0 3              ; to 11             {_range}\n" +
-          $"  8    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  8    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  9    LOADK     1 -2             ; 2                 {_range}\n" +
           $"  10   CALL      0 1 0                                {_range}\n" +
           $"  11   RETURN    0 0                                  \n"
@@ -288,12 +285,12 @@ namespace SeedLang.Interpreter.Tests {
         null
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env);
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
           $"  2    JMP       0 3              ; to 6              {_range}\n" +
-          $"  3    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  3    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  4    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  5    CALL      0 1 0                                {_range}\n" +
           $"  6    RETURN    0 0                                  \n"
@@ -314,18 +311,18 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env);
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LT        1 -1 -2          ; 1 2               {_range}\n" +
           $"  2    JMP       0 6              ; to 9              {_range}\n" +
           $"  3    LT        1 -2 -3          ; 2 3               {_range}\n" +
           $"  4    JMP       0 4              ; to 9              {_range}\n" +
-          $"  5    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  5    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  6    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    JMP       0 3              ; to 12             {_range}\n" +
-          $"  9    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  9    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  10   LOADK     1 -2             ; 2                 {_range}\n" +
           $"  11   CALL      0 1 0                                {_range}\n" +
           $"  12   RETURN    0 0                                  \n"
@@ -352,7 +349,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env);
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
@@ -361,11 +358,11 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    JMP       0 6              ; to 11             {_range}\n" +
           $"  5    LT        0 -1 -2          ; 1 2               {_range}\n" +
           $"  6    JMP       0 4              ; to 11             {_range}\n" +
-          $"  7    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  7    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  8    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  9    CALL      0 1 0                                {_range}\n" +
           $"  10   JMP       0 3              ; to 14             {_range}\n" +
-          $"  11   GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  11   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  12   LOADK     1 -2             ; 2                 {_range}\n" +
           $"  13   CALL      0 1 0                                {_range}\n" +
           $"  14   RETURN    0 0                                  \n"
@@ -392,7 +389,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env);
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LT        0 -1 -2          ; 1 2               {_range}\n" +
@@ -401,11 +398,11 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    JMP       0 2              ; to 7              {_range}\n" +
           $"  5    EQ        0 -1 -2          ; 1 2               {_range}\n" +
           $"  6    JMP       0 4              ; to 11             {_range}\n" +
-          $"  7    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  7    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  8    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  9    CALL      0 1 0                                {_range}\n" +
           $"  10   JMP       0 3              ; to 14             {_range}\n" +
-          $"  11   GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  11   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  12   LOADK     1 -2             ; 2                 {_range}\n" +
           $"  13   CALL      0 1 0                                {_range}\n" +
           $"  14   RETURN    0 0                                  \n"
@@ -435,7 +432,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env);
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LT        1 -1 -2          ; 1 2               {_range}\n" +
@@ -446,11 +443,11 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    JMP       0 6              ; to 13             {_range}\n" +
           $"  7    LE        1 -2 -3          ; 2 3               {_range}\n" +
           $"  8    JMP       0 4              ; to 13             {_range}\n" +
-          $"  9    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  9    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  10   LOADK     1 -1             ; 1                 {_range}\n" +
           $"  11   CALL      0 1 0                                {_range}\n" +
           $"  12   JMP       0 3              ; to 16             {_range}\n" +
-          $"  13   GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  13   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  14   LOADK     1 -2             ; 2                 {_range}\n" +
           $"  15   CALL      0 1 0                                {_range}\n" +
           $"  16   RETURN    0 0                                  \n"
@@ -474,22 +471,22 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(3))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env);
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
           $"  2    JMP       0 10             ; to 13             {_range}\n" +
           $"  3    LT        1 -3 -4          ; 3 4               {_range}\n" +
           $"  4    JMP       0 4              ; to 9              {_range}\n" +
-          $"  5    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  5    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  6    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    JMP       0 3              ; to 12             {_range}\n" +
-          $"  9    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  9    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  10   LOADK     1 -2             ; 2                 {_range}\n" +
           $"  11   CALL      0 1 0                                {_range}\n" +
           $"  12   JMP       0 3              ; to 16             {_range}\n" +
-          $"  13   GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  13   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  14   LOADK     1 -3             ; 3                 {_range}\n" +
           $"  15   CALL      0 1 0                                {_range}\n" +
           $"  16   RETURN    0 0                                  \n"
@@ -519,7 +516,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(sum))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(program, _env);
+      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 0                 {_range}\n" +
@@ -537,7 +534,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  13   ADD       0 1 -3           ; 1                 {_range}\n" +
           $"  14   SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
           $"  15   JMP       0 -11            ; to 5              {_range}\n" +
-          $"  16   GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  16   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  17   GETGLOB   1 {_firstGlob}                                  {_range}\n" +
           $"  18   CALL      0 1 0                                {_range}\n" +
           $"  19   RETURN    0 0                                  \n"
@@ -558,12 +555,12 @@ namespace SeedLang.Interpreter.Tests {
                                                 AstHelper.NumberConstant(2)))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(block, _env);
+      var func = compiler.Compile(block, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <add>        {_range}\n" +
           $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  3    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  3    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  4    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
           $"  5    LOADK     2 -2             ; 1                 {_range}\n" +
           $"  6    LOADK     3 -3             ; 2                 {_range}\n" +
@@ -601,12 +598,12 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(sum), AstHelper.NumberConstant(10)))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(block, _env);
+      var func = compiler.Compile(block, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <sum>        {_range}\n" +
           $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  3    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  3    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  4    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
           $"  5    LOADK     2 -2             ; 10                {_range}\n" +
           $"  6    CALL      1 1 0                                {_range}\n" +
@@ -633,10 +630,10 @@ namespace SeedLang.Interpreter.Tests {
     public void TestCompileEmptyList() {
       var list = AstHelper.ExpressionStmt(AstHelper.List());
       var compiler = new Compiler();
-      var func = compiler.Compile(list, _env);
+      var func = compiler.Compile(list, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    NEWLIST   1 0 0                                {_range}\n" +
           $"  3    CALL      0 1 0                                {_range}\n" +
           $"  4    RETURN    0 0                                  \n"
@@ -650,10 +647,10 @@ namespace SeedLang.Interpreter.Tests {
                                                          AstHelper.NumberConstant(2),
                                                          AstHelper.NumberConstant(3)));
       var compiler = new Compiler();
-      var func = compiler.Compile(list, _env);
+      var func = compiler.Compile(list, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    LOADK     2 -1             ; 1                 {_range}\n" +
           $"  3    LOADK     3 -2             ; 2                 {_range}\n" +
           $"  4    LOADK     4 -3             ; 3                 {_range}\n" +
@@ -673,10 +670,10 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.NumberConstant(0)
       ));
       var compiler = new Compiler();
-      var func = compiler.Compile(subscript, _env);
+      var func = compiler.Compile(subscript, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    LOADK     3 -1             ; 1                 {_range}\n" +
           $"  3    LOADK     4 -2             ; 2                 {_range}\n" +
           $"  4    LOADK     5 -3             ; 3                 {_range}\n" +
@@ -702,7 +699,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(program, _env);
+      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -712,7 +709,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  5    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
           $"  6    GETGLOB   0 {_firstGlob}                                  {_range}\n" +
           $"  7    SETELEM   0 -1 -4          ; 1 5               {_range}\n" +
-          $"  8    GETGLOB   0 {_evalFunc}                                  {_range}\n" +
+          $"  8    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  9    GETGLOB   2 {_firstGlob}                                  {_range}\n" +
           $"  10   GETELEM   1 2 -1           ; 1                 {_range}\n" +
           $"  11   CALL      0 1 0                                {_range}\n" +
@@ -738,7 +735,7 @@ namespace SeedLang.Interpreter.Tests {
         )
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(program, _env);
+      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -770,7 +767,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(a))
       );
       var compiler = new Compiler();
-      var func = compiler.Compile(program, _env);
+      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -783,7 +780,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  8    FORPREP   1 5              ; to 14             {_range}\n" +
           $"  9    GETELEM   4 0 1                                {_range}\n" +
           $"  10   SETGLOB   4 {_firstGlob}                                  {_range}\n" +
-          $"  11   GETGLOB   4 {_evalFunc}                                  {_range}\n" +
+          $"  11   GETGLOB   4 {_printValFunc}                                  {_range}\n" +
           $"  12   GETGLOB   5 {_firstGlob}                                  {_range}\n" +
           $"  13   CALL      4 1 0                                {_range}\n" +
           $"  14   FORLOOP   1 -6             ; to 9              {_range}\n" +
@@ -805,7 +802,7 @@ namespace SeedLang.Interpreter.Tests {
         )
       ));
       var compiler = new Compiler();
-      var func = compiler.Compile(program, _env);
+      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <func>       {_range}\n" +
@@ -822,7 +819,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    LOADK     4 -1             ; 1                 {_range}\n" +
           $"  8    FORPREP   2 4              ; to 13             {_range}\n" +
           $"  9    GETELEM   0 1 2                                {_range}\n" +
-          $"  10   GETGLOB   5 {_evalFunc}                                  {_range}\n" +
+          $"  10   GETGLOB   5 {_printValFunc}                                  {_range}\n" +
           $"  11   MOVE      6 0                                  {_range}\n" +
           $"  12   CALL      5 1 0                                {_range}\n" +
           $"  13   FORLOOP   2 -5             ; to 9              {_range}\n" +
@@ -835,7 +832,8 @@ namespace SeedLang.Interpreter.Tests {
     public void TestUndefinedVariable() {
       var expr = AstHelper.ExpressionStmt(AstHelper.Id("a"));
       var compiler = new Compiler();
-      var exception = Assert.Throws<DiagnosticException>(() => compiler.Compile(expr, _env));
+      var exception = Assert.Throws<DiagnosticException>(
+          () => compiler.Compile(expr, _env, RunMode.Interactive));
       Assert.Equal(Message.RuntimeErrorVariableNotDefined, exception.Diagnostic.MessageId);
     }
   }

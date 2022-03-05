@@ -209,7 +209,7 @@ namespace SeedLang.Interpreter.Tests {
       var stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env);
+      Function func = compiler.Compile(program, vm.Env, RunMode.Interactive);
       vm.Run(func);
       return (stringWriter.ToString(), visualizer);
     }

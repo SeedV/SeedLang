@@ -46,7 +46,8 @@ namespace SeedLang.Shell {
         _source.WriteSourceWithSyntaxTokens(syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var collection = new DiagnosticCollection();
-        string result = executor.Run(_source.Source, "", _language, _runType, collection);
+        string result = executor.Run(_source.Source, "", _language, _runType, RunMode.Interactive,
+                                     collection);
         if (!(result is null)) {
           Console.WriteLine(result);
         }

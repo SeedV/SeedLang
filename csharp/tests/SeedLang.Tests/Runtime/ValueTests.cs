@@ -19,7 +19,6 @@ using Xunit;
 
 namespace SeedLang.Runtime.Tests {
   using NativeFunction = HeapObject.NativeFunction;
-  using Range = Common.Range;
 
   public class ValueTests {
     private readonly string _expectedFalseString = "False";
@@ -138,7 +137,7 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestNativeFunction() {
-      var nativeFunc = new NativeFunction("add", (Value[] args, int offset, int length) => {
+      var nativeFunc = new NativeFunction("add", (Value[] args, int offset, int length, Sys _) => {
         if (length == 2) {
           return new Value(args[offset].AsNumber() + args[offset + 1].AsNumber());
         }
@@ -148,7 +147,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.Equal("NativeFunction <add>", func.AsString());
       Assert.Equal("NativeFunction <add>", func.ToString());
       Assert.True(func.IsFunction);
-      var result = nativeFunc.Call(new Value[] { new Value(1), new Value(2) }, 0, 2);
+      var result = nativeFunc.Call(new Value[] { new Value(1), new Value(2) }, 0, 2, null);
       Assert.Equal(3, result.AsNumber());
     }
 

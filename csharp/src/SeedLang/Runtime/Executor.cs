@@ -54,7 +54,7 @@ namespace SeedLang.Runtime {
       }
       var localCollection = collection ?? new DiagnosticCollection();
       foreach (AstNode node in Converter.Convert(program, localCollection)) {
-        _executor.Run(node);
+        _executor.Run(node, RunMode.Script);
       }
       return true;
     }
@@ -75,7 +75,7 @@ namespace SeedLang.Runtime {
     // Runs or dumps SeedX source code based on the language and run type. Returns string if the
     // runType is DumpAst or Disassemble, otherwise returns null.
     public string Run(string source, string module, SeedXLanguage language, RunType runType,
-                      DiagnosticCollection collection = null) {
+                      RunMode runMode = RunMode.Script, DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
         return null;
       }
@@ -87,11 +87,11 @@ namespace SeedLang.Runtime {
         }
         switch (runType) {
           case RunType.Ast:
-            _executor.Run(node);
+            _executor.Run(node, runMode);
             return null;
           case RunType.Bytecode: {
               var compiler = new Compiler();
-              Interpreter.Function func = compiler.Compile(node, _vm.Env);
+              Interpreter.Function func = compiler.Compile(node, _vm.Env, runMode);
               _vm.Run(func);
               return null;
             }
@@ -99,7 +99,7 @@ namespace SeedLang.Runtime {
             return node.ToString();
           case RunType.Disassemble: {
               var compiler = new Compiler();
-              Interpreter.Function func = compiler.Compile(node, _vm.Env);
+              Interpreter.Function func = compiler.Compile(node, _vm.Env, runMode);
               return new Disassembler(func).ToString();
             }
           default:

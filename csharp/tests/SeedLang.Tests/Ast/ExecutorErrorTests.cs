@@ -27,9 +27,11 @@ namespace SeedLang.Ast.Tests {
                                      AstHelper.NumberConstant(0));
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
-      var exception1 = Assert.Throws<DiagnosticException>(() => executor.Run(binary1));
+      var exception1 = Assert.Throws<DiagnosticException>(
+          () => executor.Run(binary1, RunMode.Script));
       Assert.Equal(Message.RuntimeErrorDivideByZero, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => executor.Run(binary2));
+      var exception2 = Assert.Throws<DiagnosticException>(
+          () => executor.Run(binary2, RunMode.Script));
       Assert.Equal(Message.RuntimeErrorDivideByZero, exception2.Diagnostic.MessageId);
     }
 
@@ -41,7 +43,8 @@ namespace SeedLang.Ast.Tests {
         AstHelper.NumberConstant(3)
       ));
       (var executor, var visualizer) = NewExecutorWithVisualizer();
-      var exception = Assert.Throws<DiagnosticException>(() => executor.Run(eval));
+      var exception = Assert.Throws<DiagnosticException>(
+          () => executor.Run(eval, RunMode.Interactive));
       Assert.Equal(Message.RuntimeErrorOutOfRange, exception.Diagnostic.MessageId);
     }
 
@@ -50,7 +53,8 @@ namespace SeedLang.Ast.Tests {
       var subscript = AstHelper.Subscript(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
-      var exception = Assert.Throws<DiagnosticException>(() => executor.Run(subscript));
+      var exception = Assert.Throws<DiagnosticException>(
+          () => executor.Run(subscript, RunMode.Script));
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception.Diagnostic.MessageId);
     }
 
@@ -62,7 +66,8 @@ namespace SeedLang.Ast.Tests {
       );
 
       (var executor, var visualizer) = NewExecutorWithVisualizer();
-      var exception = Assert.Throws<DiagnosticException>(() => executor.Run(subscript));
+      var exception = Assert.Throws<DiagnosticException>(
+          () => executor.Run(subscript, RunMode.Script));
       Assert.Equal(Message.RuntimeErrorInvalidIndex, exception.Diagnostic.MessageId);
     }
 

@@ -20,7 +20,7 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
-    public readonly HostSystem Sys = new HostSystem();
+    private readonly Sys _sys = new Sys();
     public readonly GlobalEnvironment Env;
 
     // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
@@ -32,12 +32,12 @@ namespace SeedLang.Interpreter {
     private CallStack _callStack;
 
     internal VM(VisualizerCenter visualizerCenter = null) {
-      Env = new GlobalEnvironment(Sys.NativeFuncs());
+      Env = new GlobalEnvironment(NativeFunctions.Funcs);
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
     }
 
     internal void RedirectStdout(TextWriter stdout) {
-      Sys.Stdout = stdout;
+      _sys.Stdout = stdout;
     }
 
     internal void Run(Function func) {
@@ -147,7 +147,7 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.CALL:
-              CallFunction(ref chunk, ref pc, ref baseRegister, instr, chunk.Ranges[pc]);
+              CallFunction(ref chunk, ref pc, ref baseRegister, instr);
               break;
             case Opcode.RETURN:
               // TODO: only support one return value now.
@@ -216,12 +216,12 @@ namespace SeedLang.Interpreter {
     }
 
     private void CallFunction(ref Chunk chunk, ref int pc, ref uint baseRegister,
-                              Instruction instr, Range range) {
+                              Instruction instr) {
       int calleeRegister = (int)(baseRegister + instr.A);
       var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
         case HeapObject.NativeFunction nativeFunc:
-          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B);
+          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B, _sys);
           break;
         case Function func:
           baseRegister += instr.A + 1;

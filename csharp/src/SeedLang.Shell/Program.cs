@@ -31,11 +31,9 @@ namespace SeedLang.Shell {
       public RunType RunType { get; set; }
 
       [Option('v', "visualizers", Required = false, Separator = ',',
-              HelpText = "(Default: \"Eval,Print\" for interactive mode, otherwise \"Print\") " +
-                         "The Visualizers to be enabled. " +
-                         "Valid values: Assignment, Binary, Boolean, Comparison, Unary, " +
-                         "Eval, Print, All.\n" +
-                         "* Use \"--visualizers=Binary,Comparison,Eval\" or \"-v Binary,Eval\" " +
+              HelpText = "The Visualizers to be enabled. " +
+                         "Valid values: Assignment, Binary, Boolean, Comparison, Unary, All.\n" +
+                         "* Use \"--visualizers=Binary,Comparison\" or \"-v Assignment,Binary\" " +
                          "to enable multiple visualizers.\n" +
                          "* Use \"-v All\" to enable all visualizers.")]
       public IEnumerable<VisualizerType> VisualizerTypes { get; set; }
@@ -64,15 +62,15 @@ namespace SeedLang.Shell {
 
     private static void Run(Options options) {
       if (!string.IsNullOrEmpty(options.Filename)) {
-        RunFile(options.Filename, options.Language, options.RunType, options.VisualizerTypes);
+        RunScript(options.Filename, options.Language, options.RunType, options.VisualizerTypes);
       } else {
         var repl = new Repl(options.Language, options.RunType, options.VisualizerTypes);
         repl.Execute();
       }
     }
 
-    private static void RunFile(string filename, SeedXLanguage language, RunType runType,
-                                IEnumerable<VisualizerType> visualizerTypes) {
+    private static void RunScript(string filename, SeedXLanguage language, RunType runType,
+                                  IEnumerable<VisualizerType> visualizerTypes) {
       var source = new SourceCode();
       try {
         foreach (string line in File.ReadLines(filename)) {
@@ -92,7 +90,8 @@ namespace SeedLang.Shell {
       visualizerManager.RegisterToExecutor(executor);
       var collection = new DiagnosticCollection();
 
-      string result = executor.Run(source.Source, "", language, runType, collection);
+      string result = executor.Run(source.Source, "", language, runType, RunMode.Script,
+                                   collection);
       if (!(result is null)) {
         Console.WriteLine(result);
       }

@@ -1,4 +1,3 @@
-using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,26 +13,25 @@ using System.IO;
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // An executor class to execute a program represented by an AST tree.
   internal sealed class Executor : AstWalker {
-    private readonly HostSystem _sys = new HostSystem();
-
+    private readonly Sys _sys = new Sys();
+    private RunMode _runMode;
     // The visualizer center to observe AST execution events and dispatch them to the registered
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
-
     // The environment to store global and local variables.
     private readonly ScopedEnvironment _env = new ScopedEnvironment();
-
     // The result of current executed expression.
     private Value _expressionResult;
 
     internal Executor(VisualizerCenter visualizerCenter = null) {
-      foreach (var func in _sys.NativeFuncs()) {
+      foreach (var func in NativeFunctions.Funcs) {
         _env.SetVariable(func.Name, new Value(func));
       }
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
@@ -44,7 +42,8 @@ namespace SeedLang.Ast {
     }
 
     // Executes the given AST tree.
-    internal void Run(AstNode node) {
+    internal void Run(AstNode node, RunMode runMode) {
+      _runMode = runMode;
       Visit(node);
     }
 
@@ -258,7 +257,7 @@ namespace SeedLang.Ast {
       }
       switch (funcValue.AsFunction()) {
         case HeapObject.NativeFunction nativeFunc:
-          _expressionResult = nativeFunc.Call(values, 0, values.Length);
+          _expressionResult = nativeFunc.Call(values, 0, values.Length, _sys);
           break;
         case Function func:
           _expressionResult = Call(func.FuncDef, values, 0, values.Length);
@@ -281,8 +280,15 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(ExpressionStatement expr) {
-      Expression eval = Expression.Identifier(HostSystem.Eval, expr.Range);
-      Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
+      switch (_runMode) {
+        case RunMode.Interactive:
+          Expression eval = Expression.Identifier(NativeFunctions.PrintVal, expr.Range);
+          Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
+          break;
+        case RunMode.Script:
+          Visit(expr.Expr);
+          break;
+      }
     }
 
     protected override void Visit(ForInStatement forIn) {

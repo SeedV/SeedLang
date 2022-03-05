@@ -21,27 +21,25 @@ namespace SeedLang.Runtime.Tests {
   using Range = HeapObject.Range;
   using NativeFunction = HeapObject.NativeFunction;
 
-  public class HostSystemTests {
+  public class NativeFunctionsTests {
     [Fact]
     public void TestEmptyList() {
-      var sys = new HostSystem() { Stdout = new StringWriter() };
-      var listFunc = Function(sys, HostSystem.List);
-      Value list = listFunc.Call(Array.Empty<Value>(), 0, 0);
+      var listFunc = Function(NativeFunctions.List);
+      Value list = listFunc.Call(Array.Empty<Value>(), 0, 0, null);
       Assert.True(list.IsList);
       Assert.Equal(0, list.Length);
     }
 
     [Fact]
     public void TestListOfList() {
-      var sys = new HostSystem() { Stdout = new StringWriter() };
-      var listFunc = Function(sys, HostSystem.List);
+      var listFunc = Function(NativeFunctions.List);
       var args = new Value[] {
         new Value(new List<Value>() {
           new Value(1),
           new Value(2)
         })
       };
-      Value list = listFunc.Call(args, 0, args.Length);
+      Value list = listFunc.Call(args, 0, args.Length, null);
       Assert.True(list.IsList);
       Assert.Equal(2, list.Length);
       Assert.Equal(1, list[0].AsNumber());
@@ -50,11 +48,10 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestListOfRange() {
-      var sys = new HostSystem() { Stdout = new StringWriter() };
-      var listFunc = Function(sys, HostSystem.List);
+      var listFunc = Function(NativeFunctions.List);
       var length = 10;
       var args = new Value[] { new Value(new Range(length)) };
-      Value list = listFunc.Call(args, 0, args.Length);
+      Value list = listFunc.Call(args, 0, args.Length, null);
       Assert.True(list.IsList);
       Assert.Equal(length, list.Length);
       for (int i = 0; i < length; i++) {
@@ -64,16 +61,16 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestPrint() {
-      var sys = new HostSystem() { Stdout = new StringWriter() };
-      var print = Function(sys, HostSystem.Print);
+      var sys = new Sys() { Stdout = new StringWriter() };
+      var print = Function(NativeFunctions.Print);
       var args = new Value[] { new Value(1), new Value(2), new Value(3) };
-      print.Call(args, 0, args.Length);
+      print.Call(args, 0, args.Length, sys);
       var expected = $"1\n2\n3\n".Replace("\n", Environment.NewLine);
       Assert.Equal(expected, sys.Stdout.ToString());
     }
 
-    private static NativeFunction Function(HostSystem sys, string name) {
-      foreach (NativeFunction func in sys.NativeFuncs()) {
+    private static NativeFunction Function(string name) {
+      foreach (NativeFunction func in NativeFunctions.Funcs) {
         if (func.Name == name) {
           return func;
         }

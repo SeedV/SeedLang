@@ -136,7 +136,7 @@ namespace SeedLang.Ast.Tests {
     [ClassData(typeof(TestData))]
     internal void TestExpression(Expression expression, string expectedOutput) {
       (var executor, var visualizer) = NewExecutorWithVisualizer();
-      executor.Run(expression);
+      executor.Run(expression, RunMode.Interactive);
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 

@@ -220,7 +220,7 @@ namespace SeedLang.Ast.Tests {
     [Fact]
     public void TestNativeFunctionCall() {
       var eval = AstHelper.ExpressionStmt(AstHelper.Call(
-        AstHelper.Id(HostSystem.Len),
+        AstHelper.Id(NativeFunctions.Len),
         AstHelper.List(AstHelper.NumberConstant(1),
                        AstHelper.NumberConstant(2),
                        AstHelper.NumberConstant(3))
@@ -306,7 +306,7 @@ namespace SeedLang.Ast.Tests {
       var executor = new Executor(visualizerCenter);
       var stringWriter = new StringWriter();
       executor.RedirectStdout(stringWriter);
-      executor.Run(program);
+      executor.Run(program, RunMode.Interactive);
       return (stringWriter.ToString(), visualizer);
     }
   }

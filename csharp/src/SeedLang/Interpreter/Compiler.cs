@@ -134,7 +134,8 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(StringConstantExpression stringConstant) {
-      throw new System.NotImplementedException();
+      uint id = _constantCache.IdOfConstant(stringConstant.Value);
+      _chunk.Emit(Opcode.LOADK, _registerForSubExpr, id, stringConstant.Range);
     }
 
     protected override void Visit(ListExpression list) {

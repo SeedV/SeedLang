@@ -292,6 +292,10 @@ namespace SeedLang.X {
       return _helper.BuildNumberConstant(context.NUMBER().Symbol);
     }
 
+    public override AstNode VisitStrings([NotNull] SeedPythonParser.StringsContext context) {
+      return _helper.BuildStringConstant(context.STRING());
+    }
+
     public override AstNode VisitIdentifier(
         [NotNull] SeedPythonParser.IdentifierContext context) {
       return _helper.BuildIdentifier(context.NAME().Symbol);

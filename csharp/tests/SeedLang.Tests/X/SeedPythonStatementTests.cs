@@ -405,6 +405,28 @@ namespace SeedLang.X.Tests {
                 "Keyword [Ln 3, Col 0 - Ln 3, Col 3]," +
                 "Symbol [Ln 3, Col 4 - Ln 3, Col 4]," +
                 "Keyword [Ln 4, Col 2 - Ln 4, Col 5]")]
+
+    [InlineData("str = 'test string'",
+
+                "[Ln 1, Col 0 - Ln 1, Col 18] AssignmentStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 2] IdentifierExpression (str)\n" +
+                "  [Ln 1, Col 6 - Ln 1, Col 18] StringConstantExpression (test string)",
+
+                "Variable [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "String [Ln 1, Col 6 - Ln 1, Col 18]")]
+
+    [InlineData("str = 'a' \"b\" 'c'",
+
+                "[Ln 1, Col 0 - Ln 1, Col 16] AssignmentStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 2] IdentifierExpression (str)\n" +
+                "  [Ln 1, Col 6 - Ln 1, Col 16] StringConstantExpression (abc)",
+
+                "Variable [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "String [Ln 1, Col 6 - Ln 1, Col 8]," +
+                "String [Ln 1, Col 10 - Ln 1, Col 12]," +
+                "String [Ln 1, Col 14 - Ln 1, Col 16]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

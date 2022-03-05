@@ -76,6 +76,7 @@ atom:
   | FALSE    # false
   | NONE     # none
   | NUMBER   # number
+  | STRING+  # strings
   | group    # group_as_atom
   | list     # list_as_atom
   | tuple    # tuple_as_atom;
@@ -139,7 +140,7 @@ NAME: ID_START ID_CONTINUE*;
 
 NUMBER: INTEGER | FLOAT_NUMBER;
 
-STRING: '"' .*? '"';
+STRING: SHORT_STRING;
 
 INTEGER: DECIMAL_INTEGER;
 
@@ -156,6 +157,12 @@ UNKNOWN_CHAR: .;
 /*
  * Fragments
  */
+
+fragment SHORT_STRING:
+  '\'' (STRING_ESCAPE_SEQ | ~[\\\r\n\f'])* '\''
+  | '"' (STRING_ESCAPE_SEQ | ~[\\\r\n\f"])* '"';
+
+fragment STRING_ESCAPE_SEQ: '\\' . | '\\' NEWLINE;
 
 fragment POINT_FLOAT:
   INT_PART? FRACTION

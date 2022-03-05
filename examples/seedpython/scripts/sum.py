@@ -4,7 +4,7 @@ while i <= 10000000:
     sum = sum + i
     i = i + 1
 
-sum
+print(sum)
 
 
 def f():
@@ -16,4 +16,4 @@ def f():
     return sum
 
 
-f()
+print(f())

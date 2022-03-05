@@ -13,19 +13,20 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
   // An executor class to execute a program represented by an AST tree.
   internal sealed class Executor : AstWalker {
+    private readonly Sys _sys = new Sys();
+    private RunMode _runMode;
     // The visualizer center to observe AST execution events and dispatch them to the registered
     // visualizers.
     private readonly VisualizerCenter _visualizerCenter;
-
     // The environment to store global and local variables.
     private readonly ScopedEnvironment _env = new ScopedEnvironment();
-
     // The result of current executed expression.
     private Value _expressionResult;
 
@@ -36,8 +37,13 @@ namespace SeedLang.Ast {
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
     }
 
+    internal void RedirectStdout(TextWriter stdout) {
+      _sys.Stdout = stdout;
+    }
+
     // Executes the given AST tree.
-    internal void Run(AstNode node) {
+    internal void Run(AstNode node, RunMode runMode) {
+      _runMode = runMode;
       Visit(node);
     }
 
@@ -243,13 +249,20 @@ namespace SeedLang.Ast {
 
     protected override void Visit(CallExpression call) {
       Visit(call.Func);
-      Value func = _expressionResult;
+      Value funcValue = _expressionResult;
       var values = new Value[call.Arguments.Length];
       for (int i = 0; i < call.Arguments.Length; i++) {
         Visit(call.Arguments[i]);
         values[i] = _expressionResult;
       }
-      _expressionResult = func.Call(values, 0, values.Length);
+      switch (funcValue.AsFunction()) {
+        case HeapObject.NativeFunction nativeFunc:
+          _expressionResult = nativeFunc.Call(values, 0, values.Length, _sys);
+          break;
+        case Function func:
+          _expressionResult = Call(func.FuncDef, values, 0, values.Length);
+          break;
+      }
     }
 
     protected override void Visit(AssignmentStatement assignment) {
@@ -267,10 +280,14 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(ExpressionStatement expr) {
-      Visit(expr.Expr);
-      if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
-        var ee = new EvalEvent(new ValueWrapper(_expressionResult), expr.Range);
-        _visualizerCenter.EvalPublisher.Notify(ee);
+      switch (_runMode) {
+        case RunMode.Interactive:
+          Expression eval = Expression.Identifier(NativeFunctions.PrintVal, expr.Range);
+          Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
+          break;
+        case RunMode.Script:
+          Visit(expr.Expr);
+          break;
       }
     }
 
@@ -284,7 +301,7 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(FuncDefStatement funcDef) {
-      _env.SetVariable(funcDef.Name, new Value(new Function(funcDef, this)));
+      _env.SetVariable(funcDef.Name, new Value(new Function(funcDef)));
     }
 
     protected override void Visit(IfStatement @if) {

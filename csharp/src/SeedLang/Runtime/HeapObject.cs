@@ -194,16 +194,6 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value Call(Value[] args, int offset, int length) {
-      switch (_object) {
-        case IFunction func:
-          return func.Call(args, offset, length);
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCallable);
-      }
-    }
-
     private static int ToIntIndex(double index, int length) {
       var intIndex = (int)index;
       if (intIndex != index) {

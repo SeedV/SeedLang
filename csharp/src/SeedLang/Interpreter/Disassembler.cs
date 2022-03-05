@@ -70,8 +70,6 @@ namespace SeedLang.Interpreter {
                      instr.Opcode == Opcode.RETURN;
       OpcodeType type = instr.Opcode.Type();
       switch (type) {
-        case OpcodeType.A:
-          return $"{instr.A}";
         case OpcodeType.ABC:
           return $"{instr.A} {RegisterOrConstantIndex(instr.B)}" +
                  (ignoreC ? "" : $" {RegisterOrConstantIndex(instr.C)}");

@@ -282,8 +282,8 @@ namespace SeedLang.X.Tests {
 
     [InlineData("a.append(1)",
 
-                "[Ln 1, Col 2 - Ln 1, Col 10] ExpressionStatement\n" +
-                "  [Ln 1, Col 2 - Ln 1, Col 10] CallExpression\n" +
+                "[Ln 1, Col 0 - Ln 1, Col 10] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 10] CallExpression\n" +
                 "    [Ln 1, Col 2 - Ln 1, Col 7] IdentifierExpression (append)\n" +
                 "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
                 "    [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (1)",
@@ -329,6 +329,20 @@ namespace SeedLang.X.Tests {
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
+
+    [InlineData("1, 2, 3",
+
+                "[Ln 1, Col 0 - Ln 1, Col 6] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 6] TupleExpression\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 3 - Ln 1, Col 3] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (3)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Symbol [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Number [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "Symbol [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<SyntaxToken> tokens));

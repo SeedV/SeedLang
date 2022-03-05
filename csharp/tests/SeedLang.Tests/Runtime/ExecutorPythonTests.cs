@@ -12,18 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.IO;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
   public class ExecutorBytecodeTests {
-    private class MockupVisualizer : IVisualizer<EvalEvent> {
-      public IValue Result { get; private set; }
-
-      public void On(EvalEvent ee) {
-        Result = ee.Value;
-      }
-    }
-
     [Theory]
     [InlineData(@"sum = 0
 i = 1
@@ -38,7 +32,7 @@ sum
     [InlineData(@"sum = 0
 for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
   sum = sum + i
-sum
+print(sum)
 ",
 
     "55")]
@@ -60,7 +54,7 @@ func()
   for i in range(1, 11):
     sum += i
   return sum
-func()
+print(func())
 ",
 
     "55")]
@@ -70,7 +64,7 @@ func()
     return 1
   else:
     return n + sum(n - 1)
-sum(10)
+print(sum(10))
 ",
 
     "55")]
@@ -92,7 +86,7 @@ b
     a, b = b, a + b
     i = i + 1
   return b
-fib(10)
+print(fib(10))
 ",
 
     "55")]
@@ -111,7 +105,7 @@ fib(10)
   def inner_func():
     return 2
   return inner_func()
-func()
+print(func())
 ",
 
     "2")]
@@ -130,7 +124,7 @@ array
     [InlineData(@"array = []
 for i in range(5):
   array.append(i)
-array
+print(array)
 ",
 
     "[0, 1, 2, 3, 4]")]
@@ -141,10 +135,10 @@ array
 
     private static void TestWithRunType(string source, string result, RunType type) {
       var executor = new Executor();
-      var visualizer = new MockupVisualizer();
-      executor.Register(visualizer);
-      executor.Run(source, "", SeedXLanguage.SeedPython, type);
-      Assert.Equal(result, visualizer.Result.ToString());
+      var stringWriter = new StringWriter();
+      executor.RedirectStdout(stringWriter);
+      executor.Run(source, "", SeedXLanguage.SeedPython, type, RunMode.Interactive);
+      Assert.Equal(result + Environment.NewLine, stringWriter.ToString());
     }
   }
 }

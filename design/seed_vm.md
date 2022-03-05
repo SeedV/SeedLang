@@ -123,9 +123,8 @@ All the SeedLang instructions are listed as follows:
 |   23   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
 |   24   | `FORPREP`  | For loop preparation                                |
 |   25   | `FORLOOP`  | For loop check                                      |
-|   26   | `EVAL`     | Expression evaluation                               |
-|   27   | `CALL`     | Call a function                                     |
-|   28   | `RETURN`   | Return from a function call                         |
+|   26   | `CALL`     | Call a function                                     |
+|   27   | `RETURN`   | Return from a function call                         |
 
 ### Move and Load Constant
 
@@ -209,10 +208,4 @@ FORLOOP A sBx           # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
 JMP sBx                 # PC += sBx
 CALL A                  # call function R(A), parameters are R(A+1), ..., R(A+B)
 RETURN A B              # return R(A), R(A+1), ..., R(A+B-1)
-```
-
-### Expression Evaluation
-
-```shell
-Eval A                  # Evaluate R(A)
 ```

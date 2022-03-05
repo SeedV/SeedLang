@@ -45,16 +45,11 @@ namespace SeedLang.Runtime.Tests {
     }
   }
 
-  internal class MockupMultipleVisualizer : IVisualizer<BinaryEvent>, IVisualizer<EvalEvent> {
+  internal class MockupMultipleVisualizer : IVisualizer<BinaryEvent> {
     public BinaryEvent BinaryEvent { get; private set; }
-    public EvalEvent EvalEvent { get; private set; }
 
     public void On(BinaryEvent be) {
       BinaryEvent = be;
-    }
-
-    public void On(EvalEvent ee) {
-      EvalEvent = ee;
     }
   }
 
@@ -63,7 +58,7 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestRegisterVisualizer() {
       (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
-      visualizerCenter.EvalPublisher.Notify(NewEvalEvent());
+      // visualizerCenter.EvalPublisher.Notify(NewEvalEvent());
       Assert.Null(binaryVisualizer.BinaryEvent);
       visualizerCenter.BinaryPublisher.Notify(NewBinaryEvent());
       Assert.NotNull(binaryVisualizer.BinaryEvent);
@@ -75,12 +70,12 @@ namespace SeedLang.Runtime.Tests {
           NewMultipleVisualizerCenter();
       Assert.Null(binaryVisualizer.BinaryEvent);
       Assert.Null(multipleVisualizer.BinaryEvent);
-      Assert.Null(multipleVisualizer.EvalEvent);
+      // Assert.Null(multipleVisualizer.EvalEvent);
       visualizerCenter.BinaryPublisher.Notify(NewBinaryEvent());
-      visualizerCenter.EvalPublisher.Notify(NewEvalEvent());
+      // visualizerCenter.EvalPublisher.Notify(NewEvalEvent());
       Assert.NotNull(binaryVisualizer.BinaryEvent);
       Assert.NotNull(multipleVisualizer.BinaryEvent);
-      Assert.NotNull(multipleVisualizer.EvalEvent);
+      // Assert.NotNull(multipleVisualizer.EvalEvent);
     }
 
     [Fact]
@@ -110,10 +105,6 @@ namespace SeedLang.Runtime.Tests {
     private static BinaryEvent NewBinaryEvent() {
       return new BinaryEvent(new MockupValue(), BinaryOperator.Add, new MockupValue(),
                              new MockupValue(), new TextRange(0, 1, 2, 3));
-    }
-
-    private static EvalEvent NewEvalEvent() {
-      return new EvalEvent(new MockupValue(), new TextRange(0, 1, 2, 3));
     }
   }
 }

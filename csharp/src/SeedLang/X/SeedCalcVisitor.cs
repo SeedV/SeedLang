@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -31,8 +32,9 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitExpressionStatement(
-        [NotNull] SeedCalcParser.ExpressionStatementContext context) {
-      return VisitorHelper.BuildExpressionStatement(context.expression(), this);
+            [NotNull] SeedCalcParser.ExpressionStatementContext context) {
+      var exprContexts = new ParserRuleContext[] { context.expression() };
+      return _helper.BuildExpressionStmt(exprContexts, null, this);
     }
 
     public override AstNode VisitAdd([NotNull] SeedCalcParser.AddContext context) {

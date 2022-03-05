@@ -42,12 +42,6 @@ namespace SeedLang.Interpreter {
       return id >= MaxRegisterCount;
     }
 
-    // Emits an instruction with the opcode of type A.
-    internal void Emit(Opcode opcode, uint a, Range range) {
-      _bytecode.Add(new Instruction(opcode, a));
-      _ranges.Add(range);
-    }
-
     // Emits an instruction with the opcode of type ABC.
     internal void Emit(Opcode opcode, uint a, uint b, uint c, Range range) {
       _bytecode.Add(new Instruction(opcode, a, b, c));

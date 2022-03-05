@@ -21,11 +21,13 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
+    private RunMode _runMode;
     private VariableResolver _variableResolver;
     private NestedFuncStack _nestedFuncStack;
     private NestedJumpStack _nestedJumpStack;
 
-    // The register allocated for the result of sub-expressions.
+    // The register allocated for the result of sub-expressions. It must be set before visiting
+    // sub-expressions.
     private uint _registerForSubExpr;
     // The next boolean operator. A true condition check instruction is emitted if the next boolean
     // operator is "And", otherwise a false condition instruction check is emitted.
@@ -36,7 +38,8 @@ namespace SeedLang.Interpreter {
     // The constant cache on the top of the function stack.
     private ConstantCache _constantCache;
 
-    internal Function Compile(AstNode node, GlobalEnvironment env) {
+    internal Function Compile(AstNode node, GlobalEnvironment env, RunMode runMode) {
+      _runMode = runMode;
       _variableResolver = new VariableResolver(env);
       _nestedFuncStack = new NestedFuncStack();
       _nestedJumpStack = new NestedJumpStack();
@@ -200,16 +203,18 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ExpressionStatement expr) {
-      if (GetRegisterId(expr.Expr) is uint id) {
-        _chunk.Emit(Opcode.EVAL, id, expr.Range);
-      } else {
-        _variableResolver.BeginExpressionScope();
-        id = _variableResolver.AllocateRegister();
-        _registerForSubExpr = id;
-        Visit(expr.Expr);
-        _variableResolver.EndExpressionScope();
-        _chunk.Emit(Opcode.EVAL, id, expr.Range);
+      _variableResolver.BeginExpressionScope();
+      _registerForSubExpr = _variableResolver.AllocateRegister();
+      switch (_runMode) {
+        case RunMode.Interactive:
+          Expression eval = Expression.Identifier(NativeFunctions.PrintVal, expr.Range);
+          Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
+          break;
+        case RunMode.Script:
+          Visit(expr.Expr);
+          break;
       }
+      _variableResolver.EndExpressionScope();
     }
 
     protected override void Visit(ForInStatement forIn) {

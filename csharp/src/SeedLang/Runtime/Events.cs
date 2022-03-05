@@ -104,13 +104,4 @@ namespace SeedLang.Runtime {
       Value = value;
     }
   }
-
-  // An event which is triggered when an expression statement is executed.
-  public class EvalEvent : AbstractEvent {
-    public IValue Value { get; }
-
-    public EvalEvent(IValue value, Range range) : base(range) {
-      Value = value;
-    }
-  }
 }

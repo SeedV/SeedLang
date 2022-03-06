@@ -30,6 +30,11 @@ namespace SeedLang.Runtime.Tests {
 '123' + '456'
 [1, 2, 3] + [4, 5]
 (1, 2, 3) + (4,)
+'123' * 3
+'123' * 0
+2 * [1, 2, 3]
+(1, 2, 3) * 3
+-1 * (1, 2, 3)
 ";
       string result = @"3
 1
@@ -41,6 +46,11 @@ namespace SeedLang.Runtime.Tests {
 '123456'
 [1, 2, 3, 4, 5]
 (1, 2, 3, 4)
+'123123123'
+''
+[1, 2, 3, 1, 2, 3]
+(1, 2, 3, 1, 2, 3, 1, 2, 3)
+()
 ";
       TestExecutor(source, result);
     }

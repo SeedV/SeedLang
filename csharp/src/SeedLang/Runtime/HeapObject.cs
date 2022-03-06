@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using SeedLang.Common;
 
@@ -52,7 +53,13 @@ namespace SeedLang.Runtime {
     private readonly object _object;
 
     public HeapObject(object obj) {
-      _object = obj;
+      if (obj is string str) {
+        _object = ValueHelper.Unescape(str);
+      } else {
+        _object = obj;
+      }
+      Debug.Assert(IsString || IsList || IsFunction || IsRange || IsTuple,
+                   $"Unsupported object type: {_object.GetType()}");
     }
 
     public static bool operator ==(HeapObject lhs, HeapObject rhs) {
@@ -80,11 +87,14 @@ namespace SeedLang.Runtime {
       if (ReferenceEquals(this, other)) {
         return true;
       }
-      if (GetType() != other.GetType()) {
+      if (_object.GetType() != other._object.GetType()) {
         return false;
       }
       // Compares contents for string types, and compares references for other types. This behavior
       // is consistent with GetHashCode implementation.
+      if (_object is string) {
+        return _object as string == other._object as string;
+      }
       return _object == other._object;
     }
 
@@ -162,8 +172,6 @@ namespace SeedLang.Runtime {
 
     internal Tuple AsTuple() {
       switch (_object) {
-        case List list:
-          return list;
         case Tuple tuple:
           return tuple;
         default:
@@ -211,11 +219,11 @@ namespace SeedLang.Runtime {
       if (intIndex != index) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorInvalidIndex);
-      } else if (intIndex < 0 || intIndex >= length) {
+      } else if (intIndex < -length || intIndex >= length) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorOutOfRange);
       }
-      return intIndex;
+      return intIndex < 0 ? length + intIndex : intIndex;
     }
 
     private static string TupleToString(IReadOnlyList<Value> tuple) {

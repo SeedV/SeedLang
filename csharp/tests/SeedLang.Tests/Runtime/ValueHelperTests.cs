@@ -1,3 +1,4 @@
+using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +34,14 @@ namespace SeedLang.Runtime.Tests {
     public void TestModulo() {
       Assert.Equal(1, ValueHelper.Modulo(new Value(5), new Value(2)).AsNumber());
       Assert.Throws<DiagnosticException>(() => ValueHelper.Modulo(new Value(5), new Value(0)));
+    }
+
+    [Fact]
+    public void TestUnescape() {
+      Assert.Equal("\"string\"", ValueHelper.Unescape("\\\"string\\\""));
+      Assert.Equal("str'ing", ValueHelper.Unescape("str\\'ing"));
+      Assert.Equal("s\ntr\ring", ValueHelper.Unescape("s\\ntr\\ring"));
+      Assert.Equal("s\ttr\bing\f", ValueHelper.Unescape("s\\ttr\\bing\\f"));
     }
   }
 }

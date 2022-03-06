@@ -193,39 +193,40 @@ namespace SeedLang.Interpreter {
       BinaryOperator op = BinaryOperator.Add;
       Value left = ValueOfRK(chunk, instr.B, baseRegister);
       Value right = ValueOfRK(chunk, instr.C, baseRegister);
+      uint register = baseRegister + instr.A;
       switch (instr.Opcode) {
         case Opcode.ADD:
           op = BinaryOperator.Add;
-          _stack[baseRegister + instr.A] = ValueHelper.Add(left, right);
+          _stack[register] = ValueHelper.Add(left, right);
           break;
         case Opcode.SUB:
           op = BinaryOperator.Subtract;
-          _stack[baseRegister + instr.A] = ValueHelper.Subtract(left, right);
+          _stack[register] = ValueHelper.Subtract(left, right);
           break;
         case Opcode.MUL:
           op = BinaryOperator.Multiply;
-          _stack[baseRegister + instr.A] = ValueHelper.Multiply(left, right);
+          _stack[register] = ValueHelper.Multiply(left, right);
           break;
         case Opcode.DIV:
           op = BinaryOperator.Divide;
-          _stack[baseRegister + instr.A] = ValueHelper.Divide(left, right);
+          _stack[register] = ValueHelper.Divide(left, right);
           break;
         case Opcode.FLOORDIV:
           op = BinaryOperator.FloorDivide;
-          _stack[baseRegister + instr.A] = ValueHelper.FloorDivide(left, right);
+          _stack[register] = ValueHelper.FloorDivide(left, right);
           break;
         case Opcode.POW:
           op = BinaryOperator.Power;
-          _stack[baseRegister + instr.A] = ValueHelper.Power(left, right);
+          _stack[register] = ValueHelper.Power(left, right);
           break;
         case Opcode.MOD:
           op = BinaryOperator.Modulo;
-          _stack[baseRegister + instr.A] = ValueHelper.Modulo(left, right);
+          _stack[register] = ValueHelper.Modulo(left, right);
           break;
       }
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
-                                 new ValueWrapper(_stack[baseRegister + instr.A]), range);
+                                 new ValueWrapper(_stack[register]), range);
         _visualizerCenter.BinaryPublisher.Notify(be);
       }
     }

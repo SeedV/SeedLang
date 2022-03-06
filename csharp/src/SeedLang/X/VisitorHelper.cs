@@ -1,5 +1,3 @@
-using System.Text;
-using System.Net.Http.Headers;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +14,7 @@ using System.Net.Http.Headers;
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;

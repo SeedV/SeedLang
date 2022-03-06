@@ -77,7 +77,8 @@ namespace SeedLang.Common {
     RuntimeErrorNotCallable,            // Value type not callable runtime error.
     RuntimeErrorNotCountable,           // Value type not countable runtime error.
     RuntimeErrorNotSubscriptable,       // Value type not subscriptable runtime error.
-    RuntimeErrorNotSupportAssignment,   // The value type is not support assignment runtime error.
+    RuntimeErrorNotSupportAssignment,   // The value type does not support assignment.
+    RuntimeErrorUnsupportedOperads,     // The type of operads is not supported by the operator.
     RuntimeErrorOutOfRange,             // Index out of range runtime error.
     RuntimeErrorOverflow,               // Overflow runtime error.
     RuntimeErrorVariableNotDefined,     // Variable not defined runtime error.

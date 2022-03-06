@@ -76,25 +76,25 @@ namespace SeedLang.Ast {
       try {
         switch (binary.Op) {
           case BinaryOperator.Add:
-            _expressionResult = new Value(ValueHelper.Add(left, right));
+            _expressionResult = ValueHelper.Add(left, right);
             break;
           case BinaryOperator.Subtract:
-            _expressionResult = new Value(ValueHelper.Subtract(left, right));
+            _expressionResult = ValueHelper.Subtract(left, right);
             break;
           case BinaryOperator.Multiply:
-            _expressionResult = new Value(ValueHelper.Multiply(left, right));
+            _expressionResult = ValueHelper.Multiply(left, right);
             break;
           case BinaryOperator.Divide:
-            _expressionResult = new Value(ValueHelper.Divide(left, right));
+            _expressionResult = ValueHelper.Divide(left, right);
             break;
           case BinaryOperator.FloorDivide:
-            _expressionResult = new Value(ValueHelper.FloorDivide(left, right));
+            _expressionResult = ValueHelper.FloorDivide(left, right);
             break;
           case BinaryOperator.Power:
-            _expressionResult = new Value(ValueHelper.Power(left, right));
+            _expressionResult = ValueHelper.Power(left, right);
             break;
           case BinaryOperator.Modulo:
-            _expressionResult = new Value(ValueHelper.Modulo(left, right));
+            _expressionResult = ValueHelper.Modulo(left, right);
             break;
           default:
             throw new System.NotImplementedException($"Unsupported binary operator: {binary.Op}");
@@ -141,16 +141,16 @@ namespace SeedLang.Ast {
         Value left = i > 0 ? values[i - 1] : first;
         switch (comparison.Ops[i]) {
           case ComparisonOperator.Less:
-            currentResult = ValueHelper.Less(left, values[i]);
+            currentResult = left.AsNumber() < values[i].AsNumber();
             break;
           case ComparisonOperator.Greater:
-            currentResult = ValueHelper.Great(left, values[i]);
+            currentResult = left.AsNumber() > values[i].AsNumber();
             break;
           case ComparisonOperator.LessEqual:
-            currentResult = ValueHelper.LessEqual(left, values[i]);
+            currentResult = left.AsNumber() <= values[i].AsNumber();
             break;
           case ComparisonOperator.GreaterEqual:
-            currentResult = ValueHelper.GreatEqual(left, values[i]);
+            currentResult = left.AsNumber() >= values[i].AsNumber();
             break;
           case ComparisonOperator.EqEqual:
             currentResult = left.Equals(values[i]);

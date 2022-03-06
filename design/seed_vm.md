@@ -110,21 +110,22 @@ All the SeedLang instructions are listed as follows:
 |   10   | `SUB`      | Subtract operation                                  |
 |   11   | `MUL`      | Multiply operation                                  |
 |   12   | `DIV`      | Divide operation                                    |
-|   13   | `MOD`      | Modulus (reminder) operation                        |
+|   13   | `FLOORDIV` | Floor Divide operation                              |
 |   14   | `POW`      | Exponentiation operation                            |
-|   15   | `UNM`      | Unary minus operation                               |
-|   16   | `NOT`      | Logical not operation                               |
-|   17   | `LEN`      | Length operation                                    |
-|   18   | `JMP`      | Unconditional jump                                  |
-|   19   | `EQ`       | Equality test                                       |
-|   20   | `LT`       | Less than test                                      |
-|   21   | `LE`       | Less than or equal to test                          |
-|   22   | `TEST`     | Boolean test, with conditional jump                 |
-|   23   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
-|   24   | `FORPREP`  | For loop preparation                                |
-|   25   | `FORLOOP`  | For loop check                                      |
-|   26   | `CALL`     | Call a function                                     |
-|   27   | `RETURN`   | Return from a function call                         |
+|   15   | `MOD`      | Modulus (reminder) operation                        |
+|   16   | `UNM`      | Unary minus operation                               |
+|   17   | `NOT`      | Logical not operation                               |
+|   18   | `LEN`      | Length operation                                    |
+|   19   | `JMP`      | Unconditional jump                                  |
+|   20   | `EQ`       | Equality test                                       |
+|   21   | `LT`       | Less than test                                      |
+|   22   | `LE`       | Less than or equal to test                          |
+|   23   | `TEST`     | Boolean test, with conditional jump                 |
+|   24   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
+|   25   | `FORPREP`  | For loop preparation                                |
+|   26   | `FORLOOP`  | For loop check                                      |
+|   27   | `CALL`     | Call a function                                     |
+|   28   | `RETURN`   | Return from a function call                         |
 
 ### Move and Load Constant
 
@@ -173,8 +174,9 @@ ADD A B C               # R(A) := RK(B) + RK(C)
 SUB A B C               # R(A) := RK(B) - RK(C)
 MUL A B C               # R(A) := RK(B) * RK(C)
 DIV A B C               # R(A) := RK(B) / RK(C)
+FLOORDIV A B C          # R(A) := RK(B) // RK(C)
+POW A B C               # R(A) := RK(B) ** RK(C)
 MOD A B C               # R(A) := RK(B) % RK(C)
-POW A B C               # R(A) := RK(B) ^ RK(C)
 UNM A B                 # R(A) := -RK(B)
 LEN A B                 # R(A) := length of R(B)
 ```

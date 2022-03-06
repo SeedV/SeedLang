@@ -309,7 +309,7 @@ namespace SeedLang.Ast.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(str))
       );
       (string output, MockupVisualizer visualizer) = Run(block);
-      Assert.Equal(testString + Environment.NewLine, output);
+      Assert.Equal($"'{testString}'" + Environment.NewLine, output);
       var expectedOutput = $"{AstHelper.TextRange} {str} = {testString}" + Environment.NewLine;
       Assert.Equal(expectedOutput, visualizer.ToString());
     }

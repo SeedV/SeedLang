@@ -595,6 +595,12 @@ namespace SeedLang.Interpreter {
           return Opcode.MUL;
         case BinaryOperator.Divide:
           return Opcode.DIV;
+        case BinaryOperator.FloorDivide:
+          return Opcode.FLOORDIV;
+        case BinaryOperator.Power:
+          return Opcode.POW;
+        case BinaryOperator.Modulo:
+          return Opcode.MOD;
         default:
           throw new System.NotImplementedException($"Operator {op} not implemented.");
       }

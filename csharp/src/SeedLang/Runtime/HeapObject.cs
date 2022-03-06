@@ -160,6 +160,18 @@ namespace SeedLang.Runtime {
       }
     }
 
+    internal Tuple AsTuple() {
+      switch (_object) {
+        case List list:
+          return list;
+        case Tuple tuple:
+          return tuple;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
     internal Value this[double index] {
       get {
         switch (_object) {

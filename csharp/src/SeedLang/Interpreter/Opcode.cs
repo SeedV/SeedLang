@@ -30,6 +30,9 @@ namespace SeedLang.Interpreter {
     SUB,          // R(A) := RK(B) - RK(C)
     MUL,          // R(A) := RK(B) * RK(C)
     DIV,          // R(A) := RK(B) / RK(C)
+    FLOORDIV,     // R(A) := RK(B) // RK(C)
+    POW,          // R(A) := RK(B) ** RK(C)
+    MOD,          // R(A) := RK(B) % RK(C)
     UNM,          // R(A) := -RK(B)
     LEN,          // R(A) := length of R(B)
     JMP,          // PC += sBx
@@ -65,6 +68,9 @@ namespace SeedLang.Interpreter {
         case Opcode.SUB:
         case Opcode.MUL:
         case Opcode.DIV:
+        case Opcode.FLOORDIV:
+        case Opcode.POW:
+        case Opcode.MOD:
         case Opcode.UNM:
         case Opcode.LEN:
         case Opcode.EQ:

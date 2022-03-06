@@ -44,7 +44,11 @@ namespace SeedLang.Runtime {
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
       if (!args[offset].IsNone) {
-        sys.Stdout.WriteLine(args[offset].AsString());
+        if (args[offset].IsString) {
+          sys.Stdout.WriteLine($"'{args[offset].AsString()}'");
+        } else {
+          sys.Stdout.WriteLine(args[offset].AsString());
+        }
       }
       return new Value();
     }

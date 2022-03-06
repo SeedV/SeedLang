@@ -38,6 +38,8 @@ namespace SeedLang.Runtime {
     public bool IsString => _type == ValueType.Object && _object.IsString;
     public bool IsList => _type == ValueType.Object && _object.IsList;
     public bool IsFunction => _type == ValueType.Object && _object.IsFunction;
+    public bool IsRange => _type == ValueType.Object && _object.IsRange;
+    public bool IsTuple => _type == ValueType.Object && _object.IsTuple;
 
     public int Length {
       get {
@@ -196,7 +198,7 @@ namespace SeedLang.Runtime {
         return _object.AsList();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCallable);
+                                      Message.RuntimeErrorInvalidCast);
       }
     }
 
@@ -206,6 +208,15 @@ namespace SeedLang.Runtime {
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorNotCallable);
+      }
+    }
+
+    internal IReadOnlyList<Value> AsTuple() {
+      if (_type == ValueType.Object) {
+        return _object.AsTuple();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidCast);
       }
     }
   }

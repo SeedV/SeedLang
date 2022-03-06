@@ -134,7 +134,8 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(StringConstantExpression stringConstant) {
-      throw new System.NotImplementedException();
+      uint id = _constantCache.IdOfConstant(stringConstant.Value);
+      _chunk.Emit(Opcode.LOADK, _registerForSubExpr, id, stringConstant.Range);
     }
 
     protected override void Visit(ListExpression list) {
@@ -594,6 +595,12 @@ namespace SeedLang.Interpreter {
           return Opcode.MUL;
         case BinaryOperator.Divide:
           return Opcode.DIV;
+        case BinaryOperator.FloorDivide:
+          return Opcode.FLOORDIV;
+        case BinaryOperator.Power:
+          return Opcode.POW;
+        case BinaryOperator.Modulo:
+          return Opcode.MOD;
         default:
           throw new System.NotImplementedException($"Operator {op} not implemented.");
       }

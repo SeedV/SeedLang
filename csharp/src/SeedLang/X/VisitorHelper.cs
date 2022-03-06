@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +14,7 @@ using System.Net.Http.Headers;
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
@@ -195,9 +195,21 @@ namespace SeedLang.X {
     }
 
     // Builds string constant expressions.
-    internal StringConstantExpression BuildStringConstant(IToken token) {
-      TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.String);
-      return Expression.StringConstant(token.Text, range);
+    internal StringConstantExpression BuildStringConstant(ITerminalNode[] strNodes) {
+      Debug.Assert(strNodes.Length >= 1);
+      var sb = new StringBuilder();
+      foreach (ITerminalNode strNode in strNodes) {
+        AddSyntaxToken(SyntaxType.String, CodeReferenceUtils.RangeOfToken(strNode.Symbol));
+        string str = strNode.Symbol.Text;
+        Debug.Assert(str.Length >= 2 && (str[0] == '"' || str[0] == '\'') &&
+                     (str[str.Length - 1] == '"' || str[str.Length - 1] == '\''));
+        sb.Append(str, 1, str.Length - 2);
+      }
+      TextRange range = CodeReferenceUtils.RangeOfTokens(strNodes[0].Symbol,
+                                                         strNodes[strNodes.Length - 1].Symbol);
+      range = _groupingRange is null ? range : _groupingRange;
+      _groupingRange = null;
+      return Expression.StringConstant(sb.ToString(), range);
     }
 
     // Builds list expressions.

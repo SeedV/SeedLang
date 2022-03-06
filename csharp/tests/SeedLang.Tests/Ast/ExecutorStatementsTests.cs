@@ -299,6 +299,21 @@ namespace SeedLang.Ast.Tests {
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 
+    [Fact]
+    public void TestStringAssignment() {
+      string str = "str";
+      string testString = "test string";
+      var block = AstHelper.Block(
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(str)),
+                         AstHelper.StringConstant(testString)),
+        AstHelper.ExpressionStmt(AstHelper.Id(str))
+      );
+      (string output, MockupVisualizer visualizer) = Run(block);
+      Assert.Equal($"'{testString}'" + Environment.NewLine, output);
+      var expectedOutput = $"{AstHelper.TextRange} {str} = {testString}" + Environment.NewLine;
+      Assert.Equal(expectedOutput, visualizer.ToString());
+    }
+
     private static (string, MockupVisualizer) Run(Statement program) {
       var visualizer = new MockupVisualizer();
       var visualizerCenter = new VisualizerCenter();

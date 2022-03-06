@@ -30,7 +30,7 @@ namespace SeedLang.X {
   internal class SeedPythonVisitor : SeedPythonBaseVisitor<AstNode> {
     private readonly VisitorHelper _helper;
 
-    public SeedPythonVisitor(IList<SyntaxToken> tokens) {
+    public SeedPythonVisitor(IList<TokenInfo> tokens) {
       _helper = new VisitorHelper(tokens);
     }
 

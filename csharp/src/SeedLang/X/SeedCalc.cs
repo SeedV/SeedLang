@@ -23,19 +23,19 @@ namespace SeedLang.X {
   // The parser of SeedCalc language.
   internal class SeedCalc : BaseParser {
     // The dictionary that maps from token types of SeedCalc to syntax token types.
-    private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
-      { SeedCalcParser.NUMBER, SyntaxType.Number },
-      { SeedCalcParser.ADD, SyntaxType.Operator },
-      { SeedCalcParser.SUBTRACT, SyntaxType.Operator },
-      { SeedCalcParser.MULTIPLY, SyntaxType.Operator },
-      { SeedCalcParser.DIVIDE, SyntaxType.Operator },
-      { SeedCalcParser.OPEN_PAREN, SyntaxType.Parenthesis },
-      { SeedCalcParser.CLOSE_PAREN, SyntaxType.Parenthesis },
-      { SeedCalcParser.UNKNOWN_CHAR, SyntaxType.Unknown },
+    private readonly Dictionary<int, TokenType> _typeMap = new Dictionary<int, TokenType> {
+      { SeedCalcParser.NUMBER, TokenType.Number },
+      { SeedCalcParser.ADD, TokenType.Operator },
+      { SeedCalcParser.SUBTRACT, TokenType.Operator },
+      { SeedCalcParser.MULTIPLY, TokenType.Operator },
+      { SeedCalcParser.DIVIDE, TokenType.Operator },
+      { SeedCalcParser.OPEN_PAREN, TokenType.OpenParenthesis },
+      { SeedCalcParser.CLOSE_PAREN, TokenType.CloseParenthesis },
+      { SeedCalcParser.UNKNOWN_CHAR, TokenType.Unknown },
     };
 
     // The dictionary that maps from token types of SeedCalc to syntax token types.
-    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
+    protected override IReadOnlyDictionary<int, TokenType> _syntaxTypeMap => _typeMap;
 
     protected override Lexer MakeLexer(ICharStream stream) {
       return new SeedCalcLexer(stream);
@@ -45,7 +45,7 @@ namespace SeedLang.X {
       return new SeedCalcParser(stream);
     }
 
-    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens) {
+    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<TokenInfo> tokens) {
       return new SeedCalcVisitor(tokens);
     }
 

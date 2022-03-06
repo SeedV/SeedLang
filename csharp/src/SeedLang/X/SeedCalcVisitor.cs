@@ -27,7 +27,7 @@ namespace SeedLang.X {
   internal class SeedCalcVisitor : SeedCalcBaseVisitor<AstNode> {
     private readonly VisitorHelper _helper;
 
-    public SeedCalcVisitor(IList<SyntaxToken> tokens) {
+    public SeedCalcVisitor(IList<TokenInfo> tokens) {
       _helper = new VisitorHelper(tokens);
     }
 

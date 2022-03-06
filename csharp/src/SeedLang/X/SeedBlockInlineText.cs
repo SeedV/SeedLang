@@ -23,29 +23,29 @@ namespace SeedLang.X {
   // The parser to parse a block inline text of SeedBlock programs.
   internal class SeedBlockInlineText : BaseParser {
     // The dictionary that maps from token types of SeedBlock to syntax token types.
-    private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
-      { SeedBlockInlineTextParser.NAME, SyntaxType.Variable},
-      { SeedBlockInlineTextParser.NUMBER, SyntaxType.Number},
-      { SeedBlockInlineTextParser.ADD, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.SUBTRACT, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.MULTIPLY, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.DIVIDE, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.FLOOR_DIVIDE, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.EQUAL, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.EQ_EQUAL, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.NOT_EQUAL, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.LESS_EQUAL, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.LESS, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.GREATER_EQUAL, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.GREATER, SyntaxType.Operator},
-      { SeedBlockInlineTextParser.OPEN_PAREN, SyntaxType.Parenthesis},
-      { SeedBlockInlineTextParser.CLOSE_PAREN, SyntaxType.Parenthesis},
-      { SeedBlockInlineTextParser.DOT, SyntaxType.Symbol},
-      { SeedBlockInlineTextParser.UNKNOWN_CHAR, SyntaxType.Unknown },
+    private readonly Dictionary<int, TokenType> _typeMap = new Dictionary<int, TokenType> {
+      { SeedBlockInlineTextParser.NAME, TokenType.Variable},
+      { SeedBlockInlineTextParser.NUMBER, TokenType.Number},
+      { SeedBlockInlineTextParser.ADD, TokenType.Operator},
+      { SeedBlockInlineTextParser.SUBTRACT, TokenType.Operator},
+      { SeedBlockInlineTextParser.MULTIPLY, TokenType.Operator},
+      { SeedBlockInlineTextParser.DIVIDE, TokenType.Operator},
+      { SeedBlockInlineTextParser.FLOOR_DIVIDE, TokenType.Operator},
+      { SeedBlockInlineTextParser.EQUAL, TokenType.Operator},
+      { SeedBlockInlineTextParser.EQ_EQUAL, TokenType.Operator},
+      { SeedBlockInlineTextParser.NOT_EQUAL, TokenType.Operator},
+      { SeedBlockInlineTextParser.LESS_EQUAL, TokenType.Operator},
+      { SeedBlockInlineTextParser.LESS, TokenType.Operator},
+      { SeedBlockInlineTextParser.GREATER_EQUAL, TokenType.Operator},
+      { SeedBlockInlineTextParser.GREATER, TokenType.Operator},
+      { SeedBlockInlineTextParser.OPEN_PAREN, TokenType.OpenParenthesis},
+      { SeedBlockInlineTextParser.CLOSE_PAREN, TokenType.CloseParenthesis},
+      { SeedBlockInlineTextParser.DOT, TokenType.Symbol},
+      { SeedBlockInlineTextParser.UNKNOWN_CHAR, TokenType.Unknown },
     };
 
     // The dictionary that maps from token types of SeedBlock to syntax token types.
-    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
+    protected override IReadOnlyDictionary<int, TokenType> _syntaxTypeMap => _typeMap;
 
     protected override Lexer MakeLexer(ICharStream stream) {
       return new SeedBlockInlineTextLexer(stream);
@@ -55,7 +55,7 @@ namespace SeedLang.X {
       return new SeedBlockInlineTextParser(stream);
     }
 
-    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens) {
+    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<TokenInfo> tokens) {
       return new SeedBlockInlineTextVisitor(tokens);
     }
 

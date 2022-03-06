@@ -52,7 +52,7 @@ namespace SeedLang.Shell {
       }
     }
 
-    internal void WriteSourceWithSyntaxTokens(IReadOnlyList<SyntaxToken> syntaxTokens) {
+    internal void WriteSourceWithSyntaxTokens(IReadOnlyList<TokenInfo> syntaxTokens) {
       Console.ResetColor();
       Console.WriteLine("---------- Source ----------");
       int tokenIndex = 0;
@@ -61,14 +61,14 @@ namespace SeedLang.Shell {
       }
     }
 
-    private void WriteLineWithSyntaxTokens(int lineId, IReadOnlyList<SyntaxToken> syntaxTokens,
+    private void WriteLineWithSyntaxTokens(int lineId, IReadOnlyList<TokenInfo> syntaxTokens,
                                            ref int tokenIndex) {
       int column = 0;
       Console.Write($"{lineId,-5} ");
       string line = _lines[lineId - 1];
       while (column < line.Length && tokenIndex < syntaxTokens.Count &&
              syntaxTokens[tokenIndex].Range.Start.Line <= lineId) {
-        SyntaxToken token = syntaxTokens[tokenIndex];
+        TokenInfo token = syntaxTokens[tokenIndex];
         if (token.Range.Start.Column > column) {
           Console.Write(line.Substring(column, token.Range.Start.Column - column));
         }

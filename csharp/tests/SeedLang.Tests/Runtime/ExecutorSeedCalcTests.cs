@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using System.Linq;
 using SeedLang.Common;
 using Xunit;
@@ -23,19 +24,20 @@ namespace SeedLang.Runtime.Tests {
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]")]
+                "OpenParenthesis [Ln 1, Col 4 - Ln 1, Col 4]")]
 
     [InlineData("5 + (3 * 2",
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "OpenParenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "Number [Ln 1, Col 9 - Ln 1, Col 9]")]
     public void TestParseSyntaxTokens(string source, string expectedTokens) {
       var collection = new DiagnosticCollection();
-      var tokens = Executor.ParseSyntaxTokens(source, "", SeedXLanguage.SeedCalc, collection);
+      Executor.ParseSyntaxTokens(source, "", SeedXLanguage.SeedCalc,
+                                 out IReadOnlyList<TokenInfo> tokens);
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }

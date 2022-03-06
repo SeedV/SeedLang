@@ -43,7 +43,7 @@ namespace SeedLang.Block {
         return null;
       }
       var parser = new SeedBlockInlineText();
-      if (!parser.Parse(text, "", collection, out _, out IReadOnlyList<SyntaxToken> tokens)) {
+      if (!parser.Parse(text, "", collection, out _, out IReadOnlyList<TokenInfo> tokens)) {
         return null;
       }
 
@@ -51,17 +51,17 @@ namespace SeedLang.Block {
       var blocks = new List<BaseBlock>();
       while (i < tokens.Count) {
         switch (tokens[i].Type) {
-          case SyntaxType.Number:
+          case TokenType.Number:
             blocks.Add(new NumberBlock {
               Value = TextOfRange(text, tokens[i].Range),
               InlineTextReference = tokens[i].Range,
             });
             break;
-          case SyntaxType.Operator:
+          case TokenType.Operator:
             TextRange range = tokens[i].Range;
             string op = TextOfRange(text, range);
             if (op == "-") {
-              if (i < tokens.Count - 1 && tokens[i + 1].Type == SyntaxType.Number) {
+              if (i < tokens.Count - 1 && tokens[i + 1].Type == TokenType.Number) {
                 TextRange newRange = CodeReferenceUtils.CombineRanges(range, tokens[i + 1].Range);
                 string number = TextOfRange(text, newRange);
                 blocks.Add(new NumberBlock { Value = number, InlineTextReference = newRange });
@@ -71,16 +71,21 @@ namespace SeedLang.Block {
             }
             blocks.Add(new ArithmeticOperatorBlock { Name = op, InlineTextReference = range });
             break;
-          case SyntaxType.Parenthesis:
-            string paren = TextOfRange(text, tokens[i].Range);
-            var type = paren == "(" ? ParenthesisBlock.Type.Left : ParenthesisBlock.Type.Right;
-            blocks.Add(new ParenthesisBlock(type) { InlineTextReference = tokens[i].Range });
+          case TokenType.OpenParenthesis:
+            blocks.Add(new ParenthesisBlock(ParenthesisBlock.Type.Left) {
+              InlineTextReference = tokens[i].Range,
+            });
             break;
-          case SyntaxType.Keyword:
-          case SyntaxType.String:
-          case SyntaxType.Symbol:
-          case SyntaxType.Unknown:
-          case SyntaxType.Variable:
+          case TokenType.CloseParenthesis:
+            blocks.Add(new ParenthesisBlock(ParenthesisBlock.Type.Right) {
+              InlineTextReference = tokens[i].Range,
+            });
+            break;
+          case TokenType.Keyword:
+          case TokenType.String:
+          case TokenType.Symbol:
+          case TokenType.Unknown:
+          case TokenType.Variable:
             break;
         }
         ++i;
@@ -98,7 +103,7 @@ namespace SeedLang.Block {
           if (rootBlock is ExpressionBlock expressionBlock) {
             var parser = new SeedBlockInlineText();
             if (parser.Parse(expressionBlock.GetEditableText(), module.Name, collection,
-                             out AstNode node, out IReadOnlyList<SyntaxToken> _)) {
+                             out AstNode node, out IReadOnlyList<TokenInfo> _)) {
               nodes.Add(node);
             }
           }

@@ -80,7 +80,8 @@ namespace SeedLang.Shell {
         Console.WriteLine($"Read file error: {ex}.");
         return;
       }
-      var syntaxTokens = Executor.ParseSyntaxTokens(source.Source, "", language);
+      Executor.ParseSyntaxTokens(source.Source, "", language,
+                                 out IReadOnlyList<TokenInfo> syntaxTokens);
       source.WriteSourceWithSyntaxTokens(syntaxTokens);
 
       Console.WriteLine();

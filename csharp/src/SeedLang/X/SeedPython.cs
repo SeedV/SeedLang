@@ -23,33 +23,73 @@ namespace SeedLang.X {
   // The parser of SeedPython language.
   internal class SeedPython : BaseParser {
     // The dictionary that maps from token types of SeedPython to syntax token types.
-    private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
-      { SeedPythonParser.NAME, SyntaxType.Variable },
-      { SeedPythonParser.NUMBER, SyntaxType.Number },
-      { SeedPythonParser.ADD, SyntaxType.Operator },
-      { SeedPythonParser.SUBTRACT, SyntaxType.Operator },
-      { SeedPythonParser.MULTIPLY, SyntaxType.Operator },
-      { SeedPythonParser.DIVIDE, SyntaxType.Operator },
-      { SeedPythonParser.FLOOR_DIVIDE, SyntaxType.Operator },
-      { SeedPythonParser.POWER, SyntaxType.Operator },
-      { SeedPythonParser.MODULO, SyntaxType.Operator },
-      { SeedPythonParser.EQUAL, SyntaxType.Operator },
-      { SeedPythonParser.EQ_EQUAL, SyntaxType.Operator },
-      { SeedPythonParser.NOT_EQUAL, SyntaxType.Operator },
-      { SeedPythonParser.LESS_EQUAL, SyntaxType.Operator },
-      { SeedPythonParser.LESS, SyntaxType.Operator },
-      { SeedPythonParser.GREATER_EQUAL, SyntaxType.Operator },
-      { SeedPythonParser.GREATER, SyntaxType.Operator },
-      { SeedPythonParser.OPEN_PAREN, SyntaxType.Parenthesis },
-      { SeedPythonParser.CLOSE_PAREN, SyntaxType.Parenthesis },
-      { SeedPythonParser.COLON, SyntaxType.Symbol },
-      { SeedPythonParser.WHILE, SyntaxType.Keyword },
-      { SeedPythonParser.TRUE, SyntaxType.Keyword },
-      { SeedPythonParser.UNKNOWN_CHAR, SyntaxType.Unknown },
+    private readonly Dictionary<int, TokenType> _typeMap = new Dictionary<int, TokenType> {
+      // The keys are ordered by the constant names defined in the ANTLR-generated source
+      // SeedPythonParser.cs. Please keep this dictionary up-to-date once the SeedPython grammar is
+      // updated.
+
+      // Ignored: SeedPythonParser.T__0
+      // Ignored: SeedPythonParser.T__1
+      { SeedPythonParser.IF, TokenType.Keyword },
+      { SeedPythonParser.ELIF, TokenType.Keyword },
+      { SeedPythonParser.ELSE, TokenType.Keyword },
+      { SeedPythonParser.FOR, TokenType.Keyword },
+      { SeedPythonParser.IN, TokenType.Keyword },
+      { SeedPythonParser.WHILE, TokenType.Keyword },
+      { SeedPythonParser.DEF, TokenType.Keyword },
+      { SeedPythonParser.RETURN, TokenType.Keyword },
+      { SeedPythonParser.PASS, TokenType.Keyword },
+      { SeedPythonParser.COLON, TokenType.Symbol },
+      { SeedPythonParser.SEMICOLON, TokenType.Symbol },
+      { SeedPythonParser.TRUE, TokenType.Boolean },
+      { SeedPythonParser.FALSE, TokenType.Boolean },
+      { SeedPythonParser.NONE, TokenType.None },
+      { SeedPythonParser.AND, TokenType.Operator },
+      { SeedPythonParser.OR, TokenType.Operator },
+      { SeedPythonParser.NOT, TokenType.Operator },
+      { SeedPythonParser.EQUAL, TokenType.Operator },
+      { SeedPythonParser.EQ_EQUAL, TokenType.Operator },
+      { SeedPythonParser.NOT_EQUAL, TokenType.Operator },
+      { SeedPythonParser.LESS_EQUAL, TokenType.Operator },
+      { SeedPythonParser.LESS, TokenType.Operator },
+      { SeedPythonParser.GREATER_EQUAL, TokenType.Operator },
+      { SeedPythonParser.GREATER, TokenType.Operator },
+      { SeedPythonParser.ADD, TokenType.Operator },
+      { SeedPythonParser.SUBTRACT, TokenType.Operator },
+      { SeedPythonParser.MULTIPLY, TokenType.Operator },
+      { SeedPythonParser.DIVIDE, TokenType.Operator },
+      { SeedPythonParser.FLOOR_DIVIDE, TokenType.Operator },
+      { SeedPythonParser.POWER, TokenType.Operator },
+      { SeedPythonParser.MODULO, TokenType.Operator },
+      { SeedPythonParser.ADD_ASSIGN, TokenType.Operator },
+      { SeedPythonParser.SUBSTRACT_ASSIGN, TokenType.Operator },
+      { SeedPythonParser.MULTIPLY_ASSIGN, TokenType.Operator },
+      { SeedPythonParser.DIVIDE_ASSIGN, TokenType.Operator },
+      { SeedPythonParser.MODULO_ASSIGN, TokenType.Operator },
+      { SeedPythonParser.OPEN_PAREN, TokenType.OpenParenthesis },
+      { SeedPythonParser.CLOSE_PAREN, TokenType.CloseParenthesis },
+      { SeedPythonParser.OPEN_BRACK, TokenType.OpenBracket },
+      { SeedPythonParser.CLOSE_BRACK, TokenType.CloseBracket },
+      // Ignore: SeedPythonParser.OPEN_BRACE
+      // Ignore: SeedPythonParser.CLOSE_BRACE
+      { SeedPythonParser.DOT, TokenType.Symbol },
+      { SeedPythonParser.COMMA, TokenType.Symbol },
+      { SeedPythonParser.NAME, TokenType.Variable },
+      { SeedPythonParser.NUMBER, TokenType.Number },
+      { SeedPythonParser.STRING, TokenType.String },
+      { SeedPythonParser.INTEGER, TokenType.Number },
+      { SeedPythonParser.DECIMAL_INTEGER, TokenType.Number },
+      { SeedPythonParser.FLOAT_NUMBER, TokenType.Number },
+      // Ignore: SeedPythonParser.COMMENT
+      // Ignore: SeedPythonParser.NEWLINE
+      // Ignore: SeedPythonParser.SKIP_
+      { SeedPythonParser.UNKNOWN_CHAR, TokenType.Unknown },
+      // Ignore: SeedPythonParser.INDENT
+      // Ignore: SeedPythonParser.DEDENT
     };
 
     // The dictionary that maps from token types of SeedPython to syntax token types.
-    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
+    protected override IReadOnlyDictionary<int, TokenType> _syntaxTypeMap => _typeMap;
 
     protected override Lexer MakeLexer(ICharStream stream) {
       return new SeedPythonDentLexer(stream);
@@ -59,7 +99,7 @@ namespace SeedLang.X {
       return new SeedPythonParser(stream);
     }
 
-    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens) {
+    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<TokenInfo> tokens) {
       return new SeedPythonVisitor(tokens);
     }
 

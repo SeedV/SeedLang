@@ -42,7 +42,8 @@ namespace SeedLang.Shell {
         if (_source.Source == "quit" + Environment.NewLine) {
           break;
         }
-        var syntaxTokens = Executor.ParseSyntaxTokens(_source.Source, "", _language);
+        Executor.ParseSyntaxTokens(_source.Source, "", _language,
+                                   out IReadOnlyList<TokenInfo> syntaxTokens);
         _source.WriteSourceWithSyntaxTokens(syntaxTokens);
         Console.WriteLine("---------- Run ----------");
         var collection = new DiagnosticCollection();

@@ -22,11 +22,10 @@ using SeedLang.Common;
 namespace SeedLang.X {
   // The parser of SeedCalc language.
   internal class SeedCalc : BaseParser {
-    // The dictionary that maps from token types of SeedCalc to syntax token types.
+    // The dictionary that maps from ANTLR4 token types of SeedCalc to syntax token types.
     private readonly Dictionary<int, TokenType> _typeMap = new Dictionary<int, TokenType> {
       // The keys are ordered by the constant names defined in the ANTLR-generated source
-      // SeedCalcParser.cs. Please keep this dictionary up-to-date once the SeedPython grammar is
-      // updated.
+      // SeedCalcParser.cs. Please keep this dictionary up-to-date once the grammar is updated.
       { SeedCalcParser.ADD, TokenType.Operator },
       { SeedCalcParser.SUBTRACT, TokenType.Operator },
       { SeedCalcParser.MULTIPLY, TokenType.Operator },

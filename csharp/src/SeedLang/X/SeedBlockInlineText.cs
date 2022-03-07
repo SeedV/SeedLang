@@ -22,11 +22,11 @@ using SeedLang.Common;
 namespace SeedLang.X {
   // The parser to parse a block inline text of SeedBlock programs.
   internal class SeedBlockInlineText : BaseParser {
-    // The dictionary that maps from token types of SeedBlock to syntax token types.
+    // The dictionary that maps from ANTLR4 token types of SeedBlock to syntax token types.
     private readonly Dictionary<int, TokenType> _typeMap = new Dictionary<int, TokenType> {
       // The keys are ordered by the constant names defined in the ANTLR-generated source
-      // SeedBlockInlineTextParser.cs. Please keep this dictionary up-to-date once the SeedPython
-      // grammar is updated.
+      // SeedBlockInlineTextParser.cs. Please keep this dictionary up-to-date once the grammar is
+      // updated.
       { SeedBlockInlineTextParser.TRUE, TokenType.Boolean},
       { SeedBlockInlineTextParser.FALSE, TokenType.Boolean},
       { SeedBlockInlineTextParser.NONE, TokenType.None},

@@ -21,14 +21,12 @@ using SeedLang.Runtime;
 namespace SeedLang.Shell {
   // A Read-Evaluate-Print-Loop class to execute SeedX programs interactively.
   internal sealed class Repl {
-    private readonly SeedXLanguage _language;
     private readonly RunType _runType;
     private readonly VisualizerManager _visualizerManager;
     private readonly SourceCode _source = new SourceCode();
 
     internal Repl(SeedXLanguage language, RunType runType,
                   IEnumerable<VisualizerType> visualizerTypes) {
-      _language = language;
       _source.Language = language;
       _runType = runType;
       _visualizerManager = new VisualizerManager(_source, visualizerTypes);
@@ -46,8 +44,8 @@ namespace SeedLang.Shell {
         _source.ParseAndWriteSource();
         Console.WriteLine("---------- Run ----------");
         var collection = new DiagnosticCollection();
-        string result = executor.Run(_source.Source, "", _language, _runType, RunMode.Interactive,
-                                     collection);
+        string result = executor.Run(_source.Source, "", _source.Language, _runType,
+                                     RunMode.Interactive, collection);
         if (!(result is null)) {
           Console.WriteLine(result);
         }

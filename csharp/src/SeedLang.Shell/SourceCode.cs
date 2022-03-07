@@ -38,8 +38,7 @@ namespace SeedLang.Shell {
       // source code is not valid.
       if (!Executor.ParseSemanticTokens(Source, "", Language,
                                         out IReadOnlyList<TokenInfo> syntaxTokens)) {
-        Executor.ParseSyntaxTokens(Source, "", Language,
-                                   out syntaxTokens);
+        Executor.ParseSyntaxTokens(Source, "", Language, out syntaxTokens);
       }
       WriteSourceWithSyntaxTokens(syntaxTokens);
     }

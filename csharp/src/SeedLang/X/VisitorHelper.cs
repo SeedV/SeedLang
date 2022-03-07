@@ -312,7 +312,7 @@ namespace SeedLang.X {
           }
           if (i < commaNodes.Length) {
             AddSemanticToken(TokenType.Symbol,
-                           CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
+                             CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
           }
         }
         TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);

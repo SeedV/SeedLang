@@ -69,8 +69,8 @@ namespace SeedLang.X {
       { SeedPythonParser.CLOSE_PAREN, TokenType.CloseParenthesis },
       { SeedPythonParser.OPEN_BRACK, TokenType.OpenBracket },
       { SeedPythonParser.CLOSE_BRACK, TokenType.CloseBracket },
-      // Ignore: OPEN_BRACE
-      // Ignore: CLOSE_BRACE
+      { SeedPythonParser.OPEN_BRACE, TokenType.OpenBrace },
+      { SeedPythonParser.CLOSE_BRACE, TokenType.CloseBrace },
       { SeedPythonParser.DOT, TokenType.Symbol },
       { SeedPythonParser.COMMA, TokenType.Symbol },
       { SeedPythonParser.NAME, TokenType.Variable },

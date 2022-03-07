@@ -24,13 +24,21 @@ namespace SeedLang.X {
   internal class SeedCalc : BaseParser {
     // The dictionary that maps from token types of SeedCalc to syntax token types.
     private readonly Dictionary<int, TokenType> _typeMap = new Dictionary<int, TokenType> {
-      { SeedCalcParser.NUMBER, TokenType.Number },
+      // The keys are ordered by the constant names defined in the ANTLR-generated source
+      // SeedCalcParser.cs. Please keep this dictionary up-to-date once the SeedPython grammar is
+      // updated.
       { SeedCalcParser.ADD, TokenType.Operator },
       { SeedCalcParser.SUBTRACT, TokenType.Operator },
       { SeedCalcParser.MULTIPLY, TokenType.Operator },
       { SeedCalcParser.DIVIDE, TokenType.Operator },
       { SeedCalcParser.OPEN_PAREN, TokenType.OpenParenthesis },
       { SeedCalcParser.CLOSE_PAREN, TokenType.CloseParenthesis },
+      { SeedCalcParser.NUMBER, TokenType.Number },
+      { SeedCalcParser.INTEGER, TokenType.Number },
+      { SeedCalcParser.DECIMAL_INTEGER, TokenType.Number },
+      { SeedCalcParser.FLOAT_NUMBER, TokenType.Number },
+      // Ignore: NEWLINE
+      // Ignore: SKIP_
       { SeedCalcParser.UNKNOWN_CHAR, TokenType.Unknown },
     };
 

@@ -28,8 +28,8 @@ namespace SeedLang.X {
       // SeedPythonParser.cs. Please keep this dictionary up-to-date once the SeedPython grammar is
       // updated.
 
-      // Ignored: SeedPythonParser.T__0
-      // Ignored: SeedPythonParser.T__1
+      // Ignored: T__0
+      // Ignored: T__1
       { SeedPythonParser.IF, TokenType.Keyword },
       { SeedPythonParser.ELIF, TokenType.Keyword },
       { SeedPythonParser.ELSE, TokenType.Keyword },
@@ -70,8 +70,8 @@ namespace SeedLang.X {
       { SeedPythonParser.CLOSE_PAREN, TokenType.CloseParenthesis },
       { SeedPythonParser.OPEN_BRACK, TokenType.OpenBracket },
       { SeedPythonParser.CLOSE_BRACK, TokenType.CloseBracket },
-      // Ignore: SeedPythonParser.OPEN_BRACE
-      // Ignore: SeedPythonParser.CLOSE_BRACE
+      // Ignore: OPEN_BRACE
+      // Ignore: CLOSE_BRACE
       { SeedPythonParser.DOT, TokenType.Symbol },
       { SeedPythonParser.COMMA, TokenType.Symbol },
       { SeedPythonParser.NAME, TokenType.Variable },
@@ -80,12 +80,11 @@ namespace SeedLang.X {
       { SeedPythonParser.INTEGER, TokenType.Number },
       { SeedPythonParser.DECIMAL_INTEGER, TokenType.Number },
       { SeedPythonParser.FLOAT_NUMBER, TokenType.Number },
-      // Ignore: SeedPythonParser.COMMENT
-      // Ignore: SeedPythonParser.NEWLINE
-      // Ignore: SeedPythonParser.SKIP_
+      // Ignore: NEWLINE
+      // Ignore: SKIP_
       { SeedPythonParser.UNKNOWN_CHAR, TokenType.Unknown },
-      // Ignore: SeedPythonParser.INDENT
-      // Ignore: SeedPythonParser.DEDENT
+      // Ignore: INDENT
+      // Ignore: DEDENT
     };
 
     // The dictionary that maps from token types of SeedPython to syntax token types.

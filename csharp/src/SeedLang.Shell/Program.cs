@@ -71,7 +71,7 @@ namespace SeedLang.Shell {
 
     private static void RunScript(string filename, SeedXLanguage language, RunType runType,
                                   IEnumerable<VisualizerType> visualizerTypes) {
-      var source = new SourceCode();
+      var source = new SourceCode() { Language = language };
       try {
         foreach (string line in File.ReadLines(filename)) {
           source.AddLine(line);
@@ -80,10 +80,7 @@ namespace SeedLang.Shell {
         Console.WriteLine($"Read file error: {ex}.");
         return;
       }
-      Executor.ParseSyntaxTokens(source.Source, "", language,
-                                 out IReadOnlyList<TokenInfo> syntaxTokens);
-      source.WriteSourceWithSyntaxTokens(syntaxTokens);
-
+      source.ParseAndWriteSource();
       Console.WriteLine();
       Console.WriteLine("---------- Run ----------");
       var visualizerManager = new VisualizerManager(source, visualizerTypes);

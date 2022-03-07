@@ -88,7 +88,7 @@ namespace SeedLang.Shell {
             }
           },
           {
-            TokenType.CloseBracket,
+            TokenType.CloseParenthesis,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Gray,
             }

@@ -15,13 +15,15 @@
 using System;
 using System.Collections.Generic;
 using SeedLang.Common;
+using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
   // A class to handle source code input and output.
   internal class SourceCode {
-    public string Source => string.Join(null, _lines);
-
     private readonly List<string> _lines = new List<string>();
+
+    public string Source => string.Join(null, _lines);
+    public SeedXLanguage Language { get; set; }
 
     internal void AddLine(string line) {
       _lines.Add(line + Environment.NewLine);
@@ -29,6 +31,17 @@ namespace SeedLang.Shell {
 
     internal void Reset() {
       _lines.Clear();
+    }
+
+    internal void ParseAndWriteSource() {
+      // Tries to parse semantic tokens out of the source code. Falls back to syntax tokens if the
+      // source code is not valid.
+      if (!Executor.ParseSemanticTokens(Source, "", Language,
+                                        out IReadOnlyList<TokenInfo> syntaxTokens)) {
+        Executor.ParseSyntaxTokens(Source, "", Language,
+                                   out syntaxTokens);
+      }
+      WriteSourceWithSyntaxTokens(syntaxTokens);
     }
 
     internal void WriteSourceWithHighlight(TextRange range) {

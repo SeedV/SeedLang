@@ -29,6 +29,7 @@ namespace SeedLang.Shell {
     internal Repl(SeedXLanguage language, RunType runType,
                   IEnumerable<VisualizerType> visualizerTypes) {
       _language = language;
+      _source.Language = language;
       _runType = runType;
       _visualizerManager = new VisualizerManager(_source, visualizerTypes);
     }
@@ -42,9 +43,7 @@ namespace SeedLang.Shell {
         if (_source.Source == "quit" + Environment.NewLine) {
           break;
         }
-        Executor.ParseSyntaxTokens(_source.Source, "", _language,
-                                   out IReadOnlyList<TokenInfo> syntaxTokens);
-        _source.WriteSourceWithSyntaxTokens(syntaxTokens);
+        _source.ParseAndWriteSource();
         Console.WriteLine("---------- Run ----------");
         var collection = new DiagnosticCollection();
         string result = executor.Run(_source.Source, "", _language, _runType, RunMode.Interactive,

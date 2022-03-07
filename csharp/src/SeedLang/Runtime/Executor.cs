@@ -74,7 +74,7 @@ namespace SeedLang.Runtime {
     }
 
     // Tries to parse valid SeedX source code into a list of semantic tokens. Returns false and sets
-    // semanticTokens to an empty list if the source code is not valid.
+    // semanticTokens to null if the source code is not valid.
     public static bool ParseSemanticTokens(string source, string module, SeedXLanguage language,
                                            out IReadOnlyList<TokenInfo> semanticTokens,
                                            DiagnosticCollection collection = null) {

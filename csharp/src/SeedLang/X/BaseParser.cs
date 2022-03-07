@@ -54,8 +54,8 @@ namespace SeedLang.X {
     }
 
     // Parses a valid source code into an AST tree and a list of semantic tokens. The concrete
-    // ANTLR4 lexer and parser are created by the derived class. The out node is set to null if the
-    // given source code is not valid.
+    // ANTLR4 lexer and parser are created by the derived class. The out parameters will be set to
+    // null if the given source code is not valid.
     internal bool Parse(string source, string module, DiagnosticCollection collection,
                         out AstNode node, out IReadOnlyList<TokenInfo> semanticTokens) {
       int diagnosticCount = collection.Diagnostics.Count;

@@ -24,8 +24,8 @@ namespace SeedLang.X {
   // It provides interfaces to validate the source code, and parse it into an AST tree based on the
   // predefined rules.
   internal abstract class BaseParser {
-    // The dictionary that maps from token types to syntax token types.
-    protected abstract IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap { get; }
+    // The dictionary that maps from ANTLR4 token types to syntax token types.
+    protected abstract IReadOnlyDictionary<int, TokenType> _syntaxTypeMap { get; }
 
     // Validates source code based on the parse rule. The concrete ANTLR4 lexer and parser are
     // created by the derived class.
@@ -36,20 +36,37 @@ namespace SeedLang.X {
       return collection.Diagnostics.Count == diagnosticCount;
     }
 
-    // Parses source code into an AST tree based on the parse rule. The concrete ANTLR4 lexer and
-    // parser are created by the derived class. The out node is set to null if the given source code
-    // is not valid.
+    // Parses source code into syntax tokens. The concrete ANTLR4 lexer and parser are created by
+    // the derived class.
+    internal void ParseSyntaxTokens(string source, out IReadOnlyList<TokenInfo> tokens) {
+      var tokenList = new List<TokenInfo>();
+      Lexer lexer = SetupLexer(source);
+      IList<IToken> lexerTokens = lexer.GetAllTokens();
+      foreach (var lexerToken in lexerTokens) {
+        if (_syntaxTypeMap.ContainsKey(lexerToken.Type)) {
+          TextRange range = CodeReferenceUtils.RangeOfToken(lexerToken);
+          var token = new TokenInfo(_syntaxTypeMap[lexerToken.Type], range);
+          tokenList.Add(token);
+        }
+      }
+      tokens = tokenList;
+      return;
+    }
+
+    // Parses a valid source code into an AST tree and a list of semantic tokens. The concrete
+    // ANTLR4 lexer and parser are created by the derived class. The out parameters will be set to
+    // null if the given source code is not valid.
     internal bool Parse(string source, string module, DiagnosticCollection collection,
-                        out AstNode node, out IReadOnlyList<SyntaxToken> tokens) {
+                        out AstNode node, out IReadOnlyList<TokenInfo> semanticTokens) {
       int diagnosticCount = collection.Diagnostics.Count;
       Parser parser = SetupParser(source, module, collection);
-      var tokenList = new List<SyntaxToken>();
-      tokens = tokenList;
+      var tokenList = new List<TokenInfo>();
+      semanticTokens = tokenList;
       AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
       ParserRuleContext program = Program(parser);
       if (collection.Diagnostics.Count > diagnosticCount) {
-        ParseMissingSyntaxTokens(source, tokenList);
         node = null;
+        semanticTokens = null;
         return false;
       }
       try {
@@ -60,6 +77,7 @@ namespace SeedLang.X {
       } catch (DiagnosticException e) {
         collection.Report(e.Diagnostic);
         node = null;
+        semanticTokens = null;
         return false;
       }
     }
@@ -68,7 +86,7 @@ namespace SeedLang.X {
 
     protected abstract Parser MakeParser(ITokenStream stream);
 
-    protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens);
+    protected abstract AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<TokenInfo> tokens);
 
     // Returns the parser rule context of a program.
     protected abstract ParserRuleContext Program(Parser parser);
@@ -90,27 +108,6 @@ namespace SeedLang.X {
         parser.ErrorHandler = new SyntaxErrorStrategy(module, collection);
       }
       return parser;
-    }
-
-    // Parses missing syntax tokens from all lexer tokens.
-    //
-    // Normally syntax tokens are collected during parsing based on the syntax meaning of tokens.
-    // But there will be some syntax tokens missing if syntax errors happen during parsing. Adds
-    // these missing tokens from all lexer tokens.
-    private void ParseMissingSyntaxTokens(string source, IList<SyntaxToken> tokens) {
-      Lexer lexer = SetupLexer(source);
-      IList<IToken> lexerTokens = lexer.GetAllTokens();
-      for (int i = 0; i < lexerTokens.Count; ++i) {
-        if (_syntaxTypeMap.ContainsKey(lexerTokens[i].Type)) {
-          TextRange range = CodeReferenceUtils.RangeOfToken(lexerTokens[i]);
-          var syntaxToken = new SyntaxToken(_syntaxTypeMap[lexerTokens[i].Type], range);
-          if (i >= tokens.Count) {
-            tokens.Add(syntaxToken);
-          } else if (tokens[i].Range != range) {
-            tokens.Insert(i, syntaxToken);
-          }
-        }
-      }
     }
   }
 }

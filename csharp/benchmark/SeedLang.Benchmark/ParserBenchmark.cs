@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
@@ -49,14 +51,22 @@ def fib3(n):
 ";
 
     [Benchmark]
-    public void BenchmarkParsePython() {
-      Executor.ParseSyntaxTokens(_pythonCode, "", SeedXLanguage.SeedPython, null);
+    public void BenchmarkSyntaxParsePython() {
+      Executor.ParseSyntaxTokens(_pythonCode, "", SeedXLanguage.SeedPython,
+                                 out IReadOnlyList<TokenInfo> _);
     }
 
     [Benchmark]
     public void BenchmarkParsePythonWithSyntaxErrors() {
       var codeWithErrors = _pythonCode.Replace("return", "$$$");
-      Executor.ParseSyntaxTokens(codeWithErrors, "", SeedXLanguage.SeedPython, null);
+      Executor.ParseSyntaxTokens(codeWithErrors, "", SeedXLanguage.SeedPython,
+                                 out IReadOnlyList<TokenInfo> _);
+    }
+
+    [Benchmark]
+    public void BenchmarkSemanticParsePython() {
+      Executor.ParseSemanticTokens(_pythonCode, "", SeedXLanguage.SeedPython,
+                                   out IReadOnlyList<TokenInfo> _);
     }
   }
 }

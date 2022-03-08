@@ -30,7 +30,7 @@ namespace SeedLang.X {
   internal class SeedBlockInlineTextVisitor : SeedBlockInlineTextBaseVisitor<AstNode> {
     private readonly VisitorHelper _helper;
 
-    public SeedBlockInlineTextVisitor(IList<SyntaxToken> tokens) {
+    public SeedBlockInlineTextVisitor(IList<TokenInfo> tokens) {
       _helper = new VisitorHelper(tokens);
     }
 

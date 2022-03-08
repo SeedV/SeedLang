@@ -15,13 +15,15 @@
 using System;
 using System.Collections.Generic;
 using SeedLang.Common;
+using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
   // A class to handle source code input and output.
   internal class SourceCode {
-    public string Source => string.Join(null, _lines);
-
     private readonly List<string> _lines = new List<string>();
+
+    public string Source => string.Join(null, _lines);
+    public SeedXLanguage Language { get; set; }
 
     internal void AddLine(string line) {
       _lines.Add(line + Environment.NewLine);
@@ -29,6 +31,16 @@ namespace SeedLang.Shell {
 
     internal void Reset() {
       _lines.Clear();
+    }
+
+    internal void ParseAndWriteSource() {
+      // Tries to parse semantic tokens out of the source code. Falls back to syntax tokens if the
+      // source code is not valid.
+      if (!Executor.ParseSemanticTokens(Source, "", Language,
+                                        out IReadOnlyList<TokenInfo> syntaxTokens)) {
+        Executor.ParseSyntaxTokens(Source, "", Language, out syntaxTokens);
+      }
+      WriteSourceWithSyntaxTokens(syntaxTokens);
     }
 
     internal void WriteSourceWithHighlight(TextRange range) {
@@ -52,7 +64,7 @@ namespace SeedLang.Shell {
       }
     }
 
-    internal void WriteSourceWithSyntaxTokens(IReadOnlyList<SyntaxToken> syntaxTokens) {
+    internal void WriteSourceWithSyntaxTokens(IReadOnlyList<TokenInfo> syntaxTokens) {
       Console.ResetColor();
       Console.WriteLine("---------- Source ----------");
       int tokenIndex = 0;
@@ -61,14 +73,14 @@ namespace SeedLang.Shell {
       }
     }
 
-    private void WriteLineWithSyntaxTokens(int lineId, IReadOnlyList<SyntaxToken> syntaxTokens,
+    private void WriteLineWithSyntaxTokens(int lineId, IReadOnlyList<TokenInfo> syntaxTokens,
                                            ref int tokenIndex) {
       int column = 0;
       Console.Write($"{lineId,-5} ");
       string line = _lines[lineId - 1];
       while (column < line.Length && tokenIndex < syntaxTokens.Count &&
              syntaxTokens[tokenIndex].Range.Start.Line <= lineId) {
-        SyntaxToken token = syntaxTokens[tokenIndex];
+        TokenInfo token = syntaxTokens[tokenIndex];
         if (token.Range.Start.Column > column) {
           Console.Write(line.Substring(column, token.Range.Start.Column - column));
         }

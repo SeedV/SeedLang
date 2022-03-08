@@ -258,8 +258,8 @@ namespace SeedLang.X.Tests {
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
                 "Function [Ln 1, Col 4 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "OpenParenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "CloseParenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
                 "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
                 "Variable [Ln 1, Col 12 - Ln 1, Col 12]," +
                 "Operator [Ln 1, Col 14 - Ln 1, Col 14]," +
@@ -276,11 +276,11 @@ namespace SeedLang.X.Tests {
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
                 "Function [Ln 1, Col 4 - Ln 1, Col 6]," +
-                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "OpenParenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "Parameter [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Symbol [Ln 1, Col 9 - Ln 1, Col 9]," +
                 "Parameter [Ln 1, Col 11 - Ln 1, Col 11]," +
-                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "CloseParenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
                 "Symbol [Ln 1, Col 13 - Ln 1, Col 13]," +
                 "Keyword [Ln 2, Col 2 - Ln 2, Col 7]," +
                 "Variable [Ln 2, Col 9 - Ln 2, Col 9]," +
@@ -303,11 +303,11 @@ namespace SeedLang.X.Tests {
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
                 "Function [Ln 1, Col 4 - Ln 1, Col 6]," +
-                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "OpenParenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "Parameter [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Symbol [Ln 1, Col 9 - Ln 1, Col 9]," +
                 "Parameter [Ln 1, Col 11 - Ln 1, Col 11]," +
-                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "CloseParenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
                 "Symbol [Ln 1, Col 13 - Ln 1, Col 13]," +
                 "Variable [Ln 2, Col 2 - Ln 2, Col 2]," +
                 "Operator [Ln 2, Col 4 - Ln 2, Col 4]," +
@@ -328,8 +328,8 @@ namespace SeedLang.X.Tests {
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
                 "Function [Ln 1, Col 4 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Parenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "OpenParenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "CloseParenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
                 "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
                 "Keyword [Ln 2, Col 2 - Ln 2, Col 7]," +
                 "Number [Ln 2, Col 9 - Ln 2, Col 9]," +
@@ -352,13 +352,13 @@ namespace SeedLang.X.Tests {
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
                 "Variable [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Keyword [Ln 1, Col 6 - Ln 1, Col 7]," +
-                "Bracket [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "OpenBracket [Ln 1, Col 9 - Ln 1, Col 9]," +
                 "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
                 "Symbol [Ln 1, Col 11 - Ln 1, Col 11]," +
                 "Number [Ln 1, Col 13 - Ln 1, Col 13]," +
                 "Symbol [Ln 1, Col 14 - Ln 1, Col 14]," +
                 "Number [Ln 1, Col 16 - Ln 1, Col 16]," +
-                "Bracket [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "CloseBracket [Ln 1, Col 17 - Ln 1, Col 17]," +
                 "Symbol [Ln 1, Col 18 - Ln 1, Col 18]," +
                 "Variable [Ln 1, Col 20 - Ln 1, Col 20]")]
 
@@ -378,13 +378,13 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Keyword [Ln 1, Col 6 - Ln 1, Col 7]," +
                 "Variable [Ln 1, Col 9 - Ln 1, Col 13]," +
-                "Parenthesis [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "OpenParenthesis [Ln 1, Col 14 - Ln 1, Col 14]," +
                 "Number [Ln 1, Col 15 - Ln 1, Col 15]," +
                 "Symbol [Ln 1, Col 16 - Ln 1, Col 16]," +
                 "Number [Ln 1, Col 18 - Ln 1, Col 19]," +
                 "Symbol [Ln 1, Col 20 - Ln 1, Col 20]," +
                 "Number [Ln 1, Col 22 - Ln 1, Col 22]," +
-                "Parenthesis [Ln 1, Col 23 - Ln 1, Col 23]," +
+                "CloseParenthesis [Ln 1, Col 23 - Ln 1, Col 23]," +
                 "Symbol [Ln 1, Col 24 - Ln 1, Col 24]," +
                 "Variable [Ln 1, Col 26 - Ln 1, Col 26]")]
 
@@ -429,7 +429,7 @@ namespace SeedLang.X.Tests {
                 "String [Ln 1, Col 14 - Ln 1, Col 16]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
-                                out IReadOnlyList<SyntaxToken> tokens));
+                                out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
       Assert.Equal(expectedAst, node.ToString());

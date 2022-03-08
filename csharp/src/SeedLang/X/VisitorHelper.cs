@@ -26,11 +26,11 @@ namespace SeedLang.X {
   internal class VisitorHelper {
     internal delegate ComparisonOperator ToComparisonOperator(IToken token);
 
-    private readonly IList<SyntaxToken> _syntaxTokens;
+    private readonly IList<TokenInfo> _semanticTokens;
     private TextRange _groupingRange;
 
-    public VisitorHelper(IList<SyntaxToken> tokens) {
-      _syntaxTokens = tokens;
+    public VisitorHelper(IList<TokenInfo> tokens) {
+      _semanticTokens = tokens;
     }
 
     // Builds binary expressions.
@@ -40,7 +40,7 @@ namespace SeedLang.X {
       TextRange range = _groupingRange;
       _groupingRange = null;
       if (visitor.Visit(leftContext) is Expression left) {
-        AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
+        AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
         if (visitor.Visit(rightContext) is Expression right) {
           if (range is null) {
             Debug.Assert(left.Range is TextRange);
@@ -70,7 +70,7 @@ namespace SeedLang.X {
           if (rightContexts[i].ChildCount == 2 &&
               rightContexts[i].GetChild(0) is ITerminalNode opNode) {
             IToken opToken = opNode.Symbol;
-            AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
+            AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
             ops[i] = toComparisonOperator(opToken);
             AstNode right = visitor.Visit(rightContexts[i].GetChild(1));
             if (right is Expression rightExpr) {
@@ -104,7 +104,7 @@ namespace SeedLang.X {
         exprs[0] = first;
         for (int i = 0; i < orNodes.Length; i++) {
           TextRange orRange = CodeReferenceUtils.RangeOfToken(orNodes[i].Symbol);
-          AddSyntaxToken(SyntaxType.Operator, orRange);
+          AddSemanticToken(TokenType.Operator, orRange);
           if (visitor.Visit(operandContexts[i + 1]) is Expression expr) {
             exprs[i + 1] = expr;
           } else {
@@ -129,7 +129,7 @@ namespace SeedLang.X {
       _groupingRange = null;
 
       TextRange opRange = CodeReferenceUtils.RangeOfToken(opToken);
-      AddSyntaxToken(SyntaxType.Operator, opRange);
+      AddSemanticToken(TokenType.Operator, opRange);
 
       if (visitor.Visit(exprContext) is Expression expr) {
         if (range is null) {
@@ -149,38 +149,38 @@ namespace SeedLang.X {
                                    IToken closeParen, AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange openRange = CodeReferenceUtils.RangeOfToken(openParen);
       TextRange closeRange = CodeReferenceUtils.RangeOfToken(closeParen);
-      AddSyntaxToken(SyntaxType.Parenthesis, openRange);
+      AddSemanticToken(TokenType.OpenParenthesis, openRange);
 
       if (_groupingRange is null) {
         _groupingRange = CodeReferenceUtils.CombineRanges(openRange, closeRange);
       }
 
       AstNode node = visitor.Visit(exprContext);
-      AddSyntaxToken(SyntaxType.Parenthesis, closeRange);
+      AddSemanticToken(TokenType.CloseParenthesis, closeRange);
       return node;
     }
 
     // Builds identifier expressions.
     internal IdentifierExpression BuildIdentifier(IToken token) {
-      TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Variable);
+      TextRange range = HandleConstantOrVariableExpression(token, TokenType.Variable);
       return Expression.Identifier(token.Text, range);
     }
 
     // Builds boolean costant expressions.
     internal BooleanConstantExpression BuildBooleanConstant(IToken token, bool value) {
-      TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Boolean);
+      TextRange range = HandleConstantOrVariableExpression(token, TokenType.Boolean);
       return Expression.BooleanConstant(value, range);
     }
 
     // Builds none costant expressions.
     internal NoneConstantExpression BuildNoneConstant(IToken token) {
-      TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.None);
+      TextRange range = HandleConstantOrVariableExpression(token, TokenType.None);
       return Expression.NoneConstant(range);
     }
 
     // Builds number constant expressions.
     internal NumberConstantExpression BuildNumberConstant(IToken token) {
-      TextRange range = HandleConstantOrVariableExpression(token, SyntaxType.Number);
+      TextRange range = HandleConstantOrVariableExpression(token, TokenType.Number);
       try {
         // The behavior of double.Parse is different between net6.0 and netstandard2.0 frameworks.
         // It returns an infinity double value without throwing any exception on net6.0 framework.
@@ -199,7 +199,7 @@ namespace SeedLang.X {
       Debug.Assert(strNodes.Length >= 1);
       var sb = new StringBuilder();
       foreach (ITerminalNode strNode in strNodes) {
-        AddSyntaxToken(SyntaxType.String, CodeReferenceUtils.RangeOfToken(strNode.Symbol));
+        AddSemanticToken(TokenType.String, CodeReferenceUtils.RangeOfToken(strNode.Symbol));
         string str = strNode.Symbol.Text;
         Debug.Assert(str.Length >= 2 && (str[0] == '"' || str[0] == '\'') &&
                      (str[str.Length - 1] == '"' || str[str.Length - 1] == '\''));
@@ -219,10 +219,10 @@ namespace SeedLang.X {
       Debug.Assert(exprContexts.Length == commaNodes.Length ||
                    exprContexts.Length == commaNodes.Length + 1);
       TextRange openBrackRange = CodeReferenceUtils.RangeOfToken(openBrackToken);
-      AddSyntaxToken(SyntaxType.Bracket, openBrackRange);
+      AddSemanticToken(TokenType.OpenBracket, openBrackRange);
       if (BuildExpressions(exprContexts, commaNodes, visitor) is Expression[] exprs) {
         TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
-        AddSyntaxToken(SyntaxType.Bracket, closeBrackRange);
+        AddSemanticToken(TokenType.CloseBracket, closeBrackRange);
         TextRange range = CodeReferenceUtils.CombineRanges(openBrackRange, closeBrackRange);
         return Expression.List(exprs, range);
       }
@@ -235,10 +235,10 @@ namespace SeedLang.X {
       Debug.Assert(exprContexts.Length == commaNodes.Length ||
                    exprContexts.Length == commaNodes.Length + 1);
       TextRange openParenRange = CodeReferenceUtils.RangeOfToken(openParenToken);
-      AddSyntaxToken(SyntaxType.Parenthesis, openParenRange);
+      AddSemanticToken(TokenType.OpenParenthesis, openParenRange);
       if (BuildExpressions(exprContexts, commaNodes, visitor) is Expression[] exprs) {
         TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
-        AddSyntaxToken(SyntaxType.Parenthesis, closeParenRange);
+        AddSemanticToken(TokenType.CloseParenthesis, closeParenRange);
         TextRange range = CodeReferenceUtils.CombineRanges(openParenRange, closeParenRange);
         return Expression.Tuple(exprs, range);
       }
@@ -252,10 +252,10 @@ namespace SeedLang.X {
                                                 IToken closeBrackToken,
                                                 AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(primaryContext) is Expression primary) {
-        AddSyntaxToken(SyntaxType.Bracket, CodeReferenceUtils.RangeOfToken(openBrackToken));
+        AddSemanticToken(TokenType.OpenBracket, CodeReferenceUtils.RangeOfToken(openBrackToken));
         if (visitor.Visit(exprContext) is Expression expr) {
           TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
-          AddSyntaxToken(SyntaxType.Bracket, closeBrackRange);
+          AddSemanticToken(TokenType.CloseBracket, closeBrackRange);
           Debug.Assert(primary.Range is TextRange);
           var primaryRange = primary.Range as TextRange;
           TextRange range = CodeReferenceUtils.CombineRanges(primaryRange, closeBrackRange);
@@ -270,7 +270,7 @@ namespace SeedLang.X {
                                                 ParserRuleContext identifierContext,
                                                 AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(primaryContext) is Expression value) {
-        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(dotToken));
+        AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(dotToken));
         if (visitor.Visit(identifierContext) is IdentifierExpression identifier) {
           Debug.Assert(value.Range is TextRange && identifier.Range is TextRange);
           var primaryRange = value.Range as TextRange;
@@ -297,7 +297,8 @@ namespace SeedLang.X {
         func = expr;
       }
       if (!(func is null)) {
-        AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
+        AddSemanticToken(TokenType.OpenParenthesis,
+                         CodeReferenceUtils.RangeOfToken(openParenToken));
         Debug.Assert(exprContexts.Length == 0 && commaNodes.Length == 0 ||
                      exprContexts.Length == commaNodes.Length + 1);
         int additionalParam = firstParam is null ? 0 : 1;
@@ -310,12 +311,12 @@ namespace SeedLang.X {
             exprs[i + additionalParam] = expr;
           }
           if (i < commaNodes.Length) {
-            AddSyntaxToken(SyntaxType.Symbol,
-                           CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
+            AddSemanticToken(TokenType.Symbol,
+                             CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
           }
         }
         TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
-        AddSyntaxToken(SyntaxType.Parenthesis, closeParenRange);
+        AddSemanticToken(TokenType.CloseParenthesis, closeParenRange);
         Debug.Assert(callee.Range is TextRange);
         TextRange range = CodeReferenceUtils.CombineRanges(callee.Range as TextRange,
                                                            closeParenRange);
@@ -333,7 +334,7 @@ namespace SeedLang.X {
                                                  AbstractParseTreeVisitor<AstNode> visitor) {
       Debug.Assert(targetContexts.Length > 0 && exprContexts.Length > 0);
       var targets = BuildExpressions(targetContexts, targetCommaNodes, visitor);
-      AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(equalToken));
+      AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(equalToken));
       var exprs = BuildExpressions(exprContexts, exprCommaNodes, visitor);
       if (!(targets is null) && !(exprs is null)) {
         Debug.Assert(targets.Length > 0 && exprs.Length > 0);
@@ -349,7 +350,7 @@ namespace SeedLang.X {
                                         BinaryOperator op, ParserRuleContext exprContext,
                                         AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(targetContext) is Expression target) {
-        AddSyntaxToken(SyntaxType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
+        AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
         if (visitor.Visit(exprContext) is Expression expr) {
           Debug.Assert(target.Range is TextRange);
           Debug.Assert(expr.Range is TextRange);
@@ -397,22 +398,22 @@ namespace SeedLang.X {
                                            IToken colonToken, ParserRuleContext blockContext,
                                            AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange defRange = CodeReferenceUtils.RangeOfToken(defToken);
-      AddSyntaxToken(SyntaxType.Keyword, defRange);
-      AddSyntaxToken(SyntaxType.Function, CodeReferenceUtils.RangeOfToken(nameToken));
-      AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
+      AddSemanticToken(TokenType.Keyword, defRange);
+      AddSemanticToken(TokenType.Function, CodeReferenceUtils.RangeOfToken(nameToken));
+      AddSemanticToken(TokenType.OpenParenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
       Debug.Assert(parameterNodes.Length == 0 && commaNodes.Length == 0 ||
                    parameterNodes.Length == commaNodes.Length + 1);
       var arguments = new string[parameterNodes.Length];
       for (int i = 0; i < parameterNodes.Length; i++) {
         TextRange parameterRange = CodeReferenceUtils.RangeOfToken(parameterNodes[i].Symbol);
-        AddSyntaxToken(SyntaxType.Parameter, parameterRange);
+        AddSemanticToken(TokenType.Parameter, parameterRange);
         arguments[i] = parameterNodes[i].Symbol.Text;
         if (i < commaNodes.Length) {
-          AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
+          AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
         }
       }
-      AddSyntaxToken(SyntaxType.Parenthesis, CodeReferenceUtils.RangeOfToken(closeParenToken));
-      AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+      AddSemanticToken(TokenType.CloseParenthesis, CodeReferenceUtils.RangeOfToken(closeParenToken));
+      AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
       if (visitor.Visit(blockContext) is Statement block) {
         Debug.Assert(block.Range is TextRange);
         TextRange range = CodeReferenceUtils.CombineRanges(defRange, block.Range as TextRange);
@@ -426,9 +427,9 @@ namespace SeedLang.X {
                                  ParserRuleContext blockContext, ParserRuleContext elifContext,
                                  AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange ifRange = CodeReferenceUtils.RangeOfToken(ifToken);
-      AddSyntaxToken(SyntaxType.Keyword, ifRange);
+      AddSemanticToken(TokenType.Keyword, ifRange);
       if (visitor.Visit(exprContext) is Expression expr) {
-        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+        AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
         if (visitor.Visit(blockContext) is Statement block &&
             visitor.Visit(elifContext) is Statement elif) {
           TextRange range = CodeReferenceUtils.CombineRanges(ifRange, elif.Range as TextRange);
@@ -444,9 +445,9 @@ namespace SeedLang.X {
                                      ParserRuleContext elseBlockContext,
                                      AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange ifRange = CodeReferenceUtils.RangeOfToken(ifToken);
-      AddSyntaxToken(SyntaxType.Keyword, ifRange);
+      AddSemanticToken(TokenType.Keyword, ifRange);
       if (visitor.Visit(exprContext) is Expression expr) {
-        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+        AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
         if (visitor.Visit(blockContext) is Statement block) {
           AstNode elseBlock = elseBlockContext is null ? null : visitor.Visit(elseBlockContext);
           TextRange range = CodeReferenceUtils.CombineRanges(
@@ -461,8 +462,8 @@ namespace SeedLang.X {
     internal Statement BuildElse(IToken elseToken, IToken colonToken,
                                  ParserRuleContext blockContext,
                                  AbstractParseTreeVisitor<AstNode> visitor) {
-      AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(elseToken));
-      AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+      AddSemanticToken(TokenType.Keyword, CodeReferenceUtils.RangeOfToken(elseToken));
+      AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
       return visitor.Visit(blockContext) as Statement;
     }
 
@@ -471,7 +472,7 @@ namespace SeedLang.X {
                                          ITerminalNode[] commaNodes,
                                          AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange returnRange = CodeReferenceUtils.RangeOfToken(returnToken);
-      AddSyntaxToken(SyntaxType.Keyword, returnRange);
+      AddSemanticToken(TokenType.Keyword, returnRange);
       if (exprContexts is null) {
         return Statement.Return(null, returnRange);
       }
@@ -495,7 +496,7 @@ namespace SeedLang.X {
         statements[i] = visitor.Visit(statementContexts[i]) as Statement;
         if (i < semicolonNodes.Length) {
           TextRange semicolonRange = CodeReferenceUtils.RangeOfToken(semicolonNodes[i].Symbol);
-          AddSyntaxToken(SyntaxType.Symbol, semicolonRange);
+          AddSemanticToken(TokenType.Symbol, semicolonRange);
         }
       }
       return BuildBlock(statements);
@@ -507,11 +508,11 @@ namespace SeedLang.X {
                                        IToken colonToken, ParserRuleContext blockContext,
                                        AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange forRange = CodeReferenceUtils.RangeOfToken(forToken);
-      AddSyntaxToken(SyntaxType.Keyword, forRange);
+      AddSemanticToken(TokenType.Keyword, forRange);
       if (visitor.Visit(identifierContext) is IdentifierExpression loopVar) {
-        AddSyntaxToken(SyntaxType.Keyword, CodeReferenceUtils.RangeOfToken(inToken));
+        AddSemanticToken(TokenType.Keyword, CodeReferenceUtils.RangeOfToken(inToken));
         if (visitor.Visit(exprContext) is Expression expr) {
-          AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+          AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
           if (visitor.Visit(blockContext) is Statement block) {
             TextRange range = CodeReferenceUtils.CombineRanges(forRange, block.Range as TextRange);
             return Statement.ForIn(loopVar, expr, block, range);
@@ -524,7 +525,7 @@ namespace SeedLang.X {
     // Builds pass statements.
     internal AstNode BuildPass(IToken passToken) {
       TextRange range = CodeReferenceUtils.RangeOfToken(passToken);
-      AddSyntaxToken(SyntaxType.Keyword, range);
+      AddSemanticToken(TokenType.Keyword, range);
       return Statement.Pass(range);
     }
 
@@ -533,9 +534,9 @@ namespace SeedLang.X {
                                        IToken colonToken, ParserRuleContext blockContext,
                                        AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange whileRange = CodeReferenceUtils.RangeOfToken(whileToken);
-      AddSyntaxToken(SyntaxType.Keyword, whileRange);
+      AddSemanticToken(TokenType.Keyword, whileRange);
       if (visitor.Visit(exprContext) is Expression expr) {
-        AddSyntaxToken(SyntaxType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
+        AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
         if (visitor.Visit(blockContext) is Statement block) {
           Debug.Assert(block.Range is TextRange);
           TextRange range = CodeReferenceUtils.CombineRanges(whileRange, block.Range as TextRange);
@@ -564,7 +565,7 @@ namespace SeedLang.X {
           exprs[i] = expr;
           if (i < commaNodes.Length) {
             TextRange commaRange = CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol);
-            AddSyntaxToken(SyntaxType.Symbol, commaRange);
+            AddSemanticToken(TokenType.Symbol, commaRange);
           }
         } else {
           Debug.Fail($"Expression at position {i} shall be validated by ANTLR.");
@@ -573,16 +574,16 @@ namespace SeedLang.X {
       return exprs;
     }
 
-    private TextRange HandleConstantOrVariableExpression(IToken token, SyntaxType type) {
+    private TextRange HandleConstantOrVariableExpression(IToken token, TokenType type) {
       TextRange tokenRange = CodeReferenceUtils.RangeOfToken(token);
-      AddSyntaxToken(type, tokenRange);
+      AddSemanticToken(type, tokenRange);
       TextRange range = _groupingRange is null ? tokenRange : _groupingRange;
       _groupingRange = null;
       return range;
     }
 
-    private void AddSyntaxToken(SyntaxType type, TextRange range) {
-      _syntaxTokens.Add(new SyntaxToken(type, range));
+    private void AddSemanticToken(TokenType type, TextRange range) {
+      _semanticTokens.Add(new TokenInfo(type, range));
     }
   }
 }

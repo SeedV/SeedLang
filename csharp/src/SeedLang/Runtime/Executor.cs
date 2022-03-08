@@ -59,17 +59,32 @@ namespace SeedLang.Runtime {
       return true;
     }
 
-    // Parses SeedX source code into a list of syntax tokens.
-    public static IReadOnlyList<SyntaxToken> ParseSyntaxTokens(
-        string source, string module, SeedXLanguage language,
-        DiagnosticCollection collection = null) {
+    // Parses SeedX source code into a list of syntax tokens. Incomplete or invalid source code can
+    // also be parsed with this method, where illegal tokens will be marked as Unknown or other
+    // relevant types.
+    public static void ParseSyntaxTokens(string source, string module, SeedXLanguage language,
+                                         out IReadOnlyList<TokenInfo> syntaxTokens) {
       if (string.IsNullOrEmpty(source) || module is null) {
-        return new List<SyntaxToken>();
+        syntaxTokens = new List<TokenInfo>();
+        return;
       }
       BaseParser parser = MakeParser(language);
-      parser.Parse(source, module, collection ?? new DiagnosticCollection(),
-                   out _, out IReadOnlyList<SyntaxToken> syntaxTokens);
-      return syntaxTokens;
+      parser.ParseSyntaxTokens(source, out syntaxTokens);
+      return;
+    }
+
+    // Tries to parse valid SeedX source code into a list of semantic tokens. Returns false and sets
+    // semanticTokens to null if the source code is not valid.
+    public static bool ParseSemanticTokens(string source, string module, SeedXLanguage language,
+                                           out IReadOnlyList<TokenInfo> semanticTokens,
+                                           DiagnosticCollection collection = null) {
+      if (string.IsNullOrEmpty(source) || module is null) {
+        semanticTokens = new List<TokenInfo>();
+        return true;
+      }
+      BaseParser parser = MakeParser(language);
+      return parser.Parse(source, module, collection ?? new DiagnosticCollection(),
+                          out _, out semanticTokens);
     }
 
     // Runs or dumps SeedX source code based on the language and run type. Returns string if the

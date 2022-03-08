@@ -25,70 +25,82 @@ namespace SeedLang.Shell {
 
     // The dictionary to map syntax token types to theme information. The default console forground
     // color is used if any syntax type does not exist in this dictionary.
-    public static IReadOnlyDictionary<SyntaxType, ThemeInfo> SyntaxToThemeInfoMap =
-        new Dictionary<SyntaxType, ThemeInfo> {
+    public static IReadOnlyDictionary<TokenType, ThemeInfo> SyntaxToThemeInfoMap =
+        new Dictionary<TokenType, ThemeInfo> {
           {
-            SyntaxType.Boolean,
+            TokenType.Boolean,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Yellow,
             }
           },
           {
-            SyntaxType.Bracket,
+            TokenType.OpenBracket,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Gray,
             }
           },
           {
-            SyntaxType.Function,
+            TokenType.CloseBracket,
+            new ThemeInfo {
+              ForegroundColor = ConsoleColor.Gray,
+            }
+          },
+          {
+            TokenType.Function,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.DarkBlue,
             }
           },
           {
-            SyntaxType.Keyword,
+            TokenType.Keyword,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Magenta,
             }
           },
           {
-            SyntaxType.None,
+            TokenType.None,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.DarkYellow,
             }
           },
           {
-            SyntaxType.Number,
+            TokenType.Number,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Yellow,
             }
           },
           {
-            SyntaxType.Operator,
+            TokenType.Operator,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Blue,
             }
           },
           {
-            SyntaxType.Parameter,
+            TokenType.Parameter,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Blue,
             }
           },
           {
-            SyntaxType.Parenthesis,
+            TokenType.OpenParenthesis,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Gray,
             }
           },
           {
-            SyntaxType.String,
+            TokenType.CloseParenthesis,
+            new ThemeInfo {
+              ForegroundColor = ConsoleColor.Gray,
+            }
+          },
+          {
+            TokenType.String,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Cyan,
             }
           },
           {
-            SyntaxType.Variable,
+            TokenType.Variable,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.Green,
             }

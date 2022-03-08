@@ -427,6 +427,18 @@ namespace SeedLang.X.Tests {
                 "String [Ln 1, Col 6 - Ln 1, Col 8]," +
                 "String [Ln 1, Col 10 - Ln 1, Col 12]," +
                 "String [Ln 1, Col 14 - Ln 1, Col 16]")]
+
+    [InlineData("def func(): return",
+
+                "[Ln 1, Col 0 - Ln 1, Col 17] FuncDefStatement (func)\n" +
+                "  [Ln 1, Col 12 - Ln 1, Col 17] ReturnStatement",
+
+                "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
+                "Function [Ln 1, Col 4 - Ln 1, Col 7]," +
+                "OpenParenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "CloseParenthesis [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Keyword [Ln 1, Col 12 - Ln 1, Col 17]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
                                 out IReadOnlyList<TokenInfo> tokens));

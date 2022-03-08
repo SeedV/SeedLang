@@ -474,7 +474,7 @@ namespace SeedLang.X {
       TextRange returnRange = CodeReferenceUtils.RangeOfToken(returnToken);
       AddSemanticToken(TokenType.Keyword, returnRange);
       if (exprContexts is null) {
-        return Statement.Return(null, returnRange);
+        return Statement.Return(System.Array.Empty<Expression>(), returnRange);
       }
       Expression[] exprs = BuildExpressions(exprContexts, commaNodes, visitor);
       TextRange range = returnRange;

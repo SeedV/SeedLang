@@ -1,8 +1,6 @@
-print('TODO: Fix the parsing error that comments cannot be the first line of scripts.')
-
-# The language doesn't support raw string like r"raw string".
-# The language doesn't support unicode string like u"unicode string".
-# The language doesn't support string templates like "...%()...", "...{}..." or
+# 1) SeedLang doesn't support raw string like r"raw string".
+# 2) SeedLang doesn't support unicode string like u"unicode string".
+# 3) SeedLang doesn't support string templates like "...%()...", "...{}..." or
 # f"...{}...".
 
 print("\\n")  # \n
@@ -26,4 +24,4 @@ print(word[-2])  # o
 print(word[-6])  # P
 
 s = "supercalifragilisticexpialidocious"
-len(s)  # 34
+print(len(s))  # 34

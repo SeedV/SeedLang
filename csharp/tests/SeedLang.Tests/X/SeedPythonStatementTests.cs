@@ -21,6 +21,14 @@ using Xunit;
 namespace SeedLang.X.Tests {
   public class SeedPythonStatementTests {
     [Fact]
+    public void TestOneLineComments() {
+      string source = "# comment\n";
+      string expected = "[Ln 1, Col 9 - Ln 1, Col 9] BlockStatement";
+      string expectedTokens = "";
+      TestPythonParser(source, expected, expectedTokens);
+    }
+
+    [Fact]
     public void TestComments() {
       string source = "# comment\nprint(1)";
       string expected = "[Ln 2, Col 0 - Ln 2, Col 7] ExpressionStatement\n" +

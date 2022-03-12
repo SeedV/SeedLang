@@ -33,7 +33,7 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
         $"Function <main>\n" +
         $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-        $"  2    LOADNONE  1 0 0                                {_range}\n" +
+        $"  2    LOADNONE  1 1 0                                {_range}\n" +
         $"  3    CALL      0 1 0                                {_range}\n" +
         $"  4    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);

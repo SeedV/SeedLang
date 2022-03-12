@@ -26,6 +26,21 @@ namespace SeedLang.Interpreter.Tests {
     private readonly Common.Range _range = AstHelper.TextRange;
 
     [Fact]
+    public void TestCompileNoneConstant() {
+      var expr = AstHelper.ExpressionStmt(AstHelper.NoneConstant());
+      var compiler = new Compiler();
+      var func = compiler.Compile(expr, _env, RunMode.Interactive);
+      string expected = (
+        $"Function <main>\n" +
+        $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+        $"  2    LOADNONE  1 0 0                                {_range}\n" +
+        $"  3    CALL      0 1 0                                {_range}\n" +
+        $"  4    RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileNumberConstant() {
       var expr = AstHelper.ExpressionStmt(AstHelper.NumberConstant(1));
       var compiler = new Compiler();

@@ -18,6 +18,7 @@ namespace SeedLang.Interpreter {
   // All the opcodes of SeedLang virtual machine.
   internal enum Opcode {
     MOVE,         // R(A) := RK(B)
+    LOADNONE,     // R(A), R(A+1), ..., R(A+B) := none
     LOADBOOL,     // R(A) := (Bool)B; if C then PC++
     LOADK,        // R(A) := Kst(Bx)
     GETGLOB,      // R[A] := Gbl[Kst(Bx)]
@@ -59,6 +60,7 @@ namespace SeedLang.Interpreter {
     internal static OpcodeType Type(this Opcode op) {
       switch (op) {
         case Opcode.MOVE:
+        case Opcode.LOADNONE:
         case Opcode.LOADBOOL:
         case Opcode.NEWTUPLE:
         case Opcode.NEWLIST:

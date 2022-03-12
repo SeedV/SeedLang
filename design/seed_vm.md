@@ -98,39 +98,41 @@ All the SeedLang instructions are listed as follows:
 | Opcode | Name       | Description                                         |
 | :----: | ---------- | --------------------------------------------------- |
 |   0    | `MOVE`     | Copy a value between registers                      |
-|   1    | `LOADBOOL` | Load a boolean value into a register                |
-|   2    | `LOADK`    | Load a constant into a register                     |
-|   3    | `GETGLOB`  | Read a global variable into a register              |
-|   4    | `SETGLOB`  | Write a register value into a global variable       |
-|   5    | `NEWTUPLE` | Create a new tuple with the initial elements        |
-|   6    | `NEWLIST`  | Create a new list with the initial elements         |
-|   7    | `GETELEM`  | Read a list or table element into a register        |
-|   8    | `SETELEM`  | Write a register value into a list or table element |
-|   9    | `ADD`      | Addition operation                                  |
-|   10   | `SUB`      | Subtract operation                                  |
-|   11   | `MUL`      | Multiply operation                                  |
-|   12   | `DIV`      | Divide operation                                    |
-|   13   | `FLOORDIV` | Floor Divide operation                              |
-|   14   | `POW`      | Exponentiation operation                            |
-|   15   | `MOD`      | Modulus (reminder) operation                        |
-|   16   | `UNM`      | Unary minus operation                               |
-|   17   | `NOT`      | Logical not operation                               |
-|   18   | `LEN`      | Length operation                                    |
-|   19   | `JMP`      | Unconditional jump                                  |
-|   20   | `EQ`       | Equality test                                       |
-|   21   | `LT`       | Less than test                                      |
-|   22   | `LE`       | Less than or equal to test                          |
-|   23   | `TEST`     | Boolean test, with conditional jump                 |
-|   24   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
-|   25   | `FORPREP`  | For loop preparation                                |
-|   26   | `FORLOOP`  | For loop check                                      |
-|   27   | `CALL`     | Call a function                                     |
-|   28   | `RETURN`   | Return from a function call                         |
+|   1    | `LOADNONE` | Load the none value into a register                 |
+|   2    | `LOADBOOL` | Load a boolean value into a register                |
+|   3    | `LOADK`    | Load a constant into a register                     |
+|   4    | `GETGLOB`  | Read a global variable into a register              |
+|   5    | `SETGLOB`  | Write a register value into a global variable       |
+|   6    | `NEWTUPLE` | Create a new tuple with the initial elements        |
+|   7    | `NEWLIST`  | Create a new list with the initial elements         |
+|   8    | `GETELEM`  | Read a list or table element into a register        |
+|   9    | `SETELEM`  | Write a register value into a list or table element |
+|   10   | `ADD`      | Addition operation                                  |
+|   11   | `SUB`      | Subtract operation                                  |
+|   12   | `MUL`      | Multiply operation                                  |
+|   13   | `DIV`      | Divide operation                                    |
+|   14   | `FLOORDIV` | Floor Divide operation                              |
+|   15   | `POW`      | Exponentiation operation                            |
+|   16   | `MOD`      | Modulus (reminder) operation                        |
+|   17   | `UNM`      | Unary minus operation                               |
+|   18   | `NOT`      | Logical not operation                               |
+|   19   | `LEN`      | Length operation                                    |
+|   20   | `JMP`      | Unconditional jump                                  |
+|   21   | `EQ`       | Equality test                                       |
+|   22   | `LT`       | Less than test                                      |
+|   23   | `LE`       | Less than or equal to test                          |
+|   24   | `TEST`     | Boolean test, with conditional jump                 |
+|   25   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
+|   26   | `FORPREP`  | For loop preparation                                |
+|   27   | `FORLOOP`  | For loop check                                      |
+|   28   | `CALL`     | Call a function                                     |
+|   29   | `RETURN`   | Return from a function call                         |
 
 ### Move and Load Constant
 
 ```shell
 MOVE A B                    # R(A) := R(B)
+LOADNONE A B                # R(A), R(A+1), ..., R(A+B-1) := none
 LOADBOOL A B C              # R(A) := (Bool)B; if C then PC++
 LOADK A Bx                  # R(A) := Kst(Bx)
 ```

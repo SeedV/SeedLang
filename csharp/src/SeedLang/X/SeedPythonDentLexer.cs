@@ -46,7 +46,7 @@ namespace SeedLang.X {
         IToken currentToken = base.NextToken();
         if (_firstToken) {
           _firstToken = false;
-          HandleFirstToken(currentToken);
+          HandleIndentForFirstToken(currentToken);
         }
         switch (currentToken.Type) {
           case SeedPythonParser.NEWLINE:
@@ -84,8 +84,8 @@ namespace SeedLang.X {
       _addTrailingNewline = true;
     }
 
-    private void HandleFirstToken(IToken firstToken) {
-      if (firstToken.StartIndex > 0) {
+    private void HandleIndentForFirstToken(IToken firstToken) {
+      if (firstToken.Type != SeedPythonParser.NEWLINE && firstToken.StartIndex > 0) {
         var interval = new Interval(0, firstToken.StartIndex - 1);
         string spaces = (InputStream as ICharStream).GetText(interval);
         int indent = GetIndentationCount(spaces);

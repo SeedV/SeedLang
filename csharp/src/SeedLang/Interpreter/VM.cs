@@ -59,7 +59,10 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.LOADBOOL:
-              // TODO: implement the LOADBOOL opcode.
+              _stack[baseRegister + instr.A] = new Value(instr.B == 1);
+              if (instr.C == 1) {
+                pc++;
+              }
               break;
             case Opcode.LOADK:
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);

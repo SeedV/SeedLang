@@ -26,9 +26,23 @@ namespace SeedLang.Interpreter {
     private NestedFuncStack _nestedFuncStack;
     private NestedJumpStack _nestedJumpStack;
 
-    // The register allocated for the result of sub-expressions. It must be set before visiting
+    // The register allocated for the result of sub-expressions. The getter resets the storage to
+    // null after getting the value to make sure the result register is set before visiting
     // sub-expressions.
-    private uint _registerForSubExpr;
+    private uint _registerForSubExpr {
+      get {
+        Debug.Assert(_registerForSubExprStorage.HasValue,
+                     "The result register must be set before visiting sub-expressions.");
+        uint value = _registerForSubExprStorage.Value;
+        _registerForSubExprStorage = null;
+        return value;
+      }
+      set {
+        _registerForSubExprStorage = value;
+      }
+    }
+    private uint? _registerForSubExprStorage;
+
     // The next boolean operator. A true condition check instruction is emitted if the next boolean
     // operator is "And", otherwise a false condition instruction check is emitted.
     private BooleanOperator _nextBooleanOp;
@@ -69,34 +83,36 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BooleanExpression boolean) {
-      BooleanOperator nextBooleanOp = _nextBooleanOp;
-      for (int i = 0; i < boolean.Exprs.Length; i++) {
-        _nextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : nextBooleanOp;
-        Visit(boolean.Exprs[i]);
-        if (i < boolean.Exprs.Length - 1) {
-          switch (boolean.Op) {
-            case BooleanOperator.And:
-              PatchJumps(_nestedJumpStack.TrueJumps);
-              break;
-            case BooleanOperator.Or:
-              PatchJumps(_nestedJumpStack.FalseJumps);
-              break;
+      VisitBooleanOrComparisonExpression(() => {
+        BooleanOperator nextBooleanOp = _nextBooleanOp;
+        for (int i = 0; i < boolean.Exprs.Length; i++) {
+          _nextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : nextBooleanOp;
+          Visit(boolean.Exprs[i]);
+          if (i < boolean.Exprs.Length - 1) {
+            switch (boolean.Op) {
+              case BooleanOperator.And:
+                PatchJumps(_nestedJumpStack.TrueJumps);
+                break;
+              case BooleanOperator.Or:
+                PatchJumps(_nestedJumpStack.FalseJumps);
+                break;
+            }
           }
         }
-      }
+      }, boolean.Range);
     }
 
     protected override void Visit(ComparisonExpression comparison) {
       Debug.Assert(comparison.Ops.Length > 0 && comparison.Exprs.Length > 0);
-      _variableResolver.BeginExpressionScope();
-      BooleanOperator nextBooleanOp = _nextBooleanOp;
-      Expression left = comparison.First;
-      for (int i = 0; i < comparison.Exprs.Length; i++) {
-        _nextBooleanOp = i < comparison.Exprs.Length - 1 ? BooleanOperator.And : nextBooleanOp;
-        VisitSingleComparison(left, comparison.Ops[i], comparison.Exprs[i], comparison.Range);
-        left = comparison.Exprs[i];
-      }
-      _variableResolver.EndExpressionScope();
+      VisitBooleanOrComparisonExpression(() => {
+        BooleanOperator nextBooleanOp = _nextBooleanOp;
+        Expression left = comparison.First;
+        for (int i = 0; i < comparison.Exprs.Length; i++) {
+          _nextBooleanOp = i < comparison.Exprs.Length - 1 ? BooleanOperator.And : nextBooleanOp;
+          VisitSingleComparison(left, comparison.Ops[i], comparison.Exprs[i], comparison.Range);
+          left = comparison.Exprs[i];
+        }
+      }, comparison.Range);
     }
 
     protected override void Visit(IdentifierExpression identifier) {
@@ -335,6 +351,28 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
+    private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
+      // Generates LOADBOOL opcodes if the boolean or comparison expression is a sub-expression of
+      // other expressions. _registerForSubExprStorage is not null if the boolean or comparison
+      // expression is a sub-expression of other expressions, otherwise it is part of the test
+      // condition of if or while statements.
+      uint? register = null;
+      if (!(_registerForSubExprStorage is null)) {
+        register = _registerForSubExpr;
+        _nestedJumpStack.PushFrame();
+      }
+      action();
+      if (!(register is null)) {
+        PatchJumps(_nestedJumpStack.TrueJumps);
+        // Loads True into the register, and increases PC.
+        _chunk.Emit(Opcode.LOADBOOL, register.Value, 1, 1, range);
+        PatchJumps(_nestedJumpStack.FalseJumps);
+        // Loads False into the register.
+        _chunk.Emit(Opcode.LOADBOOL, register.Value, 0, 0, range);
+        _nestedJumpStack.PopFrame();
+      }
+    }
+
     private void VisitTest(Expression test) {
       if (test is ComparisonExpression || test is BooleanExpression) {
         Visit(test);
@@ -357,6 +395,7 @@ namespace SeedLang.Interpreter {
 
     private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
                                        Range range) {
+      _variableResolver.BeginExpressionScope();
       uint leftRegister = VisitExpressionForRKId(left);
       uint rightRegister = VisitExpressionForRKId(right);
       (Opcode opcode, bool checkFlag) = OpcodeAndCheckFlagOfComparisonOperator(op);
@@ -374,6 +413,7 @@ namespace SeedLang.Interpreter {
           _nestedJumpStack.TrueJumps.Add(jump);
           break;
       }
+      _variableResolver.EndExpressionScope();
     }
 
     private void Pack(Expression[] targets, Expression[] exprs, Range range) {
@@ -487,10 +527,11 @@ namespace SeedLang.Interpreter {
       uint target = _registerForSubExpr;
       uint? first = null;
       foreach (var expr in exprs) {
-        _registerForSubExpr = _variableResolver.AllocateRegister();
+        uint register = _variableResolver.AllocateRegister();
         if (!first.HasValue) {
-          first = _registerForSubExpr;
+          first = register;
         }
+        _registerForSubExpr = register;
         Visit(expr);
       }
       _chunk.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);

@@ -27,8 +27,8 @@ namespace SeedLang.Interpreter {
     private NestedJumpStack _nestedJumpStack;
 
     // The register allocated for the result of sub-expressions. The getter resets the storage to
-    // null after getting the value to make sure the result register is set before visiting
-    // sub-expressions.
+    // null after getting the value to make sure the result register is set before visiting each
+    // sub-expression.
     private uint _registerForSubExpr {
       get {
         Debug.Assert(_registerForSubExprStorage.HasValue,
@@ -352,10 +352,9 @@ namespace SeedLang.Interpreter {
     }
 
     private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
-      // Generates LOADBOOL opcodes if the boolean or comparison expression is a sub-expression of
-      // other expressions. _registerForSubExprStorage is not null if the boolean or comparison
-      // expression is a sub-expression of other expressions, otherwise it is part of the test
-      // condition of if or while statements.
+      // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
+      // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
+      // part of the test condition of if or while statements.
       uint? register = null;
       if (!(_registerForSubExprStorage is null)) {
         register = _registerForSubExpr;

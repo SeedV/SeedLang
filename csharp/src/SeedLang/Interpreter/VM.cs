@@ -116,22 +116,28 @@ namespace SeedLang.Interpreter {
             case Opcode.JMP:
               pc += instr.SBx;
               break;
-            case Opcode.EQ:
-              if (ValueOfRK(chunk, instr.B, baseRegister).AsNumber() ==
-                  ValueOfRK(chunk, instr.C, baseRegister).AsNumber() == (instr.A == 1)) {
-                pc++;
+            case Opcode.EQ: {
+                bool result = ValueOfRK(chunk, instr.B, baseRegister).Equals(
+                    ValueOfRK(chunk, instr.C, baseRegister));
+                if (result == (instr.A == 1)) {
+                  pc++;
+                }
               }
               break;
-            case Opcode.LT:
-              if ((ValueOfRK(chunk, instr.B, baseRegister).AsNumber() <
-                   ValueOfRK(chunk, instr.C, baseRegister).AsNumber()) == (instr.A == 1)) {
-                pc++;
+            case Opcode.LT: {
+                bool result = ValueHelper.Less(ValueOfRK(chunk, instr.B, baseRegister),
+                                               ValueOfRK(chunk, instr.C, baseRegister));
+                if (result == (instr.A == 1)) {
+                  pc++;
+                }
               }
               break;
-            case Opcode.LE:
-              if ((ValueOfRK(chunk, instr.B, baseRegister).AsNumber() <=
-                   ValueOfRK(chunk, instr.C, baseRegister).AsNumber()) == (instr.A == 1)) {
-                pc++;
+            case Opcode.LE: {
+                bool result = ValueHelper.LessEqual(ValueOfRK(chunk, instr.B, baseRegister),
+                                                    ValueOfRK(chunk, instr.C, baseRegister));
+                if (result == (instr.A == 1)) {
+                  pc++;
+                }
               }
               break;
             case Opcode.TEST:

@@ -1,4 +1,3 @@
-using System.Reflection.PortableExecutable;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +38,7 @@ namespace SeedLang.Interpreter {
 
     // Pops a frame when a "if" or "while" statement is finished visiting.
     internal void PopFrame() {
-      Debug.Assert(_frames.Count > 0, "Frames shall be pushed before.");
+      Debug.Assert(_frames.Count > 0, "Frames shall be pushed into the stack before.");
       Debug.Assert(_frames.Peek().TrueJumps.Count == 0, "True jumps shall be patched.");
       Debug.Assert(_frames.Peek().FalseJumps.Count == 0, "True jumps shall be patched.");
       _frames.Pop();

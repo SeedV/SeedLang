@@ -119,7 +119,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(NilConstantExpression nilConstant) {
-      _chunk.Emit(Opcode.LOADNIL, _registerForSubExpr, _registerForSubExpr, 0, nilConstant.Range);
+      _chunk.Emit(Opcode.LOADNIL, _registerForSubExpr, 1, 0, nilConstant.Range);
     }
 
     protected override void Visit(BooleanConstantExpression booleanConstant) {

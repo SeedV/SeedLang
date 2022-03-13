@@ -35,6 +35,12 @@ namespace SeedLang.Runtime.Tests {
 2 * [1, 2, 3]
 (1, 2, 3) * 3
 -1 * (1, 2, 3)
+1 < 2 < 3
+1 < 2 == 3
+1 < 2 < 3 and 1 < 2 == 3
+1 < 2 < 3 or 1 < 2 == 3
+None == None
+None != None
 ";
       string result = @"3
 1
@@ -51,6 +57,12 @@ namespace SeedLang.Runtime.Tests {
 [1, 2, 3, 1, 2, 3]
 (1, 2, 3, 1, 2, 3, 1, 2, 3)
 ()
+True
+False
+False
+True
+True
+False
 ";
       TestExecutor(source, result);
     }

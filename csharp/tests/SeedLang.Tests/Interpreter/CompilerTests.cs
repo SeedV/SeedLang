@@ -56,6 +56,92 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileComparison() {
+      var expr = AstHelper.ExpressionStmt(
+        AstHelper.Comparison(AstHelper.NumberConstant(1),
+                             AstHelper.CompOps(ComparisonOperator.Less),
+                             AstHelper.NumberConstant(2))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(expr, _env, RunMode.Interactive);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 0                                  {_range}\n" +
+          $"  2    LT        1 -1 -2          ; 1 2               {_range}\n" +
+          $"  3    JMP       0 1              ; to 5              {_range}\n" +
+          $"  4    LOADBOOL  1 1 1                                {_range}\n" +
+          $"  5    LOADBOOL  1 0 0                                {_range}\n" +
+          $"  6    CALL      0 1 0                                {_range}\n" +
+          $"  7    RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileNilComparison() {
+      var expr = AstHelper.ExpressionStmt(
+        AstHelper.Comparison(AstHelper.NilConstant(),
+                             AstHelper.CompOps(ComparisonOperator.Less),
+                             AstHelper.NilConstant())
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(expr, _env, RunMode.Interactive);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 0                                  {_range}\n" +
+          $"  2    LOADNIL   2 1 0                                {_range}\n" +
+          $"  3    LOADNIL   3 1 0                                {_range}\n" +
+          $"  4    LT        1 2 3                                {_range}\n" +
+          $"  5    JMP       0 1              ; to 7              {_range}\n" +
+          $"  6    LOADBOOL  1 1 1                                {_range}\n" +
+          $"  7    LOADBOOL  1 0 0                                {_range}\n" +
+          $"  8    CALL      0 1 0                                {_range}\n" +
+          $"  9    RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileBoolean() {
+      var @if = AstHelper.ExpressionStmt(
+        AstHelper.Boolean(
+          BooleanOperator.Or,
+          AstHelper.Comparison(
+            AstHelper.NumberConstant(1),
+            AstHelper.CompOps(ComparisonOperator.Less, ComparisonOperator.Less),
+            AstHelper.NumberConstant(2),
+            AstHelper.NumberConstant(3)
+          ),
+          AstHelper.Comparison(
+            AstHelper.NumberConstant(1),
+            AstHelper.CompOps(ComparisonOperator.LessEqual, ComparisonOperator.LessEqual),
+            AstHelper.NumberConstant(2),
+            AstHelper.NumberConstant(3)
+          )
+        )
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(@if, _env, RunMode.Interactive);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 0                                  {_range}\n" +
+          $"  2    LT        1 -1 -2          ; 1 2               {_range}\n" +
+          $"  3    JMP       0 2              ; to 6              {_range}\n" +
+          $"  4    LT        0 -2 -3          ; 2 3               {_range}\n" +
+          $"  5    JMP       0 4              ; to 10             {_range}\n" +
+          $"  6    LE        1 -1 -2          ; 1 2               {_range}\n" +
+          $"  7    JMP       0 3              ; to 11             {_range}\n" +
+          $"  8    LE        1 -2 -3          ; 2 3               {_range}\n" +
+          $"  9    JMP       0 1              ; to 11             {_range}\n" +
+          $"  10   LOADBOOL  1 1 1                                {_range}\n" +
+          $"  11   LOADBOOL  1 0 0                                {_range}\n" +
+          $"  12   CALL      0 1 0                                {_range}\n" +
+          $"  13   RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileBinary() {
       var expr = AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.NumberConstant(1),
                                                            BinaryOperator.Add,

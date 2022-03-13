@@ -141,16 +141,16 @@ namespace SeedLang.Ast {
         Value left = i > 0 ? values[i - 1] : first;
         switch (comparison.Ops[i]) {
           case ComparisonOperator.Less:
-            currentResult = left.AsNumber() < values[i].AsNumber();
+            currentResult = ValueHelper.Less(left, values[i]);
             break;
           case ComparisonOperator.Greater:
-            currentResult = left.AsNumber() > values[i].AsNumber();
+            currentResult = ValueHelper.Greater(left, values[i]);
             break;
           case ComparisonOperator.LessEqual:
-            currentResult = left.AsNumber() <= values[i].AsNumber();
+            currentResult = ValueHelper.LessEqual(left, values[i]);
             break;
           case ComparisonOperator.GreaterEqual:
-            currentResult = left.AsNumber() >= values[i].AsNumber();
+            currentResult = ValueHelper.GreaterEqual(left, values[i]);
             break;
           case ComparisonOperator.EqEqual:
             currentResult = left.Equals(values[i]);

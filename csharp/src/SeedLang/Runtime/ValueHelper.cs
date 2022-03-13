@@ -158,6 +158,42 @@ namespace SeedLang.Runtime {
       }
     }
 
+    internal static bool Less(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        return lhs.AsNumber() < rhs.AsNumber();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                      Message.RuntimeErrorUnsupportedOperads);
+      }
+    }
+
+    internal static bool Greater(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        return lhs.AsNumber() > rhs.AsNumber();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                      Message.RuntimeErrorUnsupportedOperads);
+      }
+    }
+
+    internal static bool LessEqual(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        return lhs.AsNumber() <= rhs.AsNumber();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                      Message.RuntimeErrorUnsupportedOperads);
+      }
+    }
+
+    internal static bool GreaterEqual(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        return lhs.AsNumber() >= rhs.AsNumber();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                      Message.RuntimeErrorUnsupportedOperads);
+      }
+    }
+
     internal static double BooleanToNumber(bool value) {
       return value ? 1 : 0;
     }

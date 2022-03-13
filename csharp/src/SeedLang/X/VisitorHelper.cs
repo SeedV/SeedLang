@@ -365,8 +365,19 @@ namespace SeedLang.X {
     }
 
     // Builds block statements.
-    internal static BlockStatement BuildBlock(ParserRuleContext[] statementContexts,
-                                              AbstractParseTreeVisitor<AstNode> visitor) {
+    internal static AstNode BuildBlock(ITerminalNode[] newLineNodes,
+                                       ParserRuleContext[] statementContexts,
+                                       AbstractParseTreeVisitor<AstNode> visitor) {
+      if (statementContexts.Length == 0) {
+        TextRange range = null;
+        if (newLineNodes.Length > 0) {
+          range = CodeReferenceUtils.RangeOfTokens(newLineNodes[0].Symbol,
+                                                   newLineNodes[newLineNodes.Length - 1].Symbol);
+        }
+        return Statement.Block(System.Array.Empty<Statement>(), range);
+      } else if (statementContexts.Length == 1) {
+        return visitor.Visit(statementContexts[0]);
+      }
       var statements = new Statement[statementContexts.Length];
       for (int i = 0; i < statementContexts.Length; i++) {
         statements[i] = visitor.Visit(statementContexts[i]) as Statement;
@@ -486,9 +497,12 @@ namespace SeedLang.X {
     }
 
     // Builds a block of simple statements.
-    internal BlockStatement BuildSimpleStatements(ParserRuleContext[] statementContexts,
-                                                  ITerminalNode[] semicolonNodes,
-                                                  AbstractParseTreeVisitor<AstNode> visitor) {
+    internal AstNode BuildSimpleStatements(ParserRuleContext[] statementContexts,
+                                           ITerminalNode[] semicolonNodes,
+                                           AbstractParseTreeVisitor<AstNode> visitor) {
+      if (statementContexts.Length == 1) {
+        return visitor.Visit(statementContexts[0]);
+      }
       Debug.Assert(statementContexts.Length == semicolonNodes.Length + 1 ||
                    statementContexts.Length == semicolonNodes.Length);
       var statements = new Statement[statementContexts.Length];

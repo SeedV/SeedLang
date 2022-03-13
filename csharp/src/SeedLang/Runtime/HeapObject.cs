@@ -53,11 +53,7 @@ namespace SeedLang.Runtime {
     private readonly object _object;
 
     public HeapObject(object obj) {
-      if (obj is string str) {
-        _object = ValueHelper.Unescape(str);
-      } else {
-        _object = obj;
-      }
+      _object = obj;
       Debug.Assert(IsString || IsList || IsFunction || IsRange || IsTuple,
                    $"Unsupported object type: {_object.GetType()}");
     }

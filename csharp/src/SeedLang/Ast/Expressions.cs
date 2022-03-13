@@ -64,7 +64,7 @@ namespace SeedLang.Ast {
 
     // The factory method to create a string constant expression.
     internal static StringConstantExpression StringConstant(string value, Range range) {
-      return new StringConstantExpression(value, range);
+      return new StringConstantExpression(ValueHelper.Unescape(value), range);
     }
 
     // The factory method to create a list expression.

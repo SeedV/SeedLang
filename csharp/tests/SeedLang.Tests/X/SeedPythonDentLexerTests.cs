@@ -18,134 +18,126 @@ using Xunit;
 
 namespace SeedLang.X.Tests {
   public class SeedPythonDentLexerTests {
-    internal class TestData : TheoryData<string, string[]> {
-      private const int _add = SeedPythonParser.ADD;
-      private const int _colon = SeedPythonParser.COLON;
-      private const int _dedent = SeedPythonParser.DEDENT;
-      private const int _else = SeedPythonParser.ELSE;
-      private const int _equal = SeedPythonParser.EQUAL;
-      private const int _false = SeedPythonParser.FALSE;
-      private const int _if = SeedPythonParser.IF;
-      private const int _indent = SeedPythonParser.INDENT;
-      private const int _name = SeedPythonParser.NAME;
-      private const int _newline = SeedPythonParser.NEWLINE;
-      private const int _number = SeedPythonParser.NUMBER;
-      private const int _true = SeedPythonParser.TRUE;
-      private const int _while = SeedPythonParser.WHILE;
-
-      public TestData() {
-        AddExpressionStatement();
-        AddWhileBlock();
-        AddWhileTrue();
-        AddWhileWithIf();
-        AddSingleLineWhile();
-      }
-
-      private void AddExpressionStatement() {
-        string source = "1 + 2\n";
-        var expectedTokens = new string[] {
-          $"[@-1,0:0='1',<{_number}>,1:0]",
-          $"[@-1,2:2='+',<{_add}>,1:2]",
-          $"[@-1,4:4='2',<{_number}>,1:4]",
-          $"[@-1,5:5='\\n',<{_newline}>,1:5]",
-        };
-        Add(source, expectedTokens);
-      }
-
-
-      private void AddWhileBlock() {
-        string source = "while True:\n" +
-                        "  x = 1\n" +
-                        "  y = 2";
-        var expectedTokens = new string[] {
-          $"[@-1,0:4='while',<{_while}>,1:0]",
-          $"[@-1,6:9='True',<{_true}>,1:6]",
-          $"[@-1,10:10=':',<{_colon}>,1:10]",
-          $"[@-1,11:11='\\n',<{_newline}>,1:11]",
-          $"[@-1,12:13='  ',<{_indent}>,2:0]",
-          $"[@-1,14:14='x',<{_name}>,2:2]",
-          $"[@-1,16:16='=',<{_equal}>,2:4]",
-          $"[@-1,18:18='1',<{_number}>,2:6]",
-          $"[@-1,19:21='\\n  ',<{_newline}>,2:7]",
-          $"[@-1,22:22='y',<{_name}>,3:2]",
-          $"[@-1,24:24='=',<{_equal}>,3:4]",
-          $"[@-1,26:26='2',<{_number}>,3:6]",
-          $"[@-1,27:27='\\n',<{_newline}>,3:7]",
-          $"[@-1,27:27='',<{_dedent}>,4:0]",
-        };
-        Add(source, expectedTokens);
-      }
-
-      private void AddWhileTrue() {
-        string source = "while True";
-        var expectedTokens = new string[] {
-          $"[@-1,0:4='while',<{_while}>,1:0]",
-          $"[@-1,6:9='True',<{_true}>,1:6]",
-          $"[@-1,10:10='\\n',<{_newline}>,1:10]",
-        };
-        Add(source, expectedTokens);
-      }
-
-      private void AddWhileWithIf() {
-        string source = "while True:\n" +
-                        "  if False:\n" +
-                        "    x = 1\n" +
-                        "  else:\n" +
-                        "      y = 2";
-        var expectedTokens = new string[] {
-          $"[@-1,0:4='while',<{_while}>,1:0]",
-          $"[@-1,6:9='True',<{_true}>,1:6]",
-          $"[@-1,10:10=':',<{_colon}>,1:10]",
-          $"[@-1,11:11='\\n',<{_newline}>,1:11]",
-          $"[@-1,12:13='  ',<{_indent}>,2:0]",
-          $"[@-1,14:15='if',<{_if}>,2:2]",
-          $"[@-1,17:21='False',<{_false}>,2:5]",
-          $"[@-1,22:22=':',<{_colon}>,2:10]",
-          $"[@-1,23:23='\\n',<{_newline}>,2:11]",
-          $"[@-1,24:27='    ',<{_indent}>,3:0]",
-          $"[@-1,28:28='x',<{_name}>,3:4]",
-          $"[@-1,30:30='=',<{_equal}>,3:6]",
-          $"[@-1,32:32='1',<{_number}>,3:8]",
-          $"[@-1,33:33='\\n',<{_newline}>,3:9]",
-          $"[@-1,34:35='  ',<{_dedent}>,4:0]",
-          $"[@-1,36:39='else',<{_else}>,4:2]",
-          $"[@-1,40:40=':',<{_colon}>,4:6]",
-          $"[@-1,41:41='\\n',<{_newline}>,4:7]",
-          $"[@-1,42:47='      ',<{_indent}>,5:0]",
-          $"[@-1,48:48='y',<{_name}>,5:6]",
-          $"[@-1,50:50='=',<{_equal}>,5:8]",
-          $"[@-1,52:52='2',<{_number}>,5:10]",
-          $"[@-1,53:53='\\n',<{_newline}>,5:11]",
-          $"[@-1,53:53='',<{_dedent}>,6:0]",
-          $"[@-1,53:53='',<{_dedent}>,6:0]",
-        };
-        Add(source, expectedTokens);
-      }
-
-      private void AddSingleLineWhile() {
-        string source = "  while True:\n \tx = 1";
-        var expectedTokens = new string[] {
-          $"[@-1,0:0='\\n',<{_newline}>,1:0]",
-          $"[@-1,0:1='  ',<{_indent}>,1:0]",
-          $"[@-1,2:6='while',<{_while}>,1:2]",
-          $"[@-1,8:11='True',<{_true}>,1:8]",
-          $"[@-1,12:12=':',<{_colon}>,1:12]",
-          $"[@-1,13:13='\\n',<{_newline}>,1:13]",
-          $"[@-1,14:15=' \\t',<{_indent}>,2:0]",
-          $"[@-1,16:16='x',<{_name}>,2:2]",
-          $"[@-1,18:18='=',<{_equal}>,2:4]",
-          $"[@-1,20:20='1',<{_number}>,2:6]",
-          $"[@-1,21:21='\\n',<{_newline}>,2:7]",
-          $"[@-1,21:21='',<{_dedent}>,3:0]",
-          $"[@-1,21:21='',<{_dedent}>,3:0]",
-        };
-        Add(source, expectedTokens);
-      }
+    [Fact]
+    public void TestComments() {
+      string source = "# comment\nprint(1)";
+      var expectedTokens = new string[] {
+          $"[@-1,9:9='\\n',<{SeedPythonParser.NEWLINE}>,1:9]",
+          $"[@-1,10:14='print',<{SeedPythonParser.NAME}>,2:0]",
+          $"[@-1,15:15='(',<{SeedPythonParser.OPEN_PAREN}>,2:5]",
+          $"[@-1,16:16='1',<{SeedPythonParser.NUMBER}>,2:6]",
+          $"[@-1,17:17=')',<{SeedPythonParser.CLOSE_PAREN}>,2:7]",
+          $"[@-1,18:18='\\n',<{SeedPythonParser.NEWLINE}>,2:8]",
+      };
+      TestScanTokens(source, expectedTokens);
     }
 
-    [Theory]
-    [ClassData(typeof(TestData))]
-    public void TestScanTokens(string source, string[] expectedTokens) {
+    [Fact]
+    public void TestExpressionStatement() {
+      string source = "1 + 2\n";
+      var expectedTokens = new string[] {
+          $"[@-1,0:0='1',<{SeedPythonParser.NUMBER}>,1:0]",
+          $"[@-1,2:2='+',<{SeedPythonParser.ADD}>,1:2]",
+          $"[@-1,4:4='2',<{SeedPythonParser.NUMBER}>,1:4]",
+          $"[@-1,5:5='\\n',<{SeedPythonParser.NEWLINE}>,1:5]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
+    public void TestWhileTrue() {
+      string source = "while True";
+      var expectedTokens = new string[] {
+          $"[@-1,0:4='while',<{SeedPythonParser.WHILE}>,1:0]",
+          $"[@-1,6:9='True',<{SeedPythonParser.TRUE}>,1:6]",
+          $"[@-1,10:10='\\n',<{SeedPythonParser.NEWLINE}>,1:10]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
+    public void TestSingleWhile() {
+      string source = "  while True:\n \tx = 1";
+      var expectedTokens = new string[] {
+          $"[@-1,0:0='\\n',<{SeedPythonParser.NEWLINE}>,1:0]",
+          $"[@-1,0:1='  ',<{SeedPythonParser.INDENT}>,1:0]",
+          $"[@-1,2:6='while',<{SeedPythonParser.WHILE}>,1:2]",
+          $"[@-1,8:11='True',<{SeedPythonParser.TRUE}>,1:8]",
+          $"[@-1,12:12=':',<{SeedPythonParser.COLON}>,1:12]",
+          $"[@-1,13:13='\\n',<{SeedPythonParser.NEWLINE}>,1:13]",
+          $"[@-1,14:15=' \\t',<{SeedPythonParser.INDENT}>,2:0]",
+          $"[@-1,16:16='x',<{SeedPythonParser.NAME}>,2:2]",
+          $"[@-1,18:18='=',<{SeedPythonParser.EQUAL}>,2:4]",
+          $"[@-1,20:20='1',<{SeedPythonParser.NUMBER}>,2:6]",
+          $"[@-1,21:21='\\n',<{SeedPythonParser.NEWLINE}>,2:7]",
+          $"[@-1,21:21='',<{SeedPythonParser.DEDENT}>,3:0]",
+          $"[@-1,21:21='',<{SeedPythonParser.DEDENT}>,3:0]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
+    public void TestWhileBlock() {
+      string source = "while True:\n" +
+                      "  x = 1\n" +
+                      "  y = 2";
+      var expectedTokens = new string[] {
+          $"[@-1,0:4='while',<{SeedPythonParser.WHILE}>,1:0]",
+          $"[@-1,6:9='True',<{SeedPythonParser.TRUE}>,1:6]",
+          $"[@-1,10:10=':',<{SeedPythonParser.COLON}>,1:10]",
+          $"[@-1,11:11='\\n',<{SeedPythonParser.NEWLINE}>,1:11]",
+          $"[@-1,12:13='  ',<{SeedPythonParser.INDENT}>,2:0]",
+          $"[@-1,14:14='x',<{SeedPythonParser.NAME}>,2:2]",
+          $"[@-1,16:16='=',<{SeedPythonParser.EQUAL}>,2:4]",
+          $"[@-1,18:18='1',<{SeedPythonParser.NUMBER}>,2:6]",
+          $"[@-1,19:21='\\n  ',<{SeedPythonParser.NEWLINE}>,2:7]",
+          $"[@-1,22:22='y',<{SeedPythonParser.NAME}>,3:2]",
+          $"[@-1,24:24='=',<{SeedPythonParser.EQUAL}>,3:4]",
+          $"[@-1,26:26='2',<{SeedPythonParser.NUMBER}>,3:6]",
+          $"[@-1,27:27='\\n',<{SeedPythonParser.NEWLINE}>,3:7]",
+          $"[@-1,27:27='',<{SeedPythonParser.DEDENT}>,4:0]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
+    public void TestWhileWithIf() {
+      string source = "while True:\n" +
+                      "  if False:\n" +
+                      "    x = 1\n" +
+                      "  else:\n" +
+                      "      y = 2";
+      var expectedTokens = new string[] {
+          $"[@-1,0:4='while',<{SeedPythonParser.WHILE}>,1:0]",
+          $"[@-1,6:9='True',<{SeedPythonParser.TRUE}>,1:6]",
+          $"[@-1,10:10=':',<{SeedPythonParser.COLON}>,1:10]",
+          $"[@-1,11:11='\\n',<{SeedPythonParser.NEWLINE}>,1:11]",
+          $"[@-1,12:13='  ',<{SeedPythonParser.INDENT}>,2:0]",
+          $"[@-1,14:15='if',<{SeedPythonParser.IF}>,2:2]",
+          $"[@-1,17:21='False',<{SeedPythonParser.FALSE}>,2:5]",
+          $"[@-1,22:22=':',<{SeedPythonParser.COLON}>,2:10]",
+          $"[@-1,23:23='\\n',<{SeedPythonParser.NEWLINE}>,2:11]",
+          $"[@-1,24:27='    ',<{SeedPythonParser.INDENT}>,3:0]",
+          $"[@-1,28:28='x',<{SeedPythonParser.NAME}>,3:4]",
+          $"[@-1,30:30='=',<{SeedPythonParser.EQUAL}>,3:6]",
+          $"[@-1,32:32='1',<{SeedPythonParser.NUMBER}>,3:8]",
+          $"[@-1,33:33='\\n',<{SeedPythonParser.NEWLINE}>,3:9]",
+          $"[@-1,34:35='  ',<{SeedPythonParser.DEDENT}>,4:0]",
+          $"[@-1,36:39='else',<{SeedPythonParser.ELSE}>,4:2]",
+          $"[@-1,40:40=':',<{SeedPythonParser.COLON}>,4:6]",
+          $"[@-1,41:41='\\n',<{SeedPythonParser.NEWLINE}>,4:7]",
+          $"[@-1,42:47='      ',<{SeedPythonParser.INDENT}>,5:0]",
+          $"[@-1,48:48='y',<{SeedPythonParser.NAME}>,5:6]",
+          $"[@-1,50:50='=',<{SeedPythonParser.EQUAL}>,5:8]",
+          $"[@-1,52:52='2',<{SeedPythonParser.NUMBER}>,5:10]",
+          $"[@-1,53:53='\\n',<{SeedPythonParser.NEWLINE}>,5:11]",
+          $"[@-1,53:53='',<{SeedPythonParser.DEDENT}>,6:0]",
+          $"[@-1,53:53='',<{SeedPythonParser.DEDENT}>,6:0]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    private static void TestScanTokens(string source, string[] expectedTokens) {
       var inputStream = new AntlrInputStream(source);
       var lexer = new SeedPythonDentLexer(inputStream);
       IList<IToken> tokens = lexer.GetAllTokens();

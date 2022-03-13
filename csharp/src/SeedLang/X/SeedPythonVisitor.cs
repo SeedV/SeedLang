@@ -36,28 +36,16 @@ namespace SeedLang.X {
 
     public override AstNode VisitProgram([NotNull] SeedPythonParser.ProgramContext context) {
       ParserRuleContext statements = context.statements();
-      if (statements is null) {
-        // TODO: return a null block AST node.
-        return null;
-      }
       return Visit(statements);
     }
 
     public override AstNode VisitStatements([NotNull] SeedPythonParser.StatementsContext context) {
-      ParserRuleContext[] statements = context.statement();
-      if (statements.Length == 1) {
-        return Visit(statements[0]);
-      }
-      return VisitorHelper.BuildBlock(statements, this);
+      return VisitorHelper.BuildBlock(context.NEWLINE(), context.statement(), this);
     }
 
     public override AstNode VisitSimple_stmts(
         [NotNull] SeedPythonParser.Simple_stmtsContext context) {
-      ParserRuleContext[] statements = context.simple_stmt();
-      if (statements.Length == 1) {
-        return Visit(statements[0]);
-      }
-      return _helper.BuildSimpleStatements(statements, context.SEMICOLON(), this);
+      return _helper.BuildSimpleStatements(context.simple_stmt(), context.SEMICOLON(), this);
     }
 
     public override AstNode VisitExpression_stmt(

@@ -1,4 +1,4 @@
-# [[ Data, VReverse ]]
+# [[ Data ]]
 a = [8, 1, 0, 5, 6, 3, 2, 4, 7, 1]
 
 
@@ -11,15 +11,16 @@ def partition(start, end, a):
         while a[end] > pivot:
             end -= 1
         if (start < end):
-            # [[ Swap ]]
+            # [[ Swap(start, end) ]]
             a[start], a[end] = a[end], a[start]
+        # [[ Swap(end, pivot_index) ]]
         a[end], a[pivot_index] = a[pivot_index], a[end]
     return end
 
 
+# [[ Bounds(start, end) ]]
 def quick_sort(start, end, a):
     if start < end:
-        # [[ Partition ]]
         mid = partition(start, end, a)
         quick_sort(start, mid - 1, a)
         quick_sort(mid + 1, end, a)

@@ -1,9 +1,11 @@
 # [[ Data ]]
 a = [8, 1, 0, 5, 6, 3, 2, 4, 7, 1]
 
-
+# [[ Index(start, end) ]]
 def partition(start, end, a):
+    # [[ Index ]]
     pivot_index = start
+    # [[ Save ]]
     pivot = a[pivot_index]
     while start < end:
         while start < len(a) and a[start] <= pivot:

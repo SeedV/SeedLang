@@ -34,9 +34,9 @@ namespace SeedLang.X.Tests {
     [InlineData("None",
 
                 "[Ln 1, Col 0 - Ln 1, Col 3] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 3] NoneConstantExpression",
+                "  [Ln 1, Col 0 - Ln 1, Col 3] NilConstantExpression",
 
-                "None [Ln 1, Col 0 - Ln 1, Col 3]")]
+                "Nil [Ln 1, Col 0 - Ln 1, Col 3]")]
 
     [InlineData("True",
 

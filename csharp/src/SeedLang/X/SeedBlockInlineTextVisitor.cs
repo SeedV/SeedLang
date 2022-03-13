@@ -108,8 +108,7 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitNone([NotNull] SeedBlockInlineTextParser.NoneContext context) {
-      // TODO: return a none constant expresssion.
-      return null;
+      return _helper.BuildNilConstant(context.NONE().Symbol);
     }
 
     public override AstNode VisitNumber([NotNull] SeedBlockInlineTextParser.NumberContext context) {

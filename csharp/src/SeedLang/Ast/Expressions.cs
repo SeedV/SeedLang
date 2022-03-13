@@ -51,9 +51,9 @@ namespace SeedLang.Ast {
       return new BooleanConstantExpression(value, range);
     }
 
-    // The factory method to create a none constant expression from a string.
-    internal static NoneConstantExpression NoneConstant(Range range) {
-      return new NoneConstantExpression(range);
+    // The factory method to create a nil constant expression.
+    internal static NilConstantExpression NilConstant(Range range) {
+      return new NilConstantExpression(range);
     }
 
     // The factory method to create a number constant expression.
@@ -160,8 +160,8 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal class NoneConstantExpression : Expression {
-    internal NoneConstantExpression(Range range) : base(range) {
+  internal class NilConstantExpression : Expression {
+    internal NilConstantExpression(Range range) : base(range) {
     }
   }
 

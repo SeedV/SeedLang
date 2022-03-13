@@ -1,4 +1,3 @@
-using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,7 @@ using System.IO;
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -52,6 +52,11 @@ namespace SeedLang.Interpreter {
           switch (instr.Opcode) {
             case Opcode.MOVE:
               _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B];
+              break;
+            case Opcode.LOADNIL:
+              for (int i = 0; i < instr.B; i++) {
+                _stack[baseRegister + instr.A + i] = new Value();
+              }
               break;
             case Opcode.LOADBOOL:
               // TODO: implement the LOADBOOL opcode.

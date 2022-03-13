@@ -29,7 +29,7 @@ namespace SeedLang.X {
       // updated.
       { SeedBlockInlineTextParser.TRUE, TokenType.Boolean},
       { SeedBlockInlineTextParser.FALSE, TokenType.Boolean},
-      { SeedBlockInlineTextParser.NONE, TokenType.None},
+      { SeedBlockInlineTextParser.NONE, TokenType.Nil},
       { SeedBlockInlineTextParser.AND, TokenType.Operator},
       { SeedBlockInlineTextParser.OR, TokenType.Operator},
       { SeedBlockInlineTextParser.NOT, TokenType.Operator},

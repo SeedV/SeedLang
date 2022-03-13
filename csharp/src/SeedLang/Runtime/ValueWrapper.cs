@@ -22,7 +22,7 @@ namespace SeedLang.Runtime {
       _value = value;
     }
 
-    public bool IsNone => _value.IsNone;
+    public bool IsNil => _value.IsNil;
     public bool IsBoolean => _value.IsBoolean;
     public bool IsNumber => _value.IsNumber;
     public bool IsString => _value.IsString;

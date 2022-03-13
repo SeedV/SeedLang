@@ -26,13 +26,13 @@ namespace SeedLang.Runtime {
   // 3) "ref readonly" keywords are used when returning Value from a function to avoid copying.
   internal readonly struct Value : IEquatable<Value> {
     internal enum ValueType {
-      None,
+      Nil,
       Boolean,
       Number,
       Object,
     }
 
-    public bool IsNone => _type == ValueType.None;
+    public bool IsNil => _type == ValueType.Nil;
     public bool IsBoolean => _type == ValueType.Boolean;
     public bool IsNumber => _type == ValueType.Number;
     public bool IsString => _type == ValueType.Object && _object.IsString;
@@ -84,8 +84,8 @@ namespace SeedLang.Runtime {
 
     public bool Equals(Value other) {
       switch (_type) {
-        case ValueType.None:
-          return other._type == ValueType.None;
+        case ValueType.Nil:
+          return other._type == ValueType.Nil;
         case ValueType.Boolean:
         case ValueType.Number:
           return (other._type == ValueType.Boolean || other._type == ValueType.Number) &&
@@ -103,7 +103,7 @@ namespace SeedLang.Runtime {
 
     public override int GetHashCode() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
           return _type.GetHashCode();
         case ValueType.Boolean:
         case ValueType.Number:
@@ -117,7 +117,7 @@ namespace SeedLang.Runtime {
 
     public override string ToString() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
         case ValueType.Boolean:
         case ValueType.Number:
           return AsString();
@@ -149,7 +149,7 @@ namespace SeedLang.Runtime {
 
     internal bool AsBoolean() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
           return false;
         case ValueType.Boolean:
         case ValueType.Number:
@@ -164,7 +164,7 @@ namespace SeedLang.Runtime {
 
     internal double AsNumber() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
           return 0;
         case ValueType.Boolean:
         case ValueType.Number:
@@ -179,7 +179,7 @@ namespace SeedLang.Runtime {
 
     internal string AsString() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
           return "None";
         case ValueType.Boolean:
           return ValueHelper.BooleanToString(ValueHelper.NumberToBoolean(_number));

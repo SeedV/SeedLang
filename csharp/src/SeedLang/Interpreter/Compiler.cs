@@ -118,9 +118,8 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    protected override void Visit(NoneConstantExpression noneConstant) {
-      uint id = _constantCache.IdOfNone();
-      _chunk.Emit(Opcode.LOADK, _registerForSubExpr, id, noneConstant.Range);
+    protected override void Visit(NilConstantExpression nilConstant) {
+      _chunk.Emit(Opcode.LOADNIL, _registerForSubExpr, 1, 0, nilConstant.Range);
     }
 
     protected override void Visit(BooleanConstantExpression booleanConstant) {

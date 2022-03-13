@@ -52,8 +52,8 @@ namespace SeedLang.Ast {
         case BooleanConstantExpression booleanConstant:
           Visit(booleanConstant);
           break;
-        case NoneConstantExpression noneConstant:
-          Visit(noneConstant);
+        case NilConstantExpression nilConstant:
+          Visit(nilConstant);
           break;
         case NumberConstantExpression numberConstant:
           Visit(numberConstant);
@@ -121,7 +121,7 @@ namespace SeedLang.Ast {
     protected abstract void Visit(UnaryExpression unary);
     protected abstract void Visit(IdentifierExpression identifier);
     protected abstract void Visit(BooleanConstantExpression booleanConstant);
-    protected abstract void Visit(NoneConstantExpression noneConstant);
+    protected abstract void Visit(NilConstantExpression nilConstant);
     protected abstract void Visit(NumberConstantExpression numberConstant);
     protected abstract void Visit(StringConstantExpression stringConstant);
     protected abstract void Visit(ListExpression list);

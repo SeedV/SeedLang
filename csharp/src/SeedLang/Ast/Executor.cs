@@ -198,7 +198,7 @@ namespace SeedLang.Ast {
       _expressionResult = new Value(booleanConstant.Value);
     }
 
-    protected override void Visit(NoneConstantExpression noneConstant) {
+    protected override void Visit(NilConstantExpression nilConstant) {
       _expressionResult = new Value();
     }
 

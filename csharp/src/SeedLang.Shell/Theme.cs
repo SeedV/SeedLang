@@ -58,7 +58,7 @@ namespace SeedLang.Shell {
             }
           },
           {
-            TokenType.None,
+            TokenType.Nil,
             new ThemeInfo {
               ForegroundColor = ConsoleColor.DarkYellow,
             }

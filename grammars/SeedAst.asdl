@@ -32,7 +32,7 @@ module SeedAst {
     | IdentifierExpression(string name)
 
     | BooleanConstantExpression(bool value)
-    | NoneConstantExpression()
+    | NilConstantExpression()
     | NumberConstantExpression(doubel value)
     | StringConstantExpression(string value)
 

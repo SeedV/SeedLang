@@ -42,7 +42,7 @@ namespace SeedLang.X {
       { SeedPythonParser.SEMICOLON, TokenType.Symbol },
       { SeedPythonParser.TRUE, TokenType.Boolean },
       { SeedPythonParser.FALSE, TokenType.Boolean },
-      { SeedPythonParser.NONE, TokenType.None },
+      { SeedPythonParser.NONE, TokenType.Nil },
       { SeedPythonParser.AND, TokenType.Operator },
       { SeedPythonParser.OR, TokenType.Operator },
       { SeedPythonParser.NOT, TokenType.Operator },

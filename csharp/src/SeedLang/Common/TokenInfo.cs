@@ -63,7 +63,7 @@ namespace SeedLang.Common {
     CloseBrace,        // For tokens that represent a curly bracket.
     CloseBracket,      // For tokens that represent a square bracket.
     CloseParenthesis,  // For tokens that represent a parenthesis.
-    None,              // For tokens that represent a None literal.
+    Nil,               // For tokens that represent a nil literal.
     OpenBrace,         // For tokens that represent a curly bracket.
     OpenBracket,       // For tokens that represent a square bracket.
     OpenParenthesis,   // For tokens that represent a parenthesis.

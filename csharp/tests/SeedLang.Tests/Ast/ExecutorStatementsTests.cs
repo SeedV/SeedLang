@@ -241,9 +241,7 @@ namespace SeedLang.Ast.Tests {
         AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)), AstHelper.Call(AstHelper.Id(func)))
       );
       (string _, MockupVisualizer visualizer) = Run(block);
-      var expectedOutput = (
-        $"{AstHelper.TextRange} {a} = None\n"
-      ).Replace("\n", Environment.NewLine);
+      var expectedOutput = $"{AstHelper.TextRange} {a} = None{Environment.NewLine}";
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 

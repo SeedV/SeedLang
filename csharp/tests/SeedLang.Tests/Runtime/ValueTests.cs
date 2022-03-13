@@ -21,21 +21,22 @@ namespace SeedLang.Runtime.Tests {
   using NativeFunction = HeapObject.NativeFunction;
 
   public class ValueTests {
+    private readonly string _expectedNilString = "None";
     private readonly string _expectedFalseString = "False";
     private readonly string _expectedTrueString = "True";
 
     [Fact]
-    public void TestNone() {
-      var none = new Value();
-      Assert.True(none.IsNone);
-      Assert.False(none.AsBoolean());
-      Assert.Equal(0, none.AsNumber());
-      Assert.Equal("None", none.AsString());
-      Assert.Equal("None", none.ToString());
+    public void TestNil() {
+      var nil = new Value();
+      Assert.True(nil.IsNil);
+      Assert.False(nil.AsBoolean());
+      Assert.Equal(0, nil.AsNumber());
+      Assert.Equal(_expectedNilString, nil.AsString());
+      Assert.Equal(_expectedNilString, nil.ToString());
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => none.Length);
+      var exception1 = Assert.Throws<DiagnosticException>(() => nil.Length);
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => none[0]);
+      var exception2 = Assert.Throws<DiagnosticException>(() => nil[0]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
     }
 

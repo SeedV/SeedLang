@@ -90,8 +90,8 @@ namespace SeedLang.Tests.Helper {
       return Expression.Tuple(exprs, TextRange);
     }
 
-    internal static NoneConstantExpression NoneConstant() {
-      return Expression.NoneConstant(TextRange);
+    internal static NilConstantExpression NilConstant() {
+      return Expression.NilConstant(TextRange);
     }
 
     internal static NumberConstantExpression NumberConstant(double value) {

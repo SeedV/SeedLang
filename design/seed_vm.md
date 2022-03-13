@@ -98,7 +98,7 @@ All the SeedLang instructions are listed as follows:
 | Opcode | Name       | Description                                         |
 | :----: | ---------- | --------------------------------------------------- |
 |   0    | `MOVE`     | Copy a value between registers                      |
-|   1    | `LOADNONE` | Load the none value into a register                 |
+|   1    | `LOADNIL`  | Load nil into a series of continuous registers      |
 |   2    | `LOADBOOL` | Load a boolean value into a register                |
 |   3    | `LOADK`    | Load a constant into a register                     |
 |   4    | `GETGLOB`  | Read a global variable into a register              |
@@ -132,7 +132,8 @@ All the SeedLang instructions are listed as follows:
 
 ```shell
 MOVE A B                    # R(A) := R(B)
-LOADNONE A B                # R(A), R(A+1), ..., R(A+B-1) := none
+LOADNIL A B                 # R(A), R(A+1), ..., R(A+B-1) := nil, B is the count
+                            # of target registers
 LOADBOOL A B C              # R(A) := (Bool)B; if C then PC++
 LOADK A Bx                  # R(A) := Kst(Bx)
 ```
@@ -163,8 +164,10 @@ SETGLOB A Bx            # Gbl[Kst(Bx)] := R[A]
 ### List and Table Operations
 
 ```shell
-NEWTUPLE A B C          # R(A) := (R(B), R(B+1), ..., R(B+C-1))
-NEWLIST A B C           # R(A) := [R(B), R(B+1), ..., R(B+C-1)]
+NEWTUPLE A B C          # R(A) := (R(B), R(B+1), ..., R(B+C-1)), C is the count
+                        # of initial elements
+NEWLIST A B C           # R(A) := [R(B), R(B+1), ..., R(B+C-1)], C is the count
+                        # of initial elements
 GETELEM A B C           # R(A) := R(B)[RK(C)]
 SETELEM A B C           # R(A)[RK(B)] := RK(C)
 ```
@@ -211,5 +214,7 @@ FORLOOP A sBx           # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
 ```shell
 JMP sBx                 # PC += sBx
 CALL A                  # call function R(A), parameters are R(A+1), ..., R(A+B)
+                        # B is the count of parameters
 RETURN A B              # return R(A), R(A+1), ..., R(A+B-1)
+                        # B is the count of return values
 ```

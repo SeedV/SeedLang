@@ -27,7 +27,7 @@ namespace SeedLang.Ast.Tests {
         AddUnary();
         AddIdentifier();
         AddBooleanConstant();
-        AddNoneConstant();
+        AddNilConstant();
         AddNumberConstant();
         AddStringConstant();
         AddList();
@@ -104,10 +104,10 @@ namespace SeedLang.Ast.Tests {
         Add(trueConstant, expectedTrueOutput);
       }
 
-      private void AddNoneConstant() {
-        var noneConstant = AstHelper.NoneConstant();
-        var expectedTrueOutput = $"{AstHelper.TextRange} NoneConstantExpression";
-        Add(noneConstant, expectedTrueOutput);
+      private void AddNilConstant() {
+        var nilConstant = AstHelper.NilConstant();
+        var expectedTrueOutput = $"{AstHelper.TextRange} NilConstantExpression";
+        Add(nilConstant, expectedTrueOutput);
       }
 
       private void AddNumberConstant() {

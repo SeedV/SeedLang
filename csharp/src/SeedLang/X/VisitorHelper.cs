@@ -172,10 +172,10 @@ namespace SeedLang.X {
       return Expression.BooleanConstant(value, range);
     }
 
-    // Builds none costant expressions.
-    internal NoneConstantExpression BuildNoneConstant(IToken token) {
-      TextRange range = HandleConstantOrVariableExpression(token, TokenType.None);
-      return Expression.NoneConstant(range);
+    // Builds nil costant expressions.
+    internal NilConstantExpression BuildNilConstant(IToken token) {
+      TextRange range = HandleConstantOrVariableExpression(token, TokenType.Nil);
+      return Expression.NilConstant(range);
     }
 
     // Builds number constant expressions.

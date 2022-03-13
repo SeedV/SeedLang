@@ -14,7 +14,7 @@
 
 namespace SeedLang.Runtime {
   public interface IValue {
-    bool IsNone { get; }
+    bool IsNil { get; }
     bool IsBoolean { get; }
     bool IsNumber { get; }
     bool IsString { get; }

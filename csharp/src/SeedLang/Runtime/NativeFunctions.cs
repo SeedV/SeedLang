@@ -36,14 +36,14 @@ namespace SeedLang.Runtime {
         new NativeFunction(Range, RangeFunc),
     };
 
-    // Prints a value when it's not none. It's used in interactive mode to print the result of an
+    // Prints a value when it's not nil. It's used in interactive mode to print the result of an
     // expression statement.
     private static Value PrintValFunc(Value[] args, int offset, int length, Sys sys) {
       if (length != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      if (!args[offset].IsNone) {
+      if (!args[offset].IsNil) {
         if (args[offset].IsString) {
           sys.Stdout.WriteLine($"'{args[offset].AsString()}'");
         } else {

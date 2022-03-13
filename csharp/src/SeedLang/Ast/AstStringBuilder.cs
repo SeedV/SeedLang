@@ -149,8 +149,8 @@ namespace SeedLang.Ast {
       Exit();
     }
 
-    protected override void Visit(NoneConstantExpression noneConstant) {
-      Enter(noneConstant);
+    protected override void Visit(NilConstantExpression nilConstant) {
+      Enter(nilConstant);
       Exit();
     }
 

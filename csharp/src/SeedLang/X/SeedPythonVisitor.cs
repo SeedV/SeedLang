@@ -285,7 +285,7 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitNone([NotNull] SeedPythonParser.NoneContext context) {
-      return _helper.BuildNoneConstant(context.NONE().Symbol);
+      return _helper.BuildNilConstant(context.NONE().Symbol);
     }
 
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {

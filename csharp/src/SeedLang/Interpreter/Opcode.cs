@@ -18,13 +18,13 @@ namespace SeedLang.Interpreter {
   // All the opcodes of SeedLang virtual machine.
   internal enum Opcode {
     MOVE,         // R(A) := RK(B)
-    LOADNONE,     // R(A), R(A+1), ..., R(A+B-1) := none
+    LOADNIL,      // R(A), R(A+1), ..., R(A+B-1) := nil, B is the count of target registers
     LOADBOOL,     // R(A) := (Bool)B; if C then PC++
     LOADK,        // R(A) := Kst(Bx)
     GETGLOB,      // R[A] := Gbl[Kst(Bx)]
     SETGLOB,      // Gbl[Kst(Bx)] := R[A]
-    NEWTUPLE,     // R(A) := (R(B), R(B+1), ..., R(B+C-1))
-    NEWLIST,      // R(A) := [R(B), R(B+1), ..., R(B+C-1)]
+    NEWTUPLE,     // R(A) := (R(B), R(B+1), ..., R(B+C-1)), C is the count of initial elements
+    NEWLIST,      // R(A) := [R(B), R(B+1), ..., R(B+C-1)], C is the count of initial elements
     GETELEM,      // R(A) := R(B)[RK(C)]
     SETELEM,      // R(A)[RK(B)] := RK(C)
     ADD,          // R(A) := RK(B) + RK(C)
@@ -44,8 +44,9 @@ namespace SeedLang.Interpreter {
     TESTSET,      // if R(B) != C then R(A) := R(B) else PC++
     FORPREP,      // R(A) -= R(A+2); pc += sBx
     FORLOOP,      // R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
-    CALL,         // call function R(A), parameters are R(A+1), ..., R(A+B)
-    RETURN,       // return R(A), R(A+1), ..., R(A+B-1)
+    CALL,         // call function R(A), parameters are R(A+1), ..., R(A+B), B is the count of
+                  // parameters
+    RETURN,       // return R(A), R(A+1), ..., R(A+B-1), B is the count of return values
   }
 
   // The types of opcodes.
@@ -60,7 +61,7 @@ namespace SeedLang.Interpreter {
     internal static OpcodeType Type(this Opcode op) {
       switch (op) {
         case Opcode.MOVE:
-        case Opcode.LOADNONE:
+        case Opcode.LOADNIL:
         case Opcode.LOADBOOL:
         case Opcode.NEWTUPLE:
         case Opcode.NEWLIST:

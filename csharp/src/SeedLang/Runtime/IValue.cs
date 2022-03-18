@@ -25,6 +25,5 @@ namespace SeedLang.Runtime {
     double Number { get; }
     string String { get; }
     int Length { get; }
-    IValue this[int index] { get; }
   }
 }

@@ -42,8 +42,8 @@ namespace SeedLang.Runtime.Tests {
       Value list = listFunc.Call(args, 0, args.Length, null);
       Assert.True(list.IsList);
       Assert.Equal(2, list.Length);
-      Assert.Equal(1, list[0].AsNumber());
-      Assert.Equal(2, list[1].AsNumber());
+      Assert.Equal(1, list[new Value(0)].AsNumber());
+      Assert.Equal(2, list[new Value(1)].AsNumber());
     }
 
     [Fact]
@@ -55,7 +55,7 @@ namespace SeedLang.Runtime.Tests {
       Assert.True(list.IsList);
       Assert.Equal(length, list.Length);
       for (int i = 0; i < length; i++) {
-        Assert.Equal(i, list[i].AsNumber());
+        Assert.Equal(i, list[new Value(i)].AsNumber());
       }
     }
 
@@ -65,7 +65,7 @@ namespace SeedLang.Runtime.Tests {
       var print = Function(NativeFunctions.Print);
       var args = new Value[] { new Value(1), new Value(2), new Value(3) };
       print.Call(args, 0, args.Length, sys);
-      var expected = $"1\n2\n3\n".Replace("\n", Environment.NewLine);
+      var expected = $"1 2 3\n".Replace("\n", Environment.NewLine);
       Assert.Equal(expected, sys.Stdout.ToString());
     }
 

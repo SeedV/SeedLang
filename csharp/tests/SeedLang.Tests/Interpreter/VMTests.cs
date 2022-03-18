@@ -130,13 +130,22 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestDict() {
+      var program = AstHelper.ExpressionStmt(
+        AstHelper.Dict(AstHelper.Keys(AstHelper.NumberConstant(1), AstHelper.StringConstant("a")),
+                       AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)));
+      (string output, MockupVisualizer _) = Run(program);
+      Assert.Equal("{1: 1, 'a': 2}" + Environment.NewLine, output);
+    }
+
+    [Fact]
     public void TestTuple() {
       var program = AstHelper.ExpressionStmt(
         AstHelper.Tuple(AstHelper.NumberConstant(1),
                         AstHelper.NumberConstant(2),
                         AstHelper.NumberConstant(3))
       );
-      (string output, MockupVisualizer visualizer) = Run(program);
+      (string output, MockupVisualizer _) = Run(program);
       Assert.Equal("(1, 2, 3)" + Environment.NewLine, output);
     }
 

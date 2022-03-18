@@ -78,6 +78,7 @@ atom:
   | NUMBER   # number
   | STRING+  # strings
   | group    # group_as_atom
+  | dict     # dict_as_atom
   | list     # list_as_atom
   | tuple    # tuple_as_atom;
 
@@ -87,9 +88,14 @@ arguments: expression (COMMA expression)*;
 
 group: OPEN_PAREN expression CLOSE_PAREN;
 
+dict: OPEN_BRACE kvpairs? CLOSE_BRACE;
+
 list: OPEN_BRACK expressions? CLOSE_BRACK;
 
 tuple: OPEN_PAREN expressions? CLOSE_PAREN;
+
+kvpairs: kvpair (COMMA kvpair)*;
+kvpair: expression COLON expression;
 
 /*
  * Lexer rules
@@ -135,6 +141,7 @@ CLOSE_BRACE: '}';
 
 DOT: '.';
 COMMA: ',';
+COLON: ':';
 
 NAME: ID_START ID_CONTINUE*;
 

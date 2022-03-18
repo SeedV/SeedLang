@@ -216,6 +216,17 @@ namespace SeedLang.Ast {
       _expressionResult = new Value(stringConstant.Value);
     }
 
+    protected override void Visit(DictExpression dict) {
+      var initialValues = new Dictionary<Value, Value>();
+      for (int i = 0; i < dict.Keys.Length; i++) {
+        Visit(dict.Keys[i]);
+        Value key = _expressionResult;
+        Visit(dict.Values[i]);
+        initialValues[key] = _expressionResult;
+      }
+      _expressionResult = new Value(initialValues);
+    }
+
     protected override void Visit(ListExpression list) {
       var initialValues = new List<Value>(list.Exprs.Length);
       foreach (Expression expr in list.Exprs) {
@@ -239,7 +250,7 @@ namespace SeedLang.Ast {
       Value list = _expressionResult;
       Visit(subscript.Index);
       try {
-        _expressionResult = list[_expressionResult.AsNumber()];
+        _expressionResult = list[_expressionResult];
       } catch (DiagnosticException ex) {
         throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
                                       ex.Diagnostic.Module, subscript.Range,
@@ -295,7 +306,7 @@ namespace SeedLang.Ast {
       Visit(forIn.Expr);
       Value sequence = _expressionResult;
       for (int i = 0; i < sequence.Length; i++) {
-        _env.SetVariable(forIn.Id.Name, sequence[i]);
+        _env.SetVariable(forIn.Id.Name, sequence[new Value(i)]);
         Visit(forIn.Body);
       }
     }
@@ -374,7 +385,7 @@ namespace SeedLang.Ast {
         Assign(targets[0], value, range);
       } else if (targets.Length == value.Length) {
         for (int i = 0; i < targets.Length; i++) {
-          Assign(targets[i], value[i], range);
+          Assign(targets[i], value[new Value(i)], range);
         }
       } else {
         throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
@@ -393,7 +404,7 @@ namespace SeedLang.Ast {
           Visit(subscript.Expr);
           Value list = _expressionResult;
           Visit(subscript.Index);
-          list[_expressionResult.AsNumber()] = value;
+          list[_expressionResult] = value;
           // TODO: send an assignment event to visualizers.
           break;
       }

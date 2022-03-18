@@ -763,6 +763,42 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileEmptyDict() {
+      var dict = AstHelper.ExpressionStmt(AstHelper.Dict(AstHelper.Keys()));
+      var compiler = new Compiler();
+      var func = compiler.Compile(dict, _env, RunMode.Interactive);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  2    NEWDICT   1 0 0                                {_range}\n" +
+          $"  3    CALL      0 1 0                                {_range}\n" +
+          $"  4    RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileDict() {
+      var dict = AstHelper.ExpressionStmt(
+        AstHelper.Dict(AstHelper.Keys(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)),
+                       AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)));
+      var compiler = new Compiler();
+      var func = compiler.Compile(dict, _env, RunMode.Interactive);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  2    LOADK     2 -1             ; 1                 {_range}\n" +
+          $"  3    LOADK     3 -1             ; 1                 {_range}\n" +
+          $"  4    LOADK     4 -2             ; 2                 {_range}\n" +
+          $"  5    LOADK     5 -2             ; 2                 {_range}\n" +
+          $"  6    NEWDICT   1 2 4                                {_range}\n" +
+          $"  7    CALL      0 1 0                                {_range}\n" +
+          $"  8    RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
     public void TestCompileSubscript() {
       var subscript = AstHelper.ExpressionStmt(AstHelper.Subscript(
         AstHelper.List(AstHelper.NumberConstant(1),

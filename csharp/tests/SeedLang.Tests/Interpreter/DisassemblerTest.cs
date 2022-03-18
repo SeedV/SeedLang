@@ -37,8 +37,8 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_textRange}\n" +
-          $"  2    GETGLOB   1 -2             ; global_variable   {_textRange}\n" +
-          $"  3    SETGLOB   1 -3             ; name              {_textRange}\n" +
+          $"  2    GETGLOB   1 -2             ; 'global_variable' {_textRange}\n" +
+          $"  3    SETGLOB   1 -3             ; 'name'            {_textRange}\n" +
           $"  4    ADD       0 1 2                                {_textRange}\n" +
           $"  5    SUB       0 -4 2           ; 2                 {_textRange}\n" +
           $"  6    MUL       0 1 -5           ; 3                 {_textRange}\n" +

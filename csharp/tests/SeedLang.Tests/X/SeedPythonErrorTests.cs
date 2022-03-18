@@ -35,7 +35,7 @@ namespace SeedLang.X.Tests {
     [InlineData("1 +",
                 new string[] {
                   @"SyntaxErrorInputMismatch '\n' " +
-                  @"{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER, STRING}",
+                  @"{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -86,7 +86,7 @@ namespace SeedLang.X.Tests {
     [InlineData("1 + ))",
                 new string[] {
                   "SyntaxErrorInputMismatch ')' " +
-                  "{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER, STRING}",
+                  "{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -97,7 +97,7 @@ namespace SeedLang.X.Tests {
     [InlineData("1 < 2 >=",
                 new string[] {
                   @"SyntaxErrorInputMismatch '\n' " +
-                  @"{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER, STRING}",
+                  @"{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +

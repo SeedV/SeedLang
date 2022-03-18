@@ -21,6 +21,7 @@ using SeedLang.Common;
 namespace SeedLang.Runtime {
   using List = List<Value>;
   using Tuple = IReadOnlyList<Value>;
+  using Dict = Dictionary<Value, Value>;
 
   // A class to hold heap allocated objects.
   internal partial class HeapObject : IEquatable<HeapObject> {
@@ -29,6 +30,7 @@ namespace SeedLang.Runtime {
     public bool IsFunction => _object is IFunction;
     public bool IsRange => _object is Range;
     public bool IsTuple => _object is Tuple;
+    public bool IsDict => _object is Dict;
 
     public int Length {
       get {
@@ -41,6 +43,8 @@ namespace SeedLang.Runtime {
             return range.Length;
           case Tuple tuple:
             return tuple.Count;
+          case Dict dict:
+            return dict.Count;
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotCountable);
@@ -54,7 +58,7 @@ namespace SeedLang.Runtime {
 
     public HeapObject(object obj) {
       _object = obj;
-      Debug.Assert(IsString || IsList || IsFunction || IsRange || IsTuple,
+      Debug.Assert(IsString || IsList || IsFunction || IsRange || IsTuple || IsDict,
                    $"Unsupported object type: {_object.GetType()}");
     }
 
@@ -99,7 +103,7 @@ namespace SeedLang.Runtime {
     }
 
     public override string ToString() {
-      return AsString();
+      return IsString ? $"'{AsString()}'" : AsString();
     }
 
     internal bool AsBoolean() {
@@ -112,6 +116,8 @@ namespace SeedLang.Runtime {
           return range.Length != 0;
         case Tuple tuple:
           return tuple.Count != 0;
+        case Dict dict:
+          return dict.Count != 0;
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -140,6 +146,8 @@ namespace SeedLang.Runtime {
           return range.ToString();
         case Tuple tuple:
           return TupleToString(tuple);
+        case Dict dict:
+          return DictToString(dict);
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -176,17 +184,34 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value this[double index] {
+    internal Dict AsDict() {
+      switch (_object) {
+        case Dict dict:
+          return dict;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal Value this[Value key] {
       get {
         switch (_object) {
           case string str:
-            return new Value(str[ToIntIndex(index, str.Length)].ToString());
+            return new Value(str[ToIntIndex(key.AsNumber(), str.Length)].ToString());
           case List list:
-            return list[ToIntIndex(index, list.Count)];
+            return list[ToIntIndex(key.AsNumber(), list.Count)];
           case Range range:
-            return range[ToIntIndex(index, range.Length)];
+            return range[ToIntIndex(key.AsNumber(), range.Length)];
           case Tuple tuple:
-            return tuple[ToIntIndex(index, tuple.Count)];
+            return tuple[ToIntIndex(key.AsNumber(), tuple.Count)];
+          case Dict dict:
+            CheckKey(key);
+            if (dict.ContainsKey(key)) {
+              return dict[key];
+            }
+            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                          Message.RuntimeErrorNoKey);
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
@@ -197,7 +222,11 @@ namespace SeedLang.Runtime {
           case string _:
             throw new NotImplementedException();
           case List list:
-            list[ToIntIndex(index, list.Count)] = value;
+            list[ToIntIndex(key.AsNumber(), list.Count)] = value;
+            break;
+          case Dict dict:
+            CheckKey(key);
+            dict[key] = value;
             break;
           case Range _:
           case Tuple _:
@@ -220,6 +249,14 @@ namespace SeedLang.Runtime {
                                       Message.RuntimeErrorOutOfRange);
       }
       return intIndex < 0 ? length + intIndex : intIndex;
+    }
+
+    private static void CheckKey(Value key) {
+      if (!key.IsNil && !key.IsBoolean && !key.IsNumber && !key.IsString && !key.IsRange &&
+          !key.IsTuple) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidIndex);
+      }
     }
 
     private static string TupleToString(IReadOnlyList<Value> tuple) {
@@ -254,6 +291,30 @@ namespace SeedLang.Runtime {
         _visitedObjects.Remove(this);
       }
       sb.Append(']');
+      return sb.ToString();
+    }
+
+    private string DictToString(IReadOnlyDictionary<Value, Value> dict) {
+      var sb = new StringBuilder();
+      sb.Append('{');
+      if (_visitedObjects.Contains(this)) {
+        sb.Append("...");
+      } else {
+        _visitedObjects.Add(this);
+        bool first = true;
+        foreach (var item in dict) {
+          if (first) {
+            first = false;
+          } else {
+            sb.Append(", ");
+          }
+          sb.Append(item.Key);
+          sb.Append(": ");
+          sb.Append(item.Value);
+        }
+        _visitedObjects.Remove(this);
+      }
+      sb.Append('}');
       return sb.ToString();
     }
   }

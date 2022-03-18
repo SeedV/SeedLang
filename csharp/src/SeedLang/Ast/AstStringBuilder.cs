@@ -166,6 +166,15 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(DictExpression dict) {
+      Enter(dict);
+      for (int i = 0; i < dict.Keys.Length; i++) {
+        Visit(dict.Keys[i]);
+        Visit(dict.Values[i]);
+      }
+      Exit();
+    }
+
     protected override void Visit(ListExpression list) {
       Enter(list);
       foreach (Expression expr in list.Exprs) {

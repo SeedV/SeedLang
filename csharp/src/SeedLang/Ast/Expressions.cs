@@ -67,6 +67,12 @@ namespace SeedLang.Ast {
       return new StringConstantExpression(ValueHelper.Unescape(value), range);
     }
 
+    // The factory method to create a dictionary expression.
+    internal static DictExpression Dict(Expression[] keys, Expression[] values, Range range) {
+      Debug.Assert(keys.Length == values.Length);
+      return new DictExpression(keys, values, range);
+    }
+
     // The factory method to create a list expression.
     internal static ListExpression List(Expression[] exprs, Range range) {
       return new ListExpression(exprs, range);
@@ -178,6 +184,16 @@ namespace SeedLang.Ast {
 
     internal StringConstantExpression(string value, Range range) : base(range) {
       Value = value;
+    }
+  }
+
+  internal class DictExpression : Expression {
+    public Expression[] Keys { get; }
+    public Expression[] Values { get; }
+
+    internal DictExpression(Expression[] keys, Expression[] values, Range range) : base(range) {
+      Keys = keys;
+      Values = values;
     }
   }
 

@@ -25,6 +25,8 @@ namespace SeedLang.Interpreter {
     SETGLOB,      // Gbl[Kst(Bx)] := R[A]
     NEWTUPLE,     // R(A) := (R(B), R(B+1), ..., R(B+C-1)), C is the count of initial elements
     NEWLIST,      // R(A) := [R(B), R(B+1), ..., R(B+C-1)], C is the count of initial elements
+    NEWDICT,      // R(A) := {R(B): R(B+1), ..., R(B+C-2): R(B+C-1)], C is the count of initial keys
+                  // and values
     GETELEM,      // R(A) := R(B)[RK(C)]
     SETELEM,      // R(A)[RK(B)] := RK(C)
     ADD,          // R(A) := RK(B) + RK(C)
@@ -65,6 +67,7 @@ namespace SeedLang.Interpreter {
         case Opcode.LOADBOOL:
         case Opcode.NEWTUPLE:
         case Opcode.NEWLIST:
+        case Opcode.NEWDICT:
         case Opcode.GETELEM:
         case Opcode.SETELEM:
         case Opcode.ADD:

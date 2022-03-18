@@ -81,6 +81,17 @@ namespace SeedLang.Interpreter {
               }
               _stack[baseRegister + instr.A] = new Value(list);
               break;
+            case Opcode.NEWDICT:
+              int count = (int)instr.C / 2;
+              var dict = new Dictionary<Value, Value>(count);
+              uint dictRegister = baseRegister + instr.A;
+              uint kvStart = baseRegister + instr.B;
+              for (uint i = 0; i < count; i++) {
+                uint keyRegister = kvStart + i * 2;
+                dict[_stack[keyRegister]] = _stack[keyRegister + 1];
+              }
+              _stack[dictRegister] = new Value(dict);
+              break;
             case Opcode.GETGLOB:
               _stack[baseRegister + instr.A] = Env.GetVariable(instr.Bx);
               break;
@@ -194,12 +205,12 @@ namespace SeedLang.Interpreter {
     }
 
     private void GetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      double index = ValueOfRK(chunk, instr.C, baseRegister).AsNumber();
+      Value index = ValueOfRK(chunk, instr.C, baseRegister);
       _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][index];
     }
 
     private void SetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      double index = ValueOfRK(chunk, instr.B, baseRegister).AsNumber();
+      Value index = ValueOfRK(chunk, instr.B, baseRegister);
       _stack[baseRegister + instr.A][index] = ValueOfRK(chunk, instr.C, baseRegister);
     }
 

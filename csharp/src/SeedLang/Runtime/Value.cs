@@ -40,6 +40,7 @@ namespace SeedLang.Runtime {
     public bool IsFunction => _type == ValueType.Object && _object.IsFunction;
     public bool IsRange => _type == ValueType.Object && _object.IsRange;
     public bool IsTuple => _type == ValueType.Object && _object.IsTuple;
+    public bool IsDict => _type == ValueType.Object && _object.IsDict;
 
     public int Length {
       get {
@@ -128,10 +129,10 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value this[double index] {
+    internal Value this[Value key] {
       get {
         if (_type == ValueType.Object) {
-          return _object[index];
+          return _object[key];
         } else {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorNotSubscriptable);
@@ -139,7 +140,7 @@ namespace SeedLang.Runtime {
       }
       set {
         if (_type == ValueType.Object) {
-          _object[index] = value;
+          _object[key] = value;
         } else {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorNotSubscriptable);

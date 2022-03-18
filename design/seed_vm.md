@@ -105,28 +105,29 @@ All the SeedLang instructions are listed as follows:
 |   5    | `SETGLOB`  | Write a register value into a global variable       |
 |   6    | `NEWTUPLE` | Create a new tuple with the initial elements        |
 |   7    | `NEWLIST`  | Create a new list with the initial elements         |
-|   8    | `GETELEM`  | Read a list or table element into a register        |
-|   9    | `SETELEM`  | Write a register value into a list or table element |
-|   10   | `ADD`      | Addition operation                                  |
-|   11   | `SUB`      | Subtract operation                                  |
-|   12   | `MUL`      | Multiply operation                                  |
-|   13   | `DIV`      | Divide operation                                    |
-|   14   | `FLOORDIV` | Floor Divide operation                              |
-|   15   | `POW`      | Exponentiation operation                            |
-|   16   | `MOD`      | Modulus (reminder) operation                        |
-|   17   | `UNM`      | Unary minus operation                               |
-|   18   | `NOT`      | Logical not operation                               |
-|   19   | `LEN`      | Length operation                                    |
-|   20   | `JMP`      | Unconditional jump                                  |
-|   21   | `EQ`       | Equality test                                       |
-|   22   | `LT`       | Less than test                                      |
-|   23   | `LE`       | Less than or equal to test                          |
-|   24   | `TEST`     | Boolean test, with conditional jump                 |
-|   25   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
-|   26   | `FORPREP`  | For loop preparation                                |
-|   27   | `FORLOOP`  | For loop check                                      |
-|   28   | `CALL`     | Call a function                                     |
-|   29   | `RETURN`   | Return from a function call                         |
+|   8    | `NEWDICT`  | Create a new dict with the initial keys and values  |
+|   9    | `GETELEM`  | Read a list or table element into a register        |
+|   10   | `SETELEM`  | Write a register value into a list or table element |
+|   11   | `ADD`      | Addition operation                                  |
+|   12   | `SUB`      | Subtract operation                                  |
+|   13   | `MUL`      | Multiply operation                                  |
+|   14   | `DIV`      | Divide operation                                    |
+|   15   | `FLOORDIV` | Floor Divide operation                              |
+|   16   | `POW`      | Exponentiation operation                            |
+|   17   | `MOD`      | Modulus (reminder) operation                        |
+|   18   | `UNM`      | Unary minus operation                               |
+|   19   | `NOT`      | Logical not operation                               |
+|   20   | `LEN`      | Length operation                                    |
+|   21   | `JMP`      | Unconditional jump                                  |
+|   22   | `EQ`       | Equality test                                       |
+|   23   | `LT`       | Less than test                                      |
+|   24   | `LE`       | Less than or equal to test                          |
+|   25   | `TEST`     | Boolean test, with conditional jump                 |
+|   26   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
+|   27   | `FORPREP`  | For loop preparation                                |
+|   28   | `FORLOOP`  | For loop check                                      |
+|   29   | `CALL`     | Call a function                                     |
+|   30   | `RETURN`   | Return from a function call                         |
 
 ### Move and Load Constant
 
@@ -168,6 +169,8 @@ NEWTUPLE A B C          # R(A) := (R(B), R(B+1), ..., R(B+C-1)), C is the count
                         # of initial elements
 NEWLIST A B C           # R(A) := [R(B), R(B+1), ..., R(B+C-1)], C is the count
                         # of initial elements
+NEWDICT A B C           # R(A) := {R(B): R(B+1), ..., R(B+C-2): R(B+C-1)], C is
+                        # the count of initial keys and values
 GETELEM A B C           # R(A) := R(B)[RK(C)]
 SETELEM A B C           # R(A)[RK(B)] := RK(C)
 ```

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using SeedLang.Common;
@@ -40,13 +41,11 @@ namespace SeedLang.Runtime {
       } else if (lhs.IsString && rhs.IsString) {
         return new Value(lhs.AsString() + rhs.AsString());
       } else if (lhs.IsList && rhs.IsList) {
-        var list = new List<Value>(lhs.AsList());
+        var list = lhs.AsList();
         list.AddRange(rhs.AsList());
         return new Value(list);
       } else if (lhs.IsTuple && rhs.IsTuple) {
-        var list = new List<Value>(lhs.AsTuple());
-        list.AddRange(rhs.AsTuple());
-        return new Value(list.ToArray());
+        return new Value(lhs.AsTuple().AddRange(rhs.AsTuple()));
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
                                       Message.RuntimeErrorUnsupportedOperads);
@@ -89,13 +88,16 @@ namespace SeedLang.Runtime {
         return new Value(newList);
       } else if (lhs.IsTuple && (rhs.IsBoolean || rhs.IsNumber) ||
                  (lhs.IsBoolean || lhs.IsNumber) && rhs.IsTuple) {
-        double count = lhs.IsTuple ? rhs.AsNumber() : lhs.AsNumber();
-        IReadOnlyList<Value> tuple = lhs.IsTuple ? lhs.AsTuple() : rhs.AsTuple();
-        var newTuple = new List<Value>();
-        for (int i = 0; i < count; i++) {
-          newTuple.AddRange(tuple);
+        int count = lhs.IsTuple ? (int)rhs.AsNumber() : (int)lhs.AsNumber();
+        if (count <= 0) {
+          return new Value(ImmutableArray.Create<Value>());
         }
-        return new Value(newTuple.ToArray());
+        ImmutableArray<Value> tuple = lhs.IsTuple ? lhs.AsTuple() : rhs.AsTuple();
+        var builder = ImmutableArray.CreateBuilder<Value>(tuple.Length * count);
+        for (int i = 0; i < count; i++) {
+          builder.AddRange(tuple);
+        }
+        return new Value(builder.MoveToImmutable());
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
                                       Message.RuntimeErrorUnsupportedOperads);

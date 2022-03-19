@@ -13,14 +13,17 @@
 // limitations under the License.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   using List = List<Value>;
-  using Tuple = IReadOnlyList<Value>;
+  using Tuple = ImmutableArray<Value>;
   using Dict = Dictionary<Value, Value>;
 
   // A class to hold heap allocated objects.
@@ -42,7 +45,7 @@ namespace SeedLang.Runtime {
           case Range range:
             return range.Length;
           case Tuple tuple:
-            return tuple.Count;
+            return tuple.Length;
           case Dict dict:
             return dict.Count;
           default:
@@ -90,16 +93,32 @@ namespace SeedLang.Runtime {
       if (_object.GetType() != other._object.GetType()) {
         return false;
       }
-      // Compares contents for string types, and compares references for other types. This behavior
-      // is consistent with GetHashCode implementation.
-      if (_object is string) {
-        return _object as string == other._object as string;
+      // Compares contents for String, Tuple, List and Dict types.
+      switch (_object) {
+        case string str:
+          return str == other._object as string;
+        case Tuple tuple:
+          return tuple.SequenceEqual((Tuple)other._object);
+        case List list:
+          return list.SequenceEqual(other._object as List);
+        case Dict dict:
+          return dict.SequenceEqual(other._object as Dict);
+        default:
+          return _object == other._object;
       }
-      return _object == other._object;
     }
 
+    // Computes hash code based on contents for String (uses csharp default implementation) and
+    // tuple types. Uses csharp default implementation for List and Dict types, because they are
+    // unhashable types, and this method is not used for them.
     public override int GetHashCode() {
-      return _object.GetHashCode();
+      switch (_object) {
+        case Tuple _:
+          var equ = (IStructuralEquatable)_object;
+          return equ.GetHashCode(StructuralComparisons.StructuralEqualityComparer);
+        default:
+          return _object.GetHashCode();
+      }
     }
 
     public override string ToString() {
@@ -115,7 +134,7 @@ namespace SeedLang.Runtime {
         case Range range:
           return range.Length != 0;
         case Tuple tuple:
-          return tuple.Count != 0;
+          return tuple.Length != 0;
         case Dict dict:
           return dict.Count != 0;
         default:
@@ -204,7 +223,7 @@ namespace SeedLang.Runtime {
           case Range range:
             return range[ToIntIndex(key.AsNumber(), range.Length)];
           case Tuple tuple:
-            return tuple[ToIntIndex(key.AsNumber(), tuple.Count)];
+            return tuple[ToIntIndex(key.AsNumber(), tuple.Length)];
           case Dict dict:
             CheckKey(key);
             if (dict.ContainsKey(key)) {
@@ -255,16 +274,16 @@ namespace SeedLang.Runtime {
       if (!key.IsNil && !key.IsBoolean && !key.IsNumber && !key.IsString && !key.IsRange &&
           !key.IsTuple) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidIndex);
+                                      Message.RuntimeErrorUnhashableType);
       }
     }
 
-    private static string TupleToString(IReadOnlyList<Value> tuple) {
+    private static string TupleToString(ImmutableArray<Value> tuple) {
       var sb = new StringBuilder();
       sb.Append('(');
-      for (int i = 0; i < tuple.Count; i++) {
+      for (int i = 0; i < tuple.Length; i++) {
         sb.Append(tuple[i]);
-        if (i < tuple.Count - 1) {
+        if (i < tuple.Length - 1) {
           sb.Append(", ");
         }
       }

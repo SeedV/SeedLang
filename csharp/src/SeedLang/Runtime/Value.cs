@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
@@ -212,9 +213,18 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal IReadOnlyList<Value> AsTuple() {
+    internal ImmutableArray<Value> AsTuple() {
       if (_type == ValueType.Object) {
         return _object.AsTuple();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal Dictionary<Value, Value> AsDict() {
+      if (_type == ValueType.Object) {
+        return _object.AsDict();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorInvalidCast);

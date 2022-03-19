@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using SeedLang.Common;
 using Xunit;
 
@@ -116,7 +117,7 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestDict() {
       string str = "2";
-      Value tuple = new Value(new Value[] { new Value(1), new Value(2), });
+      var tuple = new Value(ImmutableArray.Create(new Value(1), new Value(2)));
       var value = new Dictionary<Value, Value>() {
         [new Value(1)] = new Value(1),
         [new Value(str)] = new Value(2),
@@ -141,8 +142,11 @@ namespace SeedLang.Runtime.Tests {
 
       dict[new Value()] = new Value(100);
       Assert.Equal("{1: 'test', '2': 2, (1, 2): 3, None: 100}", dict.AsString());
-    }
 
+      var ex = Assert.Throws<DiagnosticException>(() => {
+        dict[new Value(new List<Value>() { new Value(1) })] = new Value(2);
+      });
+    }
 
     [Fact]
     public void TestList() {
@@ -227,8 +231,8 @@ namespace SeedLang.Runtime.Tests {
                       new Value(new List<Value>() { new Value(2) }));
       Assert.NotEqual(new Value(new List<Value>() { new Value(1) }),
                       new Value(new List<Value>() { new Value(1), new Value(2) }));
-      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }),
-                      new Value(new List<Value>() { new Value(1) }));
+      Assert.Equal(new Value(new List<Value>() { new Value(1) }),
+                   new Value(new List<Value>() { new Value(1) }));
       var list = new List<Value>() { new Value(1) };
       Assert.Equal(new Value(list), new Value(list));
     }

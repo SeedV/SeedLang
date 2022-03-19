@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -68,11 +69,11 @@ namespace SeedLang.Interpreter {
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
             case Opcode.NEWTUPLE:
-              var tuple = new Value[instr.C];
+              var builder = ImmutableArray.CreateBuilder<Value>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
-                tuple[i] = _stack[baseRegister + instr.B + i];
+                builder.Add(_stack[baseRegister + instr.B + i]);
               }
-              _stack[baseRegister + instr.A] = new Value(tuple);
+              _stack[baseRegister + instr.A] = new Value(builder.MoveToImmutable());
               break;
             case Opcode.NEWLIST:
               var list = new List<Value>((int)instr.C);

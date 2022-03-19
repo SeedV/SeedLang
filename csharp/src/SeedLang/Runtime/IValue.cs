@@ -13,6 +13,7 @@
 // limitations under the License.
 
 namespace SeedLang.Runtime {
+  // TODO: check if subscription of IValue is needed? And how to implement it?
   public interface IValue {
     bool IsNil { get; }
     bool IsBoolean { get; }

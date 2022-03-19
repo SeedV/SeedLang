@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -237,12 +238,12 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(TupleExpression list) {
-      var initialValues = new Value[list.Exprs.Length];
+      var builder = ImmutableArray.CreateBuilder<Value>(list.Exprs.Length);
       for (int i = 0; i < list.Exprs.Length; i++) {
         Visit(list.Exprs[i]);
-        initialValues[i] = _expressionResult;
+        builder.Add(_expressionResult);
       }
-      _expressionResult = new Value(initialValues);
+      _expressionResult = new Value(builder.MoveToImmutable());
     }
 
     protected override void Visit(SubscriptExpression subscript) {
@@ -361,11 +362,12 @@ namespace SeedLang.Ast {
     }
 
     private void Pack(Expression[] targets, Expression[] exprs, Range range) {
-      var values = new Value[exprs.Length];
+      var builder = ImmutableArray.CreateBuilder<Value>(exprs.Length);
       for (int i = 0; i < exprs.Length; i++) {
         Visit(exprs[i]);
-        values[i] = _expressionResult;
+        builder.Add(_expressionResult);
       }
+      ImmutableArray<Value> values = builder.MoveToImmutable();
       if (targets.Length == 1) {
         Assign(targets[0], new Value(values), range);
       } else if (targets.Length == values.Length) {

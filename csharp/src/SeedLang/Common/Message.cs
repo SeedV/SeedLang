@@ -74,7 +74,7 @@ namespace SeedLang.Common {
     RuntimeErrorIncorrectArgsCount,     // Incorrect arguments count runtime error.
     RuntimeErrorIncorrectUnpackCount,   // Incorrect number of values to be unpack runtime error.
     RuntimeErrorInvalidIndex,           // Not a valid integer index runtime error.
-    RuntimeErrorNoKey,                  // There is no key in the dictionary.
+    RuntimeErrorNoKey,                  // Couldn't find the given key in the dictionary.
     RuntimeErrorNotCallable,            // Value type not callable runtime error.
     RuntimeErrorNotCountable,           // Value type not countable runtime error.
     RuntimeErrorNotSubscriptable,       // Value type not subscriptable runtime error.

@@ -82,12 +82,12 @@ namespace SeedLang.Tests.Helper {
       return Statement.If(test, thenBody, elseBody, TextRange);
     }
 
-    internal static Expression[] Keys(params Expression[] keys) {
-      return keys;
-    }
-
     internal static DictExpression Dict(Expression[] keys, params Expression[] values) {
       return Expression.Dict(keys, values, TextRange);
+    }
+
+    internal static Expression[] Keys(params Expression[] keys) {
+      return keys;
     }
 
     internal static ListExpression List(params Expression[] exprs) {

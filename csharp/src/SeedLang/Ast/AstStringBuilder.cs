@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -168,9 +169,9 @@ namespace SeedLang.Ast {
 
     protected override void Visit(DictExpression dict) {
       Enter(dict);
-      for (int i = 0; i < dict.Keys.Length; i++) {
-        Visit(dict.Keys[i]);
-        Visit(dict.Values[i]);
+      foreach (var item in dict.Items) {
+        Visit(item.Key);
+        Visit(item.Value);
       }
       Exit();
     }

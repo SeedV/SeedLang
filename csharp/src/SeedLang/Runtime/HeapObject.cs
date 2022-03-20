@@ -60,6 +60,15 @@ namespace SeedLang.Runtime {
     private readonly object _object;
 
     public HeapObject(object obj) {
+      switch (obj) {
+        case Dict dict:
+          foreach (var item in dict) {
+            CheckKey(item.Key);
+          }
+          break;
+        default:
+          break;
+      }
       _object = obj;
       Debug.Assert(IsString || IsList || IsFunction || IsRange || IsTuple || IsDict,
                    $"Unsupported object type: {_object.GetType()}");
@@ -281,12 +290,7 @@ namespace SeedLang.Runtime {
     private static string TupleToString(ImmutableArray<Value> tuple) {
       var sb = new StringBuilder();
       sb.Append('(');
-      for (int i = 0; i < tuple.Length; i++) {
-        sb.Append(tuple[i]);
-        if (i < tuple.Length - 1) {
-          sb.Append(", ");
-        }
-      }
+      sb.Append(string.Join(", ", tuple));
       sb.Append(')');
       return sb.ToString();
     }
@@ -298,15 +302,7 @@ namespace SeedLang.Runtime {
         sb.Append("...");
       } else {
         _visitedObjects.Add(this);
-        bool first = true;
-        foreach (Value value in list) {
-          if (first) {
-            first = false;
-          } else {
-            sb.Append(", ");
-          }
-          sb.Append(value);
-        }
+        sb.Append(string.Join(", ", list));
         _visitedObjects.Remove(this);
       }
       sb.Append(']');

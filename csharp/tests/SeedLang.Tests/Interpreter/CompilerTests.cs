@@ -764,7 +764,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileEmptyDict() {
-      var dict = AstHelper.ExpressionStmt(AstHelper.Dict(AstHelper.Keys()));
+      var dict = AstHelper.ExpressionStmt(AstHelper.Dict());
       var compiler = new Compiler();
       var func = compiler.Compile(dict, _env, RunMode.Interactive);
       string expected = (
@@ -780,8 +780,11 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestCompileDict() {
       var dict = AstHelper.ExpressionStmt(
-        AstHelper.Dict(AstHelper.Keys(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)),
-                       AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)));
+        AstHelper.Dict(
+          AstHelper.KeyValue(AstHelper.NumberConstant(1), AstHelper.NumberConstant(1)),
+          AstHelper.KeyValue(AstHelper.NumberConstant(2), AstHelper.NumberConstant(2))
+        )
+      );
       var compiler = new Compiler();
       var func = compiler.Compile(dict, _env, RunMode.Interactive);
       string expected = (

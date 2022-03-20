@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using System.Collections.Generic;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -82,12 +82,12 @@ namespace SeedLang.Tests.Helper {
       return Statement.If(test, thenBody, elseBody, TextRange);
     }
 
-    internal static DictExpression Dict(Expression[] keys, params Expression[] values) {
-      return Expression.Dict(keys, values, TextRange);
+    internal static DictExpression Dict(params KeyValuePair<Expression, Expression>[] items) {
+      return Expression.Dict(items, TextRange);
     }
 
-    internal static Expression[] Keys(params Expression[] keys) {
-      return keys;
+    internal static KeyValuePair<Expression, Expression> KeyValue(Expression key, Expression value) {
+      return new KeyValuePair<Expression, Expression>(key, value);
     }
 
     internal static ListExpression List(params Expression[] exprs) {

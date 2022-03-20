@@ -141,12 +141,13 @@ namespace SeedLang.Ast.Tests {
     [Fact]
     public void TestDict() {
       var eval = AstHelper.ExpressionStmt(
-        AstHelper.Dict(AstHelper.Keys(AstHelper.StringConstant("1"), AstHelper.NumberConstant(2),
-                                      AstHelper.Tuple(AstHelper.NumberConstant(1),
-                                                      AstHelper.NumberConstant(2))),
-                       AstHelper.NumberConstant(1),
-                       AstHelper.NumberConstant(2),
-                       AstHelper.NumberConstant(3))
+        AstHelper.Dict(
+          AstHelper.KeyValue(AstHelper.StringConstant("1"), AstHelper.NumberConstant(1)),
+          AstHelper.KeyValue(AstHelper.NumberConstant(2), AstHelper.NumberConstant(2)),
+          AstHelper.KeyValue(AstHelper.Tuple(AstHelper.NumberConstant(1),
+                                             AstHelper.NumberConstant(2)),
+                             AstHelper.NumberConstant(3))
+        )
       );
       (string output, MockupVisualizer _) = Run(eval);
       Assert.Equal("{'1': 1, 2: 2, (1, 2): 3}" + Environment.NewLine, output);

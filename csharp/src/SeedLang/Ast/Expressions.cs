@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,9 +69,8 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a dictionary expression.
-    internal static DictExpression Dict(Expression[] keys, Expression[] values, Range range) {
-      Debug.Assert(keys.Length == values.Length);
-      return new DictExpression(keys, values, range);
+    internal static DictExpression Dict(KeyValuePair<Expression, Expression>[] items, Range range) {
+      return new DictExpression(items, range);
     }
 
     // The factory method to create a list expression.
@@ -188,12 +188,11 @@ namespace SeedLang.Ast {
   }
 
   internal class DictExpression : Expression {
-    public Expression[] Keys { get; }
-    public Expression[] Values { get; }
+    public KeyValuePair<Expression, Expression>[] Items { get; }
 
-    internal DictExpression(Expression[] keys, Expression[] values, Range range) : base(range) {
-      Keys = keys;
-      Values = values;
+    internal DictExpression(KeyValuePair<Expression, Expression>[] items, Range range) :
+        base(range) {
+      Items = items;
     }
   }
 

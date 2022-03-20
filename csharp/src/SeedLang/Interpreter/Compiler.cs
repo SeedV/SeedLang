@@ -157,17 +157,17 @@ namespace SeedLang.Interpreter {
       _variableResolver.BeginExpressionScope();
       uint target = _registerForSubExpr;
       uint? first = null;
-      for (int i = 0; i < dict.Keys.Length; i++) {
+      foreach (var item in dict.Items) {
         uint register = _variableResolver.AllocateRegister();
         if (!first.HasValue) {
           first = register;
         }
         _registerForSubExpr = register;
-        Visit(dict.Keys[i]);
+        Visit(item.Key);
         _registerForSubExpr = _variableResolver.AllocateRegister();
-        Visit(dict.Values[i]);
+        Visit(item.Value);
       }
-      _chunk.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Keys.Length * 2, dict.Range);
+      _chunk.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Items.Length * 2, dict.Range);
       _variableResolver.EndExpressionScope();
     }
 

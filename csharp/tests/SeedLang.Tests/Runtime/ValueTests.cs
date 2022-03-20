@@ -143,9 +143,18 @@ namespace SeedLang.Runtime.Tests {
       dict[new Value()] = new Value(100);
       Assert.Equal("{1: 'test', '2': 2, (1, 2): 3, None: 100}", dict.AsString());
 
-      var ex = Assert.Throws<DiagnosticException>(() => {
+      var exception = Assert.Throws<DiagnosticException>(() => {
         dict[new Value(new List<Value>() { new Value(1) })] = new Value(2);
       });
+      Assert.Equal(Message.RuntimeErrorUnhashableType, exception.Diagnostic.MessageId);
+
+      exception = Assert.Throws<DiagnosticException>(() => {
+        var list = new Value(new List<Value>() { });
+        new Value(new Dictionary<Value, Value> {
+          [list] = new Value(),
+        });
+      });
+      Assert.Equal(Message.RuntimeErrorUnhashableType, exception.Diagnostic.MessageId);
     }
 
     [Fact]

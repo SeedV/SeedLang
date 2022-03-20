@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -225,17 +226,17 @@ namespace SeedLang.X {
                    keyContexts.Count == commaNodes.Length + 1);
       TextRange openBraceRange = CodeReferenceUtils.RangeOfToken(openBraceToken);
       AddSemanticToken(TokenType.OpenBrace, openBraceRange);
-      var keys = new Expression[keyContexts.Count];
-      var values = new Expression[valueContexts.Count];
+      var keyValues = new KeyValuePair<Expression, Expression>[keyContexts.Count];
       for (int i = 0; i < keyContexts.Count; i++) {
-        keys[i] = visitor.Visit(keyContexts[i]) as Expression;
+        var key = visitor.Visit(keyContexts[i]) as Expression;
         AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonNodes[i]));
-        values[i] = visitor.Visit(valueContexts[i]) as Expression;
+        var value = visitor.Visit(valueContexts[i]) as Expression;
+        keyValues[i] = new KeyValuePair<Expression, Expression>(key, value);
       }
       TextRange closeBraceRange = CodeReferenceUtils.RangeOfToken(closeBraceToken);
       AddSemanticToken(TokenType.CloseBrace, closeBraceRange);
       TextRange range = CodeReferenceUtils.CombineRanges(openBraceRange, closeBraceRange);
-      return Expression.Dict(keys, values, range);
+      return Expression.Dict(keyValues, range);
     }
 
     // Builds list expressions.

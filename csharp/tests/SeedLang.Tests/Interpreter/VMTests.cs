@@ -132,8 +132,11 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestDict() {
       var program = AstHelper.ExpressionStmt(
-        AstHelper.Dict(AstHelper.Keys(AstHelper.NumberConstant(1), AstHelper.StringConstant("a")),
-                       AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)));
+        AstHelper.Dict(
+          AstHelper.KeyValue(AstHelper.NumberConstant(1), AstHelper.NumberConstant(1)),
+          AstHelper.KeyValue(AstHelper.StringConstant("a"), AstHelper.NumberConstant(2))
+        )
+      );
       (string output, MockupVisualizer _) = Run(program);
       Assert.Equal("{1: 1, 'a': 2}" + Environment.NewLine, output);
     }

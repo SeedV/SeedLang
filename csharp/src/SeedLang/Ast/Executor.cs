@@ -219,10 +219,10 @@ namespace SeedLang.Ast {
 
     protected override void Visit(DictExpression dict) {
       var initialValues = new Dictionary<Value, Value>();
-      for (int i = 0; i < dict.Keys.Length; i++) {
-        Visit(dict.Keys[i]);
+      foreach (var item in dict.Items) {
+        Visit(item.Key);
         Value key = _expressionResult;
-        Visit(dict.Values[i]);
+        Visit(item.Value);
         initialValues[key] = _expressionResult;
       }
       _expressionResult = new Value(initialValues);

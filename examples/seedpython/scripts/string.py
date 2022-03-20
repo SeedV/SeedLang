@@ -25,3 +25,6 @@ print(word[-6])  # P
 
 s = "supercalifragilisticexpialidocious"
 print(len(s))  # 34
+
+print('python' in word)  # False
+print('super' in s)  # True

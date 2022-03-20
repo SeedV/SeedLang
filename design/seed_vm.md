@@ -122,12 +122,13 @@ All the SeedLang instructions are listed as follows:
 |   22   | `EQ`       | Equality test                                       |
 |   23   | `LT`       | Less than test                                      |
 |   24   | `LE`       | Less than or equal to test                          |
-|   25   | `TEST`     | Boolean test, with conditional jump                 |
-|   26   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
-|   27   | `FORPREP`  | For loop preparation                                |
-|   28   | `FORLOOP`  | For loop check                                      |
-|   29   | `CALL`     | Call a function                                     |
-|   30   | `RETURN`   | Return from a function call                         |
+|   25   | `IN`       | Test if the value or key is in the container        |
+|   26   | `TEST`     | Boolean test, with conditional jump                 |
+|   27   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
+|   28   | `FORPREP`  | For loop preparation                                |
+|   29   | `FORLOOP`  | For loop check                                      |
+|   30   | `CALL`     | Call a function                                     |
+|   31   | `RETURN`   | Return from a function call                         |
 
 ### Move and Load Constant
 
@@ -201,6 +202,7 @@ NOT A B                 # R(A) := not R(B)
 EQ A B C                # if (RK(B) == RK(C)) != A then PC++
 LT A B C                # if (RK(B) < RK(C)) != A then PC++
 LE A B C                # if (RK(B) <= RK(C)) != A then PC++
+IN A B C                # if (RK(B) in RK(C)) != A then PC++
 TEST A C                # if R(A) == C then PC++
 TESTSET A B C           # if R(B) != C then R(A) := R(B) else PC++
 ```

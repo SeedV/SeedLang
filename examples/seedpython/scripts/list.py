@@ -11,3 +11,6 @@ print(cubes)  # [1, 8, 27, 64, 125]
 cubes.append(216)
 cubes.append(7 ** 3)
 print(cubes)  # [1, 8, 27, 64, 125, 216, 343]
+
+print(8 in cubes)  # True
+print(None in cubes)  # False

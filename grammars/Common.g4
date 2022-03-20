@@ -36,14 +36,15 @@ conjunction: inversion (AND inversion)*;
 inversion:
   NOT inversion # not
   | comparison  # comparison_as_inversion;
-comparison: bitwise_or compare_op_bitwise_or_pair*;
-compare_op_bitwise_or_pair:
-  EQ_EQUAL bitwise_or        # eq_equal
-  | NOT_EQUAL bitwise_or     # not_equal
-  | LESS_EQUAL bitwise_or    # less_equal
-  | LESS bitwise_or          # less
-  | GREATER_EQUAL bitwise_or # greater_equal
-  | GREATER bitwise_or       # greater;
+comparison: bitwise_or (comparison_op bitwise_or)*;
+comparison_op:
+  EQ_EQUAL
+  | NOT_EQUAL
+  | LESS_EQUAL
+  | LESS
+  | GREATER_EQUAL
+  | GREATER
+  | IN;
 
 // TODO: add bitwise parsing rule
 bitwise_or: sum;
@@ -108,6 +109,7 @@ NONE: 'None';
 AND: 'and';
 OR: 'or';
 NOT: 'not';
+IN: 'in';
 
 EQUAL: '=';
 

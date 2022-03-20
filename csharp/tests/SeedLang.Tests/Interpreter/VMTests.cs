@@ -22,7 +22,7 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class VMTests {
     [Fact]
-    public void TestBinaryExpression() {
+    public void TestBinary() {
       var expr = AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.NumberConstant(1),
                                                            BinaryOperator.Add,
                                                            AstHelper.NumberConstant(2)));
@@ -34,7 +34,20 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestUnaryExpression() {
+    public void TestInComparison() {
+      var expr = AstHelper.ExpressionStmt(
+        AstHelper.Comparison(AstHelper.NumberConstant(1),
+                             AstHelper.CompOps(ComparisonOperator.In),
+                             AstHelper.Tuple(AstHelper.NumberConstant(1),
+                                             AstHelper.NumberConstant(2)))
+      );
+
+      (string output, MockupVisualizer _) = Run(expr);
+      Assert.Equal("True" + Environment.NewLine, output);
+    }
+
+    [Fact]
+    public void TestUnary() {
       var expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
                                                           AstHelper.NumberConstant(1)));
 

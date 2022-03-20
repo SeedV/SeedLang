@@ -145,19 +145,22 @@ namespace SeedLang.Ast {
             currentResult = ValueHelper.Less(left, values[i]);
             break;
           case ComparisonOperator.Greater:
-            currentResult = ValueHelper.Greater(left, values[i]);
+            currentResult = !ValueHelper.LessEqual(left, values[i]);
             break;
           case ComparisonOperator.LessEqual:
             currentResult = ValueHelper.LessEqual(left, values[i]);
             break;
           case ComparisonOperator.GreaterEqual:
-            currentResult = ValueHelper.GreaterEqual(left, values[i]);
+            currentResult = !ValueHelper.Less(left, values[i]);
             break;
           case ComparisonOperator.EqEqual:
             currentResult = left.Equals(values[i]);
             break;
           case ComparisonOperator.NotEqual:
             currentResult = !left.Equals(values[i]);
+            break;
+          case ComparisonOperator.In:
+            currentResult = ValueHelper.Contains(values[i], left);
             break;
           default:
             throw new System.NotImplementedException(

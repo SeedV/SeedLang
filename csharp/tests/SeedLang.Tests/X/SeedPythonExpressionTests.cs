@@ -197,6 +197,32 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 10 - Ln 1, Col 11]," +
                 "Number [Ln 1, Col 13 - Ln 1, Col 13]")]
 
+    [InlineData("1 in (1, 2) == (1, 2)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 20] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 20] ComparisonExpression\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1) (in)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 10] TupleExpression\n" +
+                "      [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (2) (==)\n" +
+                "    [Ln 1, Col 15 - Ln 1, Col 20] TupleExpression\n" +
+                "      [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 19 - Ln 1, Col 19] NumberConstantExpression (2)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 3]," +
+                "OpenParenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Symbol [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "CloseParenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Operator [Ln 1, Col 12 - Ln 1, Col 13]," +
+                "OpenParenthesis [Ln 1, Col 15 - Ln 1, Col 15]," +
+                "Number [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Symbol [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "Number [Ln 1, Col 19 - Ln 1, Col 19]," +
+                "CloseParenthesis [Ln 1, Col 20 - Ln 1, Col 20]")]
+
     [InlineData("True and False and True or False and True",
 
                 "[Ln 1, Col 0 - Ln 1, Col 40] ExpressionStatement\n" +

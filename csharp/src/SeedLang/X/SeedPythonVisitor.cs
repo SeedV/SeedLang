@@ -189,12 +189,20 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitComparison([NotNull] SeedPythonParser.ComparisonContext context) {
-      ParserRuleContext leftContext = context.bitwise_or();
-      ParserRuleContext[] rightContexts = context.compare_op_bitwise_or_pair();
-      if (rightContexts.Length > 0) {
-        return _helper.BuildComparison(leftContext, rightContexts, ToComparisonOperator, this);
+      ParserRuleContext[] operands = context.bitwise_or();
+      Debug.Assert(operands.Length > 0);
+      ParserRuleContext[] operators = context.comparison_op();
+      if (operators.Length == 0) {
+        Debug.Assert(operands.Length == 1);
+        return Visit(operands[0]);
       }
-      return Visit(leftContext);
+      var opTokens = new IToken[operators.Length];
+      var ops = new ComparisonOperator[operators.Length];
+      for (int i = 0; i < operators.Length; i++) {
+        opTokens[i] = (operators[i].GetChild(0) as ITerminalNode).Symbol;
+        ops[i] = ToComparisonOperator(opTokens[i]);
+      }
+      return _helper.BuildComparison(operands, opTokens, ops, this);
     }
 
     public override AstNode VisitAdd([NotNull] SeedPythonParser.AddContext context) {
@@ -355,6 +363,8 @@ namespace SeedLang.X {
           return ComparisonOperator.EqEqual;
         case SeedPythonParser.NOT_EQUAL:
           return ComparisonOperator.NotEqual;
+        case SeedPythonParser.IN:
+          return ComparisonOperator.In;
         default:
           throw new NotImplementedException(
               $"Unsupported comparison operator token: {token.Type}.");

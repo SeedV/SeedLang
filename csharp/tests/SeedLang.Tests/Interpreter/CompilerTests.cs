@@ -17,11 +17,15 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using Xunit;
+using static SeedLang.Runtime.HeapObject;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
     private static GlobalEnvironment _env => new GlobalEnvironment(NativeFunctions.Funcs);
-    private const int _printValFunc = 0;
+    private static int _printValFunc =>
+        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
+          return func.Name == NativeFunctions.PrintVal;
+        });
     private readonly int _firstGlob = NativeFunctions.Funcs.Length;
     private readonly Common.Range _range = AstHelper.TextRange;
 
@@ -66,13 +70,39 @@ namespace SeedLang.Interpreter.Tests {
       var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 0                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    LT        1 -1 -2          ; 1 2               {_range}\n" +
           $"  3    JMP       0 1              ; to 5              {_range}\n" +
           $"  4    LOADBOOL  1 1 1                                {_range}\n" +
           $"  5    LOADBOOL  1 0 0                                {_range}\n" +
           $"  6    CALL      0 1 0                                {_range}\n" +
           $"  7    RETURN    0 0                                  \n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    [Fact]
+    public void TestCompileInComparison() {
+      var expr = AstHelper.ExpressionStmt(
+        AstHelper.Comparison(AstHelper.NumberConstant(1),
+                             AstHelper.CompOps(ComparisonOperator.In),
+                             AstHelper.Tuple(AstHelper.NumberConstant(1),
+                                             AstHelper.NumberConstant(2)))
+      );
+      var compiler = new Compiler();
+      var func = compiler.Compile(expr, _env, RunMode.Interactive);
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  2    LOADK     3 -1             ; 1                 {_range}\n" +
+          $"  3    LOADK     4 -2             ; 2                 {_range}\n" +
+          $"  4    NEWTUPLE  2 3 2                                {_range}\n" +
+          $"  5    IN        1 -1 2           ; 1                 {_range}\n" +
+          $"  6    JMP       0 1              ; to 8              {_range}\n" +
+          $"  7    LOADBOOL  1 1 1                                {_range}\n" +
+          $"  8    LOADBOOL  1 0 0                                {_range}\n" +
+          $"  9    CALL      0 1 0                                {_range}\n" +
+          $"  10   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
@@ -88,7 +118,7 @@ namespace SeedLang.Interpreter.Tests {
       var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 0                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    LOADNIL   2 1 0                                {_range}\n" +
           $"  3    LOADNIL   3 1 0                                {_range}\n" +
           $"  4    LT        1 2 3                                {_range}\n" +
@@ -124,7 +154,7 @@ namespace SeedLang.Interpreter.Tests {
       var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 0                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    LT        1 -1 -2          ; 1 2               {_range}\n" +
           $"  3    JMP       0 2              ; to 6              {_range}\n" +
           $"  4    LT        0 -2 -3          ; 2 3               {_range}\n" +

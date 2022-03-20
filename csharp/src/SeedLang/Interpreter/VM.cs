@@ -152,6 +152,14 @@ namespace SeedLang.Interpreter {
                 }
               }
               break;
+            case Opcode.IN: {
+                bool result = ValueHelper.Contains(ValueOfRK(chunk, instr.C, baseRegister),
+                                                   ValueOfRK(chunk, instr.B, baseRegister));
+                if (result == (instr.A == 1)) {
+                  pc++;
+                }
+              }
+              break;
             case Opcode.TEST:
               if (_stack[baseRegister + instr.A].AsBoolean() == (instr.C == 1)) {
                 pc++;

@@ -46,10 +46,9 @@ namespace SeedLang.Runtime {
         return new Value(list);
       } else if (lhs.IsTuple && rhs.IsTuple) {
         return new Value(lhs.AsTuple().AddRange(rhs.AsTuple()));
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static Value Subtract(in Value lhs, in Value rhs) {
@@ -57,10 +56,9 @@ namespace SeedLang.Runtime {
         double result = lhs.AsNumber() - rhs.AsNumber();
         CheckOverflow(result);
         return new Value(result);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static Value Multiply(in Value lhs, in Value rhs) {
@@ -98,10 +96,9 @@ namespace SeedLang.Runtime {
           builder.AddRange(tuple);
         }
         return new Value(builder.MoveToImmutable());
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static Value Divide(in Value lhs, in Value rhs) {
@@ -113,10 +110,9 @@ namespace SeedLang.Runtime {
         double result = lhs.AsNumber() / rhs.AsNumber();
         CheckOverflow(result);
         return new Value(result);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static Value FloorDivide(in Value lhs, in Value rhs) {
@@ -128,10 +124,9 @@ namespace SeedLang.Runtime {
         double result = System.Math.Floor(lhs.AsNumber() / rhs.AsNumber());
         CheckOverflow(result);
         return new Value(result);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static Value Power(in Value lhs, in Value rhs) {
@@ -139,10 +134,9 @@ namespace SeedLang.Runtime {
         double result = System.Math.Pow(lhs.AsNumber(), rhs.AsNumber());
         CheckOverflow(result);
         return new Value(result);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static Value Modulo(in Value lhs, in Value rhs) {
@@ -154,46 +148,39 @@ namespace SeedLang.Runtime {
         double result = lhs.AsNumber() % rhs.AsNumber();
         CheckOverflow(result);
         return new Value(result);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static bool Less(in Value lhs, in Value rhs) {
       if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
         return lhs.AsNumber() < rhs.AsNumber();
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
-    }
-
-    internal static bool Greater(in Value lhs, in Value rhs) {
-      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
-        return lhs.AsNumber() > rhs.AsNumber();
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
-      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static bool LessEqual(in Value lhs, in Value rhs) {
       if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
         return lhs.AsNumber() <= rhs.AsNumber();
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
-    internal static bool GreaterEqual(in Value lhs, in Value rhs) {
-      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
-        return lhs.AsNumber() >= rhs.AsNumber();
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorUnsupportedOperads);
+    internal static bool Contains(in Value container, in Value value) {
+      if (container.IsDict) {
+        return container.AsDict().ContainsKey(value);
+      } else if (container.IsTuple) {
+        return container.AsTuple().Contains(value);
+      } else if (container.IsList) {
+        return container.AsList().Contains(value);
+      } else if (container.IsString && value.IsString) {
+        return container.AsString().Contains(value.AsString());
       }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static double BooleanToNumber(bool value) {

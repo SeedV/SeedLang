@@ -677,6 +677,8 @@ namespace SeedLang.Interpreter {
           return (Opcode.EQ, true);
         case ComparisonOperator.NotEqual:
           return (Opcode.EQ, false);
+        case ComparisonOperator.In:
+          return (Opcode.IN, true);
         default:
           throw new System.NotImplementedException($"Operator {op} not implemented.");
       }

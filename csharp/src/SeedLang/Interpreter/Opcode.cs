@@ -42,6 +42,7 @@ namespace SeedLang.Interpreter {
     EQ,           // if (RK(B) == RK(C)) != A then PC++
     LT,           // if (RK(B) < RK(C)) != A then PC++
     LE,           // if (RK(B) <= RK(C)) != A then PC++
+    IN,           // if (RK(B) in RK(C)) != A then PC++
     TEST,         // if R(A) == C then PC++
     TESTSET,      // if R(B) != C then R(A) := R(B) else PC++
     FORPREP,      // R(A) -= R(A+2); pc += sBx
@@ -82,6 +83,7 @@ namespace SeedLang.Interpreter {
         case Opcode.EQ:
         case Opcode.LT:
         case Opcode.LE:
+        case Opcode.IN:
         case Opcode.TEST:
         case Opcode.TESTSET:
         case Opcode.CALL:

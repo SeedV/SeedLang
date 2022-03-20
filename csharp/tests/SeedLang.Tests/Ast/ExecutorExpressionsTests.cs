@@ -117,6 +117,12 @@ namespace SeedLang.Ast.Tests {
         var expectedOutput3 = $"{AstHelper.TextRange} 1 Less 2 Greater 3 = False" +
                               Environment.NewLine;
         Add(comparison3, expectedOutput3);
+        var comparison4 = AstHelper.Comparison(AstHelper.NumberConstant(1),
+                                               AstHelper.CompOps(ComparisonOperator.In),
+                                               AstHelper.Tuple(AstHelper.NumberConstant(1),
+                                                               AstHelper.NumberConstant(2)));
+        var expectedOutput4 = $"{AstHelper.TextRange} 1 In (1, 2) = True" + Environment.NewLine;
+        Add(comparison4, expectedOutput4);
       }
 
       private void AddUnary() {

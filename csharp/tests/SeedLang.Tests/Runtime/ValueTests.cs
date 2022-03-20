@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using SeedLang.Common;
 using Xunit;
 
@@ -36,7 +37,7 @@ namespace SeedLang.Runtime.Tests {
 
       var exception1 = Assert.Throws<DiagnosticException>(() => nil.Length);
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => nil[0]);
+      var exception2 = Assert.Throws<DiagnosticException>(() => nil[new Value(0)]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
     }
 
@@ -58,7 +59,7 @@ namespace SeedLang.Runtime.Tests {
 
       var exception1 = Assert.Throws<DiagnosticException>(() => boolean.Length);
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => boolean[0]);
+      var exception2 = Assert.Throws<DiagnosticException>(() => boolean[new Value(0)]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
     }
 
@@ -80,7 +81,7 @@ namespace SeedLang.Runtime.Tests {
 
       var exception1 = Assert.Throws<DiagnosticException>(() => number.Length);
       Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => number[0]);
+      var exception2 = Assert.Throws<DiagnosticException>(() => number[new Value(0)]);
       Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
     }
 
@@ -91,26 +92,69 @@ namespace SeedLang.Runtime.Tests {
       Assert.False(str.AsBoolean());
       Assert.Equal(0, str.AsNumber());
       Assert.Equal("", str.AsString());
-      Assert.Equal("", str.ToString());
+      Assert.Equal("''", str.ToString());
 
       str = new Value(_expectedFalseString);
       Assert.True(str.IsString);
       Assert.True(str.AsBoolean());
       Assert.Equal(0, str.AsNumber());
       Assert.Equal(_expectedFalseString, str.AsString());
-      Assert.Equal(_expectedFalseString, str.ToString());
+      Assert.Equal($"'{_expectedFalseString}'", str.ToString());
 
       str = new Value(_expectedTrueString);
       Assert.True(str.IsString);
       Assert.True(str.AsBoolean());
       Assert.Equal(0, str.AsNumber());
       Assert.Equal(_expectedTrueString, str.AsString());
-      Assert.Equal(_expectedTrueString, str.ToString());
+      Assert.Equal($"'{_expectedTrueString}'", str.ToString());
 
       Assert.Equal(_expectedTrueString.Length, str.Length);
       for (int i = 0; i < _expectedTrueString.Length; i++) {
-        Assert.Equal(_expectedTrueString[i].ToString(), str[i].AsString());
+        Assert.Equal(_expectedTrueString[i].ToString(), str[new Value(i)].AsString());
       }
+    }
+
+    [Fact]
+    public void TestDict() {
+      string str = "2";
+      var tuple = new Value(ImmutableArray.Create(new Value(1), new Value(2)));
+      var value = new Dictionary<Value, Value>() {
+        [new Value(1)] = new Value(1),
+        [new Value(str)] = new Value(2),
+        [tuple] = new Value(3),
+      };
+      var dict = new Value(value);
+      Assert.True(dict.IsDict);
+      Assert.Equal(3, dict.Length);
+      Assert.True(dict[new Value(1)].IsNumber);
+      Assert.Equal(1, dict[new Value(1)].AsNumber());
+      Assert.True(dict[new Value(str)].IsNumber);
+      Assert.Equal(2, dict[new Value(str)].AsNumber());
+      Assert.True(dict[tuple].IsNumber);
+      Assert.Equal(3, dict[tuple].AsNumber());
+      Assert.Equal("{1: 1, '2': 2, (1, 2): 3}", dict.AsString());
+
+      string testString = "test";
+      dict[new Value(1)] = new Value(testString);
+      Assert.True(dict[new Value(1)].IsString);
+      Assert.Equal(testString, dict[new Value(1)].AsString());
+      Assert.Equal("{1: 'test', '2': 2, (1, 2): 3}", dict.AsString());
+
+      dict[new Value()] = new Value(100);
+      Assert.Equal("{1: 'test', '2': 2, (1, 2): 3, None: 100}", dict.AsString());
+
+      var exception = Assert.Throws<DiagnosticException>(() => {
+        dict[new Value(new List<Value>() { new Value(1) })] = new Value(2);
+      });
+      Assert.Equal(Message.RuntimeErrorUnhashableType, exception.Diagnostic.MessageId);
+
+      exception = Assert.Throws<DiagnosticException>(() => {
+        var list = new Value(new List<Value>() { });
+        new Value(new Dictionary<Value, Value> {
+          [list] = new Value(),
+        });
+      });
+      Assert.Equal(Message.RuntimeErrorUnhashableType, exception.Diagnostic.MessageId);
     }
 
     [Fact]
@@ -123,17 +167,17 @@ namespace SeedLang.Runtime.Tests {
       var list = new Value(values);
       Assert.True(list.IsList);
       Assert.Equal(3, list.Length);
-      Assert.True(list[0].IsNumber);
-      Assert.Equal(1, list[0].AsNumber());
-      Assert.True(list[1].IsNumber);
-      Assert.Equal(2, list[1].AsNumber());
-      Assert.True(list[2].IsNumber);
-      Assert.Equal(3, list[2].AsNumber());
+      Assert.True(list[new Value(0)].IsNumber);
+      Assert.Equal(1, list[new Value(0)].AsNumber());
+      Assert.True(list[new Value(1)].IsNumber);
+      Assert.Equal(2, list[new Value(1)].AsNumber());
+      Assert.True(list[new Value(2)].IsNumber);
+      Assert.Equal(3, list[new Value(2)].AsNumber());
 
       string testString = "test";
-      list[1] = new Value(testString);
-      Assert.True(list[1].IsString);
-      Assert.Equal(testString, list[1].AsString());
+      list[new Value(1)] = new Value(testString);
+      Assert.True(list[new Value(1)].IsString);
+      Assert.Equal(testString, list[new Value(1)].AsString());
     }
 
     [Fact]
@@ -196,22 +240,41 @@ namespace SeedLang.Runtime.Tests {
                       new Value(new List<Value>() { new Value(2) }));
       Assert.NotEqual(new Value(new List<Value>() { new Value(1) }),
                       new Value(new List<Value>() { new Value(1), new Value(2) }));
-      Assert.NotEqual(new Value(new List<Value>() { new Value(1) }),
-                      new Value(new List<Value>() { new Value(1) }));
+      Assert.Equal(new Value(new List<Value>() { new Value(1) }),
+                   new Value(new List<Value>() { new Value(1) }));
       var list = new List<Value>() { new Value(1) };
       Assert.Equal(new Value(list), new Value(list));
     }
 
     [Fact]
-    public void TestListWithReferenceCycle() {
+    public void TestValueWithReferenceCycle() {
       var a = new Value(new List<Value>() {
         new Value(1),
         new Value(2),
       });
       var b = new Value(new List<Value>() { a });
-      a[1] = b;
+      a[new Value(1)] = b;
       Assert.Equal("[1, [[...]]]", a.ToString());
       Assert.Equal("[[1, [...]]]", b.ToString());
+
+      a = new Value(new Dictionary<Value, Value>());
+      b = new Value(new Dictionary<Value, Value>() {
+        [new Value("a")] = a,
+      });
+      a[new Value("b")] = b;
+      Assert.Equal("{'b': {'a': {...}}}", a.ToString());
+      Assert.Equal("{'a': {'b': {...}}}", b.ToString());
+
+      a = new Value(new List<Value>() {
+        new Value(1),
+        new Value(2),
+      });
+      b = new Value(new Dictionary<Value, Value>() {
+        [new Value("a")] = a,
+      });
+      a[new Value(1)] = b;
+      Assert.Equal("[1, {'a': [...]}]", a.ToString());
+      Assert.Equal("{'a': [1, {...}]}", b.ToString());
     }
   }
 }

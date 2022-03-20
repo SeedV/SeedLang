@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -68,11 +69,11 @@ namespace SeedLang.Interpreter {
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
             case Opcode.NEWTUPLE:
-              var tuple = new Value[instr.C];
+              var builder = ImmutableArray.CreateBuilder<Value>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
-                tuple[i] = _stack[baseRegister + instr.B + i];
+                builder.Add(_stack[baseRegister + instr.B + i]);
               }
-              _stack[baseRegister + instr.A] = new Value(tuple);
+              _stack[baseRegister + instr.A] = new Value(builder.MoveToImmutable());
               break;
             case Opcode.NEWLIST:
               var list = new List<Value>((int)instr.C);
@@ -80,6 +81,17 @@ namespace SeedLang.Interpreter {
                 list.Add(_stack[baseRegister + instr.B + i]);
               }
               _stack[baseRegister + instr.A] = new Value(list);
+              break;
+            case Opcode.NEWDICT:
+              int count = (int)instr.C / 2;
+              var dict = new Dictionary<Value, Value>(count);
+              uint dictRegister = baseRegister + instr.A;
+              uint kvStart = baseRegister + instr.B;
+              for (uint i = 0; i < count; i++) {
+                uint keyRegister = kvStart + i * 2;
+                dict[_stack[keyRegister]] = _stack[keyRegister + 1];
+              }
+              _stack[dictRegister] = new Value(dict);
               break;
             case Opcode.GETGLOB:
               _stack[baseRegister + instr.A] = Env.GetVariable(instr.Bx);
@@ -194,12 +206,12 @@ namespace SeedLang.Interpreter {
     }
 
     private void GetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      double index = ValueOfRK(chunk, instr.C, baseRegister).AsNumber();
+      Value index = ValueOfRK(chunk, instr.C, baseRegister);
       _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][index];
     }
 
     private void SetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      double index = ValueOfRK(chunk, instr.B, baseRegister).AsNumber();
+      Value index = ValueOfRK(chunk, instr.B, baseRegister);
       _stack[baseRegister + instr.A][index] = ValueOfRK(chunk, instr.C, baseRegister);
     }
 

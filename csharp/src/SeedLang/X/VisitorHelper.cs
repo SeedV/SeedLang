@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -210,6 +211,32 @@ namespace SeedLang.X {
       range = _groupingRange is null ? range : _groupingRange;
       _groupingRange = null;
       return Expression.StringConstant(sb.ToString(), range);
+    }
+
+    // Builds dict expressions.
+    internal DictExpression BuildDict(IToken openBraceToken,
+                                  IReadOnlyList<ParserRuleContext> keyContexts,
+                                  IReadOnlyList<ParserRuleContext> valueContexts,
+                                  IReadOnlyList<IToken> colonNodes, ITerminalNode[] commaNodes,
+                                  IToken closeBraceToken,
+                                  AbstractParseTreeVisitor<AstNode> visitor) {
+      Debug.Assert(keyContexts.Count == valueContexts.Count &&
+                   keyContexts.Count == colonNodes.Count);
+      Debug.Assert(keyContexts.Count == commaNodes.Length ||
+                   keyContexts.Count == commaNodes.Length + 1);
+      TextRange openBraceRange = CodeReferenceUtils.RangeOfToken(openBraceToken);
+      AddSemanticToken(TokenType.OpenBrace, openBraceRange);
+      var keyValues = new KeyValuePair<Expression, Expression>[keyContexts.Count];
+      for (int i = 0; i < keyContexts.Count; i++) {
+        var key = visitor.Visit(keyContexts[i]) as Expression;
+        AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonNodes[i]));
+        var value = visitor.Visit(valueContexts[i]) as Expression;
+        keyValues[i] = new KeyValuePair<Expression, Expression>(key, value);
+      }
+      TextRange closeBraceRange = CodeReferenceUtils.RangeOfToken(closeBraceToken);
+      AddSemanticToken(TokenType.CloseBrace, closeBraceRange);
+      TextRange range = CodeReferenceUtils.CombineRanges(openBraceRange, closeBraceRange);
+      return Expression.Dict(keyValues, range);
     }
 
     // Builds list expressions.
@@ -575,14 +602,10 @@ namespace SeedLang.X {
                                           AbstractParseTreeVisitor<AstNode> visitor) {
       var exprs = new Expression[exprContexts.Length];
       for (int i = 0; i < exprContexts.Length; i++) {
-        if (visitor.Visit(exprContexts[i]) is Expression expr) {
-          exprs[i] = expr;
-          if (i < commaNodes.Length) {
-            TextRange commaRange = CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol);
-            AddSemanticToken(TokenType.Symbol, commaRange);
-          }
-        } else {
-          Debug.Fail($"Expression at position {i} shall be validated by ANTLR.");
+        exprs[i] = visitor.Visit(exprContexts[i]) as Expression;
+        if (i < commaNodes.Length) {
+          TextRange commaRange = CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol);
+          AddSemanticToken(TokenType.Symbol, commaRange);
         }
       }
       return exprs;

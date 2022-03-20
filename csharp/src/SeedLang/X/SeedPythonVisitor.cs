@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
@@ -292,6 +293,26 @@ namespace SeedLang.X {
     public override AstNode VisitGroup([NotNull] SeedPythonParser.GroupContext context) {
       return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expression(),
                                    context.CLOSE_PAREN().Symbol, this);
+    }
+
+    public override AstNode VisitDict([NotNull] SeedPythonParser.DictContext context) {
+      SeedPythonParser.KvpairsContext kvPairs = context.kvpairs();
+      var keyContexts = new List<ParserRuleContext>();
+      var valueContexts = new List<ParserRuleContext>();
+      var colonNodes = new List<IToken>();
+      ITerminalNode[] commaNodes = Array.Empty<ITerminalNode>();
+      if (!(kvPairs is null)) {
+        foreach (SeedPythonParser.KvpairContext kvPair in kvPairs.kvpair()) {
+          ParserRuleContext[] exprs = kvPair.expression();
+          Debug.Assert(exprs.Length == 2);
+          keyContexts.Add(exprs[0]);
+          valueContexts.Add(exprs[1]);
+          colonNodes.Add(kvPair.COLON().Symbol);
+        }
+        commaNodes = kvPairs.COMMA();
+      }
+      return _helper.BuildDict(context.OPEN_BRACE().Symbol, keyContexts, valueContexts, colonNodes,
+                               commaNodes, context.CLOSE_BRACE().Symbol, this);
     }
 
     public override AstNode VisitList([NotNull] SeedPythonParser.ListContext context) {

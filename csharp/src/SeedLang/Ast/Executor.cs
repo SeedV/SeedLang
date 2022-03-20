@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -216,6 +217,17 @@ namespace SeedLang.Ast {
       _expressionResult = new Value(stringConstant.Value);
     }
 
+    protected override void Visit(DictExpression dict) {
+      var initialValues = new Dictionary<Value, Value>();
+      foreach (var item in dict.Items) {
+        Visit(item.Key);
+        Value key = _expressionResult;
+        Visit(item.Value);
+        initialValues[key] = _expressionResult;
+      }
+      _expressionResult = new Value(initialValues);
+    }
+
     protected override void Visit(ListExpression list) {
       var initialValues = new List<Value>(list.Exprs.Length);
       foreach (Expression expr in list.Exprs) {
@@ -226,12 +238,12 @@ namespace SeedLang.Ast {
     }
 
     protected override void Visit(TupleExpression list) {
-      var initialValues = new Value[list.Exprs.Length];
+      var builder = ImmutableArray.CreateBuilder<Value>(list.Exprs.Length);
       for (int i = 0; i < list.Exprs.Length; i++) {
         Visit(list.Exprs[i]);
-        initialValues[i] = _expressionResult;
+        builder.Add(_expressionResult);
       }
-      _expressionResult = new Value(initialValues);
+      _expressionResult = new Value(builder.MoveToImmutable());
     }
 
     protected override void Visit(SubscriptExpression subscript) {
@@ -239,7 +251,7 @@ namespace SeedLang.Ast {
       Value list = _expressionResult;
       Visit(subscript.Index);
       try {
-        _expressionResult = list[_expressionResult.AsNumber()];
+        _expressionResult = list[_expressionResult];
       } catch (DiagnosticException ex) {
         throw new DiagnosticException(SystemReporters.SeedAst, ex.Diagnostic.Severity,
                                       ex.Diagnostic.Module, subscript.Range,
@@ -295,7 +307,7 @@ namespace SeedLang.Ast {
       Visit(forIn.Expr);
       Value sequence = _expressionResult;
       for (int i = 0; i < sequence.Length; i++) {
-        _env.SetVariable(forIn.Id.Name, sequence[i]);
+        _env.SetVariable(forIn.Id.Name, sequence[new Value(i)]);
         Visit(forIn.Body);
       }
     }
@@ -350,11 +362,12 @@ namespace SeedLang.Ast {
     }
 
     private void Pack(Expression[] targets, Expression[] exprs, Range range) {
-      var values = new Value[exprs.Length];
+      var builder = ImmutableArray.CreateBuilder<Value>(exprs.Length);
       for (int i = 0; i < exprs.Length; i++) {
         Visit(exprs[i]);
-        values[i] = _expressionResult;
+        builder.Add(_expressionResult);
       }
+      ImmutableArray<Value> values = builder.MoveToImmutable();
       if (targets.Length == 1) {
         Assign(targets[0], new Value(values), range);
       } else if (targets.Length == values.Length) {
@@ -374,7 +387,7 @@ namespace SeedLang.Ast {
         Assign(targets[0], value, range);
       } else if (targets.Length == value.Length) {
         for (int i = 0; i < targets.Length; i++) {
-          Assign(targets[i], value[i], range);
+          Assign(targets[i], value[new Value(i)], range);
         }
       } else {
         throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
@@ -393,7 +406,7 @@ namespace SeedLang.Ast {
           Visit(subscript.Expr);
           Value list = _expressionResult;
           Visit(subscript.Index);
-          list[_expressionResult.AsNumber()] = value;
+          list[_expressionResult] = value;
           // TODO: send an assignment event to visualizers.
           break;
       }

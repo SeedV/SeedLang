@@ -44,11 +44,7 @@ namespace SeedLang.Runtime {
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
       if (!args[offset].IsNil) {
-        if (args[offset].IsString) {
-          sys.Stdout.WriteLine($"'{args[offset].AsString()}'");
-        } else {
-          sys.Stdout.WriteLine(args[offset].AsString());
-        }
+        sys.Stdout.WriteLine(args[offset]);
       }
       return new Value();
     }
@@ -91,15 +87,19 @@ namespace SeedLang.Runtime {
       }
       var list = new List<Value>();
       for (int i = 0; i < args[offset].Length; i++) {
-        list.Add(args[offset][i]);
+        list.Add(args[offset][new Value(i)]);
       }
       return new Value(list);
     }
 
     private static Value PrintFunc(Value[] args, int offset, int length, Sys sys) {
       for (int i = 0; i < length; i++) {
-        sys.Stdout.WriteLine(args[offset + i].AsString());
+        if (i > 0) {
+          sys.Stdout.Write(" ");
+        }
+        sys.Stdout.Write(args[offset + i].AsString());
       }
+      sys.Stdout.WriteLine();
       return new Value();
     }
 

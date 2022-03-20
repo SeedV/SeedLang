@@ -139,6 +139,21 @@ namespace SeedLang.Ast.Tests {
     }
 
     [Fact]
+    public void TestDict() {
+      var eval = AstHelper.ExpressionStmt(
+        AstHelper.Dict(
+          AstHelper.KeyValue(AstHelper.StringConstant("1"), AstHelper.NumberConstant(1)),
+          AstHelper.KeyValue(AstHelper.NumberConstant(2), AstHelper.NumberConstant(2)),
+          AstHelper.KeyValue(AstHelper.Tuple(AstHelper.NumberConstant(1),
+                                             AstHelper.NumberConstant(2)),
+                             AstHelper.NumberConstant(3))
+        )
+      );
+      (string output, MockupVisualizer _) = Run(eval);
+      Assert.Equal("{'1': 1, 2: 2, (1, 2): 3}" + Environment.NewLine, output);
+    }
+
+    [Fact]
     public void TestList() {
       var eval = AstHelper.ExpressionStmt(
         AstHelper.List(AstHelper.NumberConstant(1),
@@ -308,7 +323,7 @@ namespace SeedLang.Ast.Tests {
       );
       (string output, MockupVisualizer visualizer) = Run(block);
       Assert.Equal($"'{testString}'" + Environment.NewLine, output);
-      var expectedOutput = $"{AstHelper.TextRange} {str} = {testString}" + Environment.NewLine;
+      var expectedOutput = $"{AstHelper.TextRange} {str} = '{testString}'" + Environment.NewLine;
       Assert.Equal(expectedOutput, visualizer.ToString());
     }
 

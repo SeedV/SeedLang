@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,6 +164,15 @@ namespace SeedLang.Ast {
     protected override void Visit(StringConstantExpression stringConstant) {
       Enter(stringConstant);
       _out.Append($" ({stringConstant.Value})");
+      Exit();
+    }
+
+    protected override void Visit(DictExpression dict) {
+      Enter(dict);
+      foreach (var item in dict.Items) {
+        Visit(item.Key);
+        Visit(item.Value);
+      }
       Exit();
     }
 

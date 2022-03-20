@@ -35,10 +35,6 @@ namespace SeedLang.Runtime {
     public double Number => _value.AsNumber();
     public string String => _value.AsString();
 
-    public IValue this[int index] {
-      get => new ValueWrapper(_value[index]);
-    }
-
     public override string ToString() {
       return _value.ToString();
     }

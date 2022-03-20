@@ -153,6 +153,24 @@ namespace SeedLang.Interpreter {
       _chunk.Emit(Opcode.LOADK, _registerForSubExpr, id, stringConstant.Range);
     }
 
+    protected override void Visit(DictExpression dict) {
+      _variableResolver.BeginExpressionScope();
+      uint target = _registerForSubExpr;
+      uint? first = null;
+      foreach (var item in dict.Items) {
+        uint register = _variableResolver.AllocateRegister();
+        if (!first.HasValue) {
+          first = register;
+        }
+        _registerForSubExpr = register;
+        Visit(item.Key);
+        _registerForSubExpr = _variableResolver.AllocateRegister();
+        Visit(item.Value);
+      }
+      _chunk.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Items.Length * 2, dict.Range);
+      _variableResolver.EndExpressionScope();
+    }
+
     protected override void Visit(ListExpression list) {
       CreateTupleOrList(Opcode.NEWLIST, list.Exprs, list.Range);
     }

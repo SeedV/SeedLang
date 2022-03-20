@@ -101,5 +101,4 @@ DEF: 'def';
 RETURN: 'return';
 PASS: 'pass';
 
-COLON: ':';
 SEMICOLON: ';';

@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +24,6 @@ using SeedLang.Runtime;
 namespace SeedLang.X {
   // A helper class to build AST nodes from parser tree contexts.
   internal class VisitorHelper {
-    internal delegate ComparisonOperator ToComparisonOperator(IToken token);
-
     private readonly IList<TokenInfo> _semanticTokens;
     private TextRange _groupingRange;
 
@@ -56,43 +53,26 @@ namespace SeedLang.X {
     }
 
     // Builds comparison expressions.
-    internal ComparisonExpression BuildComparison(ParserRuleContext leftContext,
-                                                  ParserRuleContext[] rightContexts,
-                                                  ToComparisonOperator toComparisonOperator,
+    internal ComparisonExpression BuildComparison(ParserRuleContext[] operands, IToken[] opTokens,
+                                                  ComparisonOperator[] ops,
                                                   AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange range = _groupingRange;
       _groupingRange = null;
-
-      AstNode left = visitor.Visit(leftContext);
-      if (left is Expression leftExpr) {
-        var ops = new ComparisonOperator[rightContexts.Length];
-        var exprs = new Expression[rightContexts.Length];
-        for (int i = 0; i < rightContexts.Length; i++) {
-          if (rightContexts[i].ChildCount == 2 &&
-              rightContexts[i].GetChild(0) is ITerminalNode opNode) {
-            IToken opToken = opNode.Symbol;
-            AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
-            ops[i] = toComparisonOperator(opToken);
-            AstNode right = visitor.Visit(rightContexts[i].GetChild(1));
-            if (right is Expression rightExpr) {
-              exprs[i] = rightExpr;
-            } else {
-              return null;
-            }
-          } else {
-            return null;
-          }
-        }
-        if (range is null) {
-          Expression last = exprs[exprs.Length - 1];
-          Debug.Assert(left.Range is TextRange);
-          Debug.Assert(last.Range is TextRange);
-          range = CodeReferenceUtils.CombineRanges(left.Range as TextRange,
-                                                   last.Range as TextRange);
-        }
-        return Expression.Comparison(leftExpr, ops, exprs, range);
+      Debug.Assert(operands.Length > 1 && operands.Length == opTokens.Length + 1 &&
+                   opTokens.Length == ops.Length);
+      var first = visitor.Visit(operands[0]) as Expression;
+      var exprs = new Expression[ops.Length];
+      for (int i = 0; i < ops.Length; i++) {
+        AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(opTokens[i]));
+        exprs[i] = visitor.Visit(operands[i + 1]) as Expression;
       }
-      return null;
+      if (range is null) {
+        Expression last = exprs[exprs.Length - 1];
+        Debug.Assert(first.Range is TextRange);
+        Debug.Assert(last.Range is TextRange);
+        range = CodeReferenceUtils.CombineRanges(first.Range as TextRange, last.Range as TextRange);
+      }
+      return Expression.Comparison(first, ops, exprs, range);
     }
 
     // Builds boolean expressions.

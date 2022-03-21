@@ -1,4 +1,3 @@
-using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +14,7 @@ using System.IO;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
@@ -31,7 +31,7 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestListOfList() {
+    public void TestListWithListArgument() {
       var listFunc = Function(NativeFunctions.List);
       var args = new Value[] {
         new Value(new List<Value>() {
@@ -47,7 +47,7 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestListOfRange() {
+    public void TestListWithRangeArgument() {
       var listFunc = Function(NativeFunctions.List);
       var length = 10;
       var args = new Value[] { new Value(new Range(length)) };

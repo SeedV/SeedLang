@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,6 +67,8 @@ namespace SeedLang.Ast {
           return "==";
         case ComparisonOperator.NotEqual:
           return "!=";
+        case ComparisonOperator.In:
+          return "in";
         default:
           throw new NotImplementedException($"Unsupported comparison operator: {op}.");
       }

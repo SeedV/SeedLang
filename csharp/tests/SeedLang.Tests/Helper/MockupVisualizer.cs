@@ -103,7 +103,7 @@ namespace SeedLang.Tests.Helper {
         sb.Append($"{be.Range} {be.Values[0]} ");
         for (int i = 1; i < be.Values.Count; ++i) {
           IValue value = be.Values[i];
-          string valueStr = value.IsBoolean ? value.ToString() : "?";
+          string valueStr = !value.IsNil ? value.ToString() : "?";
           sb.Append($"{be.Op} {valueStr} ");
         }
         sb.AppendLine($"= {be.Result}");
@@ -115,7 +115,7 @@ namespace SeedLang.Tests.Helper {
         sb.Append($"{ce.Range} {ce.First} ");
         for (int i = 0; i < ce.Ops.Count; ++i) {
           IValue value = ce.Values[i];
-          string valueStr = value.IsNumber ? value.ToString() : "?";
+          string valueStr = !value.IsNil ? value.ToString() : "?";
           sb.Append($"{ce.Ops[i]} {valueStr} ");
         }
         sb.AppendLine($"= {ce.Result}");

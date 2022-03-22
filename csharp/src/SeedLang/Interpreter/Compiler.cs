@@ -21,6 +21,7 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
+    private VisualizerCenter _visualizerCenter;
     private RunMode _runMode;
     private VariableResolver _variableResolver;
     private NestedFuncStack _nestedFuncStack;
@@ -49,10 +50,12 @@ namespace SeedLang.Interpreter {
 
     // The chunk on the top of the function stack.
     private Chunk _chunk;
-    // The constant cache on the top of the function stack.
+    // The chunk cache on the top of the function stack.
     private ConstantCache _constantCache;
 
-    internal Function Compile(AstNode node, GlobalEnvironment env, RunMode runMode) {
+    internal Function Compile(AstNode node, GlobalEnvironment env,
+                              VisualizerCenter visualizerCenter, RunMode runMode) {
+      _visualizerCenter = visualizerCenter;
       _runMode = runMode;
       _variableResolver = new VariableResolver(env);
       _nestedFuncStack = new NestedFuncStack();
@@ -71,6 +74,13 @@ namespace SeedLang.Interpreter {
       uint left = VisitExpressionForRKId(binary.Left);
       uint right = VisitExpressionForRKId(binary.Right);
       _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), register, left, right, binary.Range);
+
+      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+        var bn = new BinaryNotification(left, binary.Op, right, register, binary.Range);
+        uint notification = _chunk.AddNotification(bn);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, notification, binary.Range);
+      }
+
       _variableResolver.EndExpressionScope();
     }
 
@@ -525,6 +535,7 @@ namespace SeedLang.Interpreter {
             _chunk.Emit(Opcode.LOADK, tempRegister, valueId, range);
           }
           _chunk.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
+          EmitAssignNotification(id.Name, VariableType.Global, valueId, range);
           break;
         case VariableResolver.VariableType.Local:
           if (Chunk.IsConstId(valueId)) {
@@ -532,10 +543,19 @@ namespace SeedLang.Interpreter {
           } else {
             _chunk.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
           }
+          EmitAssignNotification(id.Name, VariableType.Local, valueId, range);
           break;
         case VariableResolver.VariableType.Upvalue:
           // TODO: handle upvalues.
           break;
+      }
+    }
+
+    private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
+      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
+        var an = new AssignmentNotification(name, type, valueId, range);
+        uint notification = _chunk.AddNotification(an);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, notification, range);
       }
     }
 

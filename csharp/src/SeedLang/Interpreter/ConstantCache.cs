@@ -17,20 +17,23 @@ using System.Diagnostics;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  // A cache class to cache the constant id of constants. It only adds the unique constant into the
+  // A cache class to cache the constant id of _constants. It only adds the unique constant into the
   // constant list of the chunk.
   internal class ConstantCache {
     // A list to collect constatnt values during compilation.
-    public List<Value> Constants { get; } = new List<Value>();
-
+    private List<Value> _constants { get; } = new List<Value>();
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
+
+    internal Value[] ToArray() {
+      return _constants.ToArray();
+    }
 
     // Returns the id of a given number constant. The number is added into the constant list if it
     // is not exist.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {
-        Constants.Add(new Value(number));
+        _constants.Add(new Value(number));
         _numbers[number] = IdOfLastConst();
       }
       return _numbers[number];
@@ -40,21 +43,21 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(string str) {
       if (!_strings.ContainsKey(str)) {
-        Constants.Add(new Value(str));
+        _constants.Add(new Value(str));
         _strings[str] = IdOfLastConst();
       }
       return _strings[str];
     }
 
     internal uint IdOfConstant(Function func) {
-      Constants.Add(new Value(func));
+      _constants.Add(new Value(func));
       return IdOfLastConst();
     }
 
     private uint IdOfLastConst() {
-      Debug.Assert(Constants.Count >= 1);
+      Debug.Assert(_constants.Count >= 1);
       // Id of constants starts from MaxRegisterCount defined in Chunk.
-      return (uint)Constants.Count - 1 + Chunk.MaxRegisterCount;
+      return (uint)_constants.Count - 1 + Chunk.MaxRegisterCount;
     }
   }
 }

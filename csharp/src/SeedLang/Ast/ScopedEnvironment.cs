@@ -40,6 +40,8 @@ namespace SeedLang.Ast {
       }
     }
 
+    public bool IsGlobalScope => _frames.Count == 1;
+
     private readonly Stack<Frame> _frames = new Stack<Frame>();
 
     internal ScopedEnvironment() {

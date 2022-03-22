@@ -17,6 +17,11 @@ using System.Diagnostics;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
+  public enum VariableType {
+    Global,
+    Local,
+  }
+
   public abstract class AbstractEvent {
     // The range of source code.
     public Range Range { get; }
@@ -96,11 +101,14 @@ namespace SeedLang.Runtime {
 
   // An event which is triggered when an assignment statement is executed.
   public class AssignmentEvent : AbstractEvent {
-    public string Identifier { get; }
+    public string Name { get; }
+    public VariableType Type { get; }
     public IValue Value { get; }
 
-    public AssignmentEvent(string identifier, IValue value, Range range) : base(range) {
-      Identifier = identifier;
+    public AssignmentEvent(string name, VariableType type, IValue value, Range range) :
+        base(range) {
+      Name = name;
+      Type = type;
       Value = value;
     }
   }

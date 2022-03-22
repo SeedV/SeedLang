@@ -98,10 +98,6 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.SETGLOB:
               Env.SetVariable(instr.Bx, _stack[baseRegister + instr.A]);
-              // TODO: it's hard to send assignment notification in the VM, because it's hard to
-              // distinguish assignment to local variable or temporary variables, and the name
-              // information of the variables have been removed during compilation. Decide if this
-              // kind of notification is needed, or if other kinds of notification can replace it.
               break;
             case Opcode.GETELEM:
               GetElement(chunk, instr, baseRegister);
@@ -116,7 +112,7 @@ namespace SeedLang.Interpreter {
             case Opcode.FLOORDIV:
             case Opcode.POW:
             case Opcode.MOD:
-              HandleBinary(chunk, instr, baseRegister, chunk.Ranges[pc]);
+              HandleBinary(chunk, instr, baseRegister);
               break;
             case Opcode.UNM:
               _stack[baseRegister + instr.A] =
@@ -201,6 +197,11 @@ namespace SeedLang.Interpreter {
                 pc = _callStack.CurrentPC();
               }
               break;
+            case Opcode.VISNOTIFY:
+              chunk.Notify((int)instr.Bx, _visualizerCenter, (uint id) => {
+                return ValueOfRK(chunk, id, baseRegister);
+              });
+              break;
             default:
               throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
@@ -223,45 +224,32 @@ namespace SeedLang.Interpreter {
       _stack[baseRegister + instr.A][index] = ValueOfRK(chunk, instr.C, baseRegister);
     }
 
-    private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister, Range range) {
-      BinaryOperator op = BinaryOperator.Add;
+    private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister) {
       Value left = ValueOfRK(chunk, instr.B, baseRegister);
       Value right = ValueOfRK(chunk, instr.C, baseRegister);
       uint register = baseRegister + instr.A;
       switch (instr.Opcode) {
         case Opcode.ADD:
-          op = BinaryOperator.Add;
           _stack[register] = ValueHelper.Add(left, right);
           break;
         case Opcode.SUB:
-          op = BinaryOperator.Subtract;
           _stack[register] = ValueHelper.Subtract(left, right);
           break;
         case Opcode.MUL:
-          op = BinaryOperator.Multiply;
           _stack[register] = ValueHelper.Multiply(left, right);
           break;
         case Opcode.DIV:
-          op = BinaryOperator.Divide;
           _stack[register] = ValueHelper.Divide(left, right);
           break;
         case Opcode.FLOORDIV:
-          op = BinaryOperator.FloorDivide;
           _stack[register] = ValueHelper.FloorDivide(left, right);
           break;
         case Opcode.POW:
-          op = BinaryOperator.Power;
           _stack[register] = ValueHelper.Power(left, right);
           break;
         case Opcode.MOD:
-          op = BinaryOperator.Modulo;
           _stack[register] = ValueHelper.Modulo(left, right);
           break;
-      }
-      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
-                                 new ValueWrapper(_stack[register]), range);
-        _visualizerCenter.BinaryPublisher.Notify(be);
       }
     }
 

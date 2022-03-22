@@ -35,6 +35,8 @@ namespace SeedLang.Interpreter {
 
     private readonly List<Range> _ranges = new List<Range>();
 
+    private readonly List<Notification> _notifications = new List<Notification>();
+
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
 
@@ -76,6 +78,16 @@ namespace SeedLang.Interpreter {
     // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.
     internal ref readonly Value ValueOfConstId(uint constId) {
       return ref _constants[IndexOfConstId(constId)];
+    }
+
+    internal uint AddNotification(Notification notification) {
+      _notifications.Add(notification);
+      return (uint)_notifications.Count - 1;
+    }
+
+    internal void Notify(int index, VisualizerCenter visualizerCenter,
+                         System.Func<uint, Value> getRKValue) {
+      _notifications[index].Notify(visualizerCenter, getRKValue);
     }
 
     // Converts the constant id to the index in the constant list.

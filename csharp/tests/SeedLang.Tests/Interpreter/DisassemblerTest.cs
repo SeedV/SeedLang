@@ -33,7 +33,7 @@ namespace SeedLang.Interpreter.Tests {
       chunk.Emit(Opcode.DIV, 0, cache.IdOfConstant(4), cache.IdOfConstant(5), _textRange);
       chunk.Emit(Opcode.UNM, 0, cache.IdOfConstant(6), 0, _textRange);
       chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
-      chunk.SetConstants(cache.Constants.ToArray());
+      chunk.SetConstants(cache.ToArray());
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_textRange}\n" +

@@ -95,40 +95,41 @@ indicate if `B` or `C` is the index of the register or constant:
 
 All the SeedLang instructions are listed as follows:
 
-| Opcode | Name       | Description                                         |
-| :----: | ---------- | --------------------------------------------------- |
-|   0    | `MOVE`     | Copy a value between registers                      |
-|   1    | `LOADNIL`  | Load nil into a series of continuous registers      |
-|   2    | `LOADBOOL` | Load a boolean value into a register                |
-|   3    | `LOADK`    | Load a constant into a register                     |
-|   4    | `GETGLOB`  | Read a global variable into a register              |
-|   5    | `SETGLOB`  | Write a register value into a global variable       |
-|   6    | `NEWTUPLE` | Create a new tuple with the initial elements        |
-|   7    | `NEWLIST`  | Create a new list with the initial elements         |
-|   8    | `NEWDICT`  | Create a new dict with the initial keys and values  |
-|   9    | `GETELEM`  | Read a list or table element into a register        |
-|   10   | `SETELEM`  | Write a register value into a list or table element |
-|   11   | `ADD`      | Addition operation                                  |
-|   12   | `SUB`      | Subtract operation                                  |
-|   13   | `MUL`      | Multiply operation                                  |
-|   14   | `DIV`      | Divide operation                                    |
-|   15   | `FLOORDIV` | Floor Divide operation                              |
-|   16   | `POW`      | Exponentiation operation                            |
-|   17   | `MOD`      | Modulus (reminder) operation                        |
-|   18   | `UNM`      | Unary minus operation                               |
-|   19   | `NOT`      | Logical not operation                               |
-|   20   | `LEN`      | Length operation                                    |
-|   21   | `JMP`      | Unconditional jump                                  |
-|   22   | `EQ`       | Equality test                                       |
-|   23   | `LT`       | Less than test                                      |
-|   24   | `LE`       | Less than or equal to test                          |
-|   25   | `IN`       | Test if the value or key is in the container        |
-|   26   | `TEST`     | Boolean test, with conditional jump                 |
-|   27   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
-|   28   | `FORPREP`  | For loop preparation                                |
-|   29   | `FORLOOP`  | For loop check                                      |
-|   30   | `CALL`     | Call a function                                     |
-|   31   | `RETURN`   | Return from a function call                         |
+| Opcode | Name        | Description                                         |
+| :----: | ----------- | --------------------------------------------------- |
+|   0    | `MOVE`      | Copy a value between registers                      |
+|   1    | `LOADNIL`   | Load nil into a series of continuous registers      |
+|   2    | `LOADBOOL`  | Load a boolean value into a register                |
+|   3    | `LOADK`     | Load a constant into a register                     |
+|   4    | `GETGLOB`   | Read a global variable into a register              |
+|   5    | `SETGLOB`   | Write a register value into a global variable       |
+|   6    | `NEWTUPLE`  | Create a new tuple with the initial elements        |
+|   7    | `NEWLIST`   | Create a new list with the initial elements         |
+|   8    | `NEWDICT`   | Create a new dict with the initial keys and values  |
+|   9    | `GETELEM`   | Read a list or table element into a register        |
+|   10   | `SETELEM`   | Write a register value into a list or table element |
+|   11   | `ADD`       | Addition operation                                  |
+|   12   | `SUB`       | Subtract operation                                  |
+|   13   | `MUL`       | Multiply operation                                  |
+|   14   | `DIV`       | Divide operation                                    |
+|   15   | `FLOORDIV`  | Floor Divide operation                              |
+|   16   | `POW`       | Exponentiation operation                            |
+|   17   | `MOD`       | Modulus (reminder) operation                        |
+|   18   | `UNM`       | Unary minus operation                               |
+|   19   | `NOT`       | Logical not operation                               |
+|   20   | `LEN`       | Length operation                                    |
+|   21   | `JMP`       | Unconditional jump                                  |
+|   22   | `EQ`        | Equality test                                       |
+|   23   | `LT`        | Less than test                                      |
+|   24   | `LE`        | Less than or equal to test                          |
+|   25   | `IN`        | Test if the value or key is in the container        |
+|   26   | `TEST`      | Boolean test, with conditional jump                 |
+|   27   | `TESTSET`   | Boolean test, with conditional jump and assignment  |
+|   28   | `FORPREP`   | For loop preparation                                |
+|   29   | `FORLOOP`   | For loop check                                      |
+|   30   | `CALL`      | Call a function                                     |
+|   31   | `RETURN`    | Return from a function call                         |
+|   32   | `VISNOTIFY` | Notify the visualizers                              |
 
 ### Move and Load Constant
 
@@ -218,8 +219,15 @@ FORLOOP A sBx           # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
 
 ```shell
 JMP sBx                 # PC += sBx
-CALL A                  # call function R(A), parameters are R(A+1), ..., R(A+B)
-                        # B is the count of parameters
-RETURN A B              # return R(A), R(A+1), ..., R(A+B-1)
+CALL A                  # calls function R(A), parameters are R(A+1), ...,
+                        # R(A+B), B is the count of parameters
+RETURN A B              # returns R(A), R(A+1), ..., R(A+B-1)
                         # B is the count of return values
+```
+
+### Notify Visualizers
+
+```shell
+VISNOTIFY A Bx          # creates a notification event from NotifyInfo[Bx], and
+                        # sends to visualizers
 ```

@@ -26,8 +26,8 @@ namespace SeedLang.Interpreter {
         Func = new Function(name);
       }
 
-      internal void UpdateConstantArray() {
-        Func.Chunk.SetConstants(ConstantCache.Constants.ToArray());
+      internal void UpdateChunk() {
+        Func.Chunk.SetConstants(ConstantCache.ToArray());
       }
     }
 
@@ -38,7 +38,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal Function PopFunc() {
-      _frames.Peek().UpdateConstantArray();
+      _frames.Peek().UpdateChunk();
       Function func = _frames.Peek().Func;
       _frames.Pop();
       return func;

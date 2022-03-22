@@ -22,6 +22,8 @@ using SeedLang.Interpreter;
 using SeedLang.X;
 
 namespace SeedLang.Runtime {
+  using Function = Interpreter.Function;
+
   // An executor class to execute SeedBlock programs or SeedX source code. The information during
   // execution can be visualized by registered visualizers.
   public class Executor {
@@ -106,7 +108,7 @@ namespace SeedLang.Runtime {
             return null;
           case RunType.Bytecode: {
               var compiler = new Compiler();
-              Interpreter.Function func = compiler.Compile(node, _vm.Env, runMode);
+              Function func = compiler.Compile(node, _vm.Env, _visualizerCenter, runMode);
               _vm.Run(func);
               return null;
             }
@@ -114,7 +116,7 @@ namespace SeedLang.Runtime {
             return node.ToString();
           case RunType.Disassemble: {
               var compiler = new Compiler();
-              Interpreter.Function func = compiler.Compile(node, _vm.Env, runMode);
+              Function func = compiler.Compile(node, _vm.Env, _visualizerCenter, runMode);
               return new Disassembler(func).ToString();
             }
           default:

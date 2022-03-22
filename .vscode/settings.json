@@ -27,5 +27,6 @@
     "alignActions": false,
     "alignLabels": true,
     "alignTrailers": false
-  }
+  },
+  "omnisharp.useModernNet": true
 }

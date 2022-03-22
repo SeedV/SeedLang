@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,6 +66,25 @@ namespace SeedLang.Interpreter {
                                new ValueWrapper(getRKValue(_rightId)),
                                new ValueWrapper(getRKValue(_resultId)), _range);
       visualizerCenter.BinaryPublisher.Notify(be);
+    }
+  }
+
+  internal class UnaryNotification : Notification {
+    private readonly UnaryOperator _op;
+    private readonly uint _valueId;
+    private readonly uint _resultId;
+
+    internal UnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) :
+        base(range) {
+      _op = op;
+      _valueId = valueId;
+      _resultId = resultId;
+    }
+
+    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      var ue = new UnaryEvent(_op, new ValueWrapper(getRKValue(_valueId)),
+                              new ValueWrapper(getRKValue(_valueId)), _range);
+      visualizerCenter.UnaryPublisher.Notify(ue);
     }
   }
 }

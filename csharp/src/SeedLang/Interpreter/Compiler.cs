@@ -89,6 +89,13 @@ namespace SeedLang.Interpreter {
       uint register = _registerForSubExpr;
       uint expr = VisitExpressionForRKId(unary.Expr);
       _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
+
+      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
+        var bn = new UnaryNotification(unary.Op, expr, register, unary.Range);
+        uint notification = _chunk.AddNotification(bn);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, notification, unary.Range);
+      }
+
       _variableResolver.EndExpressionScope();
     }
 

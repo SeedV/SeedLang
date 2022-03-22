@@ -52,18 +52,23 @@ namespace SeedLang.Interpreter.Tests {
       var expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
                                                           AstHelper.NumberConstant(1)));
 
-      (string output, MockupVisualizer _) = Run(expr);
+      (string output, MockupVisualizer visualizer) = Run(expr);
       Assert.Equal("-1" + Environment.NewLine, output);
+      var expected = $"{AstHelper.TextRange} Negative 1 = 1" + Environment.NewLine;
+      Assert.Equal(expected, visualizer.ToString());
 
       expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
         AstHelper.Binary(AstHelper.NumberConstant(1),
                          BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
       ));
-      (output, MockupVisualizer visualizer) = Run(expr);
+      (output, visualizer) = Run(expr);
       Assert.Equal("-3" + Environment.NewLine, output);
-      string expectedOutput = $"{AstHelper.TextRange} 1 Add 2 = 3" + Environment.NewLine;
-      Assert.Equal(expectedOutput, visualizer.ToString());
+      expected = (
+        $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
+        $"{AstHelper.TextRange} Negative 3 = 3\n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, visualizer.ToString());
     }
 
     [Fact]

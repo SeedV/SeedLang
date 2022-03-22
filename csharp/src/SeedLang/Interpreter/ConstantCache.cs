@@ -17,7 +17,7 @@ using System.Diagnostics;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  // A cache class to cache the constant id of _constants. It only adds the unique constant into the
+  // A cache class to cache the constant id of constants. It only adds the unique constant into the
   // constant list of the chunk.
   internal class ConstantCache {
     // A list to collect constatnt values during compilation.

@@ -31,6 +31,10 @@ namespace SeedLang.Interpreter {
     // The length of Bytecode and Range lists shall be the same.
     public IReadOnlyList<Range> Ranges => _ranges;
 
+    // The notification information list that is used by VISNOTIFY opcode to create the correspoding
+    // notification events and sent to visualizers.
+    public IReadOnlyList<Notification> Notifications => _notifications;
+
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
     private readonly List<Range> _ranges = new List<Range>();
@@ -83,11 +87,6 @@ namespace SeedLang.Interpreter {
     internal uint AddNotification(Notification notification) {
       _notifications.Add(notification);
       return (uint)_notifications.Count - 1;
-    }
-
-    internal void Notify(int index, VisualizerCenter visualizerCenter,
-                         System.Func<uint, Value> getRKValue) {
-      _notifications[index].Notify(visualizerCenter, getRKValue);
     }
 
     // Converts the constant id to the index in the constant list.

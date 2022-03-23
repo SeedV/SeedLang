@@ -198,7 +198,7 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.VISNOTIFY:
-              chunk.Notify((int)instr.Bx, _visualizerCenter, (uint id) => {
+              chunk.Notifications[(int)instr.Bx].Notify(_visualizerCenter, (uint id) => {
                 return ValueOfRK(chunk, id, baseRegister);
               });
               break;

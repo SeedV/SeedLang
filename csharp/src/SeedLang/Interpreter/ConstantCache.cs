@@ -21,7 +21,7 @@ namespace SeedLang.Interpreter {
   // constant list of the chunk.
   internal class ConstantCache {
     // A list to collect constatnt values during compilation.
-    private List<Value> _constants { get; } = new List<Value>();
+    private readonly List<Value> _constants = new List<Value>();
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
 

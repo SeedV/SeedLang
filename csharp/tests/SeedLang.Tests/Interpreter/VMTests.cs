@@ -54,7 +54,7 @@ namespace SeedLang.Interpreter.Tests {
 
       (string output, MockupVisualizer visualizer) = Run(expr);
       Assert.Equal("-1" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} Negative 1 = 1" + Environment.NewLine;
+      var expected = $"{AstHelper.TextRange} Negative 1 = -1" + Environment.NewLine;
       Assert.Equal(expected, visualizer.ToString());
 
       expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
@@ -66,7 +66,7 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal("-3" + Environment.NewLine, output);
       expected = (
         $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
-        $"{AstHelper.TextRange} Negative 3 = 3\n"
+        $"{AstHelper.TextRange} Negative 3 = -3\n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, visualizer.ToString());
     }

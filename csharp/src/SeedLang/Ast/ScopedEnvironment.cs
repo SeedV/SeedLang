@@ -40,7 +40,7 @@ namespace SeedLang.Ast {
       }
     }
 
-    public bool IsGlobalScope => _frames.Count == 1;
+    public bool InGlobalScope => _frames.Count == 1;
 
     private readonly Stack<Frame> _frames = new Stack<Frame>();
 

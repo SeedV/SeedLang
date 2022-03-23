@@ -402,7 +402,7 @@ namespace SeedLang.Ast {
       switch (target) {
         case IdentifierExpression identifier:
           _env.SetVariable(identifier.Name, value);
-          var type = _env.IsGlobalScope ? VariableType.Global : VariableType.Local;
+          var type = _env.InGlobalScope ? VariableType.Global : VariableType.Local;
           var ae = new AssignmentEvent(identifier.Name, type, new ValueWrapper(value), range);
           _visualizerCenter.AssignmentPublisher.Notify(ae);
           break;

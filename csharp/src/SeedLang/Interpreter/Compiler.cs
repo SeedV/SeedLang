@@ -50,7 +50,7 @@ namespace SeedLang.Interpreter {
 
     // The chunk on the top of the function stack.
     private Chunk _chunk;
-    // The chunk cache on the top of the function stack.
+    // The constant cache on the top of the function stack.
     private ConstantCache _constantCache;
 
     internal Function Compile(AstNode node, GlobalEnvironment env,
@@ -542,7 +542,7 @@ namespace SeedLang.Interpreter {
             _chunk.Emit(Opcode.LOADK, tempRegister, valueId, range);
           }
           _chunk.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
-          EmitAssignNotification(id.Name, VariableType.Global, valueId, range);
+          EmitAssignNotification(id.Name, VariableType.Global, tempRegister, range);
           break;
         case VariableResolver.VariableType.Local:
           if (Chunk.IsConstId(valueId)) {

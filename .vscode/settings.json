@@ -1,6 +1,7 @@
 {
   "dotnet-test-explorer.testProjectPath": "**/*Tests.@(csproj|vbproj|fsproj)",
   "omnisharp.enableRoslynAnalyzers": true,
+  "omnisharp.useModernNet": true,
   "antlr4.format": {
     "alignTrailingComments": false,
     "allowShortBlocksOnASingleLine": true,
@@ -27,6 +28,5 @@
     "alignActions": false,
     "alignLabels": true,
     "alignTrailers": false
-  },
-  "omnisharp.useModernNet": true
+  }
 }

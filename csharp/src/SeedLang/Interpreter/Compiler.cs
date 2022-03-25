@@ -77,8 +77,8 @@ namespace SeedLang.Interpreter {
 
       if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
         var bn = new BinaryNotification(left, binary.Op, right, register, binary.Range);
-        uint notification = _chunk.AddNotification(bn);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, notification, binary.Range);
+        uint nIndex = _chunk.AddNotification(bn);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, binary.Range);
       }
 
       _variableResolver.EndExpressionScope();
@@ -91,9 +91,9 @@ namespace SeedLang.Interpreter {
       _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
 
       if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
-        var bn = new UnaryNotification(unary.Op, expr, register, unary.Range);
-        uint notification = _chunk.AddNotification(bn);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, notification, unary.Range);
+        var un = new UnaryNotification(unary.Op, expr, register, unary.Range);
+        uint nIndex = _chunk.AddNotification(un);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, unary.Range);
       }
 
       _variableResolver.EndExpressionScope();
@@ -561,8 +561,8 @@ namespace SeedLang.Interpreter {
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
       if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
         var an = new AssignmentNotification(name, type, valueId, range);
-        uint notification = _chunk.AddNotification(an);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, notification, range);
+        uint nIndex = _chunk.AddNotification(an);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
       }
     }
 

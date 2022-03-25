@@ -402,7 +402,8 @@ namespace SeedLang.Ast {
       switch (target) {
         case IdentifierExpression identifier:
           _env.SetVariable(identifier.Name, value);
-          var ae = new AssignmentEvent(identifier.Name, new ValueWrapper(value), range);
+          var type = _env.InGlobalScope ? VariableType.Global : VariableType.Local;
+          var ae = new AssignmentEvent(identifier.Name, type, new ValueWrapper(value), range);
           _visualizerCenter.AssignmentPublisher.Notify(ae);
           break;
         case SubscriptExpression subscript:

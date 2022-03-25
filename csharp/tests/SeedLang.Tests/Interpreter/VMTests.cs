@@ -42,8 +42,9 @@ namespace SeedLang.Interpreter.Tests {
                                              AstHelper.NumberConstant(2)))
       );
 
-      (string output, MockupVisualizer _) = Run(expr);
+      (string output, MockupVisualizer visualizer) = Run(expr);
       Assert.Equal("True" + Environment.NewLine, output);
+      Assert.Equal("", visualizer.ToString());
     }
 
     [Fact]
@@ -51,18 +52,23 @@ namespace SeedLang.Interpreter.Tests {
       var expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
                                                           AstHelper.NumberConstant(1)));
 
-      (string output, MockupVisualizer _) = Run(expr);
+      (string output, MockupVisualizer visualizer) = Run(expr);
       Assert.Equal("-1" + Environment.NewLine, output);
+      var expected = $"{AstHelper.TextRange} Negative 1 = -1" + Environment.NewLine;
+      Assert.Equal(expected, visualizer.ToString());
 
       expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
         AstHelper.Binary(AstHelper.NumberConstant(1),
                          BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
       ));
-      (output, MockupVisualizer visualizer) = Run(expr);
+      (output, visualizer) = Run(expr);
       Assert.Equal("-3" + Environment.NewLine, output);
-      string expectedOutput = $"{AstHelper.TextRange} 1 Add 2 = 3" + Environment.NewLine;
-      Assert.Equal(expectedOutput, visualizer.ToString());
+      expected = (
+        $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
+        $"{AstHelper.TextRange} Negative 3 = -3\n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, visualizer.ToString());
     }
 
     [Fact]
@@ -172,8 +178,10 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)), AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.Id(name))
       );
-      (string output, MockupVisualizer _) = Run(program);
+      (string output, MockupVisualizer visualizer) = Run(program);
       Assert.Equal("1" + Environment.NewLine, output);
+      var expected = $"{AstHelper.TextRange} {name} = 1" + Environment.NewLine;
+      Assert.Equal(expected, visualizer.ToString());
     }
 
     [Fact]
@@ -187,12 +195,17 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(a)),
         AstHelper.ExpressionStmt(AstHelper.Id(b))
       );
-      (string output, MockupVisualizer _) = Run(block);
+      (string output, MockupVisualizer visualizer) = Run(block);
       var expectedOutput = (
         $"1\n" +
         $"2\n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expectedOutput, output);
+      var expected = (
+        $"{AstHelper.TextRange} {a} = 1\n" +
+        $"{AstHelper.TextRange} {b} = 2\n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, visualizer.ToString());
     }
 
     [Fact]
@@ -204,8 +217,10 @@ namespace SeedLang.Interpreter.Tests {
                          AstHelper.NumberConstant(2)),
         AstHelper.ExpressionStmt(AstHelper.Id(name))
       );
-      (string output, MockupVisualizer _) = Run(block);
+      (string output, MockupVisualizer visualizer) = Run(block);
       Assert.Equal("(1, 2)" + Environment.NewLine, output);
+      var expected = $"{AstHelper.TextRange} {name} = (1, 2)" + Environment.NewLine;
+      Assert.Equal(expected, visualizer.ToString());
     }
 
     [Fact]
@@ -228,13 +243,13 @@ namespace SeedLang.Interpreter.Tests {
 
     private static (string, MockupVisualizer) Run(Statement program) {
       var visualizer = new MockupVisualizer();
-      var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Register(visualizer);
-      var vm = new VM(visualizerCenter);
+      var vc = new VisualizerCenter();
+      vc.Register(visualizer);
+      var vm = new VM(vc);
       var stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, RunMode.Interactive);
+      Function func = compiler.Compile(program, vm.Env, vc, RunMode.Interactive);
       vm.Run(func);
       return (stringWriter.ToString(), visualizer);
     }

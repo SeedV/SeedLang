@@ -164,7 +164,16 @@ namespace SeedLang.Shell {
       Console.ForegroundColor = ConsoleColor.Black;
       switch (e) {
         case AssignmentEvent ae:
-          Console.Write($"Assignment: {ae.Identifier} = {ae.Value}");
+          Console.Write("Assign ");
+          switch (ae.Type) {
+            case VariableType.Global:
+              Console.Write("global");
+              break;
+            case VariableType.Local:
+              Console.Write("local");
+              break;
+          }
+          Console.Write($" {ae.Name} = {ae.Value}");
           break;
         case BinaryEvent be: {
             var op = _binaryOperatorStrings[be.Op];

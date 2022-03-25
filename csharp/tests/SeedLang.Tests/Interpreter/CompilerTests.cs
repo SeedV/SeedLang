@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
@@ -21,7 +22,6 @@ using static SeedLang.Runtime.HeapObject;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static GlobalEnvironment _env => new GlobalEnvironment(NativeFunctions.Funcs);
     private static int _printValFunc =>
         Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
           return func.Name == NativeFunctions.PrintVal;
@@ -31,9 +31,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileNilConstant() {
-      var expr = AstHelper.ExpressionStmt(AstHelper.NilConstant());
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Interactive);
+      var program = AstHelper.ExpressionStmt(AstHelper.NilConstant());
       string expected = (
         $"Function <main>\n" +
         $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -41,14 +39,12 @@ namespace SeedLang.Interpreter.Tests {
         $"  3    CALL      0 1 0                                {_range}\n" +
         $"  4    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileNumberConstant() {
-      var expr = AstHelper.ExpressionStmt(AstHelper.NumberConstant(1));
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Interactive);
+      var program = AstHelper.ExpressionStmt(AstHelper.NumberConstant(1));
       string expected = (
         $"Function <main>\n" +
         $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -56,18 +52,16 @@ namespace SeedLang.Interpreter.Tests {
         $"  3    CALL      0 1 0                                {_range}\n" +
         $"  4    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileComparison() {
-      var expr = AstHelper.ExpressionStmt(
+      var program = AstHelper.ExpressionStmt(
         AstHelper.Comparison(AstHelper.NumberConstant(1),
                              AstHelper.CompOps(ComparisonOperator.Less),
                              AstHelper.NumberConstant(2))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -78,19 +72,17 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    CALL      0 1 0                                {_range}\n" +
           $"  7    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileInComparison() {
-      var expr = AstHelper.ExpressionStmt(
+      var program = AstHelper.ExpressionStmt(
         AstHelper.Comparison(AstHelper.NumberConstant(1),
                              AstHelper.CompOps(ComparisonOperator.In),
                              AstHelper.Tuple(AstHelper.NumberConstant(1),
                                              AstHelper.NumberConstant(2)))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -104,18 +96,16 @@ namespace SeedLang.Interpreter.Tests {
           $"  9    CALL      0 1 0                                {_range}\n" +
           $"  10   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileNilComparison() {
-      var expr = AstHelper.ExpressionStmt(
+      var program = AstHelper.ExpressionStmt(
         AstHelper.Comparison(AstHelper.NilConstant(),
                              AstHelper.CompOps(ComparisonOperator.Less),
                              AstHelper.NilConstant())
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -128,12 +118,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  8    CALL      0 1 0                                {_range}\n" +
           $"  9    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileBoolean() {
-      var @if = AstHelper.ExpressionStmt(
+      var program = AstHelper.ExpressionStmt(
         AstHelper.Boolean(
           BooleanOperator.Or,
           AstHelper.Comparison(
@@ -150,8 +140,6 @@ namespace SeedLang.Interpreter.Tests {
           )
         )
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -168,34 +156,30 @@ namespace SeedLang.Interpreter.Tests {
           $"  12   CALL      0 1 0                                {_range}\n" +
           $"  13   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileBinary() {
-      var expr = AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.NumberConstant(1),
-                                                           BinaryOperator.Add,
-                                                           AstHelper.NumberConstant(2)));
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Script);
+      var program = AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.NumberConstant(1),
+                                                              BinaryOperator.Add,
+                                                              AstHelper.NumberConstant(2)));
       string expected = (
           $"Function <main>\n" +
           $"  1    ADD       0 -1 -2          ; 1 2               {_range}\n" +
           $"  2    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Script);
     }
 
     [Fact]
     public void TestCompileComplexBinary() {
-      var expr = AstHelper.ExpressionStmt(AstHelper.Binary(
+      var program = AstHelper.ExpressionStmt(AstHelper.Binary(
         AstHelper.NumberConstant(1),
         BinaryOperator.Subtract,
         AstHelper.Binary(AstHelper.NumberConstant(2), BinaryOperator.Add,
                          AstHelper.NumberConstant(3)))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -204,19 +188,17 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileBinaryWithSameConstants() {
-      var expr = AstHelper.ExpressionStmt(AstHelper.Binary(
+      var program = AstHelper.ExpressionStmt(AstHelper.Binary(
         AstHelper.NumberConstant(1),
         BinaryOperator.Subtract,
         AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                          AstHelper.NumberConstant(2)))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -225,15 +207,13 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileUnary() {
-      var expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
-                                                          AstHelper.NumberConstant(1)));
-      var compiler = new Compiler();
-      var func = compiler.Compile(expr, _env, RunMode.Interactive);
+      var program = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
+                                                             AstHelper.NumberConstant(1)));
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -241,30 +221,26 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    CALL      0 1 0                                {_range}\n" +
           $"  4    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileAssignment() {
-      var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("name")),
-                                        AstHelper.NumberConstant(1));
-      var compiler = new Compiler();
-      var func = compiler.Compile(assignment, _env, RunMode.Script);
+      var program = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("name")),
+                                                       AstHelper.NumberConstant(1));
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
           $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
           $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileMultipleAssignment() {
-      var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y")),
-                                        AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
-      var compiler = new Compiler();
-      var func = compiler.Compile(assignment, _env, RunMode.Script);
+      var program = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y")),
+                                     AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
@@ -273,38 +249,34 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
           $"  5    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileAssignBinary() {
-      var assignment = AstHelper.Assign(
+      var program = AstHelper.Assign(
         AstHelper.Targets(AstHelper.Id("name")),
         AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(assignment, _env, RunMode.Script);
       string expected = (
           $"Function <main>\n" +
           $"  1    ADD       0 -1 -2          ; 1 2               {_range}\n" +
           $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
           $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompilePackAssignment() {
       string name = "id";
-      var block = AstHelper.Block(
+      var program = AstHelper.Block(
         AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
                          AstHelper.NumberConstant(1),
                          AstHelper.NumberConstant(2)),
         AstHelper.ExpressionStmt(AstHelper.Id(name))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(block, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -316,21 +288,19 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileUnpackAssignment() {
       string a = "a";
       string b = "b";
-      var block = AstHelper.Block(
+      var program = AstHelper.Block(
         AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b)),
                          AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2))),
         AstHelper.ExpressionStmt(AstHelper.Id(a)),
         AstHelper.ExpressionStmt(AstHelper.Id(b))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(block, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -350,20 +320,18 @@ namespace SeedLang.Interpreter.Tests {
           $"  15   CALL      0 1 0                                {_range}\n" +
           $"  16   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileIf() {
-      var @if = AstHelper.If(
+      var program = AstHelper.If(
         AstHelper.Comparison(AstHelper.NumberConstant(1),
                              AstHelper.CompOps(ComparisonOperator.EqEqual),
                              AstHelper.NumberConstant(2)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
@@ -377,18 +345,16 @@ namespace SeedLang.Interpreter.Tests {
           $"  9    CALL      0 1 0                                {_range}\n" +
           $"  10   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileIfTrue() {
-      var @if = AstHelper.If(
+      var program = AstHelper.If(
         AstHelper.BooleanConstant(true),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADBOOL  0 1 0                                {_range}\n" +
@@ -403,20 +369,18 @@ namespace SeedLang.Interpreter.Tests {
           $"  10   CALL      0 1 0                                {_range}\n" +
           $"  11   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileIfWithNullElse() {
-      var @if = AstHelper.If(
+      var program = AstHelper.If(
         AstHelper.Comparison(AstHelper.NumberConstant(1),
                              AstHelper.CompOps(ComparisonOperator.EqEqual),
                              AstHelper.NumberConstant(2)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         null
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
@@ -426,12 +390,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  5    CALL      0 1 0                                {_range}\n" +
           $"  6    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileIfMultipleComparison() {
-      var @if = AstHelper.If(
+      var program = AstHelper.If(
         AstHelper.Comparison(
           AstHelper.NumberConstant(1),
           AstHelper.CompOps(ComparisonOperator.Less, ComparisonOperator.Less),
@@ -441,8 +405,6 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LT        1 -1 -2          ; 1 2               {_range}\n" +
@@ -458,12 +420,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  11   CALL      0 1 0                                {_range}\n" +
           $"  12   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileIfAndBooleanExpression() {
-      var @if = AstHelper.If(
+      var program = AstHelper.If(
         AstHelper.Boolean(
           BooleanOperator.And,
           AstHelper.Comparison(AstHelper.NumberConstant(1),
@@ -479,8 +441,6 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
@@ -498,12 +458,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  13   CALL      0 1 0                                {_range}\n" +
           $"  14   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileIfOrBooleanExpression() {
-      var @if = AstHelper.If(
+      var program = AstHelper.If(
         AstHelper.Boolean(
           BooleanOperator.Or,
           AstHelper.Comparison(AstHelper.NumberConstant(1),
@@ -519,8 +479,6 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LT        0 -1 -2          ; 1 2               {_range}\n" +
@@ -538,12 +496,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  13   CALL      0 1 0                                {_range}\n" +
           $"  14   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileIfOrWithMultipleComparison() {
-      var @if = AstHelper.If(
+      var program = AstHelper.If(
         AstHelper.Boolean(
           BooleanOperator.Or,
           AstHelper.Comparison(
@@ -562,8 +520,6 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LT        1 -1 -2          ; 1 2               {_range}\n" +
@@ -583,12 +539,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  15   CALL      0 1 0                                {_range}\n" +
           $"  16   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileNestedIf() {
-      var @if = AstHelper.If(
+      var program = AstHelper.If(
         AstHelper.Comparison(AstHelper.NumberConstant(1),
                              AstHelper.CompOps(ComparisonOperator.EqEqual),
                              AstHelper.NumberConstant(2)),
@@ -601,8 +557,6 @@ namespace SeedLang.Interpreter.Tests {
         ),
         AstHelper.ExpressionStmt(AstHelper.NumberConstant(3))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(@if, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
@@ -622,7 +576,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  15   CALL      0 1 0                                {_range}\n" +
           $"  16   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
@@ -646,8 +600,6 @@ namespace SeedLang.Interpreter.Tests {
         ),
         AstHelper.ExpressionStmt(AstHelper.Id(sum))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 0                 {_range}\n" +
@@ -670,7 +622,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  18   CALL      0 1 0                                {_range}\n" +
           $"  19   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
@@ -678,15 +630,13 @@ namespace SeedLang.Interpreter.Tests {
       string add = "add";
       string a = "a";
       string b = "b";
-      var block = AstHelper.Block(
+      var program = AstHelper.Block(
         AstHelper.FuncDef(add, AstHelper.Params(a, b),
                           AstHelper.Return(AstHelper.Binary(AstHelper.Id(a), BinaryOperator.Add,
                                                             AstHelper.Id(b)))),
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(add), AstHelper.NumberConstant(1),
                                                 AstHelper.NumberConstant(2)))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(block, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <add>        {_range}\n" +
@@ -704,14 +654,14 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    RETURN    2 1                                  {_range}\n" +
           $"  3    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestRecursiveFuncCall() {
       string sum = "sum";
       var n = "n";
-      var block = AstHelper.Block(
+      var program = AstHelper.Block(
         AstHelper.FuncDef(sum, AstHelper.Params(n), AstHelper.Block(
           AstHelper.If(
             AstHelper.Comparison(AstHelper.Id(n), AstHelper.CompOps(ComparisonOperator.EqEqual),
@@ -728,8 +678,6 @@ namespace SeedLang.Interpreter.Tests {
         )),
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(sum), AstHelper.NumberConstant(10)))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(block, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <sum>        {_range}\n" +
@@ -754,14 +702,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  10   RETURN    1 1                                  {_range}\n" +
           $"  11   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileEmptyList() {
-      var list = AstHelper.ExpressionStmt(AstHelper.List());
-      var compiler = new Compiler();
-      var func = compiler.Compile(list, _env, RunMode.Interactive);
+      var program = AstHelper.ExpressionStmt(AstHelper.List());
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -769,16 +715,14 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    CALL      0 1 0                                {_range}\n" +
           $"  4    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileList() {
-      var list = AstHelper.ExpressionStmt(AstHelper.List(AstHelper.NumberConstant(1),
+      var program = AstHelper.ExpressionStmt(AstHelper.List(AstHelper.NumberConstant(1),
                                                          AstHelper.NumberConstant(2),
                                                          AstHelper.NumberConstant(3)));
-      var compiler = new Compiler();
-      var func = compiler.Compile(list, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -789,14 +733,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    CALL      0 1 0                                {_range}\n" +
           $"  7    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileEmptyDict() {
-      var dict = AstHelper.ExpressionStmt(AstHelper.Dict());
-      var compiler = new Compiler();
-      var func = compiler.Compile(dict, _env, RunMode.Interactive);
+      var program = AstHelper.ExpressionStmt(AstHelper.Dict());
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -804,19 +746,17 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    CALL      0 1 0                                {_range}\n" +
           $"  4    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileDict() {
-      var dict = AstHelper.ExpressionStmt(
+      var program = AstHelper.ExpressionStmt(
         AstHelper.Dict(
           AstHelper.KeyValue(AstHelper.NumberConstant(1), AstHelper.NumberConstant(1)),
           AstHelper.KeyValue(AstHelper.NumberConstant(2), AstHelper.NumberConstant(2))
         )
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(dict, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -828,19 +768,17 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileSubscript() {
-      var subscript = AstHelper.ExpressionStmt(AstHelper.Subscript(
+      var program = AstHelper.ExpressionStmt(AstHelper.Subscript(
         AstHelper.List(AstHelper.NumberConstant(1),
                        AstHelper.NumberConstant(2),
                        AstHelper.NumberConstant(3)),
         AstHelper.NumberConstant(0)
       ));
-      var compiler = new Compiler();
-      var func = compiler.Compile(subscript, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
@@ -852,7 +790,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
@@ -868,8 +806,6 @@ namespace SeedLang.Interpreter.Tests {
                          AstHelper.NumberConstant(5)),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -885,7 +821,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  11   CALL      0 1 0                                {_range}\n" +
           $"  12   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
@@ -904,8 +840,6 @@ namespace SeedLang.Interpreter.Tests {
           AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(0))
         )
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -923,7 +857,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  13   SETELEM   3 -1 1           ; 1                 {_range}\n" +
           $"  14   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
@@ -936,8 +870,6 @@ namespace SeedLang.Interpreter.Tests {
                        AstHelper.NumberConstant(3)),
         AstHelper.ExpressionStmt(AstHelper.Id(a))
       );
-      var compiler = new Compiler();
-      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
@@ -956,7 +888,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  14   FORLOOP   1 -6             ; to 9              {_range}\n" +
           $"  15   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
@@ -971,8 +903,6 @@ namespace SeedLang.Interpreter.Tests {
           AstHelper.ExpressionStmt(AstHelper.Id(a))
         )
       ));
-      var compiler = new Compiler();
-      var func = compiler.Compile(program, _env, RunMode.Interactive);
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <func>       {_range}\n" +
@@ -995,16 +925,23 @@ namespace SeedLang.Interpreter.Tests {
           $"  13   FORLOOP   2 -5             ; to 9              {_range}\n" +
           $"  14   RETURN    0 0                                  \n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      TestCompiler(program, expected, RunMode.Interactive);
     }
 
     [Fact]
     public void TestUndefinedVariable() {
       var expr = AstHelper.ExpressionStmt(AstHelper.Id("a"));
-      var compiler = new Compiler();
       var exception = Assert.Throws<DiagnosticException>(
-          () => compiler.Compile(expr, _env, RunMode.Interactive));
+          () => TestCompiler(expr, "", RunMode.Interactive));
       Assert.Equal(Message.RuntimeErrorVariableNotDefined, exception.Diagnostic.MessageId);
+    }
+
+    private static void TestCompiler(AstNode node, string expected, RunMode mode) {
+      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var vc = new VisualizerCenter();
+      var compiler = new Compiler();
+      var func = compiler.Compile(node, env, vc, mode);
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }
 }

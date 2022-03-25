@@ -88,7 +88,7 @@ namespace SeedLang.Tests.Helper {
 
     private void AssignmentEventsToString(StringBuilder sb) {
       foreach (var ae in _assignEvents) {
-        sb.AppendLine($"{ae.Range} {ae.Identifier} = {ae.Value}");
+        sb.AppendLine($"{ae.Range} {ae.Name} = {ae.Value}");
       }
     }
 

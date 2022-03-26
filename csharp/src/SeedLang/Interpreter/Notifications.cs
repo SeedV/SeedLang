@@ -110,7 +110,7 @@ namespace SeedLang.Interpreter {
         sb.Append($"{_ops[i]} ");
         sb.Append($"{_valueIds[i]} ");
       }
-      sb.Append(_resultId.HasValue ? _resultId : _result);
+      sb.Append(_resultId.HasValue ? _resultId.ToString() : _result.ToString());
       sb.Append($" {_range}");
       return sb.ToString();
     }

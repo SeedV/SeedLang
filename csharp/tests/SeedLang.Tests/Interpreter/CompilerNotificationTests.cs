@@ -63,6 +63,29 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileComparison() {
+      var program = AstHelper.ExpressionStmt(
+        AstHelper.Comparison(AstHelper.NumberConstant(1),
+                             AstHelper.CompOps(ComparisonOperator.Less),
+                             AstHelper.NumberConstant(2))
+      );
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  2    LT        1 -1 -2          ; 1 2               {_range}\n" +
+          $"  3    JMP       0 1              ; to 5              {_range}\n" +
+          $"  4    LOADBOOL  1 1 1                                {_range}\n" +
+          $"  5    LOADBOOL  1 0 0                                {_range}\n" +
+          $"  6    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  7    CALL      0 1 0                                {_range}\n" +
+          $"  8    RETURN    0 0                                  \n" +
+          $"Notifications\n" +
+          $"  0    ComparisonNotification: 250 Less 251 1\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
     public void TestCompileUnary() {
       var program = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
                                                              AstHelper.NumberConstant(1)));
@@ -75,6 +98,68 @@ namespace SeedLang.Interpreter.Tests {
           $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
           $"  0    UnaryNotification: Negative 250 1\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
+    public void TestCompileIfWithNullElse() {
+      var program = AstHelper.If(
+        AstHelper.Comparison(AstHelper.NumberConstant(1),
+                             AstHelper.CompOps(ComparisonOperator.EqEqual),
+                             AstHelper.NumberConstant(2)),
+        AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
+        null
+      );
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    EQ        1 -1 -2          ; 1 2               {_range}\n" +
+          $"  2    JMP       0 5              ; to 8              {_range}\n" +
+          $"  3    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  4    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  5    LOADK     1 -1             ; 1                 {_range}\n" +
+          $"  6    CALL      0 1 0                                {_range}\n" +
+          $"  7    JMP       0 1              ; to 9              {_range}\n" +
+          $"  8    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  9    RETURN    0 0                                  \n" +
+          $"Notifications\n" +
+          $"  0    ComparisonNotification: 250 EqEqual 251 True\n" +
+          $"  1    ComparisonNotification: 250 EqEqual 251 False\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
+    public void TestCompileIfMultipleComparison() {
+      var program = AstHelper.If(
+        AstHelper.Comparison(
+          AstHelper.NumberConstant(1),
+          AstHelper.CompOps(ComparisonOperator.Less, ComparisonOperator.Less),
+          AstHelper.NumberConstant(2),
+          AstHelper.NumberConstant(3)
+        ),
+        AstHelper.ExpressionStmt(AstHelper.NumberConstant(1)),
+        AstHelper.ExpressionStmt(AstHelper.NumberConstant(2))
+      );
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LT        1 -1 -2          ; 1 2               {_range}\n" +
+          $"  2    JMP       0 7              ; to 10             {_range}\n" +
+          $"  3    LT        1 -2 -3          ; 2 3               {_range}\n" +
+          $"  4    JMP       0 5              ; to 10             {_range}\n" +
+          $"  5    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  6    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  7    LOADK     1 -1             ; 1                 {_range}\n" +
+          $"  8    CALL      0 1 0                                {_range}\n" +
+          $"  9    JMP       0 4              ; to 14             {_range}\n" +
+          $"  10   VISNOTIFY 0 1                                  {_range}\n" +
+          $"  11   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  12   LOADK     1 -2             ; 2                 {_range}\n" +
+          $"  13   CALL      0 1 0                                {_range}\n" +
+          $"  14   RETURN    0 0                                  \n" +
+          $"Notifications\n" +
+          $"  0    ComparisonNotification: 250 Less 251 Less 252 True\n" +
+          $"  1    ComparisonNotification: 250 Less 251 Less 252 False\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+using System.Text;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -73,6 +75,48 @@ namespace SeedLang.Interpreter {
                                new ValueWrapper(getRKValue(_rightId)),
                                new ValueWrapper(getRKValue(_resultId)), _range);
       visualizerCenter.BinaryPublisher.Notify(be);
+    }
+  }
+
+  internal class ComparisonNotification : Notification {
+    private readonly uint _firstId;
+    private readonly IReadOnlyList<ComparisonOperator> _ops;
+    private readonly IReadOnlyList<uint> _valueIds;
+    private readonly uint? _resultId;
+    private readonly bool _result;
+
+    internal ComparisonNotification(uint firstId, IReadOnlyList<ComparisonOperator> ops,
+                                    IReadOnlyList<uint> valueIds, uint? resultId, bool result,
+                                    Range range) : base(range) {
+      _firstId = firstId;
+      _ops = ops;
+      _valueIds = valueIds;
+      _resultId = resultId;
+      _result = result;
+    }
+
+    public override string ToString() {
+      var sb = new StringBuilder();
+      sb.Append("ComparisonNotification: ");
+      sb.Append($"{_firstId} ");
+      for (int i = 0; i < _ops.Count; i++) {
+        sb.Append($"{_ops[i]} ");
+        sb.Append($"{_valueIds[i]} ");
+      }
+      sb.Append(_resultId.HasValue ? _resultId : _result);
+      return sb.ToString();
+    }
+
+    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      var values = new IValue[_valueIds.Count];
+      for (int i = 0; i < _valueIds.Count; i++) {
+        values[i] = new ValueWrapper(getRKValue(_valueIds[i]));
+      }
+      var result = _resultId.HasValue ? new ValueWrapper(getRKValue((uint)_resultId)) :
+                                        new ValueWrapper(new Value(_result));
+      var ce = new ComparisonEvent(new ValueWrapper(getRKValue(_firstId)), _ops, values, result,
+                                   _range);
+      visualizerCenter.ComparisonPublisher.Notify(ce);
     }
   }
 

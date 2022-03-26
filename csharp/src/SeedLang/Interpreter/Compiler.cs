@@ -21,11 +21,19 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
+    private class ComparisonInfo {
+      public uint FirstId;
+      public List<ComparisonOperator> Ops = new List<ComparisonOperator>();
+      public List<uint> ValueIds = new List<uint>();
+    }
+
     private VisualizerCenter _visualizerCenter;
     private RunMode _runMode;
     private VariableResolver _variableResolver;
     private NestedFuncStack _nestedFuncStack;
     private NestedJumpStack _nestedJumpStack;
+
+    private ComparisonInfo _comparisonInfo = new ComparisonInfo();
 
     // The register allocated for the result of sub-expressions. The getter resets the storage to
     // null after getting the value to make sure the result register is set before visiting each
@@ -84,21 +92,6 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExpressionScope();
     }
 
-    protected override void Visit(UnaryExpression unary) {
-      _variableResolver.BeginExpressionScope();
-      uint register = _registerForSubExpr;
-      uint expr = VisitExpressionForRKId(unary.Expr);
-      _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
-
-      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
-        var un = new UnaryNotification(unary.Op, expr, register, unary.Range);
-        uint nIndex = _chunk.AddNotification(un);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, unary.Range);
-      }
-
-      _variableResolver.EndExpressionScope();
-    }
-
     protected override void Visit(BooleanExpression boolean) {
       VisitBooleanOrComparisonExpression(() => {
         BooleanOperator nextBooleanOp = _nextBooleanOp;
@@ -121,15 +114,32 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(ComparisonExpression comparison) {
       Debug.Assert(comparison.Ops.Length > 0 && comparison.Exprs.Length > 0);
+      _comparisonInfo = new ComparisonInfo();
       VisitBooleanOrComparisonExpression(() => {
         BooleanOperator nextBooleanOp = _nextBooleanOp;
         Expression left = comparison.First;
         for (int i = 0; i < comparison.Exprs.Length; i++) {
           _nextBooleanOp = i < comparison.Exprs.Length - 1 ? BooleanOperator.And : nextBooleanOp;
-          VisitSingleComparison(left, comparison.Ops[i], comparison.Exprs[i], comparison.Range);
+          VisitSingleComparison(i == 0, left, comparison.Ops[i], comparison.Exprs[i],
+                                comparison.Range);
           left = comparison.Exprs[i];
         }
       }, comparison.Range);
+    }
+
+    protected override void Visit(UnaryExpression unary) {
+      _variableResolver.BeginExpressionScope();
+      uint register = _registerForSubExpr;
+      uint expr = VisitExpressionForRKId(unary.Expr);
+      _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
+
+      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
+        var un = new UnaryNotification(unary.Op, expr, register, unary.Range);
+        uint nIndex = _chunk.AddNotification(un);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, unary.Range);
+      }
+
+      _variableResolver.EndExpressionScope();
     }
 
     protected override void Visit(IdentifierExpression identifier) {
@@ -291,10 +301,12 @@ namespace SeedLang.Interpreter {
           uint targetId = _variableResolver.AllocateRegister();
           _chunk.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
           _chunk.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
+          EmitAssignNotification(forIn.Id.Name, VariableType.Global, targetId, forIn.Id.Range);
           _variableResolver.EndExpressionScope();
           break;
         case VariableResolver.VariableType.Local:
           _chunk.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
+          EmitAssignNotification(forIn.Id.Name, VariableType.Local, loopVar.Id, forIn.Id.Range);
           break;
         case VariableResolver.VariableType.Upvalue:
           // TODO: handle upvalues.
@@ -338,21 +350,32 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PushFrame();
       VisitTest(@if.Test);
       PatchJumps(_nestedJumpStack.TrueJumps);
+      if (!(_comparisonInfo is null)) {
+        EmitComparisonNotification(null, true, @if.Test.Range);
+      }
       Visit(@if.ThenBody);
-      if (!(@if.ElseBody is null)) {
+      int? jumpEndPos = null;
+      if (!(@if.ElseBody is null) || !_visualizerCenter.ComparisonPublisher.IsEmpty()) {
         _chunk.Emit(Opcode.JMP, 0, 0, @if.Range);
-        int jumpEnd = GetCurrentCodePos();
+        jumpEndPos = GetCurrentCodePos();
         PatchJumps(_nestedJumpStack.FalseJumps);
-        Visit(@if.ElseBody);
-        PatchJump(jumpEnd);
+        if (!(_comparisonInfo is null)) {
+          EmitComparisonNotification(null, false, @if.Test.Range);
+        }
       } else {
         PatchJumps(_nestedJumpStack.FalseJumps);
       }
+      if (!(@if.ElseBody is null)) {
+        Visit(@if.ElseBody);
+      }
+      if (jumpEndPos.HasValue) {
+        PatchJump((int)jumpEndPos);
+      }
+      _comparisonInfo = null;
       _nestedJumpStack.PopFrame();
     }
 
-    protected override void Visit(PassStatement pass) {
-    }
+    protected override void Visit(PassStatement pass) { }
 
     protected override void Visit(ReturnStatement @return) {
       if (@return.Exprs.Length == 0) {
@@ -386,6 +409,48 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
+    private static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {
+      switch (op) {
+        case BinaryOperator.Add:
+          return Opcode.ADD;
+        case BinaryOperator.Subtract:
+          return Opcode.SUB;
+        case BinaryOperator.Multiply:
+          return Opcode.MUL;
+        case BinaryOperator.Divide:
+          return Opcode.DIV;
+        case BinaryOperator.FloorDivide:
+          return Opcode.FLOORDIV;
+        case BinaryOperator.Power:
+          return Opcode.POW;
+        case BinaryOperator.Modulo:
+          return Opcode.MOD;
+        default:
+          throw new System.NotImplementedException($"Operator {op} not implemented.");
+      }
+    }
+
+    private static (Opcode, bool) OpcodeAndCheckFlagOfComparisonOperator(ComparisonOperator op) {
+      switch (op) {
+        case ComparisonOperator.Less:
+          return (Opcode.LT, true);
+        case ComparisonOperator.Greater:
+          return (Opcode.LE, false);
+        case ComparisonOperator.LessEqual:
+          return (Opcode.LE, true);
+        case ComparisonOperator.GreaterEqual:
+          return (Opcode.LT, false);
+        case ComparisonOperator.EqEqual:
+          return (Opcode.EQ, true);
+        case ComparisonOperator.NotEqual:
+          return (Opcode.EQ, false);
+        case ComparisonOperator.In:
+          return (Opcode.IN, true);
+        default:
+          throw new System.NotImplementedException($"Operator {op} not implemented.");
+      }
+    }
+
     private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
       // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
@@ -396,13 +461,15 @@ namespace SeedLang.Interpreter {
         _nestedJumpStack.PushFrame();
       }
       action();
-      if (!(register is null)) {
+      if (register.HasValue) {
         PatchJumps(_nestedJumpStack.TrueJumps);
         // Loads True into the register, and increases PC.
-        _chunk.Emit(Opcode.LOADBOOL, register.Value, 1, 1, range);
+        _chunk.Emit(Opcode.LOADBOOL, (uint)register, 1, 1, range);
         PatchJumps(_nestedJumpStack.FalseJumps);
         // Loads False into the register.
-        _chunk.Emit(Opcode.LOADBOOL, register.Value, 0, 0, range);
+        _chunk.Emit(Opcode.LOADBOOL, (uint)register, 0, 0, range);
+        EmitComparisonNotification(register, false, range);
+        _comparisonInfo = null;
         _nestedJumpStack.PopFrame();
       }
     }
@@ -427,11 +494,16 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
-                                       Range range) {
+    private void VisitSingleComparison(bool isFirst, Expression left, ComparisonOperator op,
+                                       Expression right, Range range) {
       _variableResolver.BeginExpressionScope();
       uint leftRegister = VisitExpressionForRKId(left);
       uint rightRegister = VisitExpressionForRKId(right);
+      if (isFirst) {
+        _comparisonInfo.FirstId = leftRegister;
+      }
+      _comparisonInfo.Ops.Add(op);
+      _comparisonInfo.ValueIds.Add(rightRegister);
       (Opcode opcode, bool checkFlag) = OpcodeAndCheckFlagOfComparisonOperator(op);
       if (_nextBooleanOp == BooleanOperator.Or) {
         checkFlag = !checkFlag;
@@ -669,45 +741,13 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {
-      switch (op) {
-        case BinaryOperator.Add:
-          return Opcode.ADD;
-        case BinaryOperator.Subtract:
-          return Opcode.SUB;
-        case BinaryOperator.Multiply:
-          return Opcode.MUL;
-        case BinaryOperator.Divide:
-          return Opcode.DIV;
-        case BinaryOperator.FloorDivide:
-          return Opcode.FLOORDIV;
-        case BinaryOperator.Power:
-          return Opcode.POW;
-        case BinaryOperator.Modulo:
-          return Opcode.MOD;
-        default:
-          throw new System.NotImplementedException($"Operator {op} not implemented.");
-      }
-    }
-
-    private static (Opcode, bool) OpcodeAndCheckFlagOfComparisonOperator(ComparisonOperator op) {
-      switch (op) {
-        case ComparisonOperator.Less:
-          return (Opcode.LT, true);
-        case ComparisonOperator.Greater:
-          return (Opcode.LE, false);
-        case ComparisonOperator.LessEqual:
-          return (Opcode.LE, true);
-        case ComparisonOperator.GreaterEqual:
-          return (Opcode.LT, false);
-        case ComparisonOperator.EqEqual:
-          return (Opcode.EQ, true);
-        case ComparisonOperator.NotEqual:
-          return (Opcode.EQ, false);
-        case ComparisonOperator.In:
-          return (Opcode.IN, true);
-        default:
-          throw new System.NotImplementedException($"Operator {op} not implemented.");
+    private void EmitComparisonNotification(uint? register, bool result, Range range) {
+      if (!_visualizerCenter.ComparisonPublisher.IsEmpty()) {
+        var cn = new ComparisonNotification(_comparisonInfo.FirstId,
+                                            _comparisonInfo.Ops.ToArray(),
+                                            _comparisonInfo.ValueIds.ToArray(),
+                                            register, result, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(cn), range);
       }
     }
   }

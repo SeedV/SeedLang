@@ -20,6 +20,9 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   using Func = System.Func<uint, Value>;
 
+  // The base class of all notification classes, which are used to store information for VISNOTIFY
+  // instruction. The VM will create the correspding event object based on the information and send
+  // to visualizers.
   internal abstract class Notification {
     protected readonly Range _range;
 
@@ -33,10 +36,11 @@ namespace SeedLang.Interpreter {
   internal class AssignmentNotification : Notification {
     private readonly string _name;
     private readonly VariableType _type;
+    // The constant or register id of the assigned value.
     private readonly uint _valueId;
 
     public override string ToString() {
-      return $"AssignmentNotification: '{_name}': {_type} {_valueId}";
+      return $"AssignmentNotification: '{_name}': {_type} {_valueId} {_range}";
     }
 
     internal AssignmentNotification(string name, VariableType type, uint valueId, Range range) :
@@ -59,7 +63,7 @@ namespace SeedLang.Interpreter {
     private readonly uint _resultId;
 
     public override string ToString() {
-      return $"BinaryNotification: {_leftId} {_op} {_rightId} {_resultId}";
+      return $"BinaryNotification: {_leftId} {_op} {_rightId} {_resultId} {_range}";
     }
 
     internal BinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
@@ -82,7 +86,10 @@ namespace SeedLang.Interpreter {
     private readonly uint _firstId;
     private readonly IReadOnlyList<ComparisonOperator> _ops;
     private readonly IReadOnlyList<uint> _valueIds;
+    // The constant or register id of the result value if it is not null.
     private readonly uint? _resultId;
+    // The boolean result of this comparison expression if _resultId is null. There is no register
+    // to hold the result in this situation. It's implied by the different code execution paths.
     private readonly bool _result;
 
     internal ComparisonNotification(uint firstId, IReadOnlyList<ComparisonOperator> ops,
@@ -104,6 +111,7 @@ namespace SeedLang.Interpreter {
         sb.Append($"{_valueIds[i]} ");
       }
       sb.Append(_resultId.HasValue ? _resultId : _result);
+      sb.Append($" {_range}");
       return sb.ToString();
     }
 
@@ -126,7 +134,7 @@ namespace SeedLang.Interpreter {
     private readonly uint _resultId;
 
     public override string ToString() {
-      return $"UnaryNotification: {_op} {_valueId} {_resultId}";
+      return $"UnaryNotification: {_op} {_valueId} {_resultId} {_range}";
     }
 
     internal UnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) :

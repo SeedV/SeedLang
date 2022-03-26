@@ -39,7 +39,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
           $"  4    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    AssignmentNotification: 'name': Global 0\n"
+          $"  0    AssignmentNotification: 'name': Global 0 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -57,7 +57,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    BinaryNotification: 250 Add 251 1\n"
+          $"  0    BinaryNotification: 250 Add 251 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -80,7 +80,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    ComparisonNotification: 250 Less 251 1\n"
+          $"  0    ComparisonNotification: 250 Less 251 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -97,7 +97,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    UnaryNotification: Negative 250 1\n"
+          $"  0    UnaryNotification: Negative 250 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -123,8 +123,8 @@ namespace SeedLang.Interpreter.Tests {
           $"  8    VISNOTIFY 0 1                                  {_range}\n" +
           $"  9    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    ComparisonNotification: 250 EqEqual 251 True\n" +
-          $"  1    ComparisonNotification: 250 EqEqual 251 False\n"
+          $"  0    ComparisonNotification: 250 EqEqual 251 True {_range}\n" +
+          $"  1    ComparisonNotification: 250 EqEqual 251 False {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -158,8 +158,8 @@ namespace SeedLang.Interpreter.Tests {
           $"  13   CALL      0 1 0                                {_range}\n" +
           $"  14   RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    ComparisonNotification: 250 Less 251 Less 252 True\n" +
-          $"  1    ComparisonNotification: 250 Less 251 Less 252 False\n"
+          $"  0    ComparisonNotification: 250 Less 251 Less 252 True {_range}\n" +
+          $"  1    ComparisonNotification: 250 Less 251 Less 252 False {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -215,14 +215,14 @@ namespace SeedLang.Interpreter.Tests {
           $"  26   CALL      0 1 0                                {_range}\n" +
           $"  27   RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    AssignmentNotification: 'sum': Global 0\n" +
-          $"  1    AssignmentNotification: 'i': Global 0\n" +
-          $"  2    ComparisonNotification: 0 LessEqual 251 True\n" +
-          $"  3    BinaryNotification: 1 Add 2 0\n" +
-          $"  4    AssignmentNotification: 'sum': Global 0\n" +
-          $"  5    BinaryNotification: 1 Add 252 0\n" +
-          $"  6    AssignmentNotification: 'i': Global 0\n" +
-          $"  7    ComparisonNotification: 0 LessEqual 251 False\n"
+          $"  0    AssignmentNotification: 'sum': Global 0 {_range}\n" +
+          $"  1    AssignmentNotification: 'i': Global 0 {_range}\n" +
+          $"  2    ComparisonNotification: 0 LessEqual 251 True {_range}\n" +
+          $"  3    BinaryNotification: 1 Add 2 0 {_range}\n" +
+          $"  4    AssignmentNotification: 'sum': Global 0 {_range}\n" +
+          $"  5    BinaryNotification: 1 Add 252 0 {_range}\n" +
+          $"  6    AssignmentNotification: 'i': Global 0 {_range}\n" +
+          $"  7    ComparisonNotification: 0 LessEqual 251 False {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

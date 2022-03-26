@@ -21,6 +21,9 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
+    // The class to collect comparison information during compilation. The information includes
+    // registers to hold the operand values and operators, which is used to generate comparison
+    // notifications.
     private class ComparisonInfo {
       public uint FirstId;
       public List<ComparisonOperator> Ops = new List<ComparisonOperator>();
@@ -32,8 +35,7 @@ namespace SeedLang.Interpreter {
     private VariableResolver _variableResolver;
     private NestedFuncStack _nestedFuncStack;
     private NestedJumpStack _nestedJumpStack;
-
-    private ComparisonInfo _comparisonInfo = new ComparisonInfo();
+    private ComparisonInfo _comparisonInfo;
 
     // The register allocated for the result of sub-expressions. The getter resets the storage to
     // null after getting the value to make sure the result register is set before visiting each
@@ -82,13 +84,7 @@ namespace SeedLang.Interpreter {
       uint left = VisitExpressionForRKId(binary.Left);
       uint right = VisitExpressionForRKId(binary.Right);
       _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), register, left, right, binary.Range);
-
-      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var bn = new BinaryNotification(left, binary.Op, right, register, binary.Range);
-        uint nIndex = _chunk.AddNotification(bn);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, binary.Range);
-      }
-
+      EmitBinaryNotification(left, binary.Op, right, register, binary.Range);
       _variableResolver.EndExpressionScope();
     }
 
@@ -120,7 +116,8 @@ namespace SeedLang.Interpreter {
         Expression left = comparison.First;
         for (int i = 0; i < comparison.Exprs.Length; i++) {
           _nextBooleanOp = i < comparison.Exprs.Length - 1 ? BooleanOperator.And : nextBooleanOp;
-          VisitSingleComparison(i == 0, left, comparison.Ops[i], comparison.Exprs[i],
+          bool isFirst = i == 0;
+          VisitSingleComparison(isFirst, left, comparison.Ops[i], comparison.Exprs[i],
                                 comparison.Range);
           left = comparison.Exprs[i];
         }
@@ -130,15 +127,9 @@ namespace SeedLang.Interpreter {
     protected override void Visit(UnaryExpression unary) {
       _variableResolver.BeginExpressionScope();
       uint register = _registerForSubExpr;
-      uint expr = VisitExpressionForRKId(unary.Expr);
-      _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
-
-      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
-        var un = new UnaryNotification(unary.Op, expr, register, unary.Range);
-        uint nIndex = _chunk.AddNotification(un);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, unary.Range);
-      }
-
+      uint exprId = VisitExpressionForRKId(unary.Expr);
+      _chunk.Emit(Opcode.UNM, register, exprId, 0, unary.Range);
+      EmitUnaryNotification(unary.Op, exprId, register, unary.Range);
       _variableResolver.EndExpressionScope();
     }
 
@@ -636,14 +627,6 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
-      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var an = new AssignmentNotification(name, type, valueId, range);
-        uint nIndex = _chunk.AddNotification(an);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
-      }
-    }
-
     private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs, Range range) {
       _variableResolver.BeginExpressionScope();
       uint target = _registerForSubExpr;
@@ -747,6 +730,24 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
+      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
+        var an = new AssignmentNotification(name, type, valueId, range);
+        uint nIndex = _chunk.AddNotification(an);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      }
+    }
+
+    private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
+                                        Range range) {
+      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+        var bn = new BinaryNotification(leftId, op, rightId, resultId, range);
+        uint nIndex = _chunk.AddNotification(bn);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      }
+
+    }
+
     private void EmitComparisonNotification(uint? register, bool result, Range range) {
       if (!_visualizerCenter.ComparisonPublisher.IsEmpty()) {
         var cn = new ComparisonNotification(_comparisonInfo.FirstId,
@@ -754,6 +755,13 @@ namespace SeedLang.Interpreter {
                                             _comparisonInfo.ValueIds.ToArray(),
                                             register, result, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(cn), range);
+      }
+    }
+
+    private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
+      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
+        var un = new UnaryNotification(op, valueId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(un), range);
       }
     }
   }

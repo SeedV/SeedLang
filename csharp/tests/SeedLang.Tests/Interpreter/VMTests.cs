@@ -44,7 +44,8 @@ namespace SeedLang.Interpreter.Tests {
 
       (string output, MockupVisualizer visualizer) = Run(expr);
       Assert.Equal("True" + Environment.NewLine, output);
-      Assert.Equal($"{AstHelper.TextRange} 1 In (1, 2) = True\n", visualizer.ToString());
+      Assert.Equal($"{AstHelper.TextRange} 1 In (1, 2) = True" + Environment.NewLine,
+                   visualizer.ToString());
     }
 
     [Fact]

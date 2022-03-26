@@ -22,7 +22,7 @@ namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
     // The class to collect comparison information during compilation. The information includes
-    // registers to hold the operand values and operators, which is used to generate comparison
+    // operators and registers to hold the operand values, which is used to generate comparison
     // notifications.
     private class ComparisonInfo {
       public uint FirstId;
@@ -406,48 +406,6 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
-    private static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {
-      switch (op) {
-        case BinaryOperator.Add:
-          return Opcode.ADD;
-        case BinaryOperator.Subtract:
-          return Opcode.SUB;
-        case BinaryOperator.Multiply:
-          return Opcode.MUL;
-        case BinaryOperator.Divide:
-          return Opcode.DIV;
-        case BinaryOperator.FloorDivide:
-          return Opcode.FLOORDIV;
-        case BinaryOperator.Power:
-          return Opcode.POW;
-        case BinaryOperator.Modulo:
-          return Opcode.MOD;
-        default:
-          throw new System.NotImplementedException($"Operator {op} not implemented.");
-      }
-    }
-
-    private static (Opcode, bool) OpcodeAndCheckFlagOfComparisonOperator(ComparisonOperator op) {
-      switch (op) {
-        case ComparisonOperator.Less:
-          return (Opcode.LT, true);
-        case ComparisonOperator.Greater:
-          return (Opcode.LE, false);
-        case ComparisonOperator.LessEqual:
-          return (Opcode.LE, true);
-        case ComparisonOperator.GreaterEqual:
-          return (Opcode.LT, false);
-        case ComparisonOperator.EqEqual:
-          return (Opcode.EQ, true);
-        case ComparisonOperator.NotEqual:
-          return (Opcode.EQ, false);
-        case ComparisonOperator.In:
-          return (Opcode.IN, true);
-        default:
-          throw new System.NotImplementedException($"Operator {op} not implemented.");
-      }
-    }
-
     private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
       // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
@@ -762,6 +720,48 @@ namespace SeedLang.Interpreter {
       if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
         var un = new UnaryNotification(op, valueId, resultId, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(un), range);
+      }
+    }
+
+    private static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {
+      switch (op) {
+        case BinaryOperator.Add:
+          return Opcode.ADD;
+        case BinaryOperator.Subtract:
+          return Opcode.SUB;
+        case BinaryOperator.Multiply:
+          return Opcode.MUL;
+        case BinaryOperator.Divide:
+          return Opcode.DIV;
+        case BinaryOperator.FloorDivide:
+          return Opcode.FLOORDIV;
+        case BinaryOperator.Power:
+          return Opcode.POW;
+        case BinaryOperator.Modulo:
+          return Opcode.MOD;
+        default:
+          throw new System.NotImplementedException($"Operator {op} not implemented.");
+      }
+    }
+
+    private static (Opcode, bool) OpcodeAndCheckFlagOfComparisonOperator(ComparisonOperator op) {
+      switch (op) {
+        case ComparisonOperator.Less:
+          return (Opcode.LT, true);
+        case ComparisonOperator.Greater:
+          return (Opcode.LE, false);
+        case ComparisonOperator.LessEqual:
+          return (Opcode.LE, true);
+        case ComparisonOperator.GreaterEqual:
+          return (Opcode.LT, false);
+        case ComparisonOperator.EqEqual:
+          return (Opcode.EQ, true);
+        case ComparisonOperator.NotEqual:
+          return (Opcode.EQ, false);
+        case ComparisonOperator.In:
+          return (Opcode.IN, true);
+        default:
+          throw new System.NotImplementedException($"Operator {op} not implemented.");
       }
     }
   }

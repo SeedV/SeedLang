@@ -39,7 +39,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
           $"  4    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    AssignmentNotification 'name': Global 0\n"
+          $"  0    AssignmentNotification: 'name': Global 0\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -160,6 +160,69 @@ namespace SeedLang.Interpreter.Tests {
           $"Notifications\n" +
           $"  0    ComparisonNotification: 250 Less 251 Less 252 True\n" +
           $"  1    ComparisonNotification: 250 Less 251 Less 252 False\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
+    public void TestCompileWhile() {
+      string sum = "sum";
+      string i = "i";
+      var program = AstHelper.Block(
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)), AstHelper.NumberConstant(0)),
+        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)), AstHelper.NumberConstant(0)),
+        AstHelper.While(
+          AstHelper.Comparison(AstHelper.Id(i), AstHelper.CompOps(ComparisonOperator.LessEqual),
+                               AstHelper.NumberConstant(10)),
+          AstHelper.Block(
+            AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)),
+                             AstHelper.Binary(AstHelper.Id(sum), BinaryOperator.Add,
+                                              AstHelper.Id(i))),
+            AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)),
+                             AstHelper.Binary(AstHelper.Id(i), BinaryOperator.Add,
+                                              AstHelper.NumberConstant(1)))
+          )
+        ),
+        AstHelper.ExpressionStmt(AstHelper.Id(sum))
+      );
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; 0                 {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  3    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  4    LOADK     0 -1             ; 0                 {_range}\n" +
+          $"  5    SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
+          $"  6    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  7    GETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
+          $"  8    LE        1 0 -2           ; 10                {_range}\n" +
+          $"  9    JMP       0 13             ; to 23             {_range}\n" +
+          $"  10   VISNOTIFY 0 2                                  {_range}\n" +
+          $"  11   GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  12   GETGLOB   2 {_firstGlob + 1}                                  {_range}\n" +
+          $"  13   ADD       0 1 2                                {_range}\n" +
+          $"  14   VISNOTIFY 0 3                                  {_range}\n" +
+          $"  15   SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  16   VISNOTIFY 0 4                                  {_range}\n" +
+          $"  17   GETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  18   ADD       0 1 -3           ; 1                 {_range}\n" +
+          $"  19   VISNOTIFY 0 5                                  {_range}\n" +
+          $"  20   SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
+          $"  21   VISNOTIFY 0 6                                  {_range}\n" +
+          $"  22   JMP       0 -16            ; to 7              {_range}\n" +
+          $"  23   VISNOTIFY 0 7                                  {_range}\n" +
+          $"  24   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  25   GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  26   CALL      0 1 0                                {_range}\n" +
+          $"  27   RETURN    0 0                                  \n" +
+          $"Notifications\n" +
+          $"  0    AssignmentNotification: 'sum': Global 0\n" +
+          $"  1    AssignmentNotification: 'i': Global 0\n" +
+          $"  2    ComparisonNotification: 0 LessEqual 251 True\n" +
+          $"  3    BinaryNotification: 1 Add 2 0\n" +
+          $"  4    AssignmentNotification: 'sum': Global 0\n" +
+          $"  5    BinaryNotification: 1 Add 252 0\n" +
+          $"  6    AssignmentNotification: 'i': Global 0\n" +
+          $"  7    ComparisonNotification: 0 LessEqual 251 False\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

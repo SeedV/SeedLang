@@ -36,7 +36,7 @@ namespace SeedLang.Interpreter {
     private readonly uint _valueId;
 
     public override string ToString() {
-      return $"AssignmentNotification '{_name}': {_type} {_valueId}";
+      return $"AssignmentNotification: '{_name}': {_type} {_valueId}";
     }
 
     internal AssignmentNotification(string name, VariableType type, uint valueId, Range range) :

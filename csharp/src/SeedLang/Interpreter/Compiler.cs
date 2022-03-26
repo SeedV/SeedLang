@@ -401,11 +401,17 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(WhileStatement @while) {
       _nestedJumpStack.PushFrame();
-      int start = _chunk.Bytecode.Count;
+      int start = GetCurrentCodePos();
       VisitTest(@while.Test);
+      if (!(_comparisonInfo is null)) {
+        EmitComparisonNotification(null, true, @while.Test.Range);
+      }
       Visit(@while.Body);
-      _chunk.Emit(Opcode.JMP, 0, start - (_chunk.Bytecode.Count + 1), @while.Range);
+      _chunk.Emit(Opcode.JMP, 0, start - GetCurrentCodePos() - 1, @while.Range);
       PatchJumps(_nestedJumpStack.FalseJumps);
+      if (!(_comparisonInfo is null)) {
+        EmitComparisonNotification(null, false, @while.Test.Range);
+      }
       _nestedJumpStack.PopFrame();
     }
 

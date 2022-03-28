@@ -39,7 +39,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
           $"  4    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    AssignmentNotification 'name': Global 0\n"
+          $"  0    AssignmentNotification: 'name': Global 0 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -57,7 +57,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    BinaryNotification: 250 Add 251 1\n"
+          $"  0    BinaryNotification: 250 Add 251 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -74,7 +74,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    UnaryNotification: Negative 250 1\n"
+          $"  0    UnaryNotification: Negative 250 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

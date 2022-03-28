@@ -74,28 +74,7 @@ namespace SeedLang.Interpreter {
       uint left = VisitExpressionForRKId(binary.Left);
       uint right = VisitExpressionForRKId(binary.Right);
       _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), register, left, right, binary.Range);
-
-      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var bn = new BinaryNotification(left, binary.Op, right, register, binary.Range);
-        uint nIndex = _chunk.AddNotification(bn);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, binary.Range);
-      }
-
-      _variableResolver.EndExpressionScope();
-    }
-
-    protected override void Visit(UnaryExpression unary) {
-      _variableResolver.BeginExpressionScope();
-      uint register = _registerForSubExpr;
-      uint expr = VisitExpressionForRKId(unary.Expr);
-      _chunk.Emit(Opcode.UNM, register, expr, 0, unary.Range);
-
-      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
-        var un = new UnaryNotification(unary.Op, expr, register, unary.Range);
-        uint nIndex = _chunk.AddNotification(un);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, unary.Range);
-      }
-
+      EmitBinaryNotification(left, binary.Op, right, register, binary.Range);
       _variableResolver.EndExpressionScope();
     }
 
@@ -130,6 +109,15 @@ namespace SeedLang.Interpreter {
           left = comparison.Exprs[i];
         }
       }, comparison.Range);
+    }
+
+    protected override void Visit(UnaryExpression unary) {
+      _variableResolver.BeginExpressionScope();
+      uint register = _registerForSubExpr;
+      uint exprId = VisitExpressionForRKId(unary.Expr);
+      _chunk.Emit(Opcode.UNM, register, exprId, 0, unary.Range);
+      EmitUnaryNotification(unary.Op, exprId, register, unary.Range);
+      _variableResolver.EndExpressionScope();
     }
 
     protected override void Visit(IdentifierExpression identifier) {
@@ -291,10 +279,12 @@ namespace SeedLang.Interpreter {
           uint targetId = _variableResolver.AllocateRegister();
           _chunk.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
           _chunk.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
+          EmitAssignNotification(forIn.Id.Name, VariableType.Global, targetId, forIn.Id.Range);
           _variableResolver.EndExpressionScope();
           break;
         case VariableResolver.VariableType.Local:
           _chunk.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
+          EmitAssignNotification(forIn.Id.Name, VariableType.Local, loopVar.Id, forIn.Id.Range);
           break;
         case VariableResolver.VariableType.Upvalue:
           // TODO: handle upvalues.
@@ -341,18 +331,17 @@ namespace SeedLang.Interpreter {
       Visit(@if.ThenBody);
       if (!(@if.ElseBody is null)) {
         _chunk.Emit(Opcode.JMP, 0, 0, @if.Range);
-        int jumpEnd = GetCurrentCodePos();
+        int jumpEndPos = GetCurrentCodePos();
         PatchJumps(_nestedJumpStack.FalseJumps);
         Visit(@if.ElseBody);
-        PatchJump(jumpEnd);
+        PatchJump(jumpEndPos);
       } else {
         PatchJumps(_nestedJumpStack.FalseJumps);
       }
       _nestedJumpStack.PopFrame();
     }
 
-    protected override void Visit(PassStatement pass) {
-    }
+    protected override void Visit(PassStatement pass) { }
 
     protected override void Visit(ReturnStatement @return) {
       if (@return.Exprs.Length == 0) {
@@ -378,10 +367,10 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(WhileStatement @while) {
       _nestedJumpStack.PushFrame();
-      int start = _chunk.Bytecode.Count;
+      int start = GetCurrentCodePos();
       VisitTest(@while.Test);
       Visit(@while.Body);
-      _chunk.Emit(Opcode.JMP, 0, start - (_chunk.Bytecode.Count + 1), @while.Range);
+      _chunk.Emit(Opcode.JMP, 0, start - GetCurrentCodePos() - 1, @while.Range);
       PatchJumps(_nestedJumpStack.FalseJumps);
       _nestedJumpStack.PopFrame();
     }
@@ -396,13 +385,13 @@ namespace SeedLang.Interpreter {
         _nestedJumpStack.PushFrame();
       }
       action();
-      if (!(register is null)) {
+      if (register.HasValue) {
         PatchJumps(_nestedJumpStack.TrueJumps);
         // Loads True into the register, and increases PC.
-        _chunk.Emit(Opcode.LOADBOOL, register.Value, 1, 1, range);
+        _chunk.Emit(Opcode.LOADBOOL, (uint)register, 1, 1, range);
         PatchJumps(_nestedJumpStack.FalseJumps);
         // Loads False into the register.
-        _chunk.Emit(Opcode.LOADBOOL, register.Value, 0, 0, range);
+        _chunk.Emit(Opcode.LOADBOOL, (uint)register, 0, 0, range);
         _nestedJumpStack.PopFrame();
       }
     }
@@ -558,14 +547,6 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
-      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var an = new AssignmentNotification(name, type, valueId, range);
-        uint nIndex = _chunk.AddNotification(an);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
-      }
-    }
-
     private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs, Range range) {
       _variableResolver.BeginExpressionScope();
       uint target = _registerForSubExpr;
@@ -666,6 +647,31 @@ namespace SeedLang.Interpreter {
           return _constantCache.IdOfConstant(str.Value);
         default:
           return null;
+      }
+    }
+
+    private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
+      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
+        var an = new AssignmentNotification(name, type, valueId, range);
+        uint nIndex = _chunk.AddNotification(an);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      }
+    }
+
+    private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
+                                        Range range) {
+      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+        var bn = new BinaryNotification(leftId, op, rightId, resultId, range);
+        uint nIndex = _chunk.AddNotification(bn);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      }
+    }
+
+    private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
+      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
+        var un = new UnaryNotification(op, valueId, resultId, range);
+        uint nIndex = _chunk.AddNotification(un);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
       }
     }
 

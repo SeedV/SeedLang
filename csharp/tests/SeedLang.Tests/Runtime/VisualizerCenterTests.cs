@@ -58,9 +58,8 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestRegisterVisualizer() {
       (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
-      // visualizerCenter.EvalPublisher.Notify(NewEvalEvent());
       Assert.Null(binaryVisualizer.BinaryEvent);
-      visualizerCenter.BinaryPublisher.Notify(NewBinaryEvent());
+      visualizerCenter.Notify(NewBinaryEvent());
       Assert.NotNull(binaryVisualizer.BinaryEvent);
     }
 
@@ -70,19 +69,16 @@ namespace SeedLang.Runtime.Tests {
           NewMultipleVisualizerCenter();
       Assert.Null(binaryVisualizer.BinaryEvent);
       Assert.Null(multipleVisualizer.BinaryEvent);
-      // Assert.Null(multipleVisualizer.EvalEvent);
-      visualizerCenter.BinaryPublisher.Notify(NewBinaryEvent());
-      // visualizerCenter.EvalPublisher.Notify(NewEvalEvent());
+      visualizerCenter.Notify(NewBinaryEvent());
       Assert.NotNull(binaryVisualizer.BinaryEvent);
       Assert.NotNull(multipleVisualizer.BinaryEvent);
-      // Assert.NotNull(multipleVisualizer.EvalEvent);
     }
 
     [Fact]
     public void TestUnregisterVisualizer() {
       (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
       visualizerCenter.Unregister(binaryVisualizer);
-      visualizerCenter.BinaryPublisher.Notify(NewBinaryEvent());
+      visualizerCenter.Notify(NewBinaryEvent());
       Assert.Null(binaryVisualizer.BinaryEvent);
     }
 

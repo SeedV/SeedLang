@@ -106,10 +106,10 @@ namespace SeedLang.Ast {
                                       ex.Diagnostic.Module, binary.Range,
                                       ex.Diagnostic.MessageId);
       }
-      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+      if (_visualizerCenter.HasVisualizer<BinaryEvent>()) {
         var be = new BinaryEvent(new ValueWrapper(left), binary.Op, new ValueWrapper(right),
                                  new ValueWrapper(_expressionResult), binary.Range);
-        _visualizerCenter.BinaryPublisher.Notify(be);
+        _visualizerCenter.Notify(be);
       }
     }
 
@@ -123,11 +123,11 @@ namespace SeedLang.Ast {
           break;
         }
       }
-      if (!_visualizerCenter.BooleanPublisher.IsEmpty()) {
+      if (_visualizerCenter.HasVisualizer<BooleanEvent>()) {
         var vs = System.Array.ConvertAll(values, value => new ValueWrapper(value));
         var be = new BooleanEvent(boolean.Op, vs, new ValueWrapper(_expressionResult),
                                   boolean.Range);
-        _visualizerCenter.BooleanPublisher.Notify(be);
+        _visualizerCenter.Notify(be);
       }
     }
 
@@ -171,11 +171,11 @@ namespace SeedLang.Ast {
         }
       }
       _expressionResult = new Value(currentResult);
-      if (!_visualizerCenter.ComparisonPublisher.IsEmpty()) {
+      if (_visualizerCenter.HasVisualizer<ComparisonEvent>()) {
         var vs = System.Array.ConvertAll(values, value => new ValueWrapper(value));
         var ce = new ComparisonEvent(new ValueWrapper(first), comparison.Ops, vs,
                                      new ValueWrapper(_expressionResult), comparison.Range);
-        _visualizerCenter.ComparisonPublisher.Notify(ce);
+        _visualizerCenter.Notify(ce);
       }
     }
 
@@ -187,10 +187,10 @@ namespace SeedLang.Ast {
       } else if (unary.Op == UnaryOperator.Not) {
         _expressionResult = new Value(!value.AsBoolean());
       }
-      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
+      if (_visualizerCenter.HasVisualizer<UnaryEvent>()) {
         var ue = new UnaryEvent(unary.Op, new ValueWrapper(value),
                                 new ValueWrapper(_expressionResult), unary.Range);
-        _visualizerCenter.UnaryPublisher.Notify(ue);
+        _visualizerCenter.Notify(ue);
       }
     }
 
@@ -406,7 +406,7 @@ namespace SeedLang.Ast {
           _env.SetVariable(identifier.Name, value);
           var type = _env.InGlobalScope ? VariableType.Global : VariableType.Local;
           var ae = new AssignmentEvent(identifier.Name, type, new ValueWrapper(value), range);
-          _visualizerCenter.AssignmentPublisher.Notify(ae);
+          _visualizerCenter.Notify(ae);
           break;
         case SubscriptExpression subscript:
           Visit(subscript.Expr);

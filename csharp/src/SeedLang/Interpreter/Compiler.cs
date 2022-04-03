@@ -663,43 +663,39 @@ namespace SeedLang.Interpreter {
     }
 
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
-      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
+      if (_visualizerCenter.HasVisualizer<AssignmentEvent>()) {
         var an = new AssignmentNotification(name, type, valueId, range);
-        uint nIndex = _chunk.AddNotification(an);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(an), range);
       }
     }
 
     private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
                                         Range range) {
-      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
+      if (_visualizerCenter.HasVisualizer<BinaryEvent>()) {
         var bn = new BinaryNotification(leftId, op, rightId, resultId, range);
-        uint nIndex = _chunk.AddNotification(bn);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(bn), range);
       }
     }
 
     private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
-      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
+      if (_visualizerCenter.HasVisualizer<UnaryEvent>()) {
         var un = new UnaryNotification(op, valueId, resultId, range);
-        uint nIndex = _chunk.AddNotification(un);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(un), range);
       }
     }
 
     private void EmitVTagEnteredNotification(VTagEnteredNotification.VTagInfo[] vTags,
                                              Range range) {
-      if (!_visualizerCenter.VTagEnteredPublisher.IsEmpty()) {
+      if (_visualizerCenter.HasVisualizer<VTagEnteredEvent>()) {
         var ven = new VTagEnteredNotification(vTags, range);
-        uint nIndex = _chunk.AddNotification(ven);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(ven), range);
       }
     }
 
     private void EmitVTagExitedNotification(Range range) {
-      if (!_visualizerCenter.VTagExitedPublisher.IsEmpty()) {
-        uint nIndex = _chunk.AddNotification(new VTagExitedNotification(range));
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      if (_visualizerCenter.HasVisualizer<VTagExitedEvent>()) {
+        var ven = new VTagExitedNotification(range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(ven), range);
       }
     }
 

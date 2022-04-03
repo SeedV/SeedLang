@@ -106,9 +106,9 @@ namespace SeedLang.Ast {
                                       ex.Diagnostic.Module, binary.Range,
                                       ex.Diagnostic.MessageId);
       }
-      if (_visualizerCenter.HasVisualizer<BinaryEvent>()) {
-        var be = new BinaryEvent(new ValueWrapper(left), binary.Op, new ValueWrapper(right),
-                                 new ValueWrapper(_expressionResult), binary.Range);
+      if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
+        var be = new Event.Binary(new ValueWrapper(left), binary.Op, new ValueWrapper(right),
+                                  new ValueWrapper(_expressionResult), binary.Range);
         _visualizerCenter.Notify(be);
       }
     }
@@ -123,10 +123,10 @@ namespace SeedLang.Ast {
           break;
         }
       }
-      if (_visualizerCenter.HasVisualizer<BooleanEvent>()) {
+      if (_visualizerCenter.HasVisualizer<Event.Boolean>()) {
         var vs = System.Array.ConvertAll(values, value => new ValueWrapper(value));
-        var be = new BooleanEvent(boolean.Op, vs, new ValueWrapper(_expressionResult),
-                                  boolean.Range);
+        var be = new Event.Boolean(boolean.Op, vs, new ValueWrapper(_expressionResult),
+                                   boolean.Range);
         _visualizerCenter.Notify(be);
       }
     }
@@ -171,10 +171,10 @@ namespace SeedLang.Ast {
         }
       }
       _expressionResult = new Value(currentResult);
-      if (_visualizerCenter.HasVisualizer<ComparisonEvent>()) {
+      if (_visualizerCenter.HasVisualizer<Event.Comparison>()) {
         var vs = System.Array.ConvertAll(values, value => new ValueWrapper(value));
-        var ce = new ComparisonEvent(new ValueWrapper(first), comparison.Ops, vs,
-                                     new ValueWrapper(_expressionResult), comparison.Range);
+        var ce = new Event.Comparison(new ValueWrapper(first), comparison.Ops, vs,
+                                      new ValueWrapper(_expressionResult), comparison.Range);
         _visualizerCenter.Notify(ce);
       }
     }
@@ -187,9 +187,9 @@ namespace SeedLang.Ast {
       } else if (unary.Op == UnaryOperator.Not) {
         _expressionResult = new Value(!value.AsBoolean());
       }
-      if (_visualizerCenter.HasVisualizer<UnaryEvent>()) {
-        var ue = new UnaryEvent(unary.Op, new ValueWrapper(value),
-                                new ValueWrapper(_expressionResult), unary.Range);
+      if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
+        var ue = new Event.Unary(unary.Op, new ValueWrapper(value),
+                                 new ValueWrapper(_expressionResult), unary.Range);
         _visualizerCenter.Notify(ue);
       }
     }
@@ -405,7 +405,7 @@ namespace SeedLang.Ast {
         case IdentifierExpression identifier:
           _env.SetVariable(identifier.Name, value);
           var type = _env.InGlobalScope ? VariableType.Global : VariableType.Local;
-          var ae = new AssignmentEvent(identifier.Name, type, new ValueWrapper(value), range);
+          var ae = new Event.Assignment(identifier.Name, type, new ValueWrapper(value), range);
           _visualizerCenter.Notify(ae);
           break;
         case SubscriptExpression subscript:

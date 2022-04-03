@@ -663,7 +663,7 @@ namespace SeedLang.Interpreter {
     }
 
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
-      if (_visualizerCenter.HasVisualizer<AssignmentEvent>()) {
+      if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
         var an = new AssignmentNotification(name, type, valueId, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(an), range);
       }
@@ -671,14 +671,14 @@ namespace SeedLang.Interpreter {
 
     private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
                                         Range range) {
-      if (_visualizerCenter.HasVisualizer<BinaryEvent>()) {
+      if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
         var bn = new BinaryNotification(leftId, op, rightId, resultId, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(bn), range);
       }
     }
 
     private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
-      if (_visualizerCenter.HasVisualizer<UnaryEvent>()) {
+      if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
         var un = new UnaryNotification(op, valueId, resultId, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(un), range);
       }
@@ -686,14 +686,14 @@ namespace SeedLang.Interpreter {
 
     private void EmitVTagEnteredNotification(VTagEnteredNotification.VTagInfo[] vTags,
                                              Range range) {
-      if (_visualizerCenter.HasVisualizer<VTagEnteredEvent>()) {
+      if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
         var ven = new VTagEnteredNotification(vTags, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(ven), range);
       }
     }
 
     private void EmitVTagExitedNotification(Range range) {
-      if (_visualizerCenter.HasVisualizer<VTagExitedEvent>()) {
+      if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
         var ven = new VTagExitedNotification(range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(ven), range);
       }

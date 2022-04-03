@@ -58,15 +58,7 @@ namespace SeedLang.Runtime {
     private readonly Dictionary<Type, object> _publishers = new Dictionary<Type, object>();
 
     internal VisualizerCenter() {
-      var eventTypes = new Type[] {
-        typeof(AssignmentEvent),
-        typeof(BinaryEvent),
-        typeof(BooleanEvent),
-        typeof(ComparisonEvent),
-        typeof(UnaryEvent),
-        typeof(VTagEnteredEvent),
-        typeof(VTagExitedEvent),
-      };
+      Type[] eventTypes = typeof(Event).GetNestedTypes();
       foreach (Type type in eventTypes) {
         Type publisherType = typeof(Publisher<>).MakeGenericType(new Type[] { type });
         _publishers[type] = Activator.CreateInstance(publisherType);
@@ -74,19 +66,11 @@ namespace SeedLang.Runtime {
     }
 
     internal bool HasVisualizer<Event>() {
-      if (_publishers[typeof(Event)] is Publisher<Event> publisher) {
-        return !publisher.IsEmpty();
-      }
-      Debug.Fail($"Add {typeof(Event)} into event array in the constructor.");
-      return false;
+      return !(_publishers[typeof(Event)] as Publisher<Event>).IsEmpty();
     }
 
     internal void Notify<Event>(Event e) {
-      if (_publishers[typeof(Event)] is Publisher<Event> publisher) {
-        publisher.Notify(e);
-      } else {
-        Debug.Fail($"Add {typeof(Event)} into event array in the constructor.");
-      }
+      (_publishers[typeof(Event)] as Publisher<Event>).Notify(e);
     }
 
     // Registers a visualizer into this visualizer center.

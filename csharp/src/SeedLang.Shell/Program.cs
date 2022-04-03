@@ -32,7 +32,8 @@ namespace SeedLang.Shell {
 
       [Option('v', "visualizers", Required = false, Separator = ',',
               HelpText = "The Visualizers to be enabled. " +
-                         "Valid values: Assignment, Binary, Boolean, Comparison, Unary, All.\n" +
+                         "Valid values: Assignment, Binary, Boolean, Comparison, Unary, " +
+                         "VTagEntered, VTagExited, All.\n" +
                          "* Use \"--visualizers=Binary,Comparison\" or \"-v Assignment,Binary\" " +
                          "to enable multiple visualizers.\n" +
                          "* Use \"-v All\" to enable all visualizers.")]

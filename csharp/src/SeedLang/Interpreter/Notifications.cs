@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
-using System.Text;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -51,7 +49,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      var ae = new AssignmentEvent(_name, _type, new ValueWrapper(getRKValue(_valueId)), _range);
+      var ae = new Event.Assignment(_name, _type, new ValueWrapper(getRKValue(_valueId)), _range);
       visualizerCenter.Notify(ae);
     }
   }
@@ -75,9 +73,9 @@ namespace SeedLang.Interpreter {
     }
 
     internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      var be = new BinaryEvent(new ValueWrapper(getRKValue(_leftId)), _op,
-                               new ValueWrapper(getRKValue(_rightId)),
-                               new ValueWrapper(getRKValue(_resultId)), _range);
+      var be = new Event.Binary(new ValueWrapper(getRKValue(_leftId)), _op,
+                                new ValueWrapper(getRKValue(_rightId)),
+                                new ValueWrapper(getRKValue(_resultId)), _range);
       visualizerCenter.Notify(be);
     }
   }
@@ -100,8 +98,8 @@ namespace SeedLang.Interpreter {
     }
 
     internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      var ue = new UnaryEvent(_op, new ValueWrapper(getRKValue(_valueId)),
-                              new ValueWrapper(getRKValue(_resultId)), _range);
+      var ue = new Event.Unary(_op, new ValueWrapper(getRKValue(_valueId)),
+                               new ValueWrapper(getRKValue(_resultId)), _range);
       visualizerCenter.Notify(ue);
     }
   }
@@ -130,11 +128,11 @@ namespace SeedLang.Interpreter {
     }
 
     internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      var vTags = new VTagEnteredEvent.VTagInfo[_vTags.Length];
+      var vTags = new Event.VTagEntered.VTagInfo[_vTags.Length];
       for (int i = 0; i < _vTags.Length; i++) {
-        vTags[i] = new VTagEnteredEvent.VTagInfo(_vTags[i].Name);
+        vTags[i] = new Event.VTagEntered.VTagInfo(_vTags[i].Name);
       }
-      visualizerCenter.Notify(new VTagEnteredEvent(vTags, _range));
+      visualizerCenter.Notify(new Event.VTagEntered(vTags, _range));
     }
   }
 
@@ -148,7 +146,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      visualizerCenter.Notify(new VTagExitedEvent(_range));
+      visualizerCenter.Notify(new Event.VTagExited(_range));
     }
   }
 }

@@ -37,18 +37,18 @@ namespace SeedLang.Runtime.Tests {
     public IValue this[int index] => new ValueWrapper(new Value());
   }
 
-  internal class MockupBinaryVisualizer : IVisualizer<BinaryEvent> {
-    public BinaryEvent BinaryEvent { get; private set; }
+  internal class MockupBinaryVisualizer : IVisualizer<Event.Binary> {
+    public Event.Binary BinaryEvent { get; private set; }
 
-    public void On(BinaryEvent be) {
+    public void On(Event.Binary be) {
       BinaryEvent = be;
     }
   }
 
-  internal class MockupMultipleVisualizer : IVisualizer<BinaryEvent> {
-    public BinaryEvent BinaryEvent { get; private set; }
+  internal class MockupMultipleVisualizer : IVisualizer<Event.Binary> {
+    public Event.Binary BinaryEvent { get; private set; }
 
-    public void On(BinaryEvent be) {
+    public void On(Event.Binary be) {
       BinaryEvent = be;
     }
   }
@@ -98,9 +98,9 @@ namespace SeedLang.Runtime.Tests {
       return new MultipleVisualizerCenter(visualizerCenter, binaryVisualizer, multipleVisualizer);
     }
 
-    private static BinaryEvent NewBinaryEvent() {
-      return new BinaryEvent(new MockupValue(), BinaryOperator.Add, new MockupValue(),
-                             new MockupValue(), new TextRange(0, 1, 2, 3));
+    private static Event.Binary NewBinaryEvent() {
+      return new Event.Binary(new MockupValue(), BinaryOperator.Add, new MockupValue(),
+                              new MockupValue(), new TextRange(0, 1, 2, 3));
     }
   }
 }

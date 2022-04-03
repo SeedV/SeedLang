@@ -108,7 +108,7 @@ namespace SeedLang.X {
         _addTrailingNewline = false;
       }
       // Ignores all indents, dedents and line breaks when inside brackets or on a blank line.
-      if (_opened == 0 && next != '#' && !IsNewline((char)next)) {
+      if (_opened == 0 && !IsNewline((char)next)) {
         int indent = GetIndentationCount(Text.Substring(spacesStart));
         int previous = _indents.Count == 0 ? 0 : _indents.Peek();
         if (indent == previous) {

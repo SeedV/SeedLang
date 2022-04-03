@@ -155,10 +155,13 @@ namespace SeedLang.X {
         var lexer = new SeedPythonLexer(inputStream);
         var tokens = lexer.GetAllTokens();
         if (tokens.Count > 0 && tokens[0].Type == SeedPythonParser.VTAG_START) {
-          foreach (IToken token in tokens) {
-            _tokens.Enqueue(CommonToken(token.Type, comment.StartIndex + token.StartIndex + 1,
-                                        comment.StartIndex + token.StopIndex + 1, comment.Line,
-                                        comment.Column + token.StartIndex + 1, token.Text));
+          for (int i = 0; i < tokens.Count; i++) {
+            int start = i == 0 ? comment.StartIndex : comment.StartIndex + tokens[i].StartIndex + 1;
+            int column = i == 0 ? comment.Column : comment.Column + tokens[i].StartIndex + 1;
+            string text = i == 0 ? "# " + tokens[i].Text : tokens[i].Text;
+            _tokens.Enqueue(CommonToken(tokens[i].Type, start,
+                                        comment.StartIndex + tokens[i].StopIndex + 1, comment.Line,
+                                        column, text));
           }
         }
       }

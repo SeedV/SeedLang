@@ -36,7 +36,7 @@ namespace SeedLang.X.Tests {
     public void TestVTag() {
       string source = "# [[ Swap ]]\nprint(1)";
       var expectedTokens = new string[] {
-          $"[@-1,2:3='[[',<{SeedPythonParser.VTAG_START}>,1:2]",
+          $"[@-1,0:3='# [[',<{SeedPythonParser.VTAG_START}>,1:0]",
           $"[@-1,5:8='Swap',<{SeedPythonParser.NAME}>,1:5]",
           $"[@-1,10:11=']]',<{SeedPythonParser.VTAG_END}>,1:10]",
           $"[@-1,12:12='\\n',<{SeedPythonParser.NEWLINE}>,1:12]",

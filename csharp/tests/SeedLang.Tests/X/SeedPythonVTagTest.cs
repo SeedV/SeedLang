@@ -23,10 +23,11 @@ namespace SeedLang.X.Tests {
     [Fact]
     public void TestVTag() {
       string source = "# [[ Swap ]]\nprint(1)";
-      string expected = "[Ln 2, Col 0 - Ln 2, Col 7] ExpressionStatement\n" +
-                        "  [Ln 2, Col 0 - Ln 2, Col 7] CallExpression\n" +
-                        "    [Ln 2, Col 0 - Ln 2, Col 4] IdentifierExpression (print)\n" +
-                        "    [Ln 2, Col 6 - Ln 2, Col 6] NumberConstantExpression (1)";
+      string expected = "[Ln 1, Col 0 - Ln 2, Col 7] VTagStatement (Swap)\n" +
+                        "  [Ln 2, Col 0 - Ln 2, Col 7] ExpressionStatement\n" +
+                        "    [Ln 2, Col 0 - Ln 2, Col 7] CallExpression\n" +
+                        "      [Ln 2, Col 0 - Ln 2, Col 4] IdentifierExpression (print)\n" +
+                        "      [Ln 2, Col 6 - Ln 2, Col 6] NumberConstantExpression (1)";
       string expectedTokens = "Variable [Ln 2, Col 0 - Ln 2, Col 4]," +
                               "OpenParenthesis [Ln 2, Col 5 - Ln 2, Col 5]," +
                               "Number [Ln 2, Col 6 - Ln 2, Col 6]," +

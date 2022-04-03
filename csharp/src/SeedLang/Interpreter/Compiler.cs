@@ -375,6 +375,8 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
+    protected override void Visit(VTagStatement vtag) { }
+
     private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
       // boolean or comparison expression is a sub-expression of other expressions, otherwise it is

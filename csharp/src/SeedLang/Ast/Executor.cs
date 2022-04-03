@@ -364,6 +364,8 @@ namespace SeedLang.Ast {
       }
     }
 
+    protected override void Visit(VTagStatement vtag) { }
+
     private void Pack(Expression[] targets, Expression[] exprs, Range range) {
       var builder = ImmutableArray.CreateBuilder<Value>(exprs.Length);
       for (int i = 0; i < exprs.Length; i++) {

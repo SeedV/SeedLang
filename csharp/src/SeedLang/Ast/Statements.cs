@@ -66,6 +66,12 @@ namespace SeedLang.Ast {
       return new WhileStatement(test, body, range);
     }
 
+    // The factory method to create a VTag statement.
+    internal static VTagStatement VTag(VTagStatement.VTagInfo[] vtags, Statement[] statements,
+                                       Range range) {
+      return new VTagStatement(vtags, statements, range);
+    }
+
     internal Statement(Range range) : base(range) { }
   }
 
@@ -159,6 +165,30 @@ namespace SeedLang.Ast {
     internal WhileStatement(Expression test, Statement body, Range range) : base(range) {
       Test = test;
       Body = body;
+    }
+  }
+
+  internal class VTagStatement : Statement {
+    internal class VTagInfo {
+      public string Name { get; }
+      public string[] Parameters { get; }
+
+      internal VTagInfo(string name, string[] parameters) {
+        Name = name;
+        Parameters = parameters;
+      }
+
+      public override string ToString() {
+        return $"{Name}";
+      }
+    }
+
+    public VTagInfo[] VTags { get; }
+    public Statement[] Statements { get; }
+
+    internal VTagStatement(VTagInfo[] vtags, Statement[] statements, Range range) : base(range) {
+      VTags = vtags;
+      Statements = statements;
     }
   }
 }

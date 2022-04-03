@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 
@@ -23,9 +24,9 @@ namespace SeedLang.X {
   // The indent and dedent tokens cannot be expressed as ANTLR4 grammar. The newline and spaces need
   // be scanned to generate indent and dedent tokens.
   internal class SeedPythonDentLexer : SeedPythonLexer {
-    // A linked list to store multiple tokens, because the original ANTLR4 lexer can only generate
-    // one token at the same time.
-    private readonly LinkedList<IToken> _tokens = new LinkedList<IToken>();
+    // A queue to store multiple tokens, because the original ANTLR4 lexer can only generate one
+    // token at the same time.
+    private readonly Queue<IToken> _tokens = new Queue<IToken>();
     // The stack that keeps track of the indentation level.
     private readonly Stack<int> _indents = new Stack<int>();
     // The amount of opened braces, brackets and parenthesis.
@@ -35,12 +36,11 @@ namespace SeedLang.X {
     // A flag to indicate if an extra trailing newline is needed before EOF.
     private bool _addTrailingNewline = true;
 
-    public SeedPythonDentLexer(ICharStream input) : base(input) {
-    }
+    public SeedPythonDentLexer(ICharStream input) : base(input) { }
 
     public override IToken NextToken() {
-      if (TryPopFirstToken(out IToken first)) {
-        return first;
+      if (_tokens.Count > 0) {
+        return _tokens.Dequeue();
       }
       while (_tokens.Count == 0) {
         IToken currentToken = base.NextToken();
@@ -67,12 +67,15 @@ namespace SeedLang.X {
           case SeedPythonParser.Eof:
             HandleEof(currentToken);
             break;
+          case SeedPythonParser.COMMENT:
+            ScanVTag(currentToken);
+            break;
           default:
             EmitToken(currentToken);
             break;
         }
       }
-      return PopFirstToken();
+      return _tokens.Dequeue();
     }
 
     public override void Reset() {
@@ -145,19 +148,20 @@ namespace SeedLang.X {
       EmitToken(eofToken);
     }
 
-    private bool TryPopFirstToken(out IToken first) {
-      if (_tokens.Count == 0) {
-        first = null;
-        return false;
+    private void ScanVTag(IToken comment) {
+      if (comment.Text.Length > 1) {
+        Debug.Assert(comment.Text[0] == '#');
+        var inputStream = new AntlrInputStream(comment.Text.Substring(1));
+        var lexer = new SeedPythonLexer(inputStream);
+        var tokens = lexer.GetAllTokens();
+        if (tokens.Count > 0 && tokens[0].Type == SeedPythonParser.VTAG_START) {
+          foreach (IToken token in tokens) {
+            _tokens.Enqueue(CommonToken(token.Type, comment.StartIndex + token.StartIndex + 1,
+                                        comment.StartIndex + token.StopIndex + 1, comment.Line,
+                                        comment.Column + token.StartIndex + 1, token.Text));
+          }
+        }
       }
-      first = PopFirstToken();
-      return true;
-    }
-
-    private IToken PopFirstToken() {
-      IToken first = _tokens.First.Value;
-      _tokens.RemoveFirst();
-      return first;
     }
 
     private static bool IsNewline(char ch) {
@@ -165,7 +169,7 @@ namespace SeedLang.X {
     }
 
     private void EmitToken(IToken token) {
-      _tokens.AddLast(token);
+      _tokens.Enqueue(token);
     }
 
     private CommonToken CommonToken(int type, int start, int stop) {

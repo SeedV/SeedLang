@@ -33,6 +33,23 @@ namespace SeedLang.X.Tests {
     }
 
     [Fact]
+    public void TestVTag() {
+      string source = "# [[ Swap ]]\nprint(1)";
+      var expectedTokens = new string[] {
+          $"[@-1,2:3='[[',<{SeedPythonParser.VTAG_START}>,1:2]",
+          $"[@-1,5:8='Swap',<{SeedPythonParser.NAME}>,1:5]",
+          $"[@-1,10:11=']]',<{SeedPythonParser.VTAG_END}>,1:10]",
+          $"[@-1,12:12='\\n',<{SeedPythonParser.NEWLINE}>,1:12]",
+          $"[@-1,13:17='print',<{SeedPythonParser.NAME}>,2:0]",
+          $"[@-1,18:18='(',<{SeedPythonParser.OPEN_PAREN}>,2:5]",
+          $"[@-1,19:19='1',<{SeedPythonParser.NUMBER}>,2:6]",
+          $"[@-1,20:20=')',<{SeedPythonParser.CLOSE_PAREN}>,2:7]",
+          $"[@-1,21:21='\\n',<{SeedPythonParser.NEWLINE}>,2:8]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
     public void TestExpressionStatement() {
       string source = "1 + 2\n";
       var expectedTokens = new string[] {

@@ -105,4 +105,50 @@ namespace SeedLang.Interpreter {
       visualizerCenter.UnaryPublisher.Notify(ue);
     }
   }
+
+  internal class VTagEnteredNotification : Notification {
+    internal class VTagInfo {
+      public string Name { get; }
+
+      internal VTagInfo(string name) {
+        Name = name;
+      }
+
+      public override string ToString() {
+        return $"{Name}";
+      }
+    }
+
+    private readonly VTagInfo[] _vTags;
+
+    public override string ToString() {
+      return $"VTagEnteredNotification: {string.Join<VTagInfo>(",", _vTags)} {_range}";
+    }
+
+    internal VTagEnteredNotification(VTagInfo[] vTags, Range range) : base(range) {
+      _vTags = vTags;
+    }
+
+    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      var vTags = new VTagEnteredEvent.VTagInfo[_vTags.Length];
+      for (int i = 0; i < _vTags.Length; i++) {
+        vTags[i] = new VTagEnteredEvent.VTagInfo(_vTags[i].Name);
+      }
+      visualizerCenter.VTagEnteredPublisher.Notify(new VTagEnteredEvent(vTags, _range));
+    }
+  }
+
+  internal class VTagExitedNotification : Notification {
+
+    public override string ToString() {
+      return $"VTagExitedNotification: {_range}";
+    }
+
+    internal VTagExitedNotification(Range range) : base(range) {
+    }
+
+    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      visualizerCenter.VTagExitedPublisher.Notify(new VTagExitedEvent(_range));
+    }
+  }
 }

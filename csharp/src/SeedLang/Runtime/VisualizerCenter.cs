@@ -25,6 +25,10 @@ namespace SeedLang.Runtime {
     public Publisher<UnaryEvent> UnaryPublisher { get; } = new Publisher<UnaryEvent>();
     public Publisher<AssignmentEvent> AssignmentPublisher { get; } =
         new Publisher<AssignmentEvent>();
+    public Publisher<VTagEnteredEvent> VTagEnteredPublisher { get; } =
+        new Publisher<VTagEnteredEvent>();
+    public Publisher<VTagExitedEvent> VTagExitedPublisher { get; } =
+        new Publisher<VTagExitedEvent>();
 
     private readonly List<object> _publishers = new List<object>();
 

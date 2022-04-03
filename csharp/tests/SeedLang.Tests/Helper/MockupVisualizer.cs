@@ -19,12 +19,15 @@ using SeedLang.Runtime;
 namespace SeedLang.Tests.Helper {
   internal class MockupVisualizer : IVisualizer<AssignmentEvent>, IVisualizer<BinaryEvent>,
                                     IVisualizer<BooleanEvent>, IVisualizer<ComparisonEvent>,
-                                    IVisualizer<UnaryEvent> {
+                                    IVisualizer<UnaryEvent>, IVisualizer<VTagEnteredEvent>,
+                                    IVisualizer<VTagExitedEvent> {
     private readonly List<AssignmentEvent> _assignEvents = new List<AssignmentEvent>();
     private readonly List<BinaryEvent> _binaryEvents = new List<BinaryEvent>();
     private readonly List<BooleanEvent> _booleanEvents = new List<BooleanEvent>();
     private readonly List<ComparisonEvent> _comparisonEvents = new List<ComparisonEvent>();
     private readonly List<UnaryEvent> _unaryEvents = new List<UnaryEvent>();
+    private readonly List<VTagEnteredEvent> _vTagEnteredEvents = new List<VTagEnteredEvent>();
+    private readonly List<VTagExitedEvent> _vTagExitedEvents = new List<VTagExitedEvent>();
 
     public override string ToString() {
       var sb = new StringBuilder();
@@ -33,6 +36,8 @@ namespace SeedLang.Tests.Helper {
       BooleanEventsToString(sb);
       ComparisonEventsToString(sb);
       UnaryEventsToString(sb);
+      VTagEnteredEventsToString(sb);
+      VTagExitedEventsToString(sb);
       return sb.ToString();
     }
 
@@ -54,6 +59,14 @@ namespace SeedLang.Tests.Helper {
 
     public void On(UnaryEvent ue) {
       _unaryEvents.Add(ue);
+    }
+
+    public void On(VTagEnteredEvent vee) {
+      _vTagEnteredEvents.Add(vee);
+    }
+
+    public void On(VTagExitedEvent vee) {
+      _vTagExitedEvents.Add(vee);
     }
 
     internal string AssignmentEventsToString() {
@@ -125,6 +138,18 @@ namespace SeedLang.Tests.Helper {
     private void UnaryEventsToString(StringBuilder sb) {
       foreach (var ue in _unaryEvents) {
         sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");
+      }
+    }
+
+    private void VTagEnteredEventsToString(StringBuilder sb) {
+      foreach (var vee in _vTagEnteredEvents) {
+        sb.AppendLine($"{vee.Range} {string.Join<VTagEnteredEvent.VTagInfo>(",", vee.VTags)}");
+      }
+    }
+
+    private void VTagExitedEventsToString(StringBuilder sb) {
+      foreach (var vee in _vTagExitedEvents) {
+        sb.AppendLine($"{vee.Range}");
       }
     }
   }

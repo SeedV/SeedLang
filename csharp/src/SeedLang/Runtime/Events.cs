@@ -112,4 +112,26 @@ namespace SeedLang.Runtime {
       Value = value;
     }
   }
+
+  // An event which is triggered when a VTag scope is entered.
+  public class VTagEnteredEvent : AbstractEvent {
+    public class VTagInfo {
+      public string Name { get; }
+
+      public VTagInfo(string name) {
+        Name = name;
+      }
+    }
+
+    public VTagInfo[] VTags { get; }
+
+    public VTagEnteredEvent(VTagInfo[] vTags, Range range) : base(range) {
+      VTags = vTags;
+    }
+  }
+
+  // An event which is triggered when a VTag scope is exited.
+  public class VTagExitedEvent : AbstractEvent {
+    public VTagExitedEvent(Range range) : base(range) { }
+  }
 }

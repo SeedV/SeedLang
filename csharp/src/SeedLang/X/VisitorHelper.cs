@@ -386,15 +386,15 @@ namespace SeedLang.X {
         return visitor.Visit(statementContexts[0]);
       }
       var statements = new List<Statement>();
-      VTagStatement vtag = null;
+      VTagStatement vTag = null;
       foreach (ParserRuleContext context in statementContexts) {
         var statement = visitor.Visit(context) as Statement;
-        if (statement is VTagStatement vtagStatement) {
-          vtag = vtagStatement;
-        } else if (!(vtag is null)) {
-          Range range = CodeReferenceUtils.CombineRanges(vtag.Range as TextRange,
+        if (statement is VTagStatement vTagStatement) {
+          vTag = vTagStatement;
+        } else if (!(vTag is null)) {
+          Range range = CodeReferenceUtils.CombineRanges(vTag.Range as TextRange,
                                                          statement.Range as TextRange);
-          statements.Add(new VTagStatement(vtag.VTags, new Statement[] { statement }, range));
+          statements.Add(new VTagStatement(vTag.VTags, new Statement[] { statement }, range));
         } else {
           statements.Add(statement);
         }
@@ -574,15 +574,15 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds vtag statements.
+    // Builds VTag statements.
     internal AstNode BuildVTag(IToken startToken, IToken name, IToken endToken) {
       TextRange startRange = CodeReferenceUtils.RangeOfToken(startToken);
       TextRange endRange = CodeReferenceUtils.RangeOfToken(endToken);
       TextRange range = CodeReferenceUtils.CombineRanges(startRange, endRange);
-      var vtags = new VTagStatement.VTagInfo[1] {
+      var vTags = new VTagStatement.VTagInfo[1] {
         new VTagStatement.VTagInfo(name.Text, System.Array.Empty<string>())
       };
-      return Statement.VTag(vtags, null, range);
+      return Statement.VTag(vTags, null, range);
     }
 
     private static AstNode BuildBlock(Statement[] statements) {

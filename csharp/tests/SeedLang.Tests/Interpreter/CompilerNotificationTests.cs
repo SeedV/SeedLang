@@ -79,6 +79,33 @@ namespace SeedLang.Interpreter.Tests {
       TestCompiler(program, expected, RunMode.Interactive);
     }
 
+    [Fact]
+    public void TestCompileVTag() {
+      var vTagInfo = new VTagStatement.VTagInfo[] {
+          new VTagStatement.VTagInfo("Add", Array.Empty<string>())
+      };
+      var program = AstHelper.VTag(vTagInfo, AstHelper.ExpressionStmt(
+          AstHelper.Binary(AstHelper.NumberConstant(1),
+                           BinaryOperator.Add,
+                           AstHelper.NumberConstant(2))
+      ));
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  2    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  3    ADD       1 -1 -2          ; 1 2               {_range}\n" +
+          $"  4    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  5    CALL      0 1 0                                {_range}\n" +
+          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
+          $"  7    RETURN    0 0                                  \n" +
+          $"Notifications\n" +
+          $"  0    VTagEnteredNotification: Add {_range}\n" +
+          $"  1    BinaryNotification: 250 Add 251 1 {_range}\n" +
+          $"  2    VTagExitedNotification: {_range}\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
     private static void TestCompiler(AstNode node, string expected, RunMode mode) {
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var vc = new VisualizerCenter();

@@ -375,7 +375,17 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
-    protected override void Visit(VTagStatement vtag) { }
+    protected override void Visit(VTagStatement vTag) {
+      var vTags = new VTagEnteredNotification.VTagInfo[vTag.VTags.Length];
+      for (int i = 0; i < vTag.VTags.Length; i++) {
+        vTags[i] = new VTagEnteredNotification.VTagInfo(vTag.VTags[i].Name);
+      }
+      EmitVTagEnteredNotification(vTags, vTag.Range);
+      foreach (Statement statement in vTag.Statements) {
+        Visit(statement);
+      }
+      EmitVTagExitedNotification(vTag.Range);
+    }
 
     private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
@@ -673,6 +683,22 @@ namespace SeedLang.Interpreter {
       if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
         var un = new UnaryNotification(op, valueId, resultId, range);
         uint nIndex = _chunk.AddNotification(un);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      }
+    }
+
+    private void EmitVTagEnteredNotification(VTagEnteredNotification.VTagInfo[] vTags,
+                                             Range range) {
+      if (!_visualizerCenter.VTagEnteredPublisher.IsEmpty()) {
+        var ven = new VTagEnteredNotification(vTags, range);
+        uint nIndex = _chunk.AddNotification(ven);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      }
+    }
+
+    private void EmitVTagExitedNotification(Range range) {
+      if (!_visualizerCenter.VTagExitedPublisher.IsEmpty()) {
+        uint nIndex = _chunk.AddNotification(new VTagExitedNotification(range));
         _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
       }
     }

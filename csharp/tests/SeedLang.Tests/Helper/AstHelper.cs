@@ -129,5 +129,10 @@ namespace SeedLang.Tests.Helper {
     internal static WhileStatement While(Expression test, Statement body) {
       return Statement.While(test, body, TextRange);
     }
+
+    internal static VTagStatement VTag(VTagStatement.VTagInfo[] vTagInfo,
+                                       params Statement[] statements) {
+      return Statement.VTag(vTagInfo, statements, TextRange);
+    }
   }
 }

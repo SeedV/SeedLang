@@ -67,9 +67,9 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a VTag statement.
-    internal static VTagStatement VTag(VTagStatement.VTagInfo[] vtags, Statement[] statements,
+    internal static VTagStatement VTag(VTagStatement.VTagInfo[] vTags, Statement[] statements,
                                        Range range) {
-      return new VTagStatement(vtags, statements, range);
+      return new VTagStatement(vTags, statements, range);
     }
 
     internal Statement(Range range) : base(range) { }
@@ -186,8 +186,8 @@ namespace SeedLang.Ast {
     public VTagInfo[] VTags { get; }
     public Statement[] Statements { get; }
 
-    internal VTagStatement(VTagInfo[] vtags, Statement[] statements, Range range) : base(range) {
-      VTags = vtags;
+    internal VTagStatement(VTagInfo[] vTags, Statement[] statements, Range range) : base(range) {
+      VTags = vTags;
       Statements = statements;
     }
   }

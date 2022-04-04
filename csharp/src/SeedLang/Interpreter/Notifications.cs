@@ -18,93 +18,96 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   using Func = System.Func<uint, Value>;
 
-  // The base class of all notification classes, which are used to store information for VISNOTIFY
-  // instruction. The VM will create the correspding event object based on the information and send
-  // to visualizers.
-  internal abstract class Notification {
-    protected readonly Range _range;
+  internal static class Notification {
+    // The base class of all notification classes, which are used to store information for VISNOTIFY
+    // instruction. The VM will create the correspding event object based on the information and
+    // send to visualizers.
+    internal abstract class AbstractNotification {
+      protected readonly Range _range;
 
-    internal Notification(Range range) {
-      _range = range;
+      internal AbstractNotification(Range range) {
+        _range = range;
+      }
+
+      internal abstract void Notify(VisualizerCenter visualizerCenter, Func getRKValue);
     }
 
-    internal abstract void Notify(VisualizerCenter visualizerCenter, Func getRKValue);
-  }
+    internal class Assignment : AbstractNotification {
+      private readonly string _name;
+      private readonly VariableType _type;
+      // The constant or register id of the assigned value.
+      private readonly uint _valueId;
 
-  internal class AssignmentNotification : Notification {
-    private readonly string _name;
-    private readonly VariableType _type;
-    // The constant or register id of the assigned value.
-    private readonly uint _valueId;
+      public override string ToString() {
+        return $"Notification.Assignment: '{_name}': {_type} {_valueId} {_range}";
+      }
 
-    public override string ToString() {
-      return $"AssignmentNotification: '{_name}': {_type} {_valueId} {_range}";
+      internal Assignment(string name, VariableType type, uint valueId, Range range) :
+          base(range) {
+        _name = name;
+        _type = type;
+        _valueId = valueId;
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+        var ae = new Event.Assignment(_name, _type, new ValueWrapper(getRKValue(_valueId)), _range);
+        visualizerCenter.Notify(ae);
+      }
     }
 
-    internal AssignmentNotification(string name, VariableType type, uint valueId, Range range) :
-        base(range) {
-      _name = name;
-      _type = type;
-      _valueId = valueId;
+    internal class Binary : AbstractNotification {
+      private readonly uint _leftId;
+      private readonly BinaryOperator _op;
+      private readonly uint _rightId;
+      private readonly uint _resultId;
+
+      public override string ToString() {
+        return $"Notification.Binary: {_leftId} {_op} {_rightId} {_resultId} {_range}";
+      }
+
+      internal Binary(uint leftId, BinaryOperator op, uint rightId, uint resultId,
+                                  Range range) : base(range) {
+        _leftId = leftId;
+        _op = op;
+        _rightId = rightId;
+        _resultId = resultId;
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+        var be = new Event.Binary(new ValueWrapper(getRKValue(_leftId)), _op,
+                                  new ValueWrapper(getRKValue(_rightId)),
+                                  new ValueWrapper(getRKValue(_resultId)), _range);
+        visualizerCenter.Notify(be);
+      }
     }
 
-    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      var ae = new Event.Assignment(_name, _type, new ValueWrapper(getRKValue(_valueId)), _range);
-      visualizerCenter.Notify(ae);
-    }
-  }
 
-  internal class BinaryNotification : Notification {
-    private readonly uint _leftId;
-    private readonly BinaryOperator _op;
-    private readonly uint _rightId;
-    private readonly uint _resultId;
+    internal class Unary : AbstractNotification {
+      private readonly UnaryOperator _op;
+      private readonly uint _valueId;
+      private readonly uint _resultId;
 
-    public override string ToString() {
-      return $"BinaryNotification: {_leftId} {_op} {_rightId} {_resultId} {_range}";
-    }
+      public override string ToString() {
+        return $"Notification.Unary: {_op} {_valueId} {_resultId} {_range}";
+      }
 
-    internal BinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
-                                Range range) : base(range) {
-      _leftId = leftId;
-      _op = op;
-      _rightId = rightId;
-      _resultId = resultId;
-    }
+      internal Unary(UnaryOperator op, uint valueId, uint resultId, Range range) :
+          base(range) {
+        _op = op;
+        _valueId = valueId;
+        _resultId = resultId;
+      }
 
-    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      var be = new Event.Binary(new ValueWrapper(getRKValue(_leftId)), _op,
-                                new ValueWrapper(getRKValue(_rightId)),
-                                new ValueWrapper(getRKValue(_resultId)), _range);
-      visualizerCenter.Notify(be);
-    }
-  }
-
-
-  internal class UnaryNotification : Notification {
-    private readonly UnaryOperator _op;
-    private readonly uint _valueId;
-    private readonly uint _resultId;
-
-    public override string ToString() {
-      return $"UnaryNotification: {_op} {_valueId} {_resultId} {_range}";
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+        var ue = new Event.Unary(_op, new ValueWrapper(getRKValue(_valueId)),
+                                 new ValueWrapper(getRKValue(_resultId)), _range);
+        visualizerCenter.Notify(ue);
+      }
     }
 
-    internal UnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) :
-        base(range) {
-      _op = op;
-      _valueId = valueId;
-      _resultId = resultId;
-    }
-
-    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      var ue = new Event.Unary(_op, new ValueWrapper(getRKValue(_valueId)),
-                               new ValueWrapper(getRKValue(_resultId)), _range);
-      visualizerCenter.Notify(ue);
-    }
-  }
-
-  internal class VTagEnteredNotification : Notification {
+    // TODO: add properties for parameter information. This class is different from Event.VTagInfo,
+    // because only register or constant ids can be get for parameters during compilation. The final
+    // result value of each parameter can be get during execution, and set into the Event.VTagInfo.
     internal class VTagInfo {
       public string Name { get; }
 
@@ -117,36 +120,38 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private readonly VTagInfo[] _vTags;
+    internal class VTagEntered : AbstractNotification {
+      private readonly VTagInfo[] _vTags;
 
-    public override string ToString() {
-      return $"VTagEnteredNotification: {string.Join<VTagInfo>(",", _vTags)} {_range}";
-    }
-
-    internal VTagEnteredNotification(VTagInfo[] vTags, Range range) : base(range) {
-      _vTags = vTags;
-    }
-
-    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      var vTags = new Event.VTagEntered.VTagInfo[_vTags.Length];
-      for (int i = 0; i < _vTags.Length; i++) {
-        vTags[i] = new Event.VTagEntered.VTagInfo(_vTags[i].Name);
+      public override string ToString() {
+        return $"Notification.VTagEntered: {string.Join<VTagInfo>(",", _vTags)} {_range}";
       }
-      visualizerCenter.Notify(new Event.VTagEntered(vTags, _range));
-    }
-  }
 
-  internal class VTagExitedNotification : Notification {
+      internal VTagEntered(VTagInfo[] vTags, Range range) : base(range) {
+        _vTags = vTags;
+      }
 
-    public override string ToString() {
-      return $"VTagExitedNotification: {_range}";
-    }
-
-    internal VTagExitedNotification(Range range) : base(range) {
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+        var vTags = System.Array.ConvertAll(_vTags, vTag => new Event.VTagInfo(vTag.Name));
+        visualizerCenter.Notify(new Event.VTagEntered(vTags, _range));
+      }
     }
 
-    internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-      visualizerCenter.Notify(new Event.VTagExited(_range));
+    internal class VTagExited : AbstractNotification {
+      private readonly VTagInfo[] _vTags;
+
+      public override string ToString() {
+        return $"Notification.VTagExited: {string.Join<VTagInfo>(",", _vTags)} {_range}";
+      }
+
+      internal VTagExited(VTagInfo[] vTags, Range range) : base(range) {
+        _vTags = vTags;
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+        var vTags = System.Array.ConvertAll(_vTags, vTag => new Event.VTagInfo(vTag.Name));
+        visualizerCenter.Notify(new Event.VTagExited(vTags, _range));
+      }
     }
   }
 }

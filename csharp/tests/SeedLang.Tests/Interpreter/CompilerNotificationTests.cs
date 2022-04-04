@@ -39,7 +39,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
           $"  4    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    AssignmentNotification: 'name': Global 0 {_range}\n"
+          $"  0    Notification.Assignment: 'name': Global 0 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -57,7 +57,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    BinaryNotification: 250 Add 251 1 {_range}\n"
+          $"  0    Notification.Binary: 250 Add 251 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -74,7 +74,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    UnaryNotification: Negative 250 1 {_range}\n"
+          $"  0    Notification.Unary: Negative 250 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -82,7 +82,7 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestCompileVTag() {
       var vTagInfo = new VTagStatement.VTagInfo[] {
-          new VTagStatement.VTagInfo("Add", Array.Empty<string>())
+          new VTagStatement.VTagInfo("Add", Array.Empty<Expression>())
       };
       var program = AstHelper.VTag(vTagInfo, AstHelper.ExpressionStmt(
           AstHelper.Binary(AstHelper.NumberConstant(1),
@@ -99,9 +99,9 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    VISNOTIFY 0 2                                  {_range}\n" +
           $"  7    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    VTagEnteredNotification: Add {_range}\n" +
-          $"  1    BinaryNotification: 250 Add 251 1 {_range}\n" +
-          $"  2    VTagExitedNotification: {_range}\n"
+          $"  0    Notification.VTagEntered: Add {_range}\n" +
+          $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
+          $"  2    Notification.VTagExited: Add {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

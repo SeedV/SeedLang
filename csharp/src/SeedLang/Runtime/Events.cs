@@ -114,16 +114,21 @@ namespace SeedLang.Runtime {
       }
     }
 
-    // An event which is triggered when a VTag scope is entered.
-    public class VTagEntered : AbstractEvent {
-      public class VTagInfo {
-        public string Name { get; }
+    // TODO: add properties for parameter values.
+    public class VTagInfo {
+      public string Name { get; }
 
-        public VTagInfo(string name) {
-          Name = name;
-        }
+      public VTagInfo(string name) {
+        Name = name;
       }
 
+      public override string ToString() {
+        return $"{Name}";
+      }
+    }
+
+    // An event which is triggered when a VTag scope is entered.
+    public class VTagEntered : AbstractEvent {
       public VTagInfo[] VTags { get; }
 
       public VTagEntered(VTagInfo[] vTags, Range range) : base(range) {
@@ -133,7 +138,11 @@ namespace SeedLang.Runtime {
 
     // An event which is triggered when a VTag scope is exited.
     public class VTagExited : AbstractEvent {
-      public VTagExited(Range range) : base(range) { }
+      public VTagInfo[] VTags { get; }
+
+      public VTagExited(VTagInfo[] vTags, Range range) : base(range) {
+        VTags = vTags;
+      }
     }
   }
 }

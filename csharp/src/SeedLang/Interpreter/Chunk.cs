@@ -18,6 +18,8 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
+  using AbstractNotification = Notification.AbstractNotification;
+
   // A data structure to hold bytecode and constants generated from the AST tree by the compiler.
   internal class Chunk {
     // The maximum number of registers that can be allocated in the stack of a chunk.
@@ -33,13 +35,13 @@ namespace SeedLang.Interpreter {
 
     // The notification information list that is used by VISNOTIFY opcode to create the correspoding
     // notification events and sent to visualizers.
-    public IReadOnlyList<Notification> Notifications => _notifications;
+    public IReadOnlyList<AbstractNotification> Notifications => _notifications;
 
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
     private readonly List<Range> _ranges = new List<Range>();
 
-    private readonly List<Notification> _notifications = new List<Notification>();
+    private readonly List<AbstractNotification> _notifications = new List<AbstractNotification>();
 
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
@@ -84,7 +86,7 @@ namespace SeedLang.Interpreter {
       return ref _constants[IndexOfConstId(constId)];
     }
 
-    internal uint AddNotification(Notification notification) {
+    internal uint AddNotification(AbstractNotification notification) {
       _notifications.Add(notification);
       return (uint)_notifications.Count - 1;
     }

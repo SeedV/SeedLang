@@ -51,7 +51,7 @@ compound_stmt:
   | if_stmt
   | while_stmt;
 
-vtags: VTAG_START NAME VTAG_END;
+vtags: VTAG_START NAME (COMMA NAME)* VTAG_END;
 
 assignment:
   targets EQUAL expressions            # assign

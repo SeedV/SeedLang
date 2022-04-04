@@ -395,6 +395,7 @@ namespace SeedLang.X {
           Range range = CodeReferenceUtils.CombineRanges(vTag.Range as TextRange,
                                                          statement.Range as TextRange);
           statements.Add(new VTagStatement(vTag.VTags, new Statement[] { statement }, range));
+          vTag = null;
         } else {
           statements.Add(statement);
         }
@@ -575,13 +576,18 @@ namespace SeedLang.X {
     }
 
     // Builds VTag statements.
-    internal AstNode BuildVTag(IToken startToken, IToken name, IToken endToken) {
+    //
+    // TODO: handle parameters.
+    internal static AstNode BuildVTag(IToken startToken, ITerminalNode[] names, IToken endToken) {
       TextRange startRange = CodeReferenceUtils.RangeOfToken(startToken);
       TextRange endRange = CodeReferenceUtils.RangeOfToken(endToken);
       TextRange range = CodeReferenceUtils.CombineRanges(startRange, endRange);
-      var vTags = new VTagStatement.VTagInfo[1] {
-        new VTagStatement.VTagInfo(name.Text, System.Array.Empty<string>())
-      };
+      var vTags = new VTagStatement.VTagInfo[names.Length];
+      for (int i = 0; i < names.Length; i++) {
+        vTags[i] = new VTagStatement.VTagInfo(names[i].Symbol.Text,
+                                              System.Array.Empty<Expression>());
+      }
+      // The statement field will be set in the BuildBlock method while next statement is visited.
       return Statement.VTag(vTags, null, range);
     }
 

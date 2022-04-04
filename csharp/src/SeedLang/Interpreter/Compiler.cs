@@ -375,16 +375,18 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
+    // TODO: generate bytecode to evaluate the parameter expressions and add the result register ids
+    // into the VTagInfo.
     protected override void Visit(VTagStatement vTag) {
-      var vTags = new VTagEnteredNotification.VTagInfo[vTag.VTags.Length];
+      var vTags = new Notification.VTagInfo[vTag.VTags.Length];
       for (int i = 0; i < vTag.VTags.Length; i++) {
-        vTags[i] = new VTagEnteredNotification.VTagInfo(vTag.VTags[i].Name);
+        vTags[i] = new Notification.VTagInfo(vTag.VTags[i].Name);
       }
       EmitVTagEnteredNotification(vTags, vTag.Range);
       foreach (Statement statement in vTag.Statements) {
         Visit(statement);
       }
-      EmitVTagExitedNotification(vTag.Range);
+      EmitVTagExitedNotification(vTags, vTag.Range);
     }
 
     private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
@@ -664,38 +666,37 @@ namespace SeedLang.Interpreter {
 
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
-        var an = new AssignmentNotification(name, type, valueId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(an), range);
+        var notification = new Notification.Assignment(name, type, valueId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
     private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
                                         Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
-        var bn = new BinaryNotification(leftId, op, rightId, resultId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(bn), range);
+        var notification = new Notification.Binary(leftId, op, rightId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
     private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
-        var un = new UnaryNotification(op, valueId, resultId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(un), range);
+        var notification = new Notification.Unary(op, valueId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
-    private void EmitVTagEnteredNotification(VTagEnteredNotification.VTagInfo[] vTags,
-                                             Range range) {
+    private void EmitVTagEnteredNotification(Notification.VTagInfo[] vTags, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
-        var ven = new VTagEnteredNotification(vTags, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(ven), range);
+        var notification = new Notification.VTagEntered(vTags, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
-    private void EmitVTagExitedNotification(Range range) {
+    private void EmitVTagExitedNotification(Notification.VTagInfo[] vTags, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        var ven = new VTagExitedNotification(range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(ven), range);
+        var notification = new Notification.VTagExited(vTags, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 

@@ -1,4 +1,3 @@
-using System.IO;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +14,6 @@ using System.IO;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace SeedLang.Runtime {
   // The visualizer center to observe execution events and dispatch them to the subscribed

@@ -24,8 +24,8 @@ namespace SeedLang.X {
   // The indent and dedent tokens cannot be expressed as ANTLR4 grammar. The newline and spaces need
   // be scanned to generate indent and dedent tokens.
   internal class SeedPythonDentLexer : SeedPythonLexer {
-    // A queue to store multiple tokens, because the original ANTLR4 lexer can only generate one
-    // token at the same time.
+    // The token queue to store extra multiple tokens, because the original ANTLR4 lexer can only
+    // generate one token at the same time.
     private readonly Queue<IToken> _tokens = new Queue<IToken>();
     // The stack that keeps track of the indentation level.
     private readonly Stack<int> _indents = new Stack<int>();
@@ -156,6 +156,7 @@ namespace SeedLang.X {
         var tokens = lexer.GetAllTokens();
         if (tokens.Count > 0 && tokens[0].Type == SeedPythonParser.VTAG_START) {
           for (int i = 0; i < tokens.Count; i++) {
+            // Adds back '#' for the VTAG_START token.
             int start = i == 0 ? comment.StartIndex : comment.StartIndex + tokens[i].StartIndex + 1;
             int column = i == 0 ? comment.Column : comment.Column + tokens[i].StartIndex + 1;
             string text = i == 0 ? "# " + tokens[i].Text : tokens[i].Text;

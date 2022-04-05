@@ -159,7 +159,9 @@ namespace SeedLang.X {
             // Adds back '#' for the VTAG_START token.
             int start = i == 0 ? comment.StartIndex : comment.StartIndex + tokens[i].StartIndex + 1;
             int column = i == 0 ? comment.Column : comment.Column + tokens[i].StartIndex + 1;
-            string text = i == 0 ? "# " + tokens[i].Text : tokens[i].Text;
+            // The length of first token is StopIndex + 1 + (length of '#').
+            string text = i == 0 ? comment.Text.Substring(0, tokens[i].StopIndex + 2) :
+                                   tokens[i].Text;
             _tokens.Enqueue(CommonToken(tokens[i].Type, start,
                                         comment.StartIndex + tokens[i].StopIndex + 1, comment.Line,
                                         column, text));

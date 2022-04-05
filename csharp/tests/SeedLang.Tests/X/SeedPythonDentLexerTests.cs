@@ -50,6 +50,23 @@ namespace SeedLang.X.Tests {
     }
 
     [Fact]
+    public void TestVTagWithSpaces() {
+      string source = "# \t\t[[ Print ]]\nprint(1)";
+      var expectedTokens = new string[] {
+          $"[@-1,0:5='# \\t\\t[[',<{SeedPythonParser.VTAG_START}>,1:0]",
+          $"[@-1,7:11='Print',<{SeedPythonParser.NAME}>,1:7]",
+          $"[@-1,13:14=']]',<{SeedPythonParser.VTAG_END}>,1:13]",
+          $"[@-1,15:15='\\n',<{SeedPythonParser.NEWLINE}>,1:15]",
+          $"[@-1,16:20='print',<{SeedPythonParser.NAME}>,2:0]",
+          $"[@-1,21:21='(',<{SeedPythonParser.OPEN_PAREN}>,2:5]",
+          $"[@-1,22:22='1',<{SeedPythonParser.NUMBER}>,2:6]",
+          $"[@-1,23:23=')',<{SeedPythonParser.CLOSE_PAREN}>,2:7]",
+          $"[@-1,24:24='\\n',<{SeedPythonParser.NEWLINE}>,2:8]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
     public void TestVTagWithIndent() {
       string source = "while True:\n" +
                       "  # [[ Assign ]]\n" +

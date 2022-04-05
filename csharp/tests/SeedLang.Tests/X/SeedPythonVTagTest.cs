@@ -38,11 +38,13 @@ namespace SeedLang.X.Tests {
 
     [Fact]
     public void TestSingleVTagWithMultipleStatements() {
-      string source = "# [[ Assign ]]\n" +
+      string source = "# [[ Assign(x, y), Initialize ]]\n" +
                       "x = 1\n" +
                       "y = 2";
       string expected = "[Ln 1, Col 0 - Ln 3, Col 4] BlockStatement\n" +
-                        "  [Ln 1, Col 0 - Ln 2, Col 4] VTagStatement (Assign)\n" +
+                        "  [Ln 1, Col 0 - Ln 2, Col 4] VTagStatement (Assign: " +
+                        "[Ln 1, Col 12 - Ln 1, Col 12] IdentifierExpression (x)," +
+                        "[Ln 1, Col 15 - Ln 1, Col 15] IdentifierExpression (y),Initialize)\n" +
                         "    [Ln 2, Col 0 - Ln 2, Col 4] AssignmentStatement\n" +
                         "      [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
                         "      [Ln 2, Col 4 - Ln 2, Col 4] NumberConstantExpression (1)\n" +

@@ -171,16 +171,17 @@ namespace SeedLang.Ast {
   internal class VTagStatement : Statement {
     internal class VTagInfo {
       public string Name { get; }
-      public Expression[] Parameters { get; }
+      public Expression[] Arguments { get; }
 
-      internal VTagInfo(string name, Expression[] parameters) {
+      internal VTagInfo(string name, Expression[] arguments) {
         Name = name;
-        Parameters = parameters;
+        Arguments = arguments;
       }
 
       // TODO: append the parameters into the result.
       public override string ToString() {
-        return $"{Name}";
+        return Arguments.Length > 0 ? $"{Name}: {string.Join<Expression>(",", Arguments)}" :
+                                      $"{Name}";
       }
     }
 

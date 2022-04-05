@@ -25,6 +25,7 @@ namespace SeedLang.X {
   // A helper class to build AST nodes from parser tree contexts.
   internal class VisitorHelper {
     private readonly IList<TokenInfo> _semanticTokens;
+    private bool _addSemanticToken = true;
     private TextRange _groupingRange;
 
     public VisitorHelper(IList<TokenInfo> tokens) {
@@ -195,11 +196,11 @@ namespace SeedLang.X {
 
     // Builds dict expressions.
     internal DictExpression BuildDict(IToken openBraceToken,
-                                  IReadOnlyList<ParserRuleContext> keyContexts,
-                                  IReadOnlyList<ParserRuleContext> valueContexts,
-                                  IReadOnlyList<IToken> colonNodes, ITerminalNode[] commaNodes,
-                                  IToken closeBraceToken,
-                                  AbstractParseTreeVisitor<AstNode> visitor) {
+                                      IReadOnlyList<ParserRuleContext> keyContexts,
+                                      IReadOnlyList<ParserRuleContext> valueContexts,
+                                      IReadOnlyList<IToken> colonNodes, ITerminalNode[] commaNodes,
+                                      IToken closeBraceToken,
+                                      AbstractParseTreeVisitor<AstNode> visitor) {
       Debug.Assert(keyContexts.Count == valueContexts.Count &&
                    keyContexts.Count == colonNodes.Count);
       Debug.Assert(keyContexts.Count == commaNodes.Length ||
@@ -576,17 +577,18 @@ namespace SeedLang.X {
     }
 
     // Builds VTag statements.
-    //
-    // TODO: handle parameters.
-    internal static AstNode BuildVTag(IToken startToken, ITerminalNode[] names, IToken endToken) {
+    internal AstNode BuildVTag(IToken startToken, IToken[] names, ParserRuleContext[][] arguments,
+                               IToken endToken, AbstractParseTreeVisitor<AstNode> visitor) {
+      _addSemanticToken = false;
       TextRange startRange = CodeReferenceUtils.RangeOfToken(startToken);
       TextRange endRange = CodeReferenceUtils.RangeOfToken(endToken);
       TextRange range = CodeReferenceUtils.CombineRanges(startRange, endRange);
       var vTags = new VTagStatement.VTagInfo[names.Length];
       for (int i = 0; i < names.Length; i++) {
-        vTags[i] = new VTagStatement.VTagInfo(names[i].Symbol.Text,
-                                              System.Array.Empty<Expression>());
+        var exprs = BuildExpressions(arguments[i], System.Array.Empty<ITerminalNode>(), visitor);
+        vTags[i] = new VTagStatement.VTagInfo(names[i].Text, exprs);
       }
+      _addSemanticToken = true;
       // The statement field will be set in the BuildBlock method while next statement is visited.
       return Statement.VTag(vTags, null, range);
     }
@@ -606,6 +608,9 @@ namespace SeedLang.X {
     private Expression[] BuildExpressions(ParserRuleContext[] exprContexts,
                                           ITerminalNode[] commaNodes,
                                           AbstractParseTreeVisitor<AstNode> visitor) {
+      if (exprContexts is null) {
+        return System.Array.Empty<Expression>();
+      }
       var exprs = new Expression[exprContexts.Length];
       for (int i = 0; i < exprContexts.Length; i++) {
         exprs[i] = visitor.Visit(exprContexts[i]) as Expression;
@@ -626,7 +631,9 @@ namespace SeedLang.X {
     }
 
     private void AddSemanticToken(TokenType type, TextRange range) {
-      _semanticTokens.Add(new TokenInfo(type, range));
+      if (_addSemanticToken) {
+        _semanticTokens.Add(new TokenInfo(type, range));
+      }
     }
   }
 }

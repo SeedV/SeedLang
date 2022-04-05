@@ -17,14 +17,17 @@ using System.Text;
 using SeedLang.Runtime;
 
 namespace SeedLang.Tests.Helper {
-  internal class MockupVisualizer : IVisualizer<AssignmentEvent>, IVisualizer<BinaryEvent>,
-                                    IVisualizer<BooleanEvent>, IVisualizer<ComparisonEvent>,
-                                    IVisualizer<UnaryEvent> {
-    private readonly List<AssignmentEvent> _assignEvents = new List<AssignmentEvent>();
-    private readonly List<BinaryEvent> _binaryEvents = new List<BinaryEvent>();
-    private readonly List<BooleanEvent> _booleanEvents = new List<BooleanEvent>();
-    private readonly List<ComparisonEvent> _comparisonEvents = new List<ComparisonEvent>();
-    private readonly List<UnaryEvent> _unaryEvents = new List<UnaryEvent>();
+  internal class MockupVisualizer : IVisualizer<Event.Assignment>, IVisualizer<Event.Binary>,
+                                    IVisualizer<Event.Boolean>, IVisualizer<Event.Comparison>,
+                                    IVisualizer<Event.Unary>, IVisualizer<Event.VTagEntered>,
+                                    IVisualizer<Event.VTagExited> {
+    private readonly List<Event.Assignment> _assignEvents = new List<Event.Assignment>();
+    private readonly List<Event.Binary> _binaryEvents = new List<Event.Binary>();
+    private readonly List<Event.Boolean> _booleanEvents = new List<Event.Boolean>();
+    private readonly List<Event.Comparison> _comparisonEvents = new List<Event.Comparison>();
+    private readonly List<Event.Unary> _unaryEvents = new List<Event.Unary>();
+    private readonly List<Event.VTagEntered> _vTagEnteredEvents = new List<Event.VTagEntered>();
+    private readonly List<Event.VTagExited> _vTagExitedEvents = new List<Event.VTagExited>();
 
     public override string ToString() {
       var sb = new StringBuilder();
@@ -33,27 +36,37 @@ namespace SeedLang.Tests.Helper {
       BooleanEventsToString(sb);
       ComparisonEventsToString(sb);
       UnaryEventsToString(sb);
+      VTagEnteredEventsToString(sb);
+      VTagExitedEventsToString(sb);
       return sb.ToString();
     }
 
-    public void On(AssignmentEvent ae) {
+    public void On(Event.Assignment ae) {
       _assignEvents.Add(ae);
     }
 
-    public void On(BinaryEvent be) {
+    public void On(Event.Binary be) {
       _binaryEvents.Add(be);
     }
 
-    public void On(BooleanEvent be) {
+    public void On(Event.Boolean be) {
       _booleanEvents.Add(be);
     }
 
-    public void On(ComparisonEvent ce) {
+    public void On(Event.Comparison ce) {
       _comparisonEvents.Add(ce);
     }
 
-    public void On(UnaryEvent ue) {
+    public void On(Event.Unary ue) {
       _unaryEvents.Add(ue);
+    }
+
+    public void On(Event.VTagEntered vee) {
+      _vTagEnteredEvents.Add(vee);
+    }
+
+    public void On(Event.VTagExited vee) {
+      _vTagExitedEvents.Add(vee);
     }
 
     internal string AssignmentEventsToString() {
@@ -125,6 +138,18 @@ namespace SeedLang.Tests.Helper {
     private void UnaryEventsToString(StringBuilder sb) {
       foreach (var ue in _unaryEvents) {
         sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");
+      }
+    }
+
+    private void VTagEnteredEventsToString(StringBuilder sb) {
+      foreach (var vee in _vTagEnteredEvents) {
+        sb.AppendLine($"{vee.Range} {string.Join<Event.VTagInfo>(",", vee.VTags)}");
+      }
+    }
+
+    private void VTagExitedEventsToString(StringBuilder sb) {
+      foreach (var vee in _vTagExitedEvents) {
+        sb.AppendLine($"{vee.Range} {string.Join<Event.VTagInfo>(",", vee.VTags)}");
       }
     }
   }

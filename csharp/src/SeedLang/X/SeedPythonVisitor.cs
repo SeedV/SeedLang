@@ -59,6 +59,12 @@ namespace SeedLang.X {
       return _helper.BuildPass(context.PASS().Symbol);
     }
 
+    // TODO: handle parameters later.
+    public override AstNode VisitVtags([NotNull] SeedPythonParser.VtagsContext context) {
+      return VisitorHelper.BuildVTag(context.VTAG_START().Symbol, context.NAME(),
+                                     context.VTAG_END().Symbol);
+    }
+
     public override AstNode VisitAssign([NotNull] SeedPythonParser.AssignContext context) {
       SeedPythonParser.TargetsContext targets = context.targets();
       SeedPythonParser.ExpressionsContext exprs = context.expressions();

@@ -33,7 +33,7 @@ tokens {
 program: statements EOF;
 
 statements: (NEWLINE | statement)+;
-statement: compound_stmt | simple_stmts;
+statement: simple_stmts | compound_stmt | vtags;
 
 simple_stmts:
   simple_stmt (SEMICOLON simple_stmt)* SEMICOLON? NEWLINE;
@@ -50,6 +50,8 @@ compound_stmt:
   | for_in_stmt
   | if_stmt
   | while_stmt;
+
+vtags: VTAG_START NAME (COMMA NAME)* VTAG_END;
 
 assignment:
   targets EQUAL expressions            # assign
@@ -102,3 +104,8 @@ RETURN: 'return';
 PASS: 'pass';
 
 SEMICOLON: ';';
+
+VTAG_START: '[[';
+VTAG_END: ']]';
+
+COMMENT: '#' ~[\r\n\f]*;

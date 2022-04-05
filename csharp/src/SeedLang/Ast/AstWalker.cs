@@ -112,6 +112,9 @@ namespace SeedLang.Ast {
         case WhileStatement @while:
           Visit(@while);
           break;
+        case VTagStatement vTag:
+          Visit(vTag);
+          break;
         default:
           throw new NotImplementedException(
               $"Not implemented statement type: {statement.GetType()}");
@@ -142,5 +145,6 @@ namespace SeedLang.Ast {
     protected abstract void Visit(PassStatement pass);
     protected abstract void Visit(ReturnStatement @return);
     protected abstract void Visit(WhileStatement @while);
+    protected abstract void Visit(VTagStatement vTag);
   }
 }

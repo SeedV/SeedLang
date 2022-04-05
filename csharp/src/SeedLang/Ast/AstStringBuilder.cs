@@ -283,6 +283,15 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(VTagStatement vTag) {
+      Enter(vTag);
+      _out.Append($" ({string.Join<VTagStatement.VTagInfo>(",", vTag.VTags)})");
+      foreach (var statement in vTag.Statements) {
+        Visit(statement);
+      }
+      Exit();
+    }
+
     private void Enter(AstNode node) {
       if (_level > 0) {
         _out.Append($"\n{new string(' ', _level * 2)}");

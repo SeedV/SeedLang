@@ -385,11 +385,22 @@ namespace SeedLang.X {
       } else if (statementContexts.Length == 1) {
         return visitor.Visit(statementContexts[0]);
       }
-      var statements = new Statement[statementContexts.Length];
-      for (int i = 0; i < statementContexts.Length; i++) {
-        statements[i] = visitor.Visit(statementContexts[i]) as Statement;
+      var statements = new List<Statement>();
+      VTagStatement vTag = null;
+      foreach (ParserRuleContext context in statementContexts) {
+        var statement = visitor.Visit(context) as Statement;
+        if (statement is VTagStatement vTagStatement) {
+          vTag = vTagStatement;
+        } else if (!(vTag is null)) {
+          Range range = CodeReferenceUtils.CombineRanges(vTag.Range as TextRange,
+                                                         statement.Range as TextRange);
+          statements.Add(new VTagStatement(vTag.VTags, new Statement[] { statement }, range));
+          vTag = null;
+        } else {
+          statements.Add(statement);
+        }
       }
-      return BuildBlock(statements);
+      return BuildBlock(statements.ToArray());
     }
 
     // Builds expression statements.
@@ -507,9 +518,6 @@ namespace SeedLang.X {
     internal AstNode BuildSimpleStatements(ParserRuleContext[] statementContexts,
                                            ITerminalNode[] semicolonNodes,
                                            AbstractParseTreeVisitor<AstNode> visitor) {
-      if (statementContexts.Length == 1) {
-        return visitor.Visit(statementContexts[0]);
-      }
       Debug.Assert(statementContexts.Length == semicolonNodes.Length + 1 ||
                    statementContexts.Length == semicolonNodes.Length);
       var statements = new Statement[statementContexts.Length];
@@ -567,11 +575,29 @@ namespace SeedLang.X {
       return null;
     }
 
-    private static BlockStatement BuildBlock(Statement[] statements) {
+    // Builds VTag statements.
+    //
+    // TODO: handle parameters.
+    internal static AstNode BuildVTag(IToken startToken, ITerminalNode[] names, IToken endToken) {
+      TextRange startRange = CodeReferenceUtils.RangeOfToken(startToken);
+      TextRange endRange = CodeReferenceUtils.RangeOfToken(endToken);
+      TextRange range = CodeReferenceUtils.CombineRanges(startRange, endRange);
+      var vTags = new VTagStatement.VTagInfo[names.Length];
+      for (int i = 0; i < names.Length; i++) {
+        vTags[i] = new VTagStatement.VTagInfo(names[i].Symbol.Text,
+                                              System.Array.Empty<Expression>());
+      }
+      // The statement field will be set in the BuildBlock method while next statement is visited.
+      return Statement.VTag(vTags, null, range);
+    }
+
+    private static AstNode BuildBlock(Statement[] statements) {
       Debug.Assert(statements.Length > 0);
+      if (statements.Length == 1) {
+        return statements[0];
+      }
       Statement first = statements[0];
       Statement last = statements[statements.Length - 1];
-      Debug.Assert(first.Range is TextRange && last.Range is TextRange);
       Range range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
                                                      last.Range as TextRange);
       return new BlockStatement(statements, range);

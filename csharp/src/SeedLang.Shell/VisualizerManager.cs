@@ -26,6 +26,8 @@ namespace SeedLang.Shell {
     Boolean,
     Comparison,
     Unary,
+    VTagEntered,
+    VTagExited,
     All,
   }
 
@@ -86,11 +88,13 @@ namespace SeedLang.Shell {
 
 
     private readonly SourceCode _source;
-    private readonly Visualizer<AssignmentEvent> _assignmentVisualizer;
-    private readonly Visualizer<BinaryEvent> _binaryVisualizer;
-    private readonly Visualizer<BooleanEvent> _booleanVisualizer;
-    private readonly Visualizer<ComparisonEvent> _comparisonVisualizer;
-    private readonly Visualizer<UnaryEvent> _unaryVisualizer;
+    private readonly Visualizer<Event.Assignment> _assignmentVisualizer;
+    private readonly Visualizer<Event.Binary> _binaryVisualizer;
+    private readonly Visualizer<Event.Boolean> _booleanVisualizer;
+    private readonly Visualizer<Event.Comparison> _comparisonVisualizer;
+    private readonly Visualizer<Event.Unary> _unaryVisualizer;
+    private readonly Visualizer<Event.VTagEntered> _vTagEnteredVisualizer;
+    private readonly Visualizer<Event.VTagExited> _vTagExitedVisualizer;
 
     internal VisualizerManager(SourceCode source, IEnumerable<VisualizerType> visualizerTypes) {
       _source = source;
@@ -101,24 +105,32 @@ namespace SeedLang.Shell {
       foreach (VisualizerType type in visualizers) {
         switch (type) {
           case VisualizerType.Assignment:
-            _assignmentVisualizer = new Visualizer<AssignmentEvent>(
+            _assignmentVisualizer = new Visualizer<Event.Assignment>(
                 _source.WriteSourceWithHighlight, WriteEvent);
             break;
           case VisualizerType.Binary:
-            _binaryVisualizer = new Visualizer<BinaryEvent>(_source.WriteSourceWithHighlight,
-                                                            WriteEvent);
+            _binaryVisualizer = new Visualizer<Event.Binary>(_source.WriteSourceWithHighlight,
+                                                             WriteEvent);
             break;
           case VisualizerType.Boolean:
-            _booleanVisualizer = new Visualizer<BooleanEvent>(_source.WriteSourceWithHighlight,
-                                                              WriteEvent);
+            _booleanVisualizer = new Visualizer<Event.Boolean>(_source.WriteSourceWithHighlight,
+                                                               WriteEvent);
             break;
           case VisualizerType.Comparison:
-            _comparisonVisualizer = new Visualizer<ComparisonEvent>(
+            _comparisonVisualizer = new Visualizer<Event.Comparison>(
                 _source.WriteSourceWithHighlight, WriteEvent);
             break;
           case VisualizerType.Unary:
-            _unaryVisualizer = new Visualizer<UnaryEvent>(_source.WriteSourceWithHighlight,
-                                                          WriteEvent);
+            _unaryVisualizer = new Visualizer<Event.Unary>(_source.WriteSourceWithHighlight,
+                                                           WriteEvent);
+            break;
+          case VisualizerType.VTagEntered:
+            _vTagEnteredVisualizer = new Visualizer<Event.VTagEntered>(
+                _source.WriteSourceWithHighlight, WriteEvent);
+            break;
+          case VisualizerType.VTagExited:
+            _vTagExitedVisualizer = new Visualizer<Event.VTagExited>(
+                _source.WriteSourceWithHighlight, WriteEvent);
             break;
           case VisualizerType.All:
             // Ignores.
@@ -135,6 +147,8 @@ namespace SeedLang.Shell {
       RegisterToExecutor(executor, _booleanVisualizer);
       RegisterToExecutor(executor, _comparisonVisualizer);
       RegisterToExecutor(executor, _unaryVisualizer);
+      RegisterToExecutor(executor, _vTagEnteredVisualizer);
+      RegisterToExecutor(executor, _vTagExitedVisualizer);
     }
 
     internal void UnregisterFromExecutor(Executor executor) {
@@ -143,6 +157,8 @@ namespace SeedLang.Shell {
       UnregisterFromExecutor(executor, _booleanVisualizer);
       UnregisterFromExecutor(executor, _comparisonVisualizer);
       UnregisterFromExecutor(executor, _unaryVisualizer);
+      UnregisterFromExecutor(executor, _vTagEnteredVisualizer);
+      UnregisterFromExecutor(executor, _vTagExitedVisualizer);
     }
 
     private static void RegisterToExecutor<Event>(Executor executor,
@@ -163,7 +179,7 @@ namespace SeedLang.Shell {
       Console.BackgroundColor = ConsoleColor.White;
       Console.ForegroundColor = ConsoleColor.Black;
       switch (e) {
-        case AssignmentEvent ae:
+        case Event.Assignment ae:
           Console.Write("Assign ");
           switch (ae.Type) {
             case VariableType.Global:
@@ -175,12 +191,12 @@ namespace SeedLang.Shell {
           }
           Console.Write($" {ae.Name} = {ae.Value}");
           break;
-        case BinaryEvent be: {
+        case Event.Binary be: {
             var op = _binaryOperatorStrings[be.Op];
             Console.Write($"Binary: {be.Left} {op} {be.Right} = {be.Result}");
             break;
           }
-        case BooleanEvent be: {
+        case Event.Boolean be: {
             var op = _booleanOperatorStrings[be.Op];
             foreach (IValue value in be.Values) {
               string valueString = value.IsBoolean ? value.String : "?";
@@ -189,7 +205,7 @@ namespace SeedLang.Shell {
             Console.Write($"= {be.Result}");
             break;
           }
-        case ComparisonEvent ce:
+        case Event.Comparison ce:
           Console.Write($"Comparison: {ce.First} ");
           for (int i = 0; i < ce.Ops.Count; i++) {
             string valueString = ce.Values[i].IsNumber ? ce.Values[i].String : "?";
@@ -197,10 +213,16 @@ namespace SeedLang.Shell {
           }
           Console.Write($"= {ce.Result}");
           break;
-        case UnaryEvent ue: {
+        case Event.Unary ue: {
             var op = _unaryOperatorStrings[ue.Op];
             Console.Write($"Unary: {op} {ue.Value} = {ue.Result}");
           }
+          break;
+        case Event.VTagEntered vee:
+          Console.Write($"VTagEntered: {string.Join<Event.VTagInfo>(",", vee.VTags)}");
+          break;
+        case Event.VTagExited vee:
+          Console.Write($"VTagExited: {string.Join<Event.VTagInfo>(",", vee.VTags)}");
           break;
         default:
           throw new NotImplementedException($"Unsupported event: {e}");

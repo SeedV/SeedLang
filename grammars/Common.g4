@@ -159,7 +159,7 @@ FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
 
 NEWLINE: ('\r'? '\n' | '\r' | '\f') SPACES?;
 
-SKIP_: (SPACES | COMMENT | LINE_JOINING) -> skip;
+SKIP_: (SPACES | LINE_JOINING) -> skip;
 
 UNKNOWN_CHAR: .;
 
@@ -190,8 +190,6 @@ fragment NON_ZERO_DIGIT: [1-9];
 fragment DIGIT: [0-9];
 
 fragment SPACES: [ \t]+;
-
-fragment COMMENT: '#' ~[\r\n\f]*;
 
 fragment LINE_JOINING:
   '\\' SPACES? ('\r'? '\n' | '\r' | '\f');

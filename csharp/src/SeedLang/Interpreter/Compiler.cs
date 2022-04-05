@@ -375,6 +375,20 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
+    // TODO: generate bytecode to evaluate the parameter expressions and add the result register ids
+    // into the VTagInfo.
+    protected override void Visit(VTagStatement vTag) {
+      var vTags = new Notification.VTagInfo[vTag.VTags.Length];
+      for (int i = 0; i < vTag.VTags.Length; i++) {
+        vTags[i] = new Notification.VTagInfo(vTag.VTags[i].Name);
+      }
+      EmitVTagEnteredNotification(vTags, vTag.Range);
+      foreach (Statement statement in vTag.Statements) {
+        Visit(statement);
+      }
+      EmitVTagExitedNotification(vTags, vTag.Range);
+    }
+
     private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
       // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
@@ -651,27 +665,38 @@ namespace SeedLang.Interpreter {
     }
 
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
-      if (!_visualizerCenter.AssignmentPublisher.IsEmpty()) {
-        var an = new AssignmentNotification(name, type, valueId, range);
-        uint nIndex = _chunk.AddNotification(an);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
+        var notification = new Notification.Assignment(name, type, valueId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
     private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
                                         Range range) {
-      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var bn = new BinaryNotification(leftId, op, rightId, resultId, range);
-        uint nIndex = _chunk.AddNotification(bn);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
+        var notification = new Notification.Binary(leftId, op, rightId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
     private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
-      if (!_visualizerCenter.UnaryPublisher.IsEmpty()) {
-        var un = new UnaryNotification(op, valueId, resultId, range);
-        uint nIndex = _chunk.AddNotification(un);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, nIndex, range);
+      if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
+        var notification = new Notification.Unary(op, valueId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+      }
+    }
+
+    private void EmitVTagEnteredNotification(Notification.VTagInfo[] vTags, Range range) {
+      if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
+        var notification = new Notification.VTagEntered(vTags, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+      }
+    }
+
+    private void EmitVTagExitedNotification(Notification.VTagInfo[] vTags, Range range) {
+      if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
+        var notification = new Notification.VTagExited(vTags, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 

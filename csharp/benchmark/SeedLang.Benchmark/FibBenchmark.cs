@@ -46,19 +46,19 @@ fib(35)
     [Benchmark]
     public void BenchmarkBytecodeFib() {
       var executor = new Executor();
-      executor.Run(_fibSource, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      executor.Run(_fibSource, "", SeedXLanguage.SeedPython, RunType.Execute);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeForFib() {
       var executor = new Executor();
-      executor.Run(_forFibSource, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      executor.Run(_forFibSource, "", SeedXLanguage.SeedPython, RunType.Execute);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeRecursiveFib() {
       var executor = new Executor();
-      executor.Run(_recursiveFibSource, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      executor.Run(_recursiveFibSource, "", SeedXLanguage.SeedPython, RunType.Execute);
     }
   }
 }

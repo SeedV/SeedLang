@@ -50,34 +50,28 @@ func()
 ";
 
     [Benchmark]
-    public void BenchmarkAstSum() {
-      var executor = new Executor();
-      executor.Run(_globalScopeSum, "", SeedXLanguage.SeedPython, RunType.Ast);
-    }
-
-    [Benchmark]
     public void BenchmarkBytecodeGlobalScopeSum() {
       var executor = new Executor();
-      executor.Run(_globalScopeSum, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      executor.Run(_globalScopeSum, "", SeedXLanguage.SeedPython, RunType.Execute);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeGlobalScopeForSum() {
       var executor = new Executor();
-      executor.Run(_globalScopeForSum, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      executor.Run(_globalScopeForSum, "", SeedXLanguage.SeedPython, RunType.Execute);
     }
 
 
     [Benchmark]
     public void BenchmarkBytecodeLocalScopeSum() {
       var executor = new Executor();
-      executor.Run(_localScopeSum, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      executor.Run(_localScopeSum, "", SeedXLanguage.SeedPython, RunType.Execute);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeLocalScopeForSum() {
       var executor = new Executor();
-      executor.Run(_localScopeForSum, "", SeedXLanguage.SeedPython, RunType.Bytecode);
+      executor.Run(_localScopeForSum, "", SeedXLanguage.SeedPython, RunType.Execute);
     }
   }
 }

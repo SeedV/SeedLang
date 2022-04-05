@@ -27,7 +27,7 @@ namespace SeedLang.Shell {
         HelpText = "The programming language of the source code.")]
       public SeedXLanguage Language { get; set; }
 
-      [Option('t', "type", Required = false, Default = RunType.Bytecode, HelpText = "Run type.")]
+      [Option('t', "type", Required = false, Default = RunType.Execute, HelpText = "Run type.")]
       public RunType RunType { get; set; }
 
       [Option('v', "visualizers", Required = false, Separator = ',',

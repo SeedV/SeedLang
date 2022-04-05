@@ -233,15 +233,10 @@ print(array)
     }
 
     private static void TestExecutor(string source, string result) {
-      TestWithRunType(source, result, RunType.Ast);
-      TestWithRunType(source, result, RunType.Bytecode);
-    }
-
-    private static void TestWithRunType(string source, string result, RunType type) {
       var executor = new Executor();
       var stringWriter = new StringWriter();
       executor.RedirectStdout(stringWriter);
-      executor.Run(source, "", SeedXLanguage.SeedPython, type, RunMode.Interactive);
+      executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Execute, RunMode.Interactive);
       Assert.Equal(result, stringWriter.ToString());
     }
   }

@@ -16,28 +16,22 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using SeedLang.Ast;
-using SeedLang.Block;
 using SeedLang.Common;
 using SeedLang.Interpreter;
 using SeedLang.X;
 
 namespace SeedLang.Runtime {
-  using Function = Interpreter.Function;
-
   // An executor class to execute SeedBlock programs or SeedX source code. The information during
   // execution can be visualized by registered visualizers.
   public class Executor {
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
-    private readonly Ast.Executor _executor;
     private readonly VM _vm;
 
     public Executor() {
-      _executor = new Ast.Executor(_visualizerCenter);
       _vm = new VM(_visualizerCenter);
     }
 
     public void RedirectStdout(TextWriter stdout) {
-      _executor.RedirectStdout(stdout);
       _vm.RedirectStdout(stdout);
     }
 
@@ -47,18 +41,6 @@ namespace SeedLang.Runtime {
 
     public void Unregister<Visualizer>(Visualizer visualizer) {
       _visualizerCenter.Unregister(visualizer);
-    }
-
-    // Runs a SeedBlock program.
-    public bool Run(Program program, DiagnosticCollection collection = null) {
-      if (program is null) {
-        return false;
-      }
-      var localCollection = collection ?? new DiagnosticCollection();
-      foreach (AstNode node in Converter.Convert(program, localCollection)) {
-        _executor.Run(node, RunMode.Script);
-      }
-      return true;
     }
 
     // Parses SeedX source code into a list of syntax tokens. Incomplete or invalid source code can
@@ -103,21 +85,16 @@ namespace SeedLang.Runtime {
           return null;
         }
         switch (runType) {
-          case RunType.Ast:
-            _executor.Run(node, runMode);
-            return null;
-          case RunType.Bytecode: {
-              var compiler = new Compiler();
-              Function func = compiler.Compile(node, _vm.Env, _visualizerCenter, runMode);
-              _vm.Run(func);
-              return null;
-            }
           case RunType.DumpAst:
             return node.ToString();
           case RunType.Disassemble: {
-              var compiler = new Compiler();
-              Function func = compiler.Compile(node, _vm.Env, _visualizerCenter, runMode);
+              Function func = new Compiler().Compile(node, _vm.Env, _visualizerCenter, runMode);
               return new Disassembler(func).ToString();
+            }
+          case RunType.Execute: {
+              Function func = new Compiler().Compile(node, _vm.Env, _visualizerCenter, runMode);
+              _vm.Run(func);
+              return null;
             }
           default:
             throw new NotImplementedException($"Unsupported run type: {runType}");

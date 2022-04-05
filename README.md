@@ -1,5 +1,8 @@
 # SeedLang
 
+[![Coverage
+Status](https://coveralls.io/repos/github/SeedV/SeedLang/badge.svg?branch=main)](https://coveralls.io/github/SeedV/SeedLang?branch=main)
+
 SeedLang is a visualizable low-code programming environment that focuses on
 educational purposes.
 

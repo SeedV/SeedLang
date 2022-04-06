@@ -1,5 +1,6 @@
 # SeedLang
 
+![build](https://github.com/SeedV/SeedLang/actions/workflows/csharp.yml/badge.svg)
 [![Coverage
 Status](https://coveralls.io/repos/github/SeedV/SeedLang/badge.svg?branch=main)](https://coveralls.io/github/SeedV/SeedLang?branch=main)
 

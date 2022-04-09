@@ -21,7 +21,7 @@ using Xunit;
 namespace SeedLang.X.Tests {
   public class SeedPythonVTagTests {
     [Fact]
-    public void TestSingleVTag() {
+    public void TestSingleLineVTag() {
       string source = "# [[ Print ]]\n" +
                       "print(1)";
       string expected = "[Ln 1, Col 0 - Ln 2, Col 7] VTagStatement (Print)\n" +
@@ -37,7 +37,7 @@ namespace SeedLang.X.Tests {
     }
 
     [Fact]
-    public void TestSingleVTagWithParameters() {
+    public void TestSingleLineVTagWithParameters() {
       string source = "# [[ Assign(x, y + 1), Initialize(x) ]]\n" +
                       "x = y + 1";
       string expected = "[Ln 1, Col 0 - Ln 2, Col 8] VTagStatement (Assign(x,y+1):\n" +
@@ -61,7 +61,7 @@ namespace SeedLang.X.Tests {
     }
 
     [Fact]
-    public void TestSingleVTagWithMultipleStatements() {
+    public void TestSingleLineVTagWithMultipleStatements() {
       string source = "# [[ Assign, Initialize ]]\n" +
                       "x = 1\n" +
                       "y = 2";
@@ -70,6 +70,28 @@ namespace SeedLang.X.Tests {
                         "    [Ln 2, Col 0 - Ln 2, Col 4] AssignmentStatement\n" +
                         "      [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
                         "      [Ln 2, Col 4 - Ln 2, Col 4] NumberConstantExpression (1)\n" +
+                        "  [Ln 3, Col 0 - Ln 3, Col 4] AssignmentStatement\n" +
+                        "    [Ln 3, Col 0 - Ln 3, Col 0] IdentifierExpression (y)\n" +
+                        "    [Ln 3, Col 4 - Ln 3, Col 4] NumberConstantExpression (2)";
+      string expectedTokens = "Variable [Ln 2, Col 0 - Ln 2, Col 0]," +
+                              "Operator [Ln 2, Col 2 - Ln 2, Col 2]," +
+                              "Number [Ln 2, Col 4 - Ln 2, Col 4]," +
+                              "Variable [Ln 3, Col 0 - Ln 3, Col 0]," +
+                              "Operator [Ln 3, Col 2 - Ln 3, Col 2]," +
+                              "Number [Ln 3, Col 4 - Ln 3, Col 4]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
+
+    [Fact]
+    public void TestMultipleLineVTag() {
+      string source = "# [[ Assign, Initialize\n" +
+                      "x = 1\n" +
+                      "y = 2\n" +
+                      "# ]]";
+      string expected = "[Ln 1, Col 0 - Ln 4, Col 3] VTagStatement (Assign,Initialize)\n" +
+                        "  [Ln 2, Col 0 - Ln 2, Col 4] AssignmentStatement\n" +
+                        "    [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
+                        "    [Ln 2, Col 4 - Ln 2, Col 4] NumberConstantExpression (1)\n" +
                         "  [Ln 3, Col 0 - Ln 3, Col 4] AssignmentStatement\n" +
                         "    [Ln 3, Col 0 - Ln 3, Col 0] IdentifierExpression (y)\n" +
                         "    [Ln 3, Col 4 - Ln 3, Col 4] NumberConstantExpression (2)";

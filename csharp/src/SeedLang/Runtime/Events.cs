@@ -126,7 +126,7 @@ namespace SeedLang.Runtime {
         }
 
         public override string ToString() {
-          return $"{Name}({string.Join(",", ArgTexts)})";
+          return Name + (ArgTexts.Count > 0 ? $"({string.Join(",", ArgTexts)})" : "");
         }
       }
 
@@ -149,7 +149,7 @@ namespace SeedLang.Runtime {
         }
 
         public override string ToString() {
-          return $"{Name}({string.Join(",", Args)})";
+          return Name + (Args.Count > 0 ? $"({string.Join(",", Args)})" : "");
         }
       }
 

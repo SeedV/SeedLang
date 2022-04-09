@@ -154,9 +154,10 @@ namespace SeedLang.X {
         var inputStream = new AntlrInputStream(comment.Text.Substring(1));
         var lexer = new SeedPythonLexer(inputStream);
         var tokens = lexer.GetAllTokens();
-        if (tokens.Count > 0 && tokens[0].Type == SeedPythonParser.VTAG_START) {
+        if (tokens.Count > 0 && (tokens[0].Type == SeedPythonParser.VTAG_START ||
+                                 tokens[0].Type == SeedPythonParser.VTAG_END)) {
           for (int i = 0; i < tokens.Count; i++) {
-            // Adds back '#' for the VTAG_START token.
+            // Adds back '#' for VTAG_START and VTAG_END tokens.
             int start = i == 0 ? comment.StartIndex : comment.StartIndex + tokens[i].StartIndex + 1;
             int column = i == 0 ? comment.Column : comment.Column + tokens[i].StartIndex + 1;
             // The length of first token is StopIndex + 1 + (length of '#').

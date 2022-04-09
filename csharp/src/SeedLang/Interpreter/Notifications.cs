@@ -136,7 +136,7 @@ namespace SeedLang.Interpreter {
         }
 
         public override string ToString() {
-          return $"{Name}({string.Join(",", ValueIds)})";
+          return Name + (ValueIds.Length > 0 ? $"({string.Join(",", ValueIds)})" : "");
         }
       }
       private readonly VTagInfo[] _vTagInfos;

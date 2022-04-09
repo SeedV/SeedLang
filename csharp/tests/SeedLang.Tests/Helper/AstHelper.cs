@@ -144,7 +144,6 @@ namespace SeedLang.Tests.Helper {
       return new VTagStatement.VTagInfo(name, arguments);
     }
 
-
     internal static VTagStatement.VTagInfo.Argument VTagArg(string text, Expression expr) {
       return new VTagStatement.VTagInfo.Argument(text, expr);
     }

@@ -33,7 +33,10 @@ tokens {
 program: statements EOF;
 
 statements: (NEWLINE | statement)+;
-statement: simple_stmts | compound_stmt | vtags;
+statement:
+  simple_stmts
+  | compound_stmt
+  | vtag_stmt;
 
 simple_stmts:
   simple_stmt (SEMICOLON simple_stmt)* SEMICOLON? NEWLINE;
@@ -51,7 +54,10 @@ compound_stmt:
   | if_stmt
   | while_stmt;
 
-vtags: VTAG_START vtag (COMMA vtag)* VTAG_END;
+vtag_stmt:
+  vtag_start VTAG_END NEWLINE statement? # single_line_vtag_stmt
+  | vtag_start statements VTAG_END       # multiple_line_vtag_stmt;
+vtag_start: VTAG_START vtag (COMMA vtag)*;
 vtag: NAME (OPEN_PAREN arguments CLOSE_PAREN)?;
 
 assignment:

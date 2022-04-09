@@ -97,9 +97,9 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    VISNOTIFY 0 2                                  {_range}\n" +
           $"  7    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    Notification.VTagEntered: Add() {_range}\n" +
+          $"  0    Notification.VTagEntered: Add {_range}\n" +
           $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  2    Notification.VTagExited: Add() {_range}\n"
+          $"  2    Notification.VTagExited: Add {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

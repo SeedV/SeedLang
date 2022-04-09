@@ -285,7 +285,7 @@ namespace SeedLang.Ast {
 
     protected override void Visit(VTagStatement vTag) {
       Enter(vTag);
-      _out.Append($" ({string.Join<VTagStatement.VTagInfo>(",", vTag.VTags)})");
+      _out.Append($" ({string.Join<VTagStatement.VTagInfo>(",", vTag.VTagInfos)})");
       foreach (var statement in vTag.Statements) {
         Visit(statement);
       }

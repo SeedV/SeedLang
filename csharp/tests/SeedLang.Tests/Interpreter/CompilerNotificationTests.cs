@@ -81,10 +81,8 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileVTag() {
-      var vTagInfo = new VTagStatement.VTagInfo[] {
-          new VTagStatement.VTagInfo("Add", Array.Empty<Expression>())
-      };
-      var program = AstHelper.VTag(vTagInfo, AstHelper.ExpressionStmt(
+      var vTagInfos = AstHelper.VTagInfos(AstHelper.VTagInfo("Add"));
+      var program = AstHelper.VTag(vTagInfos, AstHelper.ExpressionStmt(
           AstHelper.Binary(AstHelper.NumberConstant(1),
                            BinaryOperator.Add,
                            AstHelper.NumberConstant(2))
@@ -99,9 +97,84 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    VISNOTIFY 0 2                                  {_range}\n" +
           $"  7    RETURN    0 0                                  \n" +
           $"Notifications\n" +
-          $"  0    Notification.VTagEntered: Add {_range}\n" +
+          $"  0    Notification.VTagEntered: Add() {_range}\n" +
           $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  2    Notification.VTagExited: Add {_range}\n"
+          $"  2    Notification.VTagExited: Add() {_range}\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
+    public void TestCompileVTagWithArguments() {
+      var vTagInfos = AstHelper.VTagInfos(AstHelper.VTagInfo(
+          "Add",
+          AstHelper.VTagArg("1", AstHelper.NumberConstant(1)),
+          AstHelper.VTagArg("2", AstHelper.NumberConstant(2))
+      ));
+      var program = AstHelper.VTag(vTagInfos, AstHelper.ExpressionStmt(
+          AstHelper.Binary(AstHelper.NumberConstant(1),
+                           BinaryOperator.Add,
+                           AstHelper.NumberConstant(2))
+      ));
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  2    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  3    ADD       1 -1 -2          ; 1 2               {_range}\n" +
+          $"  4    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  5    CALL      0 1 0                                {_range}\n" +
+          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
+          $"  7    RETURN    0 0                                  \n" +
+          $"Notifications\n" +
+          $"  0    Notification.VTagEntered: Add(1,2) {_range}\n" +
+          $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
+          $"  2    Notification.VTagExited: Add(250,251) {_range}\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
+    public void TestCompileVTagWithComplexArguments() {
+      string x = "x";
+      string y = "y";
+      var vTagInfos = AstHelper.VTagInfos(AstHelper.VTagInfo(
+          "Assign",
+          AstHelper.VTagArg("x", AstHelper.Id(x)),
+          AstHelper.VTagArg("1", AstHelper.NumberConstant(1)),
+          AstHelper.VTagArg("y", AstHelper.Id(y)),
+          AstHelper.VTagArg("1+2", AstHelper.Binary(AstHelper.NumberConstant(1),
+                                                      BinaryOperator.Add,
+                                                      AstHelper.NumberConstant(2)))
+      ));
+      var program = AstHelper.VTag(vTagInfos,
+          AstHelper.Assign(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y")),
+                           AstHelper.NumberConstant(1),
+                           AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
+                                            AstHelper.NumberConstant(2)))
+      );
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  2    ADD       0 -1 -2          ; 1 2               {_range}\n" +
+          $"  3    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  4    LOADK     1 -1             ; 1                 {_range}\n" +
+          $"  5    SETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
+          $"  7    SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
+          $"  8    VISNOTIFY 0 3                                  {_range}\n" +
+          $"  9    GETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  10   GETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  11   ADD       2 -1 -2          ; 1 2               {_range}\n" +
+          $"  12   VISNOTIFY 0 4                                  {_range}\n" +
+          $"  13   VISNOTIFY 0 5                                  {_range}\n" +
+          $"  14   RETURN    0 0                                  \n" +
+          $"Notifications\n" +
+          $"  0    Notification.VTagEntered: Assign(x,1,y,1+2) {_range}\n" +
+          $"  1    Notification.Binary: 250 Add 251 0 {_range}\n" +
+          $"  2    Notification.Assignment: 'x': Global 1 {_range}\n" +
+          $"  3    Notification.Assignment: 'y': Global 0 {_range}\n" +
+          $"  4    Notification.Binary: 250 Add 251 2 {_range}\n" +
+          $"  5    Notification.VTagExited: Assign(0,250,1,2) {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

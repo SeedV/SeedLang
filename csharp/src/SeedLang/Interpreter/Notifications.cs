@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
+  using Array = System.Array;
   using Func = System.Func<uint, Value>;
 
   internal static class Notification {
@@ -105,51 +107,54 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    // TODO: add properties for parameter information. This class is different from Event.VTagInfo,
-    // because only register or constant ids can be get for parameters during compilation. The final
-    // result value of each parameter can be get during execution, and set into the Event.VTagInfo.
-    internal class VTagInfo {
-      public string Name { get; }
-
-      internal VTagInfo(string name) {
-        Name = name;
-      }
-
-      public override string ToString() {
-        return $"{Name}";
-      }
-    }
-
     internal class VTagEntered : AbstractNotification {
-      private readonly VTagInfo[] _vTags;
+      private readonly Event.VTagEntered.VTagInfo[] _vTagInfos;
 
       public override string ToString() {
-        return $"Notification.VTagEntered: {string.Join<VTagInfo>(",", _vTags)} {_range}";
+        var vTagInfoStr = string.Join<Event.VTagEntered.VTagInfo>(",", _vTagInfos);
+        return $"Notification.VTagEntered: {vTagInfoStr} {_range}";
       }
 
-      internal VTagEntered(VTagInfo[] vTags, Range range) : base(range) {
-        _vTags = vTags;
+      internal VTagEntered(Event.VTagEntered.VTagInfo[] vTagInfos, Range range) :
+          base(range) {
+        _vTagInfos = vTagInfos;
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-        var vTags = System.Array.ConvertAll(_vTags, vTag => new Event.VTagInfo(vTag.Name));
-        visualizerCenter.Notify(new Event.VTagEntered(vTags, _range));
+        visualizerCenter.Notify(new Event.VTagEntered(_vTagInfos, _range));
       }
     }
 
     internal class VTagExited : AbstractNotification {
-      private readonly VTagInfo[] _vTags;
+      public class VTagInfo {
+        public string Name { get; }
+        public uint[] ValueIds { get; }
+
+        public VTagInfo(string name, uint[] valueIds) {
+          Name = name;
+          ValueIds = valueIds;
+        }
+
+        public override string ToString() {
+          return $"{Name}({string.Join(",", ValueIds)})";
+        }
+      }
+      private readonly VTagInfo[] _vTagInfos;
 
       public override string ToString() {
-        return $"Notification.VTagExited: {string.Join<VTagInfo>(",", _vTags)} {_range}";
+        return $"Notification.VTagExited: {string.Join<VTagInfo>(",", _vTagInfos)} {_range}";
       }
 
-      internal VTagExited(VTagInfo[] vTags, Range range) : base(range) {
-        _vTags = vTags;
+      internal VTagExited(VTagInfo[] vTagInfos, Range range) : base(range) {
+        _vTagInfos = vTagInfos;
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
-        var vTags = System.Array.ConvertAll(_vTags, vTag => new Event.VTagInfo(vTag.Name));
+        var vTags = Array.ConvertAll(_vTagInfos, vTag => {
+          var values = Array.ConvertAll(vTag.ValueIds,
+                                        valueId => new ValueWrapper(getRKValue(valueId)));
+          return new Event.VTagExited.VTagInfo(vTag.Name, values);
+        });
         visualizerCenter.Notify(new Event.VTagExited(vTags, _range));
       }
     }

@@ -62,12 +62,12 @@ namespace SeedLang.X {
     public override AstNode VisitVtags([NotNull] SeedPythonParser.VtagsContext context) {
       SeedPythonParser.VtagContext[] vTagContexts = context.vtag();
       var nameTokens = new IToken[vTagContexts.Length];
-      var arguments = new ParserRuleContext[vTagContexts.Length][];
+      var argContexts = new ParserRuleContext[vTagContexts.Length][];
       for (int i = 0; i < vTagContexts.Length; i++) {
         nameTokens[i] = vTagContexts[i].NAME().Symbol;
-        arguments[i] = vTagContexts[i].arguments()?.expression() ?? null;
+        argContexts[i] = vTagContexts[i].arguments()?.expression() ?? null;
       }
-      return _helper.BuildVTag(context.VTAG_START().Symbol, nameTokens, arguments,
+      return _helper.BuildVTag(context.VTAG_START().Symbol, nameTokens, argContexts,
                                context.VTAG_END().Symbol, this);
     }
 

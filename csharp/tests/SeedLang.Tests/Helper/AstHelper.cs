@@ -134,5 +134,19 @@ namespace SeedLang.Tests.Helper {
                                        params Statement[] statements) {
       return Statement.VTag(vTagInfo, statements, TextRange);
     }
+
+    internal static VTagStatement.VTagInfo[] VTagInfos(params VTagStatement.VTagInfo[] vTagInfos) {
+      return vTagInfos;
+    }
+
+    internal static VTagStatement.VTagInfo VTagInfo(
+        string name, params VTagStatement.VTagInfo.Argument[] arguments) {
+      return new VTagStatement.VTagInfo(name, arguments);
+    }
+
+
+    internal static VTagStatement.VTagInfo.Argument VTagArg(string text, Expression expr) {
+      return new VTagStatement.VTagInfo.Argument(text, expr);
+    }
   }
 }

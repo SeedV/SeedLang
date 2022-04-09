@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Ast {
@@ -67,9 +69,9 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create VTag statements.
-    internal static VTagStatement VTag(VTagStatement.VTagInfo[] vTags, Statement[] statements,
+    internal static VTagStatement VTag(VTagStatement.VTagInfo[] vTagInfos, Statement[] statements,
                                        Range range) {
-      return new VTagStatement(vTags, statements, range);
+      return new VTagStatement(vTagInfos, statements, range);
     }
 
     internal Statement(Range range) : base(range) { }
@@ -170,27 +172,48 @@ namespace SeedLang.Ast {
 
   internal class VTagStatement : Statement {
     internal class VTagInfo {
-      public string Name { get; }
-      public Expression[] Arguments { get; }
+      internal class Argument {
+        public string Text { get; }
+        public Expression Expr { get; }
 
-      internal VTagInfo(string name, Expression[] arguments) {
-        Name = name;
-        Arguments = arguments;
+        internal Argument(string text, Expression expr) {
+          Text = text;
+          Expr = expr;
+        }
+
+        public override string ToString() {
+          return $"'{Text}' {Expr}";
+        }
       }
 
-      // TODO: append the parameters into the result.
+      public string Name { get; }
+      public Argument[] Args { get; }
+
+      internal VTagInfo(string name, Argument[] args) {
+        Name = name;
+        Args = args;
+      }
+
       public override string ToString() {
-        return Arguments.Length > 0 ? $"{Name}: {string.Join<Expression>(",", Arguments)}" :
-                                      $"{Name}";
+        var sb = new StringBuilder();
+        sb.Append(Name);
+        if (Args.Length > 0) {
+          sb.Append('(');
+          sb.Append(string.Join(",", Args.Select(arg => arg.Text)));
+          sb.AppendLine("):");
+          sb.Append(string.Join("\n", Args.Select(arg => arg.Expr)));
+        }
+        return sb.ToString();
       }
     }
 
-    public VTagInfo[] VTags { get; }
+    public VTagInfo[] VTagInfos { get; }
     // The statements enclosed in the VTag.
     public Statement[] Statements { get; }
 
-    internal VTagStatement(VTagInfo[] vTags, Statement[] statements, Range range) : base(range) {
-      VTags = vTags;
+    internal VTagStatement(VTagInfo[] vTagInfos, Statement[] statements, Range range) :
+        base(range) {
+      VTagInfos = vTagInfos;
       Statements = statements;
     }
   }

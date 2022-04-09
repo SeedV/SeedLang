@@ -143,13 +143,13 @@ namespace SeedLang.Tests.Helper {
 
     private void VTagEnteredEventsToString(StringBuilder sb) {
       foreach (var vee in _vTagEnteredEvents) {
-        sb.AppendLine($"{vee.Range} {string.Join<Event.VTagInfo>(",", vee.VTags)}");
+        sb.AppendLine($"{vee.Range} {string.Join(",", vee.VTags)}");
       }
     }
 
     private void VTagExitedEventsToString(StringBuilder sb) {
       foreach (var vee in _vTagExitedEvents) {
-        sb.AppendLine($"{vee.Range} {string.Join<Event.VTagInfo>(",", vee.VTags)}");
+        sb.AppendLine($"{vee.Range} {string.Join(",", vee.VTags)}");
       }
     }
   }

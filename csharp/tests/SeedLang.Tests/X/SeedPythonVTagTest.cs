@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SeedLang.Ast;
@@ -150,7 +151,7 @@ namespace SeedLang.X.Tests {
                                          out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
+      Assert.Equal(expected.Replace("\n", Environment.NewLine), node.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }

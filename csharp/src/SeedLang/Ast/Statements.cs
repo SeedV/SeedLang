@@ -201,7 +201,7 @@ namespace SeedLang.Ast {
           sb.Append('(');
           sb.Append(string.Join(",", Args.Select(arg => arg.Text)));
           sb.AppendLine("):");
-          sb.Append(string.Join("\n", Args.Select(arg => arg.Expr)));
+          sb.Append(string.Join(System.Environment.NewLine, Args.Select(arg => arg.Expr)));
         }
         return sb.ToString();
       }

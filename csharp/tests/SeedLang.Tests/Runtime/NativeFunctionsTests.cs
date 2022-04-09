@@ -65,7 +65,7 @@ namespace SeedLang.Runtime.Tests {
       var print = Function(NativeFunctions.Print);
       var args = new Value[] { new Value(1), new Value(2), new Value(3) };
       print.Call(args, 0, args.Length, sys);
-      var expected = $"1 2 3\n".Replace("\n", Environment.NewLine);
+      var expected = "1 2 3" + Environment.NewLine;
       Assert.Equal(expected, sys.Stdout.ToString());
     }
 

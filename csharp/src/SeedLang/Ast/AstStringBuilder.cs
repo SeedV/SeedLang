@@ -294,7 +294,8 @@ namespace SeedLang.Ast {
 
     private void Enter(AstNode node) {
       if (_level > 0) {
-        _out.Append($"\n{new string(' ', _level * 2)}");
+        _out.AppendLine();
+        _out.Append($"{new string(' ', _level * 2)}");
       }
       _out.Append($"{node.Range} {node.GetType().Name}");
       _level++;

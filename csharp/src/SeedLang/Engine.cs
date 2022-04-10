@@ -18,16 +18,19 @@ using System.IO;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Interpreter;
+using SeedLang.Runtime;
 using SeedLang.X;
 
-namespace SeedLang.Runtime {
-  // An executor class to execute SeedBlock programs or SeedX source code. The information during
-  // execution can be visualized by registered visualizers.
-  public class Executor {
+namespace SeedLang {
+  internal class Engine : IEngine {
+    private readonly SeedXLanguage _language;
+    private readonly Mode _mode;
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
     private readonly VM _vm;
 
-    public Executor() {
+    internal Engine(SeedXLanguage language, Mode mode) {
+      _language = language;
+      _mode = mode;
       _vm = new VM(_visualizerCenter);
     }
 
@@ -46,8 +49,8 @@ namespace SeedLang.Runtime {
     // Parses SeedX source code into a list of syntax tokens. Incomplete or invalid source code can
     // also be parsed with this method, where illegal tokens will be marked as Unknown or other
     // relevant types.
-    public static void ParseSyntaxTokens(string source, string module, SeedXLanguage language,
-                                         out IReadOnlyList<TokenInfo> syntaxTokens) {
+    public void ParseSyntaxTokens(string source, string module, SeedXLanguage language,
+                                  out IReadOnlyList<TokenInfo> syntaxTokens) {
       if (string.IsNullOrEmpty(source) || module is null) {
         syntaxTokens = new List<TokenInfo>();
         return;
@@ -59,9 +62,9 @@ namespace SeedLang.Runtime {
 
     // Tries to parse valid SeedX source code into a list of semantic tokens. Returns false and sets
     // semanticTokens to null if the source code is not valid.
-    public static bool ParseSemanticTokens(string source, string module, SeedXLanguage language,
-                                           out IReadOnlyList<TokenInfo> semanticTokens,
-                                           DiagnosticCollection collection = null) {
+    public bool ParseSemanticTokens(string source, string module, SeedXLanguage language,
+                                    out IReadOnlyList<TokenInfo> semanticTokens,
+                                    DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
         semanticTokens = new List<TokenInfo>();
         return true;

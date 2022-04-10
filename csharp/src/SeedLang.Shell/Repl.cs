@@ -34,8 +34,8 @@ namespace SeedLang.Shell {
 
     internal void Execute() {
       ReadLine.HistoryEnabled = true;
-      var executor = new Executor();
-      _visualizerManager.RegisterToExecutor(executor);
+      IEngine engine = Factory.CreateEngine(SeedXLanguage.SeedPython, Mode.Interactive);
+      _visualizerManager.RegisterToExecutor(engine);
       while (true) {
         Read();
         if (_source.Source == "quit" + Environment.NewLine) {
@@ -44,8 +44,8 @@ namespace SeedLang.Shell {
         _source.ParseAndWriteSource();
         Console.WriteLine("---------- Run ----------");
         var collection = new DiagnosticCollection();
-        string result = executor.Run(_source.Source, "", _source.Language, _runType,
-                                     RunMode.Interactive, collection);
+        string result = engine.Run(_source.Source, "", _source.Language, _runType,
+                                   RunMode.Interactive, collection);
         if (!(result is null)) {
           Console.WriteLine(result);
         }
@@ -56,7 +56,7 @@ namespace SeedLang.Shell {
           Console.WriteLine($"{diagnostic}");
         }
       }
-      _visualizerManager.UnregisterFromExecutor(executor);
+      _visualizerManager.UnregisterFromExecutor(engine);
     }
 
     // Reads the source code from console. Continues to read if there is a ':' character in the end

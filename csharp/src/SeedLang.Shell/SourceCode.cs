@@ -36,9 +36,10 @@ namespace SeedLang.Shell {
     internal void ParseAndWriteSource() {
       // Tries to parse semantic tokens out of the source code. Falls back to syntax tokens if the
       // source code is not valid.
-      if (!Executor.ParseSemanticTokens(Source, "", Language,
-                                        out IReadOnlyList<TokenInfo> syntaxTokens)) {
-        Executor.ParseSyntaxTokens(Source, "", Language, out syntaxTokens);
+      var engine = Factory.CreateEngine(SeedXLanguage.SeedPython, Mode.Interactive);
+      if (!engine.ParseSemanticTokens(Source, "", Language,
+                                      out IReadOnlyList<TokenInfo> syntaxTokens)) {
+        engine.ParseSyntaxTokens(Source, "", Language, out syntaxTokens);
       }
       WriteSourceWithSyntaxTokens(syntaxTokens);
     }

@@ -85,12 +85,11 @@ namespace SeedLang.Shell {
       Console.WriteLine();
       Console.WriteLine("---------- Run ----------");
       var visualizerManager = new VisualizerManager(source, visualizerTypes);
-      var executor = new Executor();
-      visualizerManager.RegisterToExecutor(executor);
+      IEngine engine = Factory.CreateEngine(SeedXLanguage.SeedPython, Mode.Script);
+      visualizerManager.RegisterToExecutor(engine);
       var collection = new DiagnosticCollection();
 
-      string result = executor.Run(source.Source, "", language, runType, RunMode.Script,
-                                   collection);
+      string result = engine.Run(source.Source, "", language, runType, RunMode.Script, collection);
       if (!(result is null)) {
         Console.WriteLine(result);
       }
@@ -101,7 +100,7 @@ namespace SeedLang.Shell {
         }
         Console.WriteLine($": {diagnostic}");
       }
-      visualizerManager.UnregisterFromExecutor(executor);
+      visualizerManager.UnregisterFromExecutor(engine);
     }
   }
 }

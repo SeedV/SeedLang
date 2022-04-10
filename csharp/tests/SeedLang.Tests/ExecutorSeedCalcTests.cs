@@ -17,7 +17,7 @@ using System.Linq;
 using SeedLang.Common;
 using Xunit;
 
-namespace SeedLang.Runtime.Tests {
+namespace SeedLang.Tests {
   public class ExecutorSeedCalcTests {
     [Theory]
     [InlineData("5 + (",
@@ -36,8 +36,9 @@ namespace SeedLang.Runtime.Tests {
                 "Number [Ln 1, Col 9 - Ln 1, Col 9]")]
     public void TestParseSyntaxTokens(string source, string expectedTokens) {
       var collection = new DiagnosticCollection();
-      Executor.ParseSyntaxTokens(source, "", SeedXLanguage.SeedCalc,
-                                 out IReadOnlyList<TokenInfo> tokens);
+      var engine = Factory.CreateEngine(SeedXLanguage.SeedCalc, Mode.Interactive);
+      engine.ParseSyntaxTokens(source, "", SeedXLanguage.SeedCalc,
+                               out IReadOnlyList<TokenInfo> tokens);
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }

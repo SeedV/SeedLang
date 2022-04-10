@@ -67,6 +67,60 @@ namespace SeedLang.X.Tests {
     }
 
     [Fact]
+    public void TestVTagWithArguments() {
+      string source = "# [[ Print(a, b) ]]\n" +
+                      "print(1)";
+      var expectedTokens = new string[] {
+          $"[@-1,0:3='# [[',<{SeedPythonParser.VTAG_START}>,1:0]",
+          $"[@-1,5:9='Print',<{SeedPythonParser.NAME}>,1:5]",
+          $"[@-1,10:10='(',<{SeedPythonParser.OPEN_PAREN}>,1:10]",
+          $"[@-1,11:11='a',<{SeedPythonParser.NAME}>,1:11]",
+          $"[@-1,12:12=',',<{SeedPythonParser.COMMA}>,1:12]",
+          $"[@-1,14:14='b',<{SeedPythonParser.NAME}>,1:14]",
+          $"[@-1,15:15=')',<{SeedPythonParser.CLOSE_PAREN}>,1:15]",
+          $"[@-1,17:18=']]',<{SeedPythonParser.VTAG_END}>,1:17]",
+          $"[@-1,19:19='\\n',<{SeedPythonParser.NEWLINE}>,1:19]",
+          $"[@-1,20:24='print',<{SeedPythonParser.NAME}>,2:0]",
+          $"[@-1,25:25='(',<{SeedPythonParser.OPEN_PAREN}>,2:5]",
+          $"[@-1,26:26='1',<{SeedPythonParser.NUMBER}>,2:6]",
+          $"[@-1,27:27=')',<{SeedPythonParser.CLOSE_PAREN}>,2:7]",
+          $"[@-1,28:28='\\n',<{SeedPythonParser.NEWLINE}>,2:8]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
+    public void TestMultipleLineVTag() {
+      string source = "# [[ Assign(x, y), Initialize\n" +
+                      "x = 1\n" +
+                      "y = 2\n" +
+                      "# ]]";
+      var expectedTokens = new string[] {
+          $"[@-1,0:3='# [[',<{SeedPythonParser.VTAG_START}>,1:0]",
+          $"[@-1,5:10='Assign',<{SeedPythonParser.NAME}>,1:5]",
+          $"[@-1,11:11='(',<{SeedPythonParser.OPEN_PAREN}>,1:11]",
+          $"[@-1,12:12='x',<{SeedPythonParser.NAME}>,1:12]",
+          $"[@-1,13:13=',',<{SeedPythonParser.COMMA}>,1:13]",
+          $"[@-1,15:15='y',<{SeedPythonParser.NAME}>,1:15]",
+          $"[@-1,16:16=')',<{SeedPythonParser.CLOSE_PAREN}>,1:16]",
+          $"[@-1,17:17=',',<{SeedPythonParser.COMMA}>,1:17]",
+          $"[@-1,19:28='Initialize',<{SeedPythonParser.NAME}>,1:19]",
+          $"[@-1,29:29='\\n',<{SeedPythonParser.NEWLINE}>,1:29]",
+          $"[@-1,30:30='x',<{SeedPythonParser.NAME}>,2:0]",
+          $"[@-1,32:32='=',<{SeedPythonParser.EQUAL}>,2:2]",
+          $"[@-1,34:34='1',<{SeedPythonParser.NUMBER}>,2:4]",
+          $"[@-1,35:35='\\n',<{SeedPythonParser.NEWLINE}>,2:5]",
+          $"[@-1,36:36='y',<{SeedPythonParser.NAME}>,3:0]",
+          $"[@-1,38:38='=',<{SeedPythonParser.EQUAL}>,3:2]",
+          $"[@-1,40:40='2',<{SeedPythonParser.NUMBER}>,3:4]",
+          $"[@-1,41:41='\\n',<{SeedPythonParser.NEWLINE}>,3:5]",
+          $"[@-1,42:45='# ]]',<{SeedPythonParser.VTAG_END}>,4:0]",
+          $"[@-1,46:46='\\n',<{SeedPythonParser.NEWLINE}>,4:4]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
     public void TestVTagWithIndent() {
       string source = "while True:\n" +
                       "  # [[ Assign ]]\n" +
@@ -86,6 +140,32 @@ namespace SeedLang.X.Tests {
           $"[@-1,35:35='1',<{SeedPythonParser.NUMBER}>,3:6]",
           $"[@-1,36:36='\\n',<{SeedPythonParser.NEWLINE}>,3:7]",
           $"[@-1,36:36='',<{SeedPythonParser.DEDENT}>,4:0]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
+    public void TestMultipleVTagWithIndent() {
+      string source = "while True:\n" +
+                      "  # [[ Assign\n" +
+                      "  x = 1\n" +
+                      "  # ]]";
+      var expectedTokens = new string[] {
+          $"[@-1,0:4='while',<{SeedPythonParser.WHILE}>,1:0]",
+          $"[@-1,6:9='True',<{SeedPythonParser.TRUE}>,1:6]",
+          $"[@-1,10:10=':',<{SeedPythonParser.COLON}>,1:10]",
+          $"[@-1,11:11='\\n',<{SeedPythonParser.NEWLINE}>,1:11]",
+          $"[@-1,12:13='  ',<{SeedPythonParser.INDENT}>,2:0]",
+          $"[@-1,14:17='# [[',<{SeedPythonParser.VTAG_START}>,2:2]",
+          $"[@-1,19:24='Assign',<{SeedPythonParser.NAME}>,2:7]",
+          $"[@-1,25:27='\\n  ',<{SeedPythonParser.NEWLINE}>,2:13]",
+          $"[@-1,28:28='x',<{SeedPythonParser.NAME}>,3:2]",
+          $"[@-1,30:30='=',<{SeedPythonParser.EQUAL}>,3:4]",
+          $"[@-1,32:32='1',<{SeedPythonParser.NUMBER}>,3:6]",
+          $"[@-1,33:35='\\n  ',<{SeedPythonParser.NEWLINE}>,3:7]",
+          $"[@-1,36:39='# ]]',<{SeedPythonParser.VTAG_END}>,4:2]",
+          $"[@-1,40:40='\\n',<{SeedPythonParser.NEWLINE}>,4:6]",
+          $"[@-1,40:40='',<{SeedPythonParser.DEDENT}>,5:0]",
       };
       TestScanTokens(source, expectedTokens);
     }

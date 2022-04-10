@@ -114,33 +114,48 @@ namespace SeedLang.Runtime {
       }
     }
 
-    // TODO: add properties for parameter values.
-    public class VTagInfo {
-      public string Name { get; }
-
-      public VTagInfo(string name) {
-        Name = name;
-      }
-
-      public override string ToString() {
-        return $"{Name}";
-      }
-    }
-
     // An event which is triggered when a VTag scope is entered.
     public class VTagEntered : AbstractEvent {
-      public VTagInfo[] VTags { get; }
+      public class VTagInfo {
+        public string Name { get; }
+        public IReadOnlyList<string> ArgTexts { get; }
 
-      public VTagEntered(VTagInfo[] vTags, Range range) : base(range) {
+        public VTagInfo(string name, IReadOnlyList<string> argTexts) {
+          Name = name;
+          ArgTexts = argTexts;
+        }
+
+        public override string ToString() {
+          return Name + (ArgTexts.Count > 0 ? $"({string.Join(",", ArgTexts)})" : "");
+        }
+      }
+
+      public IReadOnlyList<VTagInfo> VTags { get; }
+
+      public VTagEntered(IReadOnlyList<VTagInfo> vTags, Range range) : base(range) {
         VTags = vTags;
       }
     }
 
     // An event which is triggered when a VTag scope is exited.
     public class VTagExited : AbstractEvent {
-      public VTagInfo[] VTags { get; }
+      public class VTagInfo {
+        public string Name { get; }
+        public IReadOnlyList<IValue> Args { get; }
 
-      public VTagExited(VTagInfo[] vTags, Range range) : base(range) {
+        public VTagInfo(string name, IReadOnlyList<IValue> args) {
+          Name = name;
+          Args = args;
+        }
+
+        public override string ToString() {
+          return Name + (Args.Count > 0 ? $"({string.Join(",", Args)})" : "");
+        }
+      }
+
+      public IReadOnlyList<VTagInfo> VTags { get; }
+
+      public VTagExited(IReadOnlyList<VTagInfo> vTags, Range range) : base(range) {
         VTags = vTags;
       }
     }

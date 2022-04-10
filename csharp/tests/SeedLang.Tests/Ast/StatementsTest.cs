@@ -36,9 +36,11 @@ namespace SeedLang.Ast.Tests {
         string name = "id";
         var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
                                           AstHelper.NumberConstant(1));
-        var expectedOutput = $"{AstHelper.TextRange} AssignmentStatement\n" +
-                             $"  {AstHelper.TextRange} IdentifierExpression ({name})\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (1)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} AssignmentStatement\n" +
+            $"  {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (1)"
+        ).Replace("\n", Environment.NewLine);
         Add(assignment, expectedOutput);
       }
 
@@ -55,12 +57,14 @@ namespace SeedLang.Ast.Tests {
           BinaryOperator.Multiply,
           AstHelper.NumberConstant(3)
         ));
-        var expectedOutput = $"{AstHelper.TextRange} ExpressionStatement\n" +
-                             $"  {AstHelper.TextRange} BinaryExpression (*)\n" +
-                             $"    {AstHelper.TextRange} BinaryExpression (+)\n" +
-                             $"      {AstHelper.TextRange} NumberConstantExpression (1)\n" +
-                             $"      {AstHelper.TextRange} NumberConstantExpression (2)\n" +
-                             $"    {AstHelper.TextRange} NumberConstantExpression (3)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} ExpressionStatement\n" +
+            $"  {AstHelper.TextRange} BinaryExpression (*)\n" +
+            $"    {AstHelper.TextRange} BinaryExpression (+)\n" +
+            $"      {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+            $"      {AstHelper.TextRange} NumberConstantExpression (2)\n" +
+            $"    {AstHelper.TextRange} NumberConstantExpression (3)"
+        ).Replace("\n", Environment.NewLine);
         Add(expr, expectedOutput);
       }
 
@@ -70,20 +74,24 @@ namespace SeedLang.Ast.Tests {
           AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2)),
           AstHelper.Block(Array.Empty<Statement>())
         );
-        var expectedOutput = $"{AstHelper.TextRange} ForInStatement\n" +
-                             $"  {AstHelper.TextRange} IdentifierExpression (a)\n" +
-                             $"  {AstHelper.TextRange} ListExpression\n" +
-                             $"    {AstHelper.TextRange} NumberConstantExpression (1)\n" +
-                             $"    {AstHelper.TextRange} NumberConstantExpression (2)\n" +
-                             $"  {AstHelper.TextRange} BlockStatement";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} ForInStatement\n" +
+            $"  {AstHelper.TextRange} IdentifierExpression (a)\n" +
+            $"  {AstHelper.TextRange} ListExpression\n" +
+            $"    {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+            $"    {AstHelper.TextRange} NumberConstantExpression (2)\n" +
+            $"  {AstHelper.TextRange} BlockStatement"
+        ).Replace("\n", Environment.NewLine);
         Add(forIn, expectedOutput);
       }
 
       private void AddFuncDef() {
         var funcDef = AstHelper.FuncDef("func", AstHelper.Params("arg1", "arg2"),
                                         AstHelper.Block(Array.Empty<Statement>()));
-        var expectedOutput = $"{AstHelper.TextRange} FuncDefStatement (func:arg1,arg2)\n" +
-                             $"  {AstHelper.TextRange} BlockStatement";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} FuncDefStatement (func:arg1,arg2)\n" +
+            $"  {AstHelper.TextRange} BlockStatement"
+        ).Replace("\n", Environment.NewLine);
         Add(funcDef, expectedOutput);
       }
 
@@ -94,14 +102,16 @@ namespace SeedLang.Ast.Tests {
                                                 AstHelper.NumberConstant(1)),
                                AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
                                                 AstHelper.NumberConstant(2)));
-        var expectedOutput = $"{AstHelper.TextRange} IfStatement\n" +
-                             $"  {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
-                             $"  {AstHelper.TextRange} AssignmentStatement\n" +
-                             $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
-                             $"    {AstHelper.TextRange} NumberConstantExpression (1)\n" +
-                             $"  {AstHelper.TextRange} AssignmentStatement\n" +
-                             $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
-                             $"    {AstHelper.TextRange} NumberConstantExpression (2)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} IfStatement\n" +
+            $"  {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
+            $"  {AstHelper.TextRange} AssignmentStatement\n" +
+            $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"    {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+            $"  {AstHelper.TextRange} AssignmentStatement\n" +
+            $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"    {AstHelper.TextRange} NumberConstantExpression (2)"
+        ).Replace("\n", Environment.NewLine);
         Add(@if, expectedOutput);
       }
 
@@ -113,8 +123,10 @@ namespace SeedLang.Ast.Tests {
 
       private void AddReturn() {
         var ret = AstHelper.Return(AstHelper.NumberConstant(1));
-        var expectedOutput = $"{AstHelper.TextRange} ReturnStatement\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (1)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} ReturnStatement\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (1)"
+        ).Replace("\n", Environment.NewLine);
         Add(ret, expectedOutput);
       }
 
@@ -123,11 +135,13 @@ namespace SeedLang.Ast.Tests {
         var @while = AstHelper.While(AstHelper.BooleanConstant(true),
                                      AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
                                                       AstHelper.NumberConstant(1)));
-        var expectedOutput = $"{AstHelper.TextRange} WhileStatement\n" +
-                             $"  {AstHelper.TextRange} BooleanConstantExpression (True)\n" +
-                             $"  {AstHelper.TextRange} AssignmentStatement\n" +
-                             $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
-                             $"    {AstHelper.TextRange} NumberConstantExpression (1)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} WhileStatement\n" +
+            $"  {AstHelper.TextRange} BooleanConstantExpression (True)\n" +
+            $"  {AstHelper.TextRange} AssignmentStatement\n" +
+            $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"    {AstHelper.TextRange} NumberConstantExpression (1)"
+        ).Replace("\n", Environment.NewLine);
         Add(@while, expectedOutput);
       }
     }

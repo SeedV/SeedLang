@@ -19,6 +19,8 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
+  using Array = System.Array;
+
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
     private VisualizerCenter _visualizerCenter;
@@ -375,18 +377,38 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
-    // TODO: generate bytecode to evaluate the parameter expressions and add the result register ids
-    // into the VTagInfo.
     protected override void Visit(VTagStatement vTag) {
-      var vTags = new Notification.VTagInfo[vTag.VTags.Length];
-      for (int i = 0; i < vTag.VTags.Length; i++) {
-        vTags[i] = new Notification.VTagInfo(vTag.VTags[i].Name);
-      }
-      EmitVTagEnteredNotification(vTags, vTag.Range);
+      EmitVTagEnteredNotification(CreateVTagEnteredInfo(vTag), vTag.Range);
       foreach (Statement statement in vTag.Statements) {
         Visit(statement);
       }
-      EmitVTagExitedNotification(vTags, vTag.Range);
+      EmitVTagExitedNotification(CreateVTagExitedInfo(vTag), vTag.Range);
+    }
+
+    private static Event.VTagEntered.VTagInfo[] CreateVTagEnteredInfo(VTagStatement vTag) {
+      return Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
+        var argTexts = Array.ConvertAll(vTagInfo.Args, args => args.Text);
+        return new Event.VTagEntered.VTagInfo(vTagInfo.Name, argTexts);
+      });
+    }
+
+    private Notification.VTagExited.VTagInfo[] CreateVTagExitedInfo(VTagStatement vTag) {
+      _variableResolver.BeginBlockScope();
+      var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
+        var valueIds = new uint[vTagInfo.Args.Length];
+        for (int j = 0; j < vTagInfo.Args.Length; j++) {
+          if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
+            valueIds[j] = id;
+          } else {
+            valueIds[j] = _variableResolver.AllocateRegister();
+            _registerForSubExpr = valueIds[j];
+            Visit(vTagInfo.Args[j].Expr);
+          }
+        }
+        return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
+      });
+      _variableResolver.EndBlockScope();
+      return vTagInfos;
     }
 
     private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
@@ -686,16 +708,17 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void EmitVTagEnteredNotification(Notification.VTagInfo[] vTags, Range range) {
+    private void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
-        var notification = new Notification.VTagEntered(vTags, range);
+        var notification = new Notification.VTagEntered(vTagInfos, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
-    private void EmitVTagExitedNotification(Notification.VTagInfo[] vTags, Range range) {
+    private void EmitVTagExitedNotification(Notification.VTagExited.VTagInfo[] vTagInfos,
+                                            Range range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        var notification = new Notification.VTagExited(vTags, range);
+        var notification = new Notification.VTagExited(vTagInfos, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }

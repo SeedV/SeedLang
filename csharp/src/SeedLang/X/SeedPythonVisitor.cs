@@ -36,8 +36,7 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitProgram([NotNull] SeedPythonParser.ProgramContext context) {
-      ParserRuleContext statements = context.statements();
-      return Visit(statements);
+      return Visit(context.statements());
     }
 
     public override AstNode VisitStatements([NotNull] SeedPythonParser.StatementsContext context) {
@@ -59,10 +58,21 @@ namespace SeedLang.X {
       return _helper.BuildPass(context.PASS().Symbol);
     }
 
-    // TODO: handle parameters later.
-    public override AstNode VisitVtags([NotNull] SeedPythonParser.VtagsContext context) {
-      return VisitorHelper.BuildVTag(context.VTAG_START().Symbol, context.NAME(),
-                                     context.VTAG_END().Symbol);
+    public override AstNode VisitSingle_line_vtag_stmt(
+        [NotNull] SeedPythonParser.Single_line_vtag_stmtContext context) {
+      (var startToken, var nameTokens, var argContexts) = VisitVTagStart(context.vtag_start());
+      var statementContexts = context.statement() is null ?
+                              Array.Empty<ParserRuleContext>() :
+                              new ParserRuleContext[] { context.statement() };
+      return _helper.BuildVTag(startToken, nameTokens, argContexts, context.VTAG_END().Symbol,
+                               statementContexts, this);
+    }
+
+    public override AstNode VisitMultiple_line_vtag_stmt(
+        [NotNull] SeedPythonParser.Multiple_line_vtag_stmtContext context) {
+      (var startToken, var nameTokens, var argContexts) = VisitVTagStart(context.vtag_start());
+      return _helper.BuildVTag(startToken, nameTokens, argContexts, context.VTAG_END().Symbol,
+                               context.statements().statement(), this);
     }
 
     public override AstNode VisitAssign([NotNull] SeedPythonParser.AssignContext context) {
@@ -375,6 +385,18 @@ namespace SeedLang.X {
           throw new NotImplementedException(
               $"Unsupported comparison operator token: {token.Type}.");
       }
+    }
+
+    private (IToken, IToken[], ParserRuleContext[][]) VisitVTagStart(
+    SeedPythonParser.Vtag_startContext vTagStartContext) {
+      SeedPythonParser.VtagContext[] vTagContexts = vTagStartContext.vtag();
+      var nameTokens = new IToken[vTagContexts.Length];
+      var argContexts = new ParserRuleContext[vTagContexts.Length][];
+      for (int i = 0; i < vTagContexts.Length; i++) {
+        nameTokens[i] = vTagContexts[i].NAME().Symbol;
+        argContexts[i] = vTagContexts[i].arguments()?.expression() ?? null;
+      }
+      return (vTagStartContext.VTAG_START().Symbol, nameTokens, argContexts);
     }
   }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SeedLang.Ast;
@@ -21,7 +22,7 @@ using Xunit;
 namespace SeedLang.X.Tests {
   public class SeedPythonVTagTests {
     [Fact]
-    public void TestSingleVTag() {
+    public void TestSingleLineVTag() {
       string source = "# [[ Print ]]\n" +
                       "print(1)";
       string expected = "[Ln 1, Col 0 - Ln 2, Col 7] VTagStatement (Print)\n" +
@@ -37,15 +38,61 @@ namespace SeedLang.X.Tests {
     }
 
     [Fact]
-    public void TestSingleVTagWithMultipleStatements() {
-      string source = "# [[ Assign ]]\n" +
+    public void TestSingleLineVTagWithParameters() {
+      string source = "# [[ Assign(x, y + 1), Initialize(x) ]]\n" +
+                      "x = y + 1";
+      string expected = "[Ln 1, Col 0 - Ln 2, Col 8] VTagStatement (Assign(x,y+1):\n" +
+                        "[Ln 1, Col 12 - Ln 1, Col 12] IdentifierExpression (x)\n" +
+                        "[Ln 1, Col 15 - Ln 1, Col 19] BinaryExpression (+)\n" +
+                        "  [Ln 1, Col 15 - Ln 1, Col 15] IdentifierExpression (y)\n" +
+                        "  [Ln 1, Col 19 - Ln 1, Col 19] NumberConstantExpression (1)," +
+                        "Initialize(x):\n" +
+                        "[Ln 1, Col 34 - Ln 1, Col 34] IdentifierExpression (x))\n" +
+                        "  [Ln 2, Col 0 - Ln 2, Col 8] AssignmentStatement\n" +
+                        "    [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
+                        "    [Ln 2, Col 4 - Ln 2, Col 8] BinaryExpression (+)\n" +
+                        "      [Ln 2, Col 4 - Ln 2, Col 4] IdentifierExpression (y)\n" +
+                        "      [Ln 2, Col 8 - Ln 2, Col 8] NumberConstantExpression (1)";
+      string expectedTokens = "Variable [Ln 2, Col 0 - Ln 2, Col 0]," +
+                              "Operator [Ln 2, Col 2 - Ln 2, Col 2]," +
+                              "Variable [Ln 2, Col 4 - Ln 2, Col 4]," +
+                              "Operator [Ln 2, Col 6 - Ln 2, Col 6]," +
+                              "Number [Ln 2, Col 8 - Ln 2, Col 8]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
+
+    [Fact]
+    public void TestSingleLineVTagWithMultipleStatements() {
+      string source = "# [[ Assign, Initialize ]]\n" +
                       "x = 1\n" +
                       "y = 2";
       string expected = "[Ln 1, Col 0 - Ln 3, Col 4] BlockStatement\n" +
-                        "  [Ln 1, Col 0 - Ln 2, Col 4] VTagStatement (Assign)\n" +
+                        "  [Ln 1, Col 0 - Ln 2, Col 4] VTagStatement (Assign,Initialize)\n" +
                         "    [Ln 2, Col 0 - Ln 2, Col 4] AssignmentStatement\n" +
                         "      [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
                         "      [Ln 2, Col 4 - Ln 2, Col 4] NumberConstantExpression (1)\n" +
+                        "  [Ln 3, Col 0 - Ln 3, Col 4] AssignmentStatement\n" +
+                        "    [Ln 3, Col 0 - Ln 3, Col 0] IdentifierExpression (y)\n" +
+                        "    [Ln 3, Col 4 - Ln 3, Col 4] NumberConstantExpression (2)";
+      string expectedTokens = "Variable [Ln 2, Col 0 - Ln 2, Col 0]," +
+                              "Operator [Ln 2, Col 2 - Ln 2, Col 2]," +
+                              "Number [Ln 2, Col 4 - Ln 2, Col 4]," +
+                              "Variable [Ln 3, Col 0 - Ln 3, Col 0]," +
+                              "Operator [Ln 3, Col 2 - Ln 3, Col 2]," +
+                              "Number [Ln 3, Col 4 - Ln 3, Col 4]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
+
+    [Fact]
+    public void TestMultipleLineVTag() {
+      string source = "# [[ Assign, Initialize\n" +
+                      "x = 1\n" +
+                      "y = 2\n" +
+                      "# ]]";
+      string expected = "[Ln 1, Col 0 - Ln 4, Col 3] VTagStatement (Assign,Initialize)\n" +
+                        "  [Ln 2, Col 0 - Ln 2, Col 4] AssignmentStatement\n" +
+                        "    [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
+                        "    [Ln 2, Col 4 - Ln 2, Col 4] NumberConstantExpression (1)\n" +
                         "  [Ln 3, Col 0 - Ln 3, Col 4] AssignmentStatement\n" +
                         "    [Ln 3, Col 0 - Ln 3, Col 0] IdentifierExpression (y)\n" +
                         "    [Ln 3, Col 4 - Ln 3, Col 4] NumberConstantExpression (2)";
@@ -104,7 +151,7 @@ namespace SeedLang.X.Tests {
                                          out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
+      Assert.Equal(expected.Replace("\n", Environment.NewLine), node.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }

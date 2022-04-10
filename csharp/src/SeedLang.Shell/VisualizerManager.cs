@@ -219,10 +219,10 @@ namespace SeedLang.Shell {
           }
           break;
         case Event.VTagEntered vee:
-          Console.Write($"VTagEntered: {string.Join<Event.VTagInfo>(",", vee.VTags)}");
+          Console.Write($"VTagEntered: {string.Join(",", vee.VTags)}");
           break;
         case Event.VTagExited vee:
-          Console.Write($"VTagExited: {string.Join<Event.VTagInfo>(",", vee.VTags)}");
+          Console.Write($"VTagExited: {string.Join(",", vee.VTags)}");
           break;
         default:
           throw new NotImplementedException($"Unsupported event: {e}");

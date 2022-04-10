@@ -29,8 +29,14 @@ namespace SeedLang.X {
                            end.Line, end.Column + end.StopIndex - end.StartIndex);
     }
 
-    internal static TextRange CombineRanges(TextRange begin, TextRange end) {
-      return new TextRange(begin.Start.Line, begin.Start.Column, end.End.Line, end.End.Column);
+    internal static TextRange CombineRanges(TextRange start, TextRange end) {
+      TextPosition startPos = start.Start.Line < end.Start.Line || (
+                              start.Start.Line == end.Start.Line &&
+                              start.Start.Column < end.Start.Column) ? start.Start : end.Start;
+      TextPosition endPos = start.End.Line < end.End.Line || (
+                            start.End.Line == end.End.Line &&
+                            start.End.Column < end.End.Column) ? end.End : start.End;
+      return new TextRange(startPos.Line, startPos.Column, endPos.Line, endPos.Column);
     }
   }
 }

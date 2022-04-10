@@ -56,6 +56,12 @@ namespace SeedLang.Interpreter {
             }
           }
         }
+        if (_chunk.Notifications.Count > 0) {
+          sb.AppendLine($"Notifications");
+          for (int i = 0; i < _chunk.Notifications.Count; i++) {
+            sb.AppendLine($"  {i,_indexColumnWidth}{_chunk.Notifications[i]}");
+          }
+        }
         _functions.Dequeue();
         if (_functions.Count > 0) {
           sb.AppendLine();
@@ -70,8 +76,6 @@ namespace SeedLang.Interpreter {
                      instr.Opcode == Opcode.RETURN;
       OpcodeType type = instr.Opcode.Type();
       switch (type) {
-        case OpcodeType.A:
-          return $"{instr.A}";
         case OpcodeType.ABC:
           return $"{instr.A} {RegisterOrConstantIndex(instr.B)}" +
                  (ignoreC ? "" : $" {RegisterOrConstantIndex(instr.C)}");

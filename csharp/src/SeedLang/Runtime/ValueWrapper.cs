@@ -22,7 +22,7 @@ namespace SeedLang.Runtime {
       _value = value;
     }
 
-    public bool IsNone => _value.IsNone;
+    public bool IsNil => _value.IsNil;
     public bool IsBoolean => _value.IsBoolean;
     public bool IsNumber => _value.IsNumber;
     public bool IsString => _value.IsString;
@@ -34,10 +34,6 @@ namespace SeedLang.Runtime {
     public bool Boolean => _value.AsBoolean();
     public double Number => _value.AsNumber();
     public string String => _value.AsString();
-
-    public IValue this[int index] {
-      get => new ValueWrapper(_value[index]);
-    }
 
     public override string ToString() {
       return _value.ToString();

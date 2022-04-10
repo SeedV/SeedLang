@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+using System.Collections.Generic;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -82,6 +82,14 @@ namespace SeedLang.Tests.Helper {
       return Statement.If(test, thenBody, elseBody, TextRange);
     }
 
+    internal static DictExpression Dict(params KeyValuePair<Expression, Expression>[] items) {
+      return Expression.Dict(items, TextRange);
+    }
+
+    internal static KeyValuePair<Expression, Expression> KeyValue(Expression key, Expression value) {
+      return new KeyValuePair<Expression, Expression>(key, value);
+    }
+
     internal static ListExpression List(params Expression[] exprs) {
       return Expression.List(exprs, TextRange);
     }
@@ -90,12 +98,16 @@ namespace SeedLang.Tests.Helper {
       return Expression.Tuple(exprs, TextRange);
     }
 
-    internal static NoneConstantExpression NoneConstant() {
-      return Expression.NoneConstant(TextRange);
+    internal static NilConstantExpression NilConstant() {
+      return Expression.NilConstant(TextRange);
     }
 
     internal static NumberConstantExpression NumberConstant(double value) {
       return Expression.NumberConstant(value, TextRange);
+    }
+
+    internal static PassStatement Pass() {
+      return Statement.Pass(TextRange);
     }
 
     internal static ReturnStatement Return(params Expression[] exprs) {
@@ -116,6 +128,24 @@ namespace SeedLang.Tests.Helper {
 
     internal static WhileStatement While(Expression test, Statement body) {
       return Statement.While(test, body, TextRange);
+    }
+
+    internal static VTagStatement VTag(VTagStatement.VTagInfo[] vTagInfo,
+                                       params Statement[] statements) {
+      return Statement.VTag(vTagInfo, statements, TextRange);
+    }
+
+    internal static VTagStatement.VTagInfo[] VTagInfos(params VTagStatement.VTagInfo[] vTagInfos) {
+      return vTagInfos;
+    }
+
+    internal static VTagStatement.VTagInfo VTagInfo(
+        string name, params VTagStatement.VTagInfo.Argument[] arguments) {
+      return new VTagStatement.VTagInfo(name, arguments);
+    }
+
+    internal static VTagStatement.VTagInfo.Argument VTagArg(string text, Expression expr) {
+      return new VTagStatement.VTagInfo.Argument(text, expr);
     }
   }
 }

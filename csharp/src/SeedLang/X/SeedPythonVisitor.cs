@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
@@ -30,46 +31,84 @@ namespace SeedLang.X {
   internal class SeedPythonVisitor : SeedPythonBaseVisitor<AstNode> {
     private readonly VisitorHelper _helper;
 
-    public SeedPythonVisitor(IList<SyntaxToken> tokens) {
+    public SeedPythonVisitor(IList<TokenInfo> tokens) {
       _helper = new VisitorHelper(tokens);
     }
 
     public override AstNode VisitProgram([NotNull] SeedPythonParser.ProgramContext context) {
-      ParserRuleContext statements = context.statements();
-      if (statements is null) {
-        // TODO: return a null block AST node.
-        return null;
-      }
-      return Visit(statements);
+      return Visit(context.statements());
     }
 
     public override AstNode VisitStatements([NotNull] SeedPythonParser.StatementsContext context) {
-      ParserRuleContext[] statements = context.statement();
-      if (statements.Length == 1) {
-        return Visit(statements[0]);
-      }
-      return VisitorHelper.BuildBlock(statements, this);
+      return VisitorHelper.BuildBlock(context.NEWLINE(), context.statement(), this);
     }
 
     public override AstNode VisitSimple_stmts(
         [NotNull] SeedPythonParser.Simple_stmtsContext context) {
-      ParserRuleContext[] statements = context.simple_stmt();
-      if (statements.Length == 1) {
-        return Visit(statements[0]);
-      }
-      return _helper.BuildSimpleStatements(statements, context.SEMICOLON(), this);
+      return _helper.BuildSimpleStatements(context.simple_stmt(), context.SEMICOLON(), this);
     }
 
     public override AstNode VisitExpression_stmt(
         [NotNull] SeedPythonParser.Expression_stmtContext context) {
-      return VisitorHelper.BuildExpressionStatement(context.expressions(), this);
+      SeedPythonParser.ExpressionsContext exprs = context.expressions();
+      return _helper.BuildExpressionStmt(exprs.expression(), exprs.COMMA(), this);
     }
 
-    public override AstNode VisitAssignment([NotNull] SeedPythonParser.AssignmentContext context) {
+    public override AstNode VisitPass([NotNull] SeedPythonParser.PassContext context) {
+      return _helper.BuildPass(context.PASS().Symbol);
+    }
+
+    public override AstNode VisitSingle_line_vtag_stmt(
+        [NotNull] SeedPythonParser.Single_line_vtag_stmtContext context) {
+      (var startToken, var nameTokens, var argContexts) = VisitVTagStart(context.vtag_start());
+      var statementContexts = context.statement() is null ?
+                              Array.Empty<ParserRuleContext>() :
+                              new ParserRuleContext[] { context.statement() };
+      return _helper.BuildVTag(startToken, nameTokens, argContexts, context.VTAG_END().Symbol,
+                               statementContexts, this);
+    }
+
+    public override AstNode VisitMultiple_line_vtag_stmt(
+        [NotNull] SeedPythonParser.Multiple_line_vtag_stmtContext context) {
+      (var startToken, var nameTokens, var argContexts) = VisitVTagStart(context.vtag_start());
+      return _helper.BuildVTag(startToken, nameTokens, argContexts, context.VTAG_END().Symbol,
+                               context.statements().statement(), this);
+    }
+
+    public override AstNode VisitAssign([NotNull] SeedPythonParser.AssignContext context) {
       SeedPythonParser.TargetsContext targets = context.targets();
       SeedPythonParser.ExpressionsContext exprs = context.expressions();
       return _helper.BuildAssignment(targets.target(), targets.COMMA(), context.EQUAL().Symbol,
                                      exprs.expression(), exprs.COMMA(), this);
+    }
+
+    public override AstNode VisitAdd_assign([NotNull] SeedPythonParser.Add_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.ADD_ASSIGN().Symbol,
+                                        BinaryOperator.Add, context.expression(), this);
+    }
+
+    public override AstNode VisitSubstract_assign(
+        [NotNull] SeedPythonParser.Substract_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.SUBSTRACT_ASSIGN().Symbol,
+                                        BinaryOperator.Subtract, context.expression(), this);
+    }
+
+    public override AstNode VisitMultiply_assign(
+        [NotNull] SeedPythonParser.Multiply_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.MULTIPLY_ASSIGN().Symbol,
+                                        BinaryOperator.Multiply, context.expression(), this);
+    }
+
+    public override AstNode VisitDivide_assign(
+        [NotNull] SeedPythonParser.Divide_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.DIVIDE_ASSIGN().Symbol,
+                                        BinaryOperator.Divide, context.expression(), this);
+    }
+
+    public override AstNode VisitModulo_assign(
+        [NotNull] SeedPythonParser.Modulo_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.MODULO_ASSIGN().Symbol,
+                                        BinaryOperator.Modulo, context.expression(), this);
     }
 
     public override AstNode VisitSubscript_target(
@@ -134,8 +173,8 @@ namespace SeedLang.X {
 
     public override AstNode VisitReturn_stmt(
         [NotNull] SeedPythonParser.Return_stmtContext context) {
-      return _helper.BuildReturn(context.RETURN().Symbol, context.expressions().expression(),
-                                 context.expressions().COMMA(), this);
+      return _helper.BuildReturn(context.RETURN().Symbol, context.expressions()?.expression(),
+                                 context.expressions()?.COMMA(), this);
     }
 
     public override AstNode VisitStatements_as_block(
@@ -166,12 +205,20 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitComparison([NotNull] SeedPythonParser.ComparisonContext context) {
-      ParserRuleContext leftContext = context.bitwise_or();
-      ParserRuleContext[] rightContexts = context.compare_op_bitwise_or_pair();
-      if (rightContexts.Length > 0) {
-        return _helper.BuildComparison(leftContext, rightContexts, ToComparisonOperator, this);
+      ParserRuleContext[] operands = context.bitwise_or();
+      Debug.Assert(operands.Length > 0);
+      ParserRuleContext[] operators = context.comparison_op();
+      if (operators.Length == 0) {
+        Debug.Assert(operands.Length == 1);
+        return Visit(operands[0]);
       }
-      return Visit(leftContext);
+      var opTokens = new IToken[operators.Length];
+      var ops = new ComparisonOperator[operators.Length];
+      for (int i = 0; i < operators.Length; i++) {
+        opTokens[i] = (operators[i].GetChild(0) as ITerminalNode).Symbol;
+        ops[i] = ToComparisonOperator(opTokens[i]);
+      }
+      return _helper.BuildComparison(operands, opTokens, ops, this);
     }
 
     public override AstNode VisitAdd([NotNull] SeedPythonParser.AddContext context) {
@@ -251,11 +298,15 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitNone([NotNull] SeedPythonParser.NoneContext context) {
-      return _helper.BuildNoneConstant(context.NONE().Symbol);
+      return _helper.BuildNilConstant(context.NONE().Symbol);
     }
 
     public override AstNode VisitNumber([NotNull] SeedPythonParser.NumberContext context) {
       return _helper.BuildNumberConstant(context.NUMBER().Symbol);
+    }
+
+    public override AstNode VisitStrings([NotNull] SeedPythonParser.StringsContext context) {
+      return _helper.BuildStringConstant(context.STRING());
     }
 
     public override AstNode VisitIdentifier(
@@ -266,6 +317,26 @@ namespace SeedLang.X {
     public override AstNode VisitGroup([NotNull] SeedPythonParser.GroupContext context) {
       return _helper.BuildGrouping(context.OPEN_PAREN().Symbol, context.expression(),
                                    context.CLOSE_PAREN().Symbol, this);
+    }
+
+    public override AstNode VisitDict([NotNull] SeedPythonParser.DictContext context) {
+      SeedPythonParser.KvpairsContext kvPairs = context.kvpairs();
+      var keyContexts = new List<ParserRuleContext>();
+      var valueContexts = new List<ParserRuleContext>();
+      var colonNodes = new List<IToken>();
+      ITerminalNode[] commaNodes = Array.Empty<ITerminalNode>();
+      if (!(kvPairs is null)) {
+        foreach (SeedPythonParser.KvpairContext kvPair in kvPairs.kvpair()) {
+          ParserRuleContext[] exprs = kvPair.expression();
+          Debug.Assert(exprs.Length == 2);
+          keyContexts.Add(exprs[0]);
+          valueContexts.Add(exprs[1]);
+          colonNodes.Add(kvPair.COLON().Symbol);
+        }
+        commaNodes = kvPairs.COMMA();
+      }
+      return _helper.BuildDict(context.OPEN_BRACE().Symbol, keyContexts, valueContexts, colonNodes,
+                               commaNodes, context.CLOSE_BRACE().Symbol, this);
     }
 
     public override AstNode VisitList([NotNull] SeedPythonParser.ListContext context) {
@@ -308,10 +379,24 @@ namespace SeedLang.X {
           return ComparisonOperator.EqEqual;
         case SeedPythonParser.NOT_EQUAL:
           return ComparisonOperator.NotEqual;
+        case SeedPythonParser.IN:
+          return ComparisonOperator.In;
         default:
           throw new NotImplementedException(
               $"Unsupported comparison operator token: {token.Type}.");
       }
+    }
+
+    private (IToken, IToken[], ParserRuleContext[][]) VisitVTagStart(
+    SeedPythonParser.Vtag_startContext vTagStartContext) {
+      SeedPythonParser.VtagContext[] vTagContexts = vTagStartContext.vtag();
+      var nameTokens = new IToken[vTagContexts.Length];
+      var argContexts = new ParserRuleContext[vTagContexts.Length][];
+      for (int i = 0; i < vTagContexts.Length; i++) {
+        nameTokens[i] = vTagContexts[i].NAME().Symbol;
+        argContexts[i] = vTagContexts[i].arguments()?.expression() ?? null;
+      }
+      return (vTagStartContext.VTAG_START().Symbol, nameTokens, argContexts);
     }
   }
 }

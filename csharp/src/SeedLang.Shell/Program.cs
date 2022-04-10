@@ -27,12 +27,16 @@ namespace SeedLang.Shell {
         HelpText = "The programming language of the source code.")]
       public SeedXLanguage Language { get; set; }
 
-      [Option('t', "type", Required = false, Default = RunType.Bytecode, HelpText = "Run type.")]
+      [Option('t', "type", Required = false, Default = RunType.Execute, HelpText = "Run type.")]
       public RunType RunType { get; set; }
 
-      [Option('v', "visualizers", Required = false,
-              Default = new VisualizerType[] { VisualizerType.Eval },
-              HelpText = "The Visualizers to be enabled.")]
+      [Option('v', "visualizers", Required = false, Separator = ',',
+              HelpText = "The Visualizers to be enabled. " +
+                         "Valid values: Assignment, Binary, Boolean, Comparison, Unary, " +
+                         "VTagEntered, VTagExited, All.\n" +
+                         "* Use \"--visualizers=Binary,Comparison\" or \"-v Assignment,Binary\" " +
+                         "to enable multiple visualizers.\n" +
+                         "* Use \"-v All\" to enable all visualizers.")]
       public IEnumerable<VisualizerType> VisualizerTypes { get; set; }
 
       [Option('f', "file", Required = false, Default = null,
@@ -53,22 +57,22 @@ namespace SeedLang.Shell {
         Console.WriteLine();
         Run(options);
       }).WithNotParsed(errors => {
-        Console.Error.WriteLine(helpText);
+        Console.Error.Write(helpText);
       });
     }
 
     private static void Run(Options options) {
       if (!string.IsNullOrEmpty(options.Filename)) {
-        RunFile(options.Filename, options.Language, options.RunType, options.VisualizerTypes);
+        RunScript(options.Filename, options.Language, options.RunType, options.VisualizerTypes);
       } else {
         var repl = new Repl(options.Language, options.RunType, options.VisualizerTypes);
         repl.Execute();
       }
     }
 
-    private static void RunFile(string filename, SeedXLanguage language, RunType runType,
-                                IEnumerable<VisualizerType> visualizerTypes) {
-      var source = new SourceCode();
+    private static void RunScript(string filename, SeedXLanguage language, RunType runType,
+                                  IEnumerable<VisualizerType> visualizerTypes) {
+      var source = new SourceCode() { Language = language };
       try {
         foreach (string line in File.ReadLines(filename)) {
           source.AddLine(line);
@@ -77,11 +81,20 @@ namespace SeedLang.Shell {
         Console.WriteLine($"Read file error: {ex}.");
         return;
       }
+      source.ParseAndWriteSource();
+      Console.WriteLine();
+      Console.WriteLine("---------- Run ----------");
       var visualizerManager = new VisualizerManager(source, visualizerTypes);
       var executor = new Executor();
       visualizerManager.RegisterToExecutor(executor);
       var collection = new DiagnosticCollection();
-      executor.Run(source.Source, "", language, runType, collection);
+
+      string result = executor.Run(source.Source, "", language, runType, RunMode.Script,
+                                   collection);
+      if (!(result is null)) {
+        Console.WriteLine(result);
+      }
+
       foreach (var diagnostic in collection.Diagnostics) {
         if (diagnostic.Range is TextRange range) {
           source.WriteSourceWithHighlight(range);

@@ -74,10 +74,13 @@ namespace SeedLang.Common {
     RuntimeErrorIncorrectArgsCount,     // Incorrect arguments count runtime error.
     RuntimeErrorIncorrectUnpackCount,   // Incorrect number of values to be unpack runtime error.
     RuntimeErrorInvalidIndex,           // Not a valid integer index runtime error.
+    RuntimeErrorNoKey,                  // Couldn't find the given key in the dictionary.
     RuntimeErrorNotCallable,            // Value type not callable runtime error.
     RuntimeErrorNotCountable,           // Value type not countable runtime error.
     RuntimeErrorNotSubscriptable,       // Value type not subscriptable runtime error.
-    RuntimeErrorNotSupportAssignment,   // The value type is not support assignment runtime error.
+    RuntimeErrorNotSupportAssignment,   // The value type does not support assignment.
+    RuntimeErrorUnhashableType,         // The type of keys is unhashable.
+    RuntimeErrorUnsupportedOperads,     // The type of operads is not supported by the operator.
     RuntimeErrorOutOfRange,             // Index out of range runtime error.
     RuntimeErrorOverflow,               // Overflow runtime error.
     RuntimeErrorVariableNotDefined,     // Variable not defined runtime error.

@@ -22,20 +22,27 @@ using SeedLang.Common;
 namespace SeedLang.X {
   // The parser of SeedCalc language.
   internal class SeedCalc : BaseParser {
-    // The dictionary that maps from token types of SeedCalc to syntax token types.
-    private readonly Dictionary<int, SyntaxType> _syntaxTypes = new Dictionary<int, SyntaxType> {
-      { SeedCalcParser.NUMBER, SyntaxType.Number },
-      { SeedCalcParser.ADD, SyntaxType.Operator },
-      { SeedCalcParser.SUBTRACT, SyntaxType.Operator },
-      { SeedCalcParser.MULTIPLY, SyntaxType.Operator },
-      { SeedCalcParser.DIVIDE, SyntaxType.Operator },
-      { SeedCalcParser.OPEN_PAREN, SyntaxType.Parenthesis },
-      { SeedCalcParser.CLOSE_PAREN, SyntaxType.Parenthesis },
-      { SeedCalcParser.UNKNOWN_CHAR, SyntaxType.Unknown },
+    // The dictionary that maps from ANTLR4 token types of SeedCalc to syntax token types.
+    private readonly Dictionary<int, TokenType> _typeMap = new Dictionary<int, TokenType> {
+      // The keys are ordered by the constant names defined in the ANTLR-generated source
+      // SeedCalcParser.cs. Please keep this dictionary up-to-date once the grammar is updated.
+      { SeedCalcParser.ADD, TokenType.Operator },
+      { SeedCalcParser.SUBTRACT, TokenType.Operator },
+      { SeedCalcParser.MULTIPLY, TokenType.Operator },
+      { SeedCalcParser.DIVIDE, TokenType.Operator },
+      { SeedCalcParser.OPEN_PAREN, TokenType.OpenParenthesis },
+      { SeedCalcParser.CLOSE_PAREN, TokenType.CloseParenthesis },
+      { SeedCalcParser.NUMBER, TokenType.Number },
+      { SeedCalcParser.INTEGER, TokenType.Number },
+      { SeedCalcParser.DECIMAL_INTEGER, TokenType.Number },
+      { SeedCalcParser.FLOAT_NUMBER, TokenType.Number },
+      // Ignore: NEWLINE
+      // Ignore: SKIP_
+      { SeedCalcParser.UNKNOWN_CHAR, TokenType.Unknown },
     };
 
     // The dictionary that maps from token types of SeedCalc to syntax token types.
-    protected override IReadOnlyDictionary<int, SyntaxType> _syntaxTypeMap => _syntaxTypes;
+    protected override IReadOnlyDictionary<int, TokenType> _syntaxTypeMap => _typeMap;
 
     protected override Lexer MakeLexer(ICharStream stream) {
       return new SeedCalcLexer(stream);
@@ -45,7 +52,7 @@ namespace SeedLang.X {
       return new SeedCalcParser(stream);
     }
 
-    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<SyntaxToken> tokens) {
+    protected override AbstractParseTreeVisitor<AstNode> MakeVisitor(IList<TokenInfo> tokens) {
       return new SeedCalcVisitor(tokens);
     }
 

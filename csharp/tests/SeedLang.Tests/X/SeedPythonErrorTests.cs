@@ -35,7 +35,7 @@ namespace SeedLang.X.Tests {
     [InlineData("1 +",
                 new string[] {
                   @"SyntaxErrorInputMismatch '\n' " +
-                  @"{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER}",
+                  @"{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -48,7 +48,7 @@ namespace SeedLang.X.Tests {
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]")]
+                "OpenParenthesis [Ln 1, Col 4 - Ln 1, Col 4]")]
 
     [InlineData("1 + ((",
                 new string[] {
@@ -57,8 +57,8 @@ namespace SeedLang.X.Tests {
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
+                "OpenParenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "OpenParenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
 
     [InlineData("1 + (((",
                 new string[] {
@@ -67,9 +67,9 @@ namespace SeedLang.X.Tests {
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Parenthesis [Ln 1, Col 6 - Ln 1, Col 6]")]
+                "OpenParenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "OpenParenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "OpenParenthesis [Ln 1, Col 6 - Ln 1, Col 6]")]
 
     [InlineData("1 + (2 - 1",
                 new string[] {
@@ -78,7 +78,7 @@ namespace SeedLang.X.Tests {
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "OpenParenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "Number [Ln 1, Col 9 - Ln 1, Col 9]")]
@@ -86,18 +86,18 @@ namespace SeedLang.X.Tests {
     [InlineData("1 + ))",
                 new string[] {
                   "SyntaxErrorInputMismatch ')' " +
-                  "{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER}",
+                  "{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Operator [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
+                "CloseParenthesis [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "CloseParenthesis [Ln 1, Col 5 - Ln 1, Col 5]")]
 
     [InlineData("1 < 2 >=",
                 new string[] {
                   @"SyntaxErrorInputMismatch '\n' " +
-                  @"{'True', 'False', 'None', '+', '-', '(', '[', NAME, NUMBER}",
+                  @"{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -112,7 +112,7 @@ namespace SeedLang.X.Tests {
                 },
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 4]," +
-                "Keyword [Ln 1, Col 6 - Ln 1, Col 9]")]
+                "Boolean [Ln 1, Col 6 - Ln 1, Col 9]")]
 
     [InlineData("1e9999",
                 new string[] {
@@ -122,7 +122,7 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 0 - Ln 1, Col 5]")]
     public void TestParseSyntaxError(string input, string[] errorMessages, string expectedTokens) {
       Assert.False(_parser.Parse(input, "", _collection, out AstNode node,
-                                 out IReadOnlyList<SyntaxToken> tokens));
+                                 out IReadOnlyList<TokenInfo> semanticTokens));
       Assert.Null(node);
       Assert.Equal(errorMessages.Length, _collection.Diagnostics.Count);
       for (int i = 0; i < errorMessages.Length; ++i) {
@@ -132,7 +132,10 @@ namespace SeedLang.X.Tests {
         string diagnostic = _collection.Diagnostics[i].LocalizedMessage.Replace(@"\r\n", @"\n");
         Assert.Equal(errorMessages[i], diagnostic);
       }
-      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
+      Assert.Null(semanticTokens);
+      _parser.ParseSyntaxTokens(input, out IReadOnlyList<TokenInfo> syntaxTokens);
+      Assert.Equal(expectedTokens,
+                   string.Join(",", syntaxTokens.Select(token => token.ToString())));
     }
   }
 }

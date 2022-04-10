@@ -1,4 +1,4 @@
 a, b = 0, 1
 while a < 10:
-    a
+    print(a)
     a, b = b, a + b

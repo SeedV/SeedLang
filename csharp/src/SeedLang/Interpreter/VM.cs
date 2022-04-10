@@ -13,13 +13,16 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
-    public readonly GlobalEnvironment Env = new GlobalEnvironment(NativeFunctions.Funcs);
+    private readonly Sys _sys = new Sys();
+    public readonly GlobalEnvironment Env;
 
     // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
     // can hold maximun 100 recursive function calls.
@@ -30,7 +33,12 @@ namespace SeedLang.Interpreter {
     private CallStack _callStack;
 
     internal VM(VisualizerCenter visualizerCenter = null) {
+      Env = new GlobalEnvironment(NativeFunctions.Funcs);
       _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
+    }
+
+    internal void RedirectStdout(TextWriter stdout) {
+      _sys.Stdout = stdout;
     }
 
     internal void Run(Function func) {
@@ -46,18 +54,26 @@ namespace SeedLang.Interpreter {
             case Opcode.MOVE:
               _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B];
               break;
+            case Opcode.LOADNIL:
+              for (int i = 0; i < instr.B; i++) {
+                _stack[baseRegister + instr.A + i] = new Value();
+              }
+              break;
             case Opcode.LOADBOOL:
-              // TODO: implement the LOADBOOL opcode.
+              _stack[baseRegister + instr.A] = new Value(instr.B == 1);
+              if (instr.C == 1) {
+                pc++;
+              }
               break;
             case Opcode.LOADK:
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
             case Opcode.NEWTUPLE:
-              var tuple = new Value[instr.C];
+              var builder = ImmutableArray.CreateBuilder<Value>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
-                tuple[i] = _stack[baseRegister + instr.B + i];
+                builder.Add(_stack[baseRegister + instr.B + i]);
               }
-              _stack[baseRegister + instr.A] = new Value(tuple);
+              _stack[baseRegister + instr.A] = new Value(builder.MoveToImmutable());
               break;
             case Opcode.NEWLIST:
               var list = new List<Value>((int)instr.C);
@@ -66,15 +82,22 @@ namespace SeedLang.Interpreter {
               }
               _stack[baseRegister + instr.A] = new Value(list);
               break;
+            case Opcode.NEWDICT:
+              int count = (int)instr.C / 2;
+              var dict = new Dictionary<Value, Value>(count);
+              uint dictRegister = baseRegister + instr.A;
+              uint kvStart = baseRegister + instr.B;
+              for (uint i = 0; i < count; i++) {
+                uint keyRegister = kvStart + i * 2;
+                dict[_stack[keyRegister]] = _stack[keyRegister + 1];
+              }
+              _stack[dictRegister] = new Value(dict);
+              break;
             case Opcode.GETGLOB:
               _stack[baseRegister + instr.A] = Env.GetVariable(instr.Bx);
               break;
             case Opcode.SETGLOB:
               Env.SetVariable(instr.Bx, _stack[baseRegister + instr.A]);
-              // TODO: it's hard to send assignment notification in the VM, because it's hard to
-              // distinguish assignment to local variable or temporary variables, and the name
-              // information of the variables have been removed during compilation. Decide if this
-              // kind of notification is needed, or if other kinds of notification can replace it.
               break;
             case Opcode.GETELEM:
               GetElement(chunk, instr, baseRegister);
@@ -86,7 +109,10 @@ namespace SeedLang.Interpreter {
             case Opcode.SUB:
             case Opcode.MUL:
             case Opcode.DIV:
-              HandleBinary(chunk, instr, baseRegister, chunk.Ranges[pc]);
+            case Opcode.FLOORDIV:
+            case Opcode.POW:
+            case Opcode.MOD:
+              HandleBinary(chunk, instr, baseRegister);
               break;
             case Opcode.UNM:
               _stack[baseRegister + instr.A] =
@@ -98,22 +124,36 @@ namespace SeedLang.Interpreter {
             case Opcode.JMP:
               pc += instr.SBx;
               break;
-            case Opcode.EQ:
-              if (ValueOfRK(chunk, instr.B, baseRegister).AsNumber() ==
-                  ValueOfRK(chunk, instr.C, baseRegister).AsNumber() == (instr.A == 1)) {
-                pc++;
+            case Opcode.EQ: {
+                bool result = ValueOfRK(chunk, instr.B, baseRegister).Equals(
+                    ValueOfRK(chunk, instr.C, baseRegister));
+                if (result == (instr.A == 1)) {
+                  pc++;
+                }
               }
               break;
-            case Opcode.LT:
-              if ((ValueOfRK(chunk, instr.B, baseRegister).AsNumber() <
-                   ValueOfRK(chunk, instr.C, baseRegister).AsNumber()) == (instr.A == 1)) {
-                pc++;
+            case Opcode.LT: {
+                bool result = ValueHelper.Less(ValueOfRK(chunk, instr.B, baseRegister),
+                                               ValueOfRK(chunk, instr.C, baseRegister));
+                if (result == (instr.A == 1)) {
+                  pc++;
+                }
               }
               break;
-            case Opcode.LE:
-              if ((ValueOfRK(chunk, instr.B, baseRegister).AsNumber() <=
-                   ValueOfRK(chunk, instr.C, baseRegister).AsNumber()) == (instr.A == 1)) {
-                pc++;
+            case Opcode.LE: {
+                bool result = ValueHelper.LessEqual(ValueOfRK(chunk, instr.B, baseRegister),
+                                                    ValueOfRK(chunk, instr.C, baseRegister));
+                if (result == (instr.A == 1)) {
+                  pc++;
+                }
+              }
+              break;
+            case Opcode.IN: {
+                bool result = ValueHelper.Contains(ValueOfRK(chunk, instr.C, baseRegister),
+                                                   ValueOfRK(chunk, instr.B, baseRegister));
+                if (result == (instr.A == 1)) {
+                  pc++;
+                }
               }
               break;
             case Opcode.TEST:
@@ -124,35 +164,31 @@ namespace SeedLang.Interpreter {
             case Opcode.TESTSET:
               // TODO: implement the TESTSET opcode.
               break;
-            case Opcode.EVAL:
-              if (!_visualizerCenter.EvalPublisher.IsEmpty()) {
-                var ee = new EvalEvent(new ValueWrapper(_stack[baseRegister + instr.A]),
-                                       chunk.Ranges[pc]);
-                _visualizerCenter.EvalPublisher.Notify(ee);
-              }
-              break;
-            case Opcode.FORPREP:
-              _stack[baseRegister + instr.A] = new Value(
-                  ValueHelper.Subtract(_stack[baseRegister + instr.A],
-                                       _stack[baseRegister + instr.A + 2]));
-              pc += instr.SBx;
-              break;
-            case Opcode.FORLOOP:
-              _stack[baseRegister + instr.A] = new Value(
-                  ValueHelper.Add(_stack[baseRegister + instr.A],
-                                  _stack[baseRegister + instr.A + 2]));
-              if (_stack[baseRegister + instr.A].AsNumber() <
-                  _stack[baseRegister + instr.A + 1].AsNumber()) {
+            case Opcode.FORPREP: {
+                uint loopReg = baseRegister + instr.A;
+                const uint stepOff = 2;
+                _stack[loopReg] = ValueHelper.Subtract(_stack[loopReg], _stack[loopReg + stepOff]);
                 pc += instr.SBx;
+                break;
               }
-              break;
+            case Opcode.FORLOOP: {
+                uint loopReg = baseRegister + instr.A;
+                const uint limitOff = 1;
+                const uint stepOff = 2;
+                _stack[loopReg] = ValueHelper.Add(_stack[loopReg], _stack[loopReg + stepOff]);
+                if (_stack[loopReg].AsNumber() < _stack[loopReg + limitOff].AsNumber()) {
+                  pc += instr.SBx;
+                }
+                break;
+              }
             case Opcode.CALL:
               CallFunction(ref chunk, ref pc, ref baseRegister, instr);
               break;
             case Opcode.RETURN:
               // TODO: only support one return value now.
-              if (instr.B > 0 && baseRegister > 0) {
-                _stack[baseRegister - 1] = _stack[baseRegister + instr.A];
+              if (baseRegister > 0) {
+                uint returnRegister = baseRegister - 1;
+                _stack[returnRegister] = instr.B > 0 ? _stack[baseRegister + instr.A] : new Value();
               }
               _callStack.PopFunc();
               if (!_callStack.IsEmpty) {
@@ -160,6 +196,11 @@ namespace SeedLang.Interpreter {
                 baseRegister = _callStack.CurrentBase();
                 pc = _callStack.CurrentPC();
               }
+              break;
+            case Opcode.VISNOTIFY:
+              chunk.Notifications[(int)instr.Bx].Notify(_visualizerCenter, (uint id) => {
+                return ValueOfRK(chunk, id, baseRegister);
+              });
               break;
             default:
               throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
@@ -174,43 +215,41 @@ namespace SeedLang.Interpreter {
     }
 
     private void GetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      double index = ValueOfRK(chunk, instr.C, baseRegister).AsNumber();
+      Value index = ValueOfRK(chunk, instr.C, baseRegister);
       _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][index];
     }
 
     private void SetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      double index = ValueOfRK(chunk, instr.B, baseRegister).AsNumber();
+      Value index = ValueOfRK(chunk, instr.B, baseRegister);
       _stack[baseRegister + instr.A][index] = ValueOfRK(chunk, instr.C, baseRegister);
     }
 
-    private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister, Range range) {
-      BinaryOperator op = BinaryOperator.Add;
-      double result = 0;
+    private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister) {
       Value left = ValueOfRK(chunk, instr.B, baseRegister);
       Value right = ValueOfRK(chunk, instr.C, baseRegister);
+      uint register = baseRegister + instr.A;
       switch (instr.Opcode) {
         case Opcode.ADD:
-          op = BinaryOperator.Add;
-          result = ValueHelper.Add(left, right);
+          _stack[register] = ValueHelper.Add(left, right);
           break;
         case Opcode.SUB:
-          op = BinaryOperator.Subtract;
-          result = ValueHelper.Subtract(left, right);
+          _stack[register] = ValueHelper.Subtract(left, right);
           break;
         case Opcode.MUL:
-          op = BinaryOperator.Multiply;
-          result = ValueHelper.Multiply(left, right);
+          _stack[register] = ValueHelper.Multiply(left, right);
           break;
         case Opcode.DIV:
-          op = BinaryOperator.Divide;
-          result = ValueHelper.Divide(left, right);
+          _stack[register] = ValueHelper.Divide(left, right);
           break;
-      }
-      _stack[baseRegister + instr.A] = new Value(result);
-      if (!_visualizerCenter.BinaryPublisher.IsEmpty()) {
-        var be = new BinaryEvent(new ValueWrapper(left), op, new ValueWrapper(right),
-                                 new ValueWrapper(_stack[baseRegister + instr.A]), range);
-        _visualizerCenter.BinaryPublisher.Notify(be);
+        case Opcode.FLOORDIV:
+          _stack[register] = ValueHelper.FloorDivide(left, right);
+          break;
+        case Opcode.POW:
+          _stack[register] = ValueHelper.Power(left, right);
+          break;
+        case Opcode.MOD:
+          _stack[register] = ValueHelper.Modulo(left, right);
+          break;
       }
     }
 
@@ -220,7 +259,7 @@ namespace SeedLang.Interpreter {
       var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
         case HeapObject.NativeFunction nativeFunc:
-          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B);
+          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B, _sys);
           break;
         case Function func:
           baseRegister += instr.A + 1;

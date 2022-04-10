@@ -21,25 +21,19 @@ namespace SeedLang.Interpreter {
   // constant list of the chunk.
   internal class ConstantCache {
     // A list to collect constatnt values during compilation.
-    public List<Value> Constants { get; } = new List<Value>();
-
-    private uint? _idOfNone;
+    private readonly List<Value> _constants = new List<Value>();
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
 
-    internal uint IdOfNone() {
-      if (!_idOfNone.HasValue) {
-        Constants.Add(new Value());
-        _idOfNone = IdOfLastConst();
-      }
-      return (uint)_idOfNone;
+    internal Value[] ToArray() {
+      return _constants.ToArray();
     }
 
     // Returns the id of a given number constant. The number is added into the constant list if it
     // is not exist.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {
-        Constants.Add(new Value(number));
+        _constants.Add(new Value(number));
         _numbers[number] = IdOfLastConst();
       }
       return _numbers[number];
@@ -49,21 +43,21 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(string str) {
       if (!_strings.ContainsKey(str)) {
-        Constants.Add(new Value(str));
+        _constants.Add(new Value(str));
         _strings[str] = IdOfLastConst();
       }
       return _strings[str];
     }
 
     internal uint IdOfConstant(Function func) {
-      Constants.Add(new Value(func));
+      _constants.Add(new Value(func));
       return IdOfLastConst();
     }
 
     private uint IdOfLastConst() {
-      Debug.Assert(Constants.Count >= 1);
+      Debug.Assert(_constants.Count >= 1);
       // Id of constants starts from MaxRegisterCount defined in Chunk.
-      return (uint)Constants.Count - 1 + Chunk.MaxRegisterCount;
+      return (uint)_constants.Count - 1 + Chunk.MaxRegisterCount;
     }
   }
 }

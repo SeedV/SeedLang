@@ -17,6 +17,11 @@ using System.Diagnostics;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
+  public enum VariableType {
+    Global,
+    Local,
+  }
+
   public abstract class AbstractEvent {
     // The range of source code.
     public Range Range { get; }
@@ -26,91 +31,133 @@ namespace SeedLang.Runtime {
     }
   }
 
-  // An event which is triggered when a binary expression is evaluated.
-  public class BinaryEvent : AbstractEvent {
-    public IValue Left { get; }
-    public BinaryOperator Op { get; }
-    public IValue Right { get; }
-    public IValue Result { get; }
+  public static class Event {
+    // An event which is triggered when a binary expression is evaluated.
+    public class Binary : AbstractEvent {
+      public IValue Left { get; }
+      public BinaryOperator Op { get; }
+      public IValue Right { get; }
+      public IValue Result { get; }
 
-    public BinaryEvent(IValue left, BinaryOperator op, IValue right, IValue result, Range range) :
-        base(range) {
-      Left = left;
-      Op = op;
-      Right = right;
-      Result = result;
+      public Binary(IValue left, BinaryOperator op, IValue right, IValue result, Range range) :
+          base(range) {
+        Left = left;
+        Op = op;
+        Right = right;
+        Result = result;
+      }
     }
-  }
 
-  // An event which is triggered when a boolean expression is evaluated.
-  //
-  // Not all the expressions are evaluated due to short circuit. The values without evaluated are
-  // filled as null.
-  public class BooleanEvent : AbstractEvent {
-    public BooleanOperator Op { get; }
-    public IReadOnlyList<IValue> Values { get; }
-    public IValue Result { get; }
+    // An event which is triggered when a boolean expression is evaluated.
+    //
+    // Not all the expressions are evaluated due to short circuit. The values without evaluated are
+    // filled as null.
+    public class Boolean : AbstractEvent {
+      public BooleanOperator Op { get; }
+      public IReadOnlyList<IValue> Values { get; }
+      public IValue Result { get; }
 
-    public BooleanEvent(BooleanOperator op, IReadOnlyList<IValue> values, IValue result,
-                        Range range) : base(range) {
-      Debug.Assert(values.Count > 1);
-      Op = op;
-      Values = values;
-      Result = result;
+      public Boolean(BooleanOperator op, IReadOnlyList<IValue> values, IValue result,
+                          Range range) : base(range) {
+        Debug.Assert(values.Count > 1);
+        Op = op;
+        Values = values;
+        Result = result;
+      }
     }
-  }
 
-  // An event which is triggered when a comparison expression is evaluated.
-  //
-  // The count of values is as same as Ops. But not all the expressions are evaluated due to short
-  // circuit. The values without evaluated are filled as null.
-  public class ComparisonEvent : AbstractEvent {
-    public IValue First { get; }
-    public IReadOnlyList<ComparisonOperator> Ops { get; }
-    public IReadOnlyList<IValue> Values { get; }
-    public IValue Result { get; }
+    // An event which is triggered when a comparison expression is evaluated.
+    //
+    // The count of values is as same as Ops. But not all the expressions are evaluated due to short
+    // circuit. The values without evaluated are filled as null.
+    public class Comparison : AbstractEvent {
+      public IValue First { get; }
+      public IReadOnlyList<ComparisonOperator> Ops { get; }
+      public IReadOnlyList<IValue> Values { get; }
+      public IValue Result { get; }
 
-    public ComparisonEvent(IValue first, IReadOnlyList<ComparisonOperator> ops,
-                           IReadOnlyList<IValue> values, IValue result, Range range) : base(range) {
-      Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
-      First = first;
-      Values = values;
-      Ops = ops;
-      Result = result;
+      public Comparison(IValue first, IReadOnlyList<ComparisonOperator> ops,
+                             IReadOnlyList<IValue> values, IValue result, Range range) : base(range) {
+        Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
+        First = first;
+        Values = values;
+        Ops = ops;
+        Result = result;
+      }
     }
-  }
 
-  // An event which is triggered when an unary expression is executed.
-  public class UnaryEvent : AbstractEvent {
-    public UnaryOperator Op { get; }
-    public IValue Value { get; }
-    public IValue Result { get; }
+    // An event which is triggered when an unary expression is executed.
+    public class Unary : AbstractEvent {
+      public UnaryOperator Op { get; }
+      public IValue Value { get; }
+      public IValue Result { get; }
 
-    public UnaryEvent(UnaryOperator op, IValue value, IValue result, Range range) :
-        base(range) {
-      Op = op;
-      Value = value;
-      Result = result;
+      public Unary(UnaryOperator op, IValue value, IValue result, Range range) :
+          base(range) {
+        Op = op;
+        Value = value;
+        Result = result;
+      }
     }
-  }
 
-  // An event which is triggered when an assignment statement is executed.
-  public class AssignmentEvent : AbstractEvent {
-    public string Identifier { get; }
-    public IValue Value { get; }
+    // An event which is triggered when an assignment statement is executed.
+    public class Assignment : AbstractEvent {
+      public string Name { get; }
+      public VariableType Type { get; }
+      public IValue Value { get; }
 
-    public AssignmentEvent(string identifier, IValue value, Range range) : base(range) {
-      Identifier = identifier;
-      Value = value;
+      public Assignment(string name, VariableType type, IValue value, Range range) :
+          base(range) {
+        Name = name;
+        Type = type;
+        Value = value;
+      }
     }
-  }
 
-  // An event which is triggered when an expression statement is executed.
-  public class EvalEvent : AbstractEvent {
-    public IValue Value { get; }
+    // An event which is triggered when a VTag scope is entered.
+    public class VTagEntered : AbstractEvent {
+      public class VTagInfo {
+        public string Name { get; }
+        public IReadOnlyList<string> ArgTexts { get; }
 
-    public EvalEvent(IValue value, Range range) : base(range) {
-      Value = value;
+        public VTagInfo(string name, IReadOnlyList<string> argTexts) {
+          Name = name;
+          ArgTexts = argTexts;
+        }
+
+        public override string ToString() {
+          return Name + (ArgTexts.Count > 0 ? $"({string.Join(",", ArgTexts)})" : "");
+        }
+      }
+
+      public IReadOnlyList<VTagInfo> VTags { get; }
+
+      public VTagEntered(IReadOnlyList<VTagInfo> vTags, Range range) : base(range) {
+        VTags = vTags;
+      }
+    }
+
+    // An event which is triggered when a VTag scope is exited.
+    public class VTagExited : AbstractEvent {
+      public class VTagInfo {
+        public string Name { get; }
+        public IReadOnlyList<IValue> Args { get; }
+
+        public VTagInfo(string name, IReadOnlyList<IValue> args) {
+          Name = name;
+          Args = args;
+        }
+
+        public override string ToString() {
+          return Name + (Args.Count > 0 ? $"({string.Join(",", Args)})" : "");
+        }
+      }
+
+      public IReadOnlyList<VTagInfo> VTags { get; }
+
+      public VTagExited(IReadOnlyList<VTagInfo> vTags, Range range) : base(range) {
+        VTags = vTags;
+      }
     }
   }
 }

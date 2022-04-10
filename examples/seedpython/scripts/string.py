@@ -1,36 +1,30 @@
-# The language doesn't support raw string like r"raw string".
-# The language doesn't support unicode string like u"unicode string".
-# The language doesn't support string templates like "...%()...", "...{}..." or
+# 1) SeedLang doesn't support raw string like r"raw string".
+# 2) SeedLang doesn't support unicode string like u"unicode string".
+# 3) SeedLang doesn't support string templates like "...%()...", "...{}..." or
 # f"...{}...".
 
-"spam eggs"  # spam eggs
-"doesn't"  # doesn\'t
-"doesn't"  # doesn't
-'"Yes," they said.'  # "Yes," they said.
-'"Yes," they said.'  # "Yes," they said.
-'"Isn\'t," they said.'  # "Isn\'t," they said.
+print("\\n")  # \n
+print("spam eggs")  # spam eggs
+print('\tdoesn\'t')  # [\t]doesn't
+print("doesn't")  # doesn't
+print('"Yes," they said.')  # "Yes," they said.
+print('"Isn\'t, "\nThey said.')  # "Isn't, "[\n]They said.
 
-"""
-Usage: thingy [OPTIONS]
-     -h                        Display this usage message
-     -H hostname               Hostname to connect to
-"""
-
-3 * "un" + "ium"  # unununium
-"Py" "thon"  # Python
+print(3 * "un" + "ium")  # unununium
+print("Py" "thon")  # Python
 
 prefix = "Py"
-prefix + "thon"  # Python
+print(prefix + "thon")  # Python
 
 word = "Python"
-word[0]  # P
-word[5]  # n
-word[-1]  # n
-word[-2]  # o
-word[-6]  # P
+print(word[0])  # P
+print(word[5])  # n
+print(word[-1])  # n
+print(word[-2])  # o
+print(word[-6])  # P
 
 s = "supercalifragilisticexpialidocious"
-len(s)  # 34
+print(len(s))  # 34
 
-word[42]  # IndexError: string index out of range
-word[0] = "J"  # TypeError: 'str' object does not support item assignment
+print('python' in word)  # False
+print('super' in s)  # True

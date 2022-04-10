@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SeedLang.Ast;
@@ -29,8 +30,8 @@ namespace SeedLang.X.Tests {
                 "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 1] ListExpression",
 
-                "Bracket [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Bracket [Ln 1, Col 1 - Ln 1, Col 1]")]
+                "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "CloseBracket [Ln 1, Col 1 - Ln 1, Col 1]")]
 
     [InlineData("[1, 2, 3]",
 
@@ -40,13 +41,13 @@ namespace SeedLang.X.Tests {
                 "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
                 "    [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)",
 
-                "Bracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Bracket [Ln 1, Col 8 - Ln 1, Col 8]")]
+                "CloseBracket [Ln 1, Col 8 - Ln 1, Col 8]")]
 
     [InlineData("[1, 2, 3][1]",
 
@@ -58,16 +59,16 @@ namespace SeedLang.X.Tests {
                 "      [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)\n" +
                 "    [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)",
 
-                "Bracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Bracket [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Bracket [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "CloseBracket [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "OpenBracket [Ln 1, Col 9 - Ln 1, Col 9]," +
                 "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Bracket [Ln 1, Col 11 - Ln 1, Col 11]")]
+                "CloseBracket [Ln 1, Col 11 - Ln 1, Col 11]")]
 
     [InlineData("a[0] = 1",
 
@@ -78,17 +79,17 @@ namespace SeedLang.X.Tests {
                 "  [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (1)",
 
                 "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Bracket [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "OpenBracket [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Number [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Bracket [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "CloseBracket [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Operator [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
-                                out IReadOnlyList<SyntaxToken> tokens));
+                                out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expectedAst, node.ToString());
+      Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), node.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }

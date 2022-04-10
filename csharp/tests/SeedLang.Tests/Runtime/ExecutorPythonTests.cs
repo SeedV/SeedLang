@@ -12,38 +12,93 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.IO;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
   public class ExecutorBytecodeTests {
-    private class MockupVisualizer : IVisualizer<EvalEvent> {
-      public IValue Result { get; private set; }
-
-      public void On(EvalEvent ee) {
-        Result = ee.Value;
-      }
+    [Fact]
+    public void TestOperators() {
+      string source = @"
+1 + 2
+2 - 1
+2 * 2
+3 / 2
+5 // 2
+3 % 2
+3 ** 2
+'123' + '456'
+[1, 2, 3] + [4, 5]
+(1, 2, 3) + (4,)
+'123' * 3
+'123' * 0
+2 * [1, 2, 3]
+(1, 2, 3) * 3
+-1 * (1, 2, 3)
+1 < 2 < 3
+1 < 2 == 3
+1 < 2 < 3 and 1 < 2 == 3
+1 < 2 < 3 or 1 < 2 == 3
+None == None
+None != None
+";
+      string result = @"3
+1
+4
+1.5
+2
+1
+9
+'123456'
+[1, 2, 3, 4, 5]
+(1, 2, 3, 4)
+'123123123'
+''
+[1, 2, 3, 1, 2, 3]
+(1, 2, 3, 1, 2, 3, 1, 2, 3)
+()
+True
+False
+False
+True
+True
+False
+";
+      TestExecutor(source, result);
     }
 
-    [Theory]
-    [InlineData(@"sum = 0
+    [Fact]
+    public void TestWhileSum() {
+      string source = @"
+sum = 0
 i = 1
 while i <= 10:
-  sum = sum + i
-  i = i + 1
+  sum += i
+  i += 1
 sum
-",
+";
+      string result = @"55
+";
+      TestExecutor(source, result);
+    }
 
-    "55")]
-
-    [InlineData(@"sum = 0
+    [Fact]
+    public void TestForInListSumFunc() {
+      string source = @"
+sum = 0
 for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
   sum = sum + i
-sum
-",
+print(sum)
+";
+      string result = @"55
+";
+      TestExecutor(source, result);
+    }
 
-    "55")]
-
-    [InlineData(@"def func():
+    [Fact]
+    public void TestWhileSumFunc() {
+      string source = @"
+def func():
   sum = 0
   i = 1
   while i <= 10:
@@ -51,100 +106,138 @@ sum
     i = i + 1
   return sum
 func()
-",
+";
+      string result = @"55
+";
+      TestExecutor(source, result);
+    }
 
-    "55")]
-
-    [InlineData(@"def func():
+    [Fact]
+    public void TestForInRangeSumFunc() {
+      string source = @"
+def func():
   sum = 0
   for i in range(1, 11):
-    sum = sum + i
+    sum += i
   return sum
-func()
-",
+print(func())
+";
+      string result = @"55
+";
+      TestExecutor(source, result);
+    }
 
-    "55")]
-
-    [InlineData(@"def sum(n):
+    [Fact]
+    public void TestRecursiveSum() {
+      string source = @"
+def sum(n):
   if n == 1:
     return 1
   else:
     return n + sum(n - 1)
-sum(10)
-",
+print(sum(10))
+";
+      string result = @"55
+";
+      TestExecutor(source, result);
+    }
 
-    "55")]
-
-    [InlineData(@"a, b = 0, 1
+    [Fact]
+    public void TestFib() {
+      string source = @"
+a, b = 0, 1
 i = 1
 while i < 10:
   a, b = b, a + b
-  i = i + 1
+  i += 1
 b
-",
+";
+      string result = @"55
+";
+      TestExecutor(source, result);
+    }
 
-    "55")]
-
-    [InlineData(@"def fib(n):
+    [Fact]
+    public void TestFibFunc() {
+      string source = @"
+def fib(n):
   a, b = 0, 1
   i = 1
   while i < n:
     a, b = b, a + b
-    i = i + 1
+    i += 1
   return b
-fib(10)
-",
+print(fib(10))
+";
+      string result = @"55
+";
+      TestExecutor(source, result);
+    }
 
-    "55")]
-
-    [InlineData(@"def fib(n):
+    [Fact]
+    public void TestRecursiveFib() {
+      string source = @"
+def fib(n):
   if n == 1 or n == 2:
     return 1
   else:
     return fib(n - 1) + fib(n - 2)
 fib(10)
-",
+";
+      string result = @"55
+";
+      TestExecutor(source, result);
+    }
 
-    "55")]
-
-    [InlineData(@"def func():
+    [Fact]
+    public void TestNestedFunction() {
+      string source = @"
+def func():
   def inner_func():
     return 2
   return inner_func()
-func()
-",
+print(func())
+";
+      string result = @"2
+";
+      TestExecutor(source, result);
+    }
 
-    "2")]
-
-    [InlineData(@"array = [64, 34, 25, 12, 22, 11, 90]
+    [Fact]
+    public void TestBubbleSort() {
+      string source = @"
+array = [64, 34, 25, 12, 22, 11, 90]
 n = len(array)
 for i in range(n):
   for j in range(n - i - 1):
     if array[j] > array[j + 1]:
       array[j], array[j + 1] = array[j + 1], array[j]
 array
-",
-
-    "[11, 12, 22, 25, 34, 64, 90]")]
-
-    [InlineData(@"array = []
-for i in range(5):
-  array.append(i)
-array
-",
-
-    "[0, 1, 2, 3, 4]")]
-    public void TestExecutor(string source, string result) {
-      TestWithRunType(source, result, RunType.Ast);
-      TestWithRunType(source, result, RunType.Bytecode);
+";
+      string result = @"[11, 12, 22, 25, 34, 64, 90]
+";
+      TestExecutor(source, result);
     }
 
-    private static void TestWithRunType(string source, string result, RunType type) {
+    [Fact]
+    public void TestArrayAppend() {
+      string source = @"
+array = []
+for i in range(5):
+  array.append(i)
+print(array)
+";
+      string result = @"[0, 1, 2, 3, 4]
+";
+      TestExecutor(source, result);
+    }
+
+    private static void TestExecutor(string source, string result) {
       var executor = new Executor();
-      var visualizer = new MockupVisualizer();
-      executor.Register(visualizer);
-      Assert.True(executor.Run(source, "", SeedXLanguage.SeedPython, type));
-      Assert.Equal(result, visualizer.Result.ToString());
+      var stringWriter = new StringWriter();
+      executor.RedirectStdout(stringWriter);
+      executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Execute, RunMode.Interactive);
+      Assert.Equal(result, stringWriter.ToString());
     }
   }
 }

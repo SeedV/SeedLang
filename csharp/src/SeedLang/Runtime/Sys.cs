@@ -1,3 +1,4 @@
+using System;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,21 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Runtime;
+using System.IO;
 
-namespace SeedLang.Interpreter {
-  // A function value type that is only used in SeedVM component to encapsulate a compiled bytecode
-  // chunk.
-  internal class Function : HeapObject.IFunction {
-    public string Name { get; }
-    public Chunk Chunk { get; } = new Chunk();
-
-    internal Function(string name) {
-      Name = name;
-    }
-
-    public override string ToString() {
-      return $"Func <{Name}>";
-    }
+namespace SeedLang.Runtime {
+  // The class to provide access of some system variables or functions.
+  //
+  // This class is not designed as a static or singleton class to support multiple interrepter
+  // instances running in different threads at the same time. One scenario is that xUnit will run
+  // all the test cases (some test cases need redirect stdout and verify the output from it) in
+  // different threads simultaneously.
+  internal class Sys {
+    public TextWriter Stdout { get; set; } = Console.Out;
   }
 }

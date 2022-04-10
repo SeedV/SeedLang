@@ -14,8 +14,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using SeedLang.Ast;
-using SeedLang.Block;
 using SeedLang.Common;
 using SeedLang.Interpreter;
 using SeedLang.X;
@@ -25,12 +25,14 @@ namespace SeedLang.Runtime {
   // execution can be visualized by registered visualizers.
   public class Executor {
     private readonly VisualizerCenter _visualizerCenter = new VisualizerCenter();
-    private readonly Ast.Executor _executor;
     private readonly VM _vm;
 
     public Executor() {
-      _executor = new Ast.Executor(_visualizerCenter);
       _vm = new VM(_visualizerCenter);
+    }
+
+    public void RedirectStdout(TextWriter stdout) {
+      _vm.RedirectStdout(stdout);
     }
 
     public void Register<Visualizer>(Visualizer visualizer) {
@@ -41,59 +43,65 @@ namespace SeedLang.Runtime {
       _visualizerCenter.Unregister(visualizer);
     }
 
-    // Runs a SeedBlock program.
-    public bool Run(Program program, DiagnosticCollection collection = null) {
-      if (program is null) {
-        return false;
-      }
-      var localCollection = collection ?? new DiagnosticCollection();
-      foreach (AstNode node in Converter.Convert(program, localCollection)) {
-        _executor.Run(node);
-      }
-      return true;
-    }
-
-    // Parses SeedX source code into a list of syntax tokens.
-    public static IReadOnlyList<SyntaxToken> ParseSyntaxTokens(
-        string source, string module, SeedXLanguage language,
-        DiagnosticCollection collection = null) {
+    // Parses SeedX source code into a list of syntax tokens. Incomplete or invalid source code can
+    // also be parsed with this method, where illegal tokens will be marked as Unknown or other
+    // relevant types.
+    public static void ParseSyntaxTokens(string source, string module, SeedXLanguage language,
+                                         out IReadOnlyList<TokenInfo> syntaxTokens) {
       if (string.IsNullOrEmpty(source) || module is null) {
-        return new List<SyntaxToken>();
+        syntaxTokens = new List<TokenInfo>();
+        return;
       }
       BaseParser parser = MakeParser(language);
-      parser.Parse(source, module, collection ?? new DiagnosticCollection(),
-                   out _, out IReadOnlyList<SyntaxToken> syntaxTokens);
-      return syntaxTokens;
+      parser.ParseSyntaxTokens(source, out syntaxTokens);
+      return;
     }
 
-    // Runs SeedX source code based on the language and run type. Returns null if the source code is
-    // null, empty or invalid.
-    public bool Run(string source, string module, SeedXLanguage language, RunType runType,
-                    DiagnosticCollection collection = null) {
+    // Tries to parse valid SeedX source code into a list of semantic tokens. Returns false and sets
+    // semanticTokens to null if the source code is not valid.
+    public static bool ParseSemanticTokens(string source, string module, SeedXLanguage language,
+                                           out IReadOnlyList<TokenInfo> semanticTokens,
+                                           DiagnosticCollection collection = null) {
       if (string.IsNullOrEmpty(source) || module is null) {
-        return false;
+        semanticTokens = new List<TokenInfo>();
+        return true;
+      }
+      BaseParser parser = MakeParser(language);
+      return parser.Parse(source, module, collection ?? new DiagnosticCollection(),
+                          out _, out semanticTokens);
+    }
+
+    // Runs or dumps SeedX source code based on the language and run type. Returns string if the
+    // runType is DumpAst or Disassemble, otherwise returns null.
+    public string Run(string source, string module, SeedXLanguage language, RunType runType,
+                      RunMode runMode = RunMode.Script, DiagnosticCollection collection = null) {
+      if (string.IsNullOrEmpty(source) || module is null) {
+        return null;
       }
       try {
         BaseParser parser = MakeParser(language);
         var localCollection = collection ?? new DiagnosticCollection();
         if (!parser.Parse(source, module, localCollection, out AstNode node, out _)) {
-          return false;
+          return null;
         }
         switch (runType) {
-          case RunType.Ast:
-            _executor.Run(node);
-            return true;
-          case RunType.Bytecode:
-            var compiler = new Compiler();
-            Interpreter.Function func = compiler.Compile(node, _vm.Env);
-            _vm.Run(func);
-            return true;
+          case RunType.DumpAst:
+            return node.ToString();
+          case RunType.Disassemble: {
+              Function func = new Compiler().Compile(node, _vm.Env, _visualizerCenter, runMode);
+              return new Disassembler(func).ToString();
+            }
+          case RunType.Execute: {
+              Function func = new Compiler().Compile(node, _vm.Env, _visualizerCenter, runMode);
+              _vm.Run(func);
+              return null;
+            }
           default:
             throw new NotImplementedException($"Unsupported run type: {runType}");
         }
       } catch (DiagnosticException exception) {
         collection?.Report(exception.Diagnostic);
-        return false;
+        return null;
       }
     }
 

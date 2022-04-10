@@ -95,42 +95,48 @@ indicate if `B` or `C` is the index of the register or constant:
 
 All the SeedLang instructions are listed as follows:
 
-| Opcode | Name       | Description                                         |
-| :----: | ---------- | --------------------------------------------------- |
-|   0    | `MOVE`     | Copy a value between registers                      |
-|   1    | `LOADBOOL` | Load a boolean value into a register                |
-|   2    | `LOADK`    | Load a constant into a register                     |
-|   3    | `GETGLOB`  | Read a global variable into a register              |
-|   4    | `SETGLOB`  | Write a register value into a global variable       |
-|   5    | `NEWTUPLE` | Create a new tuple with the initial elements        |
-|   6    | `NEWLIST`  | Create a new list with the initial elements         |
-|   7    | `GETELEM`  | Read a list or table element into a register        |
-|   8    | `SETELEM`  | Write a register value into a list or table element |
-|   9    | `ADD`      | Addition operation                                  |
-|   10   | `SUB`      | Subtract operation                                  |
-|   11   | `MUL`      | Multiply operation                                  |
-|   12   | `DIV`      | Divide operation                                    |
-|   13   | `MOD`      | Modulus (reminder) operation                        |
-|   14   | `POW`      | Exponentiation operation                            |
-|   15   | `UNM`      | Unary minus operation                               |
-|   16   | `NOT`      | Logical not operation                               |
-|   17   | `LEN`      | Length operation                                    |
-|   18   | `JMP`      | Unconditional jump                                  |
-|   19   | `EQ`       | Equality test                                       |
-|   20   | `LT`       | Less than test                                      |
-|   21   | `LE`       | Less than or equal to test                          |
-|   22   | `TEST`     | Boolean test, with conditional jump                 |
-|   23   | `TESTSET`  | Boolean test, with conditional jump and assignment  |
-|   24   | `FORPREP`  | For loop preparation                                |
-|   25   | `FORLOOP`  | For loop check                                      |
-|   26   | `EVAL`     | Expression evaluation                               |
-|   27   | `CALL`     | Call a function                                     |
-|   28   | `RETURN`   | Return from a function call                         |
+| Opcode | Name        | Description                                         |
+| :----: | ----------- | --------------------------------------------------- |
+|   0    | `MOVE`      | Copy a value between registers                      |
+|   1    | `LOADNIL`   | Load nil into a series of continuous registers      |
+|   2    | `LOADBOOL`  | Load a boolean value into a register                |
+|   3    | `LOADK`     | Load a constant into a register                     |
+|   4    | `GETGLOB`   | Read a global variable into a register              |
+|   5    | `SETGLOB`   | Write a register value into a global variable       |
+|   6    | `NEWTUPLE`  | Create a new tuple with the initial elements        |
+|   7    | `NEWLIST`   | Create a new list with the initial elements         |
+|   8    | `NEWDICT`   | Create a new dict with the initial keys and values  |
+|   9    | `GETELEM`   | Read a list or table element into a register        |
+|   10   | `SETELEM`   | Write a register value into a list or table element |
+|   11   | `ADD`       | Addition operation                                  |
+|   12   | `SUB`       | Subtract operation                                  |
+|   13   | `MUL`       | Multiply operation                                  |
+|   14   | `DIV`       | Divide operation                                    |
+|   15   | `FLOORDIV`  | Floor Divide operation                              |
+|   16   | `POW`       | Exponentiation operation                            |
+|   17   | `MOD`       | Modulus (reminder) operation                        |
+|   18   | `UNM`       | Unary minus operation                               |
+|   19   | `NOT`       | Logical not operation                               |
+|   20   | `LEN`       | Length operation                                    |
+|   21   | `JMP`       | Unconditional jump                                  |
+|   22   | `EQ`        | Equality test                                       |
+|   23   | `LT`        | Less than test                                      |
+|   24   | `LE`        | Less than or equal to test                          |
+|   25   | `IN`        | Test if the value or key is in the container        |
+|   26   | `TEST`      | Boolean test, with conditional jump                 |
+|   27   | `TESTSET`   | Boolean test, with conditional jump and assignment  |
+|   28   | `FORPREP`   | For loop preparation                                |
+|   29   | `FORLOOP`   | For loop check                                      |
+|   30   | `CALL`      | Call a function                                     |
+|   31   | `RETURN`    | Return from a function call                         |
+|   32   | `VISNOTIFY` | Notify the visualizers                              |
 
 ### Move and Load Constant
 
 ```shell
 MOVE A B                    # R(A) := R(B)
+LOADNIL A B                 # R(A), R(A+1), ..., R(A+B-1) := nil, B is the count
+                            # of target registers
 LOADBOOL A B C              # R(A) := (Bool)B; if C then PC++
 LOADK A Bx                  # R(A) := Kst(Bx)
 ```
@@ -161,8 +167,12 @@ SETGLOB A Bx            # Gbl[Kst(Bx)] := R[A]
 ### List and Table Operations
 
 ```shell
-NEWTUPLE A B C          # R(A) := (R(B), R(B+1), ..., R(B+C-1))
-NEWLIST A B C           # R(A) := [R(B), R(B+1), ..., R(B+C-1)]
+NEWTUPLE A B C          # R(A) := (R(B), R(B+1), ..., R(B+C-1)), C is the count
+                        # of initial elements
+NEWLIST A B C           # R(A) := [R(B), R(B+1), ..., R(B+C-1)], C is the count
+                        # of initial elements
+NEWDICT A B C           # R(A) := {R(B): R(B+1), ..., R(B+C-2): R(B+C-1)], C is
+                        # the count of initial keys and values
 GETELEM A B C           # R(A) := R(B)[RK(C)]
 SETELEM A B C           # R(A)[RK(B)] := RK(C)
 ```
@@ -174,8 +184,9 @@ ADD A B C               # R(A) := RK(B) + RK(C)
 SUB A B C               # R(A) := RK(B) - RK(C)
 MUL A B C               # R(A) := RK(B) * RK(C)
 DIV A B C               # R(A) := RK(B) / RK(C)
+FLOORDIV A B C          # R(A) := RK(B) // RK(C)
+POW A B C               # R(A) := RK(B) ** RK(C)
 MOD A B C               # R(A) := RK(B) % RK(C)
-POW A B C               # R(A) := RK(B) ^ RK(C)
 UNM A B                 # R(A) := -RK(B)
 LEN A B                 # R(A) := length of R(B)
 ```
@@ -192,6 +203,7 @@ NOT A B                 # R(A) := not R(B)
 EQ A B C                # if (RK(B) == RK(C)) != A then PC++
 LT A B C                # if (RK(B) < RK(C)) != A then PC++
 LE A B C                # if (RK(B) <= RK(C)) != A then PC++
+IN A B C                # if (RK(B) in RK(C)) != A then PC++
 TEST A C                # if R(A) == C then PC++
 TESTSET A B C           # if R(B) != C then R(A) := R(B) else PC++
 ```
@@ -207,12 +219,15 @@ FORLOOP A sBx           # R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
 
 ```shell
 JMP sBx                 # PC += sBx
-CALL A                  # call function R(A), parameters are R(A+1), ..., R(A+B)
-RETURN A B              # return R(A), R(A+1), ..., R(A+B-1)
+CALL A                  # calls function R(A), parameters are R(A+1), ...,
+                        # R(A+B), B is the count of parameters
+RETURN A B              # returns R(A), R(A+1), ..., R(A+B-1)
+                        # B is the count of return values
 ```
 
-### Expression Evaluation
+### Notify Visualizers
 
 ```shell
-Eval A                  # Evaluate R(A)
+VISNOTIFY A Bx          # creates a notification event from NotifyInfo[Bx], and
+                        # sends to visualizers
 ```

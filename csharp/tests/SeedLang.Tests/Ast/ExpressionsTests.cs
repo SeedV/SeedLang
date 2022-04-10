@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using Xunit;
@@ -27,7 +28,7 @@ namespace SeedLang.Ast.Tests {
         AddUnary();
         AddIdentifier();
         AddBooleanConstant();
-        AddNoneConstant();
+        AddNilConstant();
         AddNumberConstant();
         AddStringConstant();
         AddList();
@@ -38,18 +39,22 @@ namespace SeedLang.Ast.Tests {
       private void AddBinary() {
         var binary = AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                                       AstHelper.NumberConstant(2));
-        var expectedOutput = $"{AstHelper.TextRange} BinaryExpression (+)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (1)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (2)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} BinaryExpression (+)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (2)"
+        ).Replace("\n", Environment.NewLine);
         Add(binary, expectedOutput);
       }
 
       private void AddBoolean() {
         var boolean = AstHelper.Boolean(BooleanOperator.And, AstHelper.BooleanConstant(false),
                                         AstHelper.BooleanConstant(true));
-        var expectedOutput = $"{AstHelper.TextRange} BooleanExpression (And)\n" +
-                             $"  {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
-                             $"  {AstHelper.TextRange} BooleanConstantExpression (True)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} BooleanExpression (And)\n" +
+            $"  {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
+            $"  {AstHelper.TextRange} BooleanConstantExpression (True)"
+        ).Replace("\n", Environment.NewLine);
         Add(boolean, expectedOutput);
       }
 
@@ -60,11 +65,13 @@ namespace SeedLang.Ast.Tests {
                             AstHelper.BooleanConstant(true)),
           AstHelper.BooleanConstant(false)
         );
-        var expectedOutput = $"{AstHelper.TextRange} BooleanExpression (Or)\n" +
-                             $"  {AstHelper.TextRange} BooleanExpression (And)\n" +
-                             $"    {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
-                             $"    {AstHelper.TextRange} BooleanConstantExpression (True)\n" +
-                             $"  {AstHelper.TextRange} BooleanConstantExpression (False)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} BooleanExpression (Or)\n" +
+            $"  {AstHelper.TextRange} BooleanExpression (And)\n" +
+            $"    {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
+            $"    {AstHelper.TextRange} BooleanConstantExpression (True)\n" +
+            $"  {AstHelper.TextRange} BooleanConstantExpression (False)"
+        ).Replace("\n", Environment.NewLine);
         Add(boolean, expectedOutput);
       }
 
@@ -74,17 +81,21 @@ namespace SeedLang.Ast.Tests {
                                                                 ComparisonOperator.Greater),
                                               AstHelper.NumberConstant(2),
                                               AstHelper.NumberConstant(3));
-        var expectedOutput = $"{AstHelper.TextRange} ComparisonExpression\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (1) (<)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (2) (>)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (3)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} ComparisonExpression\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (1) (<)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (2) (>)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (3)"
+        ).Replace("\n", Environment.NewLine);
         Add(comparison, expectedOutput);
       }
 
       private void AddUnary() {
         var unary = AstHelper.Unary(UnaryOperator.Negative, AstHelper.NumberConstant(1));
-        var expectedOutput = $"{AstHelper.TextRange} UnaryExpression (-)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (1)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} UnaryExpression (-)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (1)"
+        ).Replace("\n", Environment.NewLine);
         Add(unary, expectedOutput);
       }
 
@@ -104,10 +115,10 @@ namespace SeedLang.Ast.Tests {
         Add(trueConstant, expectedTrueOutput);
       }
 
-      private void AddNoneConstant() {
-        var noneConstant = AstHelper.NoneConstant();
-        var expectedTrueOutput = $"{AstHelper.TextRange} NoneConstantExpression";
-        Add(noneConstant, expectedTrueOutput);
+      private void AddNilConstant() {
+        var nilConstant = AstHelper.NilConstant();
+        var expectedTrueOutput = $"{AstHelper.TextRange} NilConstantExpression";
+        Add(nilConstant, expectedTrueOutput);
       }
 
       private void AddNumberConstant() {
@@ -128,10 +139,12 @@ namespace SeedLang.Ast.Tests {
         var list = AstHelper.List(AstHelper.NumberConstant(1),
                                   AstHelper.NumberConstant(2),
                                   AstHelper.NumberConstant(3));
-        var expectedOutput = $"{AstHelper.TextRange} ListExpression\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (1)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (2)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (3)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} ListExpression\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (2)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (3)"
+        ).Replace("\n", Environment.NewLine);
         Add(list, expectedOutput);
       }
 
@@ -139,21 +152,25 @@ namespace SeedLang.Ast.Tests {
         var subscript = AstHelper.Subscript(AstHelper.List(AstHelper.NumberConstant(1),
                                                            AstHelper.NumberConstant(2)),
                                             AstHelper.NumberConstant(1));
-        var expectedOutput = $"{AstHelper.TextRange} SubscriptExpression\n" +
-                             $"  {AstHelper.TextRange} ListExpression\n" +
-                             $"    {AstHelper.TextRange} NumberConstantExpression (1)\n" +
-                             $"    {AstHelper.TextRange} NumberConstantExpression (2)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (1)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} SubscriptExpression\n" +
+            $"  {AstHelper.TextRange} ListExpression\n" +
+            $"    {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+            $"    {AstHelper.TextRange} NumberConstantExpression (2)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (1)"
+        ).Replace("\n", Environment.NewLine);
         Add(subscript, expectedOutput);
       }
 
       private void AddCall() {
         string name = "func";
         var call = AstHelper.Call(AstHelper.Id(name), AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
-        var expectedOutput = $"{AstHelper.TextRange} CallExpression\n" +
-                             $"  {AstHelper.TextRange} IdentifierExpression ({name})\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (1)\n" +
-                             $"  {AstHelper.TextRange} NumberConstantExpression (2)";
+        var expectedOutput = (
+            $"{AstHelper.TextRange} CallExpression\n" +
+            $"  {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (1)\n" +
+            $"  {AstHelper.TextRange} NumberConstantExpression (2)"
+        ).Replace("\n", Environment.NewLine);
         Add(call, expectedOutput);
       }
     }

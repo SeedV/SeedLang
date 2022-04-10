@@ -12,53 +12,66 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Ast {
   // The base class of all statement nodes.
   internal abstract class Statement : AstNode {
-    // The factory method to create an assignment statement.
+    // The factory method to create assignment statements.
     internal static AssignmentStatement Assignment(Expression[] targets, Expression[] exprs,
                                                    Range range) {
       return new AssignmentStatement(targets, exprs, range);
     }
 
-    // The factory method to create a block statement.
+    // The factory method to create block statements.
     internal static BlockStatement Block(Statement[] statements, Range range) {
       return new BlockStatement(statements, range);
     }
 
-    // The factory method to create an expression statement.
+    // The factory method to create expression statements.
     internal static ExpressionStatement Expression(Expression expr, Range range) {
       return new ExpressionStatement(expr, range);
     }
 
-    // The factory method to create a for in statement.
+    // The factory method to create for in statements.
     internal static ForInStatement ForIn(IdentifierExpression id, Expression expr, Statement body,
                                          Range range) {
       return new ForInStatement(id, expr, body, range);
     }
 
-    // The factory method to create a function define statement.
+    // The factory method to create function define statements.
     internal static FuncDefStatement FuncDef(string name, string[] parameters, Statement body,
                                              Range range) {
       return new FuncDefStatement(name, parameters, body, range);
     }
 
-    // The factory method to create an if statement.
+    // The factory method to create if statements.
     internal static IfStatement If(Expression test, Statement thenBody, Statement elseBody,
                                    Range range) {
       return new IfStatement(test, thenBody, elseBody, range);
     }
 
-    // The factory method to create a return statement.
+    // The factory method to create pass statements.
+    internal static PassStatement Pass(Range range) {
+      return new PassStatement(range);
+    }
+
+    // The factory method to create return statements.
     internal static ReturnStatement Return(Expression[] exprs, Range range) {
       return new ReturnStatement(exprs, range);
     }
 
-    // The factory method to create an while statement.
+    // The factory method to create while statements.
     internal static WhileStatement While(Expression test, Statement body, Range range) {
       return new WhileStatement(test, body, range);
+    }
+
+    // The factory method to create VTag statements.
+    internal static VTagStatement VTag(VTagStatement.VTagInfo[] vTagInfos, Statement[] statements,
+                                       Range range) {
+      return new VTagStatement(vTagInfos, statements, range);
     }
 
     internal Statement(Range range) : base(range) { }
@@ -135,6 +148,10 @@ namespace SeedLang.Ast {
     }
   }
 
+  internal class PassStatement : Statement {
+    internal PassStatement(Range range) : base(range) { }
+  }
+
   internal class ReturnStatement : Statement {
     public Expression[] Exprs { get; }
 
@@ -150,6 +167,54 @@ namespace SeedLang.Ast {
     internal WhileStatement(Expression test, Statement body, Range range) : base(range) {
       Test = test;
       Body = body;
+    }
+  }
+
+  internal class VTagStatement : Statement {
+    internal class VTagInfo {
+      internal class Argument {
+        public string Text { get; }
+        public Expression Expr { get; }
+
+        internal Argument(string text, Expression expr) {
+          Text = text;
+          Expr = expr;
+        }
+
+        public override string ToString() {
+          return $"'{Text}' {Expr}";
+        }
+      }
+
+      public string Name { get; }
+      public Argument[] Args { get; }
+
+      internal VTagInfo(string name, Argument[] args) {
+        Name = name;
+        Args = args;
+      }
+
+      public override string ToString() {
+        var sb = new StringBuilder();
+        sb.Append(Name);
+        if (Args.Length > 0) {
+          sb.Append('(');
+          sb.Append(string.Join(",", Args.Select(arg => arg.Text)));
+          sb.AppendLine("):");
+          sb.Append(string.Join(System.Environment.NewLine, Args.Select(arg => arg.Expr)));
+        }
+        return sb.ToString();
+      }
+    }
+
+    public VTagInfo[] VTagInfos { get; }
+    // The statements enclosed in the VTag.
+    public Statement[] Statements { get; }
+
+    internal VTagStatement(VTagInfo[] vTagInfos, Statement[] statements, Range range) :
+        base(range) {
+      VTagInfos = vTagInfos;
+      Statements = statements;
     }
   }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SeedLang.Ast;
@@ -97,11 +98,11 @@ namespace SeedLang.X.Tests {
                 "    [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (2)\n" +
                 "  [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (3)",
 
-                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenParenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Parenthesis [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "CloseParenthesis [Ln 1, Col 6 - Ln 1, Col 6]," +
                 "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Number [Ln 1, Col 10 - Ln 1, Col 10]")]
 
@@ -125,11 +126,11 @@ namespace SeedLang.X.Tests {
                 "    [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (2)",
 
                 "Operator [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Parenthesis [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "OpenParenthesis [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Number [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Operator [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
-                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]")]
+                "CloseParenthesis [Ln 1, Col 7 - Ln 1, Col 7]")]
 
     [InlineData("2 - - 1",
 
@@ -144,10 +145,10 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]")]
     public void TestBlockInlineTextParser(string input, string expected, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
-                                out IReadOnlyList<SyntaxToken> tokens));
+                                out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected, node.ToString());
+      Assert.Equal(expected.Replace("\n", Environment.NewLine), node.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
 
@@ -203,9 +204,12 @@ namespace SeedLang.X.Tests {
     public void TestParsePartialOrInvalidExpressions(string input, string expectedTokens) {
       var parser = new SeedBlockInlineText();
       parser.Parse(input, "", _collection,
-                   out AstNode node, out IReadOnlyList<SyntaxToken> tokens);
+                   out AstNode node, out IReadOnlyList<TokenInfo> semanticTokens);
       Assert.Null(node);
-      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
+      Assert.Null(semanticTokens);
+      _parser.ParseSyntaxTokens(input, out IReadOnlyList<TokenInfo> syntaxTokens);
+      Assert.Equal(expectedTokens,
+                   string.Join(",", syntaxTokens.Select(token => token.ToString())));
     }
   }
 }

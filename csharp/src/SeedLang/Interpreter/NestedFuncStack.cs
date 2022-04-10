@@ -27,7 +27,7 @@ namespace SeedLang.Interpreter {
       }
 
       internal void UpdateConstantArray() {
-        Func.Chunk.SetConstants(ConstantCache.Constants.ToArray());
+        Func.Chunk.SetConstants(ConstantCache.ToArray());
       }
     }
 

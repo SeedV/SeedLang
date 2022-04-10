@@ -14,73 +14,104 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SeedLang.Common;
+using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
   // A class to handle source code input and output.
   internal class SourceCode {
-    public string Source { get; private set; } = "";
+    private readonly List<string> _lines = new List<string>();
 
-    // The starting index of each line in source code.
-    private readonly List<int> _lineStarts = new List<int>() { 0 };
+    public string Source => string.Join(null, _lines);
+    public SeedXLanguage Language { get; set; }
 
     internal void AddLine(string line) {
-      Source += line + Environment.NewLine;
-      _lineStarts.Add(Source.Length);
+      _lines.Add(line + Environment.NewLine);
     }
 
     internal void Reset() {
-      Source = "";
-      _lineStarts.Clear();
-      _lineStarts.Add(0);
+      _lines.Clear();
+    }
+
+    internal void ParseAndWriteSource() {
+      // Tries to parse semantic tokens out of the source code. Falls back to syntax tokens if the
+      // source code is not valid.
+      if (!Executor.ParseSemanticTokens(Source, "", Language,
+                                        out IReadOnlyList<TokenInfo> syntaxTokens)) {
+        Executor.ParseSyntaxTokens(Source, "", Language, out syntaxTokens);
+      }
+      WriteSourceWithSyntaxTokens(syntaxTokens);
     }
 
     internal void WriteSourceWithHighlight(TextRange range) {
-      var first = new TextPosition(1, 0);
-      if (range.Start.CompareTo(first) > 0) {
-        var r = new TextRange(first, new TextPosition(range.Start.Line, range.Start.Column - 1));
-        Console.Write(SourceOfRange(r));
-      }
-      Console.BackgroundColor = ConsoleColor.DarkCyan;
-      Console.ForegroundColor = ConsoleColor.Black;
-      Console.Write(SourceOfRange(range));
-      Console.ResetColor();
-      int startIndex = _lineStarts[range.End.Line - 1] + range.End.Column + 1;
-      if (startIndex < Source.Length) {
-        Console.Write(Source.Substring(startIndex));
+      int lineId = range.Start.Line;
+      while (lineId <= range.End.Line && lineId > 0 && lineId <= _lines.Count) {
+        Console.Write($"{lineId,-5} ");
+        string line = _lines[lineId - 1];
+        if (Intersect(lineId, range) is (int start, int end)) {
+          Console.Write(line.Substring(0, start));
+          if (line.Substring(start) != Environment.NewLine) {
+            Console.BackgroundColor = ConsoleColor.DarkCyan;
+            Console.ForegroundColor = ConsoleColor.Black;
+          }
+          Console.Write(line.Substring(start, end - start + 1));
+          Console.ResetColor();
+          Console.Write(line.Substring(end + 1));
+        } else {
+          Console.Write(line);
+        }
+        lineId++;
       }
     }
 
-    internal void WriteSourceWithSyntaxTokens(IReadOnlyList<SyntaxToken> syntaxTokens) {
+    internal void WriteSourceWithSyntaxTokens(IReadOnlyList<TokenInfo> syntaxTokens) {
       Console.ResetColor();
       Console.WriteLine("---------- Source ----------");
-      var currentPos = new TextPosition(1, 0);
-      foreach (SyntaxToken token in syntaxTokens) {
-        if (token.Range.Start.CompareTo(currentPos) > 0) {
-          var endPos = new TextPosition(token.Range.Start.Line, token.Range.Start.Column - 1);
-          Console.Write(SourceOfRange(new TextRange(currentPos, endPos)));
+      int tokenIndex = 0;
+      for (int lineId = 1; lineId <= _lines.Count; lineId++) {
+        WriteLineWithSyntaxTokens(lineId, syntaxTokens, ref tokenIndex);
+      }
+    }
+
+    private void WriteLineWithSyntaxTokens(int lineId, IReadOnlyList<TokenInfo> syntaxTokens,
+                                           ref int tokenIndex) {
+      int column = 0;
+      Console.Write($"{lineId,-5} ");
+      string line = _lines[lineId - 1];
+      while (column < line.Length && tokenIndex < syntaxTokens.Count &&
+             syntaxTokens[tokenIndex].Range.Start.Line <= lineId) {
+        TokenInfo token = syntaxTokens[tokenIndex];
+        if (token.Range.Start.Column > column) {
+          Console.Write(line.Substring(column, token.Range.Start.Column - column));
         }
         if (Theme.SyntaxToThemeInfoMap.ContainsKey(token.Type)) {
           Console.ForegroundColor = Theme.SyntaxToThemeInfoMap[token.Type].ForegroundColor;
         }
-        Console.Write(SourceOfRange(token.Range));
+        Console.Write(Substring(line, token.Range.Start.Column, token.Range.End.Column));
         Console.ResetColor();
-        currentPos = new TextPosition(token.Range.End.Line, token.Range.End.Column + 1);
+        column = token.Range.End.Line <= lineId ? token.Range.End.Column + 1 : line.Length;
+        if (token.Range.End.Line <= lineId) {
+          tokenIndex++;
+        }
       }
-      Console.Write(Source.Substring(_lineStarts[currentPos.Line - 1] + currentPos.Column));
-      Console.WriteLine();
+      Console.Write(line.Substring(column));
     }
 
-    private string SourceOfRange(TextRange range) {
-      Debug.Assert(range.Start.Line <= range.End.Line);
-      int startIndex = _lineStarts[range.Start.Line - 1] + range.Start.Column;
-      int endIndex = _lineStarts[range.End.Line - 1] + range.End.Column;
-      if (startIndex >= Source.Length) {
-        return "";
+    private static string Substring(string line, int columnStart, int columnEnd) {
+      return line.Substring(Math.Max(columnStart, 0),
+                            Math.Min(line.Length, columnEnd + 1) - columnStart);
+    }
+
+    private (int, int)? Intersect(int lineId, TextRange range) {
+      if (range.Start.Line > lineId || range.End.Line < lineId) {
+        return null;
       }
-      int length = Math.Min(endIndex, Source.Length - 1) - startIndex + 1;
-      return Source.Substring(startIndex, length);
+      bool isStartLine = lineId == range.Start.Line;
+      bool isEndLine = lineId == range.End.Line;
+      int lineEnd = _lines[lineId - 1].Length - 1;
+      int start = isStartLine ? Math.Min(Math.Max(0, range.Start.Column), lineEnd) : 0;
+      int end = isEndLine ? Math.Min(Math.Max(0, range.End.Column), lineEnd) : lineEnd;
+      return (start, end);
     }
   }
 }

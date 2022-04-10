@@ -67,6 +67,8 @@ namespace SeedLang.Ast {
           return "==";
         case ComparisonOperator.NotEqual:
           return "!=";
+        case ComparisonOperator.In:
+          return "in";
         default:
           throw new NotImplementedException($"Unsupported comparison operator: {op}.");
       }
@@ -149,8 +151,8 @@ namespace SeedLang.Ast {
       Exit();
     }
 
-    protected override void Visit(NoneConstantExpression noneConstant) {
-      Enter(noneConstant);
+    protected override void Visit(NilConstantExpression nilConstant) {
+      Enter(nilConstant);
       Exit();
     }
 
@@ -163,6 +165,15 @@ namespace SeedLang.Ast {
     protected override void Visit(StringConstantExpression stringConstant) {
       Enter(stringConstant);
       _out.Append($" ({stringConstant.Value})");
+      Exit();
+    }
+
+    protected override void Visit(DictExpression dict) {
+      Enter(dict);
+      foreach (var item in dict.Items) {
+        Visit(item.Key);
+        Visit(item.Value);
+      }
       Exit();
     }
 
@@ -252,6 +263,11 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(PassStatement pass) {
+      Enter(pass);
+      Exit();
+    }
+
     protected override void Visit(ReturnStatement @return) {
       Enter(@return);
       foreach (Expression value in @return.Exprs) {
@@ -267,9 +283,19 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(VTagStatement vTag) {
+      Enter(vTag);
+      _out.Append($" ({string.Join<VTagStatement.VTagInfo>(",", vTag.VTagInfos)})");
+      foreach (var statement in vTag.Statements) {
+        Visit(statement);
+      }
+      Exit();
+    }
+
     private void Enter(AstNode node) {
       if (_level > 0) {
-        _out.Append($"\n{new string(' ', _level * 2)}");
+        _out.AppendLine();
+        _out.Append($"{new string(' ', _level * 2)}");
       }
       _out.Append($"{node.Range} {node.GetType().Name}");
       _level++;

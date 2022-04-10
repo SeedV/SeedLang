@@ -24,6 +24,7 @@ namespace SeedLang.Runtime {
     Modulo,
   }
 
+  // The operators of boolean expressions.
   public enum BooleanOperator {
     And,
     Or,
@@ -37,6 +38,7 @@ namespace SeedLang.Runtime {
     GreaterEqual,
     EqEqual,
     NotEqual,
+    In,
   }
 
   // The operators of unary expressions.

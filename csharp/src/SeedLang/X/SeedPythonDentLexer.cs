@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 
@@ -23,9 +24,9 @@ namespace SeedLang.X {
   // The indent and dedent tokens cannot be expressed as ANTLR4 grammar. The newline and spaces need
   // be scanned to generate indent and dedent tokens.
   internal class SeedPythonDentLexer : SeedPythonLexer {
-    // A linked list to store multiple tokens, because the original ANTLR4 lexer can only generate
-    // one token at the same time.
-    private readonly LinkedList<IToken> _tokens = new LinkedList<IToken>();
+    // The token queue to store extra multiple tokens, because the original ANTLR4 lexer can only
+    // generate one token at the same time.
+    private readonly Queue<IToken> _tokens = new Queue<IToken>();
     // The stack that keeps track of the indentation level.
     private readonly Stack<int> _indents = new Stack<int>();
     // The amount of opened braces, brackets and parenthesis.
@@ -35,18 +36,17 @@ namespace SeedLang.X {
     // A flag to indicate if an extra trailing newline is needed before EOF.
     private bool _addTrailingNewline = true;
 
-    public SeedPythonDentLexer(ICharStream input) : base(input) {
-    }
+    public SeedPythonDentLexer(ICharStream input) : base(input) { }
 
     public override IToken NextToken() {
-      if (TryPopFirstToken(out IToken first)) {
-        return first;
+      if (_tokens.Count > 0) {
+        return _tokens.Dequeue();
       }
       while (_tokens.Count == 0) {
         IToken currentToken = base.NextToken();
         if (_firstToken) {
           _firstToken = false;
-          HandleFirstToken(currentToken);
+          HandleIndentForFirstToken(currentToken);
         }
         switch (currentToken.Type) {
           case SeedPythonParser.NEWLINE:
@@ -67,12 +67,15 @@ namespace SeedLang.X {
           case SeedPythonParser.Eof:
             HandleEof(currentToken);
             break;
+          case SeedPythonParser.COMMENT:
+            ScanVTag(currentToken);
+            break;
           default:
             EmitToken(currentToken);
             break;
         }
       }
-      return PopFirstToken();
+      return _tokens.Dequeue();
     }
 
     public override void Reset() {
@@ -84,8 +87,8 @@ namespace SeedLang.X {
       _addTrailingNewline = true;
     }
 
-    private void HandleFirstToken(IToken firstToken) {
-      if (firstToken.StartIndex > 0) {
+    private void HandleIndentForFirstToken(IToken firstToken) {
+      if (firstToken.Type != SeedPythonParser.NEWLINE && firstToken.StartIndex > 0) {
         var interval = new Interval(0, firstToken.StartIndex - 1);
         string spaces = (InputStream as ICharStream).GetText(interval);
         int indent = GetIndentationCount(spaces);
@@ -105,7 +108,7 @@ namespace SeedLang.X {
         _addTrailingNewline = false;
       }
       // Ignores all indents, dedents and line breaks when inside brackets or on a blank line.
-      if (_opened == 0 && next != '#' && !IsNewline((char)next)) {
+      if (_opened == 0 && !IsNewline((char)next)) {
         int indent = GetIndentationCount(Text.Substring(spacesStart));
         int previous = _indents.Count == 0 ? 0 : _indents.Peek();
         if (indent == previous) {
@@ -145,19 +148,27 @@ namespace SeedLang.X {
       EmitToken(eofToken);
     }
 
-    private bool TryPopFirstToken(out IToken first) {
-      if (_tokens.Count == 0) {
-        first = null;
-        return false;
+    private void ScanVTag(IToken comment) {
+      if (comment.Text.Length > 1) {
+        Debug.Assert(comment.Text[0] == '#');
+        var inputStream = new AntlrInputStream(comment.Text.Substring(1));
+        var lexer = new SeedPythonLexer(inputStream);
+        var tokens = lexer.GetAllTokens();
+        if (tokens.Count > 0 && (tokens[0].Type == SeedPythonParser.VTAG_START ||
+                                 tokens[0].Type == SeedPythonParser.VTAG_END)) {
+          for (int i = 0; i < tokens.Count; i++) {
+            // Adds back '#' for VTAG_START and VTAG_END tokens.
+            int start = i == 0 ? comment.StartIndex : comment.StartIndex + tokens[i].StartIndex + 1;
+            int column = i == 0 ? comment.Column : comment.Column + tokens[i].StartIndex + 1;
+            // The length of first token is StopIndex + 1 + (length of '#').
+            string text = i == 0 ? comment.Text.Substring(0, tokens[i].StopIndex + 2) :
+                                   tokens[i].Text;
+            _tokens.Enqueue(CommonToken(tokens[i].Type, start,
+                                        comment.StartIndex + tokens[i].StopIndex + 1, comment.Line,
+                                        column, text));
+          }
+        }
       }
-      first = PopFirstToken();
-      return true;
-    }
-
-    private IToken PopFirstToken() {
-      IToken first = _tokens.First.Value;
-      _tokens.RemoveFirst();
-      return first;
     }
 
     private static bool IsNewline(char ch) {
@@ -165,7 +176,7 @@ namespace SeedLang.X {
     }
 
     private void EmitToken(IToken token) {
-      _tokens.AddLast(token);
+      _tokens.Enqueue(token);
     }
 
     private CommonToken CommonToken(int type, int start, int stop) {

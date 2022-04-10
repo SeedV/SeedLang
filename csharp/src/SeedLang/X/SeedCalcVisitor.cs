@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -26,13 +27,14 @@ namespace SeedLang.X {
   internal class SeedCalcVisitor : SeedCalcBaseVisitor<AstNode> {
     private readonly VisitorHelper _helper;
 
-    public SeedCalcVisitor(IList<SyntaxToken> tokens) {
+    public SeedCalcVisitor(IList<TokenInfo> tokens) {
       _helper = new VisitorHelper(tokens);
     }
 
     public override AstNode VisitExpressionStatement(
-        [NotNull] SeedCalcParser.ExpressionStatementContext context) {
-      return VisitorHelper.BuildExpressionStatement(context.expression(), this);
+            [NotNull] SeedCalcParser.ExpressionStatementContext context) {
+      var exprContexts = new ParserRuleContext[] { context.expression() };
+      return _helper.BuildExpressionStmt(exprContexts, null, this);
     }
 
     public override AstNode VisitAdd([NotNull] SeedCalcParser.AddContext context) {

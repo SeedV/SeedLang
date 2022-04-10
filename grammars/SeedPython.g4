@@ -30,10 +30,13 @@ tokens {
  * Parser rules
  */
 
-program: statements? EOF;
+program: statements EOF;
 
-statements: statement+;
-statement: compound_stmt | simple_stmts;
+statements: (NEWLINE | statement)+;
+statement:
+  simple_stmts
+  | compound_stmt
+  | vtag_stmt;
 
 simple_stmts:
   simple_stmt (SEMICOLON simple_stmt)* SEMICOLON? NEWLINE;
@@ -41,7 +44,7 @@ simple_stmt:
   assignment    # assignment_placeholder
   | expressions # expression_stmt
   | return_stmt # return_stmt_placeholder
-  | 'pass'      # pass
+  | PASS        # pass
   | 'break'     # break
   | 'continue'  # continue;
 
@@ -51,7 +54,20 @@ compound_stmt:
   | if_stmt
   | while_stmt;
 
-assignment: targets EQUAL expressions;
+vtag_stmt:
+  vtag_start VTAG_END NEWLINE statement? # single_line_vtag_stmt
+  | vtag_start statements VTAG_END       # multiple_line_vtag_stmt;
+vtag_start: VTAG_START vtag (COMMA vtag)*;
+vtag: NAME (OPEN_PAREN arguments CLOSE_PAREN)?;
+
+assignment:
+  targets EQUAL expressions            # assign
+  | target ADD_ASSIGN expression       # add_assign
+  | target SUBSTRACT_ASSIGN expression # substract_assign
+  | target MULTIPLY_ASSIGN expression  # multiply_assign
+  | target DIVIDE_ASSIGN expression    # divide_assign
+  | target MODULO_ASSIGN expression    # modulo_assign;
+
 targets: target (COMMA target)*;
 target:
   identifier                                  # identifier_target
@@ -92,6 +108,11 @@ IN: 'in';
 WHILE: 'while';
 DEF: 'def';
 RETURN: 'return';
+PASS: 'pass';
 
-COLON: ':';
 SEMICOLON: ';';
+
+VTAG_START: '[[';
+VTAG_END: ']]';
+
+COMMENT: '#' ~[\r\n\f]*;

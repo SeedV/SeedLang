@@ -18,36 +18,43 @@ namespace SeedLang.Interpreter {
   // All the opcodes of SeedLang virtual machine.
   internal enum Opcode {
     MOVE,         // R(A) := RK(B)
+    LOADNIL,      // R(A), R(A+1), ..., R(A+B-1) := nil, B is the count of target registers
     LOADBOOL,     // R(A) := (Bool)B; if C then PC++
     LOADK,        // R(A) := Kst(Bx)
     GETGLOB,      // R[A] := Gbl[Kst(Bx)]
     SETGLOB,      // Gbl[Kst(Bx)] := R[A]
-    NEWTUPLE,     // R(A) := (R(B), R(B+1), ..., R(B+C-1))
-    NEWLIST,      // R(A) := [R(B), R(B+1), ..., R(B+C-1)]
+    NEWTUPLE,     // R(A) := (R(B), R(B+1), ..., R(B+C-1)), C is the count of initial elements
+    NEWLIST,      // R(A) := [R(B), R(B+1), ..., R(B+C-1)], C is the count of initial elements
+    NEWDICT,      // R(A) := {R(B): R(B+1), ..., R(B+C-2): R(B+C-1)], C is the count of initial keys
+                  // and values
     GETELEM,      // R(A) := R(B)[RK(C)]
     SETELEM,      // R(A)[RK(B)] := RK(C)
     ADD,          // R(A) := RK(B) + RK(C)
     SUB,          // R(A) := RK(B) - RK(C)
     MUL,          // R(A) := RK(B) * RK(C)
     DIV,          // R(A) := RK(B) / RK(C)
+    FLOORDIV,     // R(A) := RK(B) // RK(C)
+    POW,          // R(A) := RK(B) ** RK(C)
+    MOD,          // R(A) := RK(B) % RK(C)
     UNM,          // R(A) := -RK(B)
     LEN,          // R(A) := length of R(B)
     JMP,          // PC += sBx
     EQ,           // if (RK(B) == RK(C)) != A then PC++
     LT,           // if (RK(B) < RK(C)) != A then PC++
     LE,           // if (RK(B) <= RK(C)) != A then PC++
+    IN,           // if (RK(B) in RK(C)) != A then PC++
     TEST,         // if R(A) == C then PC++
     TESTSET,      // if R(B) != C then R(A) := R(B) else PC++
     FORPREP,      // R(A) -= R(A+2); pc += sBx
     FORLOOP,      // R(A) += R(A+2); if R(A) <?= R(A+1) then PC += sBx
-    EVAL,         // Eval R(A). Evaluates the expresion statement. TODO: do we need this?
-    CALL,         // call function R(A), parameters are R(A+1), ..., R(A+B)
-    RETURN,       // return R(A), R(A+1), ..., R(A+B-1)
+    CALL,         // calls function R(A), parameters are R(A+1), ..., R(A+B), B is the count of
+                  // parameters
+    RETURN,       // returns R(A), R(A+1), ..., R(A+B-1), B is the count of return values
+    VISNOTIFY,    // creates a notification event from NotifyInfo[Bx], and sends to visualizers
   }
 
   // The types of opcodes.
   internal enum OpcodeType {
-    A,
     ABC,
     ABx,
     SBx,
@@ -57,23 +64,27 @@ namespace SeedLang.Interpreter {
     // Returns the type of this opcode.
     internal static OpcodeType Type(this Opcode op) {
       switch (op) {
-        case Opcode.EVAL:
-          return OpcodeType.A;
         case Opcode.MOVE:
+        case Opcode.LOADNIL:
         case Opcode.LOADBOOL:
         case Opcode.NEWTUPLE:
         case Opcode.NEWLIST:
+        case Opcode.NEWDICT:
         case Opcode.GETELEM:
         case Opcode.SETELEM:
         case Opcode.ADD:
         case Opcode.SUB:
         case Opcode.MUL:
         case Opcode.DIV:
+        case Opcode.FLOORDIV:
+        case Opcode.POW:
+        case Opcode.MOD:
         case Opcode.UNM:
         case Opcode.LEN:
         case Opcode.EQ:
         case Opcode.LT:
         case Opcode.LE:
+        case Opcode.IN:
         case Opcode.TEST:
         case Opcode.TESTSET:
         case Opcode.CALL:
@@ -82,6 +93,7 @@ namespace SeedLang.Interpreter {
         case Opcode.LOADK:
         case Opcode.GETGLOB:
         case Opcode.SETGLOB:
+        case Opcode.VISNOTIFY:
           return OpcodeType.ABx;
         case Opcode.JMP:
         case Opcode.FORPREP:

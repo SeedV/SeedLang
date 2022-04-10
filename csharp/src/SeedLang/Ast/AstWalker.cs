@@ -52,14 +52,17 @@ namespace SeedLang.Ast {
         case BooleanConstantExpression booleanConstant:
           Visit(booleanConstant);
           break;
-        case NoneConstantExpression noneConstant:
-          Visit(noneConstant);
+        case NilConstantExpression nilConstant:
+          Visit(nilConstant);
           break;
         case NumberConstantExpression numberConstant:
           Visit(numberConstant);
           break;
         case StringConstantExpression stringConstant:
           Visit(stringConstant);
+          break;
+        case DictExpression dict:
+          Visit(dict);
           break;
         case ListExpression list:
           Visit(list);
@@ -100,11 +103,17 @@ namespace SeedLang.Ast {
         case IfStatement @if:
           Visit(@if);
           break;
+        case PassStatement pass:
+          Visit(pass);
+          break;
         case ReturnStatement @return:
           Visit(@return);
           break;
         case WhileStatement @while:
           Visit(@while);
+          break;
+        case VTagStatement vTag:
+          Visit(vTag);
           break;
         default:
           throw new NotImplementedException(
@@ -118,9 +127,10 @@ namespace SeedLang.Ast {
     protected abstract void Visit(UnaryExpression unary);
     protected abstract void Visit(IdentifierExpression identifier);
     protected abstract void Visit(BooleanConstantExpression booleanConstant);
-    protected abstract void Visit(NoneConstantExpression noneConstant);
+    protected abstract void Visit(NilConstantExpression nilConstant);
     protected abstract void Visit(NumberConstantExpression numberConstant);
     protected abstract void Visit(StringConstantExpression stringConstant);
+    protected abstract void Visit(DictExpression tuple);
     protected abstract void Visit(ListExpression list);
     protected abstract void Visit(TupleExpression tuple);
     protected abstract void Visit(SubscriptExpression subscript);
@@ -132,7 +142,9 @@ namespace SeedLang.Ast {
     protected abstract void Visit(ForInStatement forIn);
     protected abstract void Visit(FuncDefStatement funcDef);
     protected abstract void Visit(IfStatement @if);
+    protected abstract void Visit(PassStatement pass);
     protected abstract void Visit(ReturnStatement @return);
     protected abstract void Visit(WhileStatement @while);
+    protected abstract void Visit(VTagStatement vTag);
   }
 }

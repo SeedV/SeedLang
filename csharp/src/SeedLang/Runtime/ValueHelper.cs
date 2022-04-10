@@ -12,80 +12,175 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
   // A helper class to do value operations.
   internal static class ValueHelper {
-    internal static double Add(in Value lhs, in Value rhs) {
-      double result = lhs.AsNumber() + rhs.AsNumber();
-      CheckOverflow(result);
-      return result;
-    }
+    private static readonly Dictionary<char, char> _escapeCharacters =
+        new Dictionary<char, char>() {
+          ['\''] = '\'',
+          ['"'] = '"',
+          ['\\'] = '\\',
+          ['n'] = '\n',
+          ['r'] = '\r',
+          ['t'] = '\t',
+          ['b'] = '\b',
+          ['f'] = '\f',
+        };
 
-    internal static double Subtract(in Value lhs, in Value rhs) {
-      double result = lhs.AsNumber() - rhs.AsNumber();
-      CheckOverflow(result);
-      return result;
-    }
-
-    internal static double Multiply(in Value lhs, in Value rhs) {
-      double result = lhs.AsNumber() * rhs.AsNumber();
-      CheckOverflow(result);
-      return result;
-    }
-
-    internal static double Divide(in Value lhs, in Value rhs) {
-      if (rhs.AsNumber() == 0) {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorDivideByZero);
+    internal static Value Add(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        double result = lhs.AsNumber() + rhs.AsNumber();
+        CheckOverflow(result);
+        return new Value(result);
+      } else if (lhs.IsString && rhs.IsString) {
+        return new Value(lhs.AsString() + rhs.AsString());
+      } else if (lhs.IsList && rhs.IsList) {
+        var list = lhs.AsList();
+        list.AddRange(rhs.AsList());
+        return new Value(list);
+      } else if (lhs.IsTuple && rhs.IsTuple) {
+        return new Value(lhs.AsTuple().AddRange(rhs.AsTuple()));
       }
-      double result = lhs.AsNumber() / rhs.AsNumber();
-      CheckOverflow(result);
-      return result;
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
-    internal static double FloorDivide(in Value lhs, in Value rhs) {
-      if (rhs.AsNumber() == 0) {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorDivideByZero);
+    internal static Value Subtract(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        double result = lhs.AsNumber() - rhs.AsNumber();
+        CheckOverflow(result);
+        return new Value(result);
       }
-      double result = System.Math.Floor(lhs.AsNumber() / rhs.AsNumber());
-      CheckOverflow(result);
-      return result;
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
-    internal static double Power(in Value lhs, in Value rhs) {
-      double result = System.Math.Pow(lhs.AsNumber(), rhs.AsNumber());
-      CheckOverflow(result);
-      return result;
-    }
-
-    internal static double Modulo(in Value lhs, in Value rhs) {
-      if (rhs.AsNumber() == 0) {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                      Message.RuntimeErrorDivideByZero);
+    internal static Value Multiply(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        double result = lhs.AsNumber() * rhs.AsNumber();
+        CheckOverflow(result);
+        return new Value(result);
+      } else if (lhs.IsString && (rhs.IsBoolean || rhs.IsNumber) ||
+                 (lhs.IsBoolean || lhs.IsNumber) && rhs.IsString) {
+        double count = lhs.IsString ? rhs.AsNumber() : lhs.AsNumber();
+        string str = lhs.IsString ? lhs.AsString() : rhs.AsString();
+        var sb = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+          sb.Append(str);
+        }
+        return new Value(sb.ToString());
+      } else if (lhs.IsList && (rhs.IsBoolean || rhs.IsNumber) ||
+                 (lhs.IsBoolean || lhs.IsNumber) && rhs.IsList) {
+        double count = lhs.IsList ? rhs.AsNumber() : lhs.AsNumber();
+        IReadOnlyList<Value> list = lhs.IsList ? lhs.AsList() : rhs.AsList();
+        var newList = new List<Value>();
+        for (int i = 0; i < count; i++) {
+          newList.AddRange(list);
+        }
+        return new Value(newList);
+      } else if (lhs.IsTuple && (rhs.IsBoolean || rhs.IsNumber) ||
+                 (lhs.IsBoolean || lhs.IsNumber) && rhs.IsTuple) {
+        int count = lhs.IsTuple ? (int)rhs.AsNumber() : (int)lhs.AsNumber();
+        if (count <= 0) {
+          return new Value(ImmutableArray.Create<Value>());
+        }
+        ImmutableArray<Value> tuple = lhs.IsTuple ? lhs.AsTuple() : rhs.AsTuple();
+        var builder = ImmutableArray.CreateBuilder<Value>(tuple.Length * count);
+        for (int i = 0; i < count; i++) {
+          builder.AddRange(tuple);
+        }
+        return new Value(builder.MoveToImmutable());
       }
-      double result = lhs.AsNumber() % rhs.AsNumber();
-      CheckOverflow(result);
-      return result;
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
+    }
+
+    internal static Value Divide(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        if (rhs.AsNumber() == 0) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                        Message.RuntimeErrorDivideByZero);
+        }
+        double result = lhs.AsNumber() / rhs.AsNumber();
+        CheckOverflow(result);
+        return new Value(result);
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
+    }
+
+    internal static Value FloorDivide(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        if (rhs.AsNumber() == 0) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                        Message.RuntimeErrorDivideByZero);
+        }
+        double result = System.Math.Floor(lhs.AsNumber() / rhs.AsNumber());
+        CheckOverflow(result);
+        return new Value(result);
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
+    }
+
+    internal static Value Power(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        double result = System.Math.Pow(lhs.AsNumber(), rhs.AsNumber());
+        CheckOverflow(result);
+        return new Value(result);
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
+    }
+
+    internal static Value Modulo(in Value lhs, in Value rhs) {
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        if (rhs.AsNumber() == 0) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                        Message.RuntimeErrorDivideByZero);
+        }
+        double result = lhs.AsNumber() % rhs.AsNumber();
+        CheckOverflow(result);
+        return new Value(result);
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static bool Less(in Value lhs, in Value rhs) {
-      return lhs.AsNumber() < rhs.AsNumber();
-    }
-
-    internal static bool Great(in Value lhs, in Value rhs) {
-      return lhs.AsNumber() > rhs.AsNumber();
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        return lhs.AsNumber() < rhs.AsNumber();
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static bool LessEqual(in Value lhs, in Value rhs) {
-      return lhs.AsNumber() <= rhs.AsNumber();
+      if ((lhs.IsBoolean || lhs.IsNumber) && (rhs.IsBoolean || rhs.IsNumber)) {
+        return lhs.AsNumber() <= rhs.AsNumber();
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
-    internal static bool GreatEqual(in Value lhs, in Value rhs) {
-      return lhs.AsNumber() >= rhs.AsNumber();
+    internal static bool Contains(in Value container, in Value value) {
+      if (container.IsDict) {
+        return container.AsDict().ContainsKey(value);
+      } else if (container.IsTuple) {
+        return container.AsTuple().Contains(value);
+      } else if (container.IsList) {
+        return container.AsList().Contains(value);
+      } else if (container.IsString && value.IsString) {
+        return container.AsString().Contains(value.AsString());
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
+                                    Message.RuntimeErrorUnsupportedOperads);
     }
 
     internal static double BooleanToNumber(bool value) {
@@ -123,6 +218,23 @@ namespace SeedLang.Runtime {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", range,
                                       Message.RuntimeErrorOverflow);
       }
+    }
+
+    internal static string Unescape(string str) {
+      var sb = new StringBuilder();
+      int i = 0;
+      while (i < str.Length) {
+        if (str[i] == '\\') {
+          i++;
+          if (i < str.Length && _escapeCharacters.ContainsKey(str[i])) {
+            sb.Append(_escapeCharacters[str[i]]);
+          }
+        } else {
+          sb.Append(str[i]);
+        }
+        i++;
+      }
+      return sb.ToString();
     }
   }
 }

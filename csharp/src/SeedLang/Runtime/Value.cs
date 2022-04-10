@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
@@ -26,18 +27,21 @@ namespace SeedLang.Runtime {
   // 3) "ref readonly" keywords are used when returning Value from a function to avoid copying.
   internal readonly struct Value : IEquatable<Value> {
     internal enum ValueType {
-      None,
+      Nil,
       Boolean,
       Number,
       Object,
     }
 
-    public bool IsNone => _type == ValueType.None;
+    public bool IsNil => _type == ValueType.Nil;
     public bool IsBoolean => _type == ValueType.Boolean;
     public bool IsNumber => _type == ValueType.Number;
     public bool IsString => _type == ValueType.Object && _object.IsString;
     public bool IsList => _type == ValueType.Object && _object.IsList;
     public bool IsFunction => _type == ValueType.Object && _object.IsFunction;
+    public bool IsRange => _type == ValueType.Object && _object.IsRange;
+    public bool IsTuple => _type == ValueType.Object && _object.IsTuple;
+    public bool IsDict => _type == ValueType.Object && _object.IsDict;
 
     public int Length {
       get {
@@ -82,8 +86,8 @@ namespace SeedLang.Runtime {
 
     public bool Equals(Value other) {
       switch (_type) {
-        case ValueType.None:
-          return other._type == ValueType.None;
+        case ValueType.Nil:
+          return other._type == ValueType.Nil;
         case ValueType.Boolean:
         case ValueType.Number:
           return (other._type == ValueType.Boolean || other._type == ValueType.Number) &&
@@ -101,7 +105,7 @@ namespace SeedLang.Runtime {
 
     public override int GetHashCode() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
           return _type.GetHashCode();
         case ValueType.Boolean:
         case ValueType.Number:
@@ -115,7 +119,7 @@ namespace SeedLang.Runtime {
 
     public override string ToString() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
         case ValueType.Boolean:
         case ValueType.Number:
           return AsString();
@@ -126,10 +130,10 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value this[double index] {
+    internal Value this[Value key] {
       get {
         if (_type == ValueType.Object) {
-          return _object[index];
+          return _object[key];
         } else {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorNotSubscriptable);
@@ -137,7 +141,7 @@ namespace SeedLang.Runtime {
       }
       set {
         if (_type == ValueType.Object) {
-          _object[index] = value;
+          _object[key] = value;
         } else {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorNotSubscriptable);
@@ -147,7 +151,7 @@ namespace SeedLang.Runtime {
 
     internal bool AsBoolean() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
           return false;
         case ValueType.Boolean:
         case ValueType.Number:
@@ -162,7 +166,7 @@ namespace SeedLang.Runtime {
 
     internal double AsNumber() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
           return 0;
         case ValueType.Boolean:
         case ValueType.Number:
@@ -177,7 +181,7 @@ namespace SeedLang.Runtime {
 
     internal string AsString() {
       switch (_type) {
-        case ValueType.None:
+        case ValueType.Nil:
           return "None";
         case ValueType.Boolean:
           return ValueHelper.BooleanToString(ValueHelper.NumberToBoolean(_number));
@@ -196,7 +200,7 @@ namespace SeedLang.Runtime {
         return _object.AsList();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCallable);
+                                      Message.RuntimeErrorInvalidCast);
       }
     }
 
@@ -209,12 +213,21 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value Call(Value[] args, int offset, int length) {
+    internal ImmutableArray<Value> AsTuple() {
       if (_type == ValueType.Object) {
-        return _object.Call(args, offset, length);
+        return _object.AsTuple();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCallable);
+                                      Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal Dictionary<Value, Value> AsDict() {
+      if (_type == ValueType.Object) {
+        return _object.AsDict();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidCast);
       }
     }
   }

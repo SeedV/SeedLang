@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SeedLang.Ast;
@@ -34,9 +35,9 @@ namespace SeedLang.X.Tests {
     [InlineData("None",
 
                 "[Ln 1, Col 0 - Ln 1, Col 3] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 3] NoneConstantExpression",
+                "  [Ln 1, Col 0 - Ln 1, Col 3] NilConstantExpression",
 
-                "None [Ln 1, Col 0 - Ln 1, Col 3]")]
+                "Nil [Ln 1, Col 0 - Ln 1, Col 3]")]
 
     [InlineData("True",
 
@@ -138,17 +139,17 @@ namespace SeedLang.X.Tests {
                 "    [Ln 1, Col 18 - Ln 1, Col 19] UnaryExpression (-)\n" +
                 "      [Ln 1, Col 19 - Ln 1, Col 19] NumberConstantExpression (3)",
 
-                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenParenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
-                "Parenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "OpenParenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
-                "Parenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "CloseParenthesis [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "CloseParenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Operator [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Parenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
+                "OpenParenthesis [Ln 1, Col 12 - Ln 1, Col 12]," +
                 "Variable [Ln 1, Col 13 - Ln 1, Col 13]," +
-                "Parenthesis [Ln 1, Col 14 - Ln 1, Col 14]," +
+                "CloseParenthesis [Ln 1, Col 14 - Ln 1, Col 14]," +
                 "Operator [Ln 1, Col 16 - Ln 1, Col 16]," +
                 "Operator [Ln 1, Col 18 - Ln 1, Col 18]," +
                 "Number [Ln 1, Col 19 - Ln 1, Col 19]")]
@@ -165,20 +166,20 @@ namespace SeedLang.X.Tests {
                 "      [Ln 1, Col 17 - Ln 1, Col 18] UnaryExpression (-)\n" +
                 "        [Ln 1, Col 18 - Ln 1, Col 18] NumberConstantExpression (4)",
 
-                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenParenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Operator [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Parenthesis [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "CloseParenthesis [Ln 1, Col 6 - Ln 1, Col 6]," +
                 "Operator [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Parenthesis [Ln 1, Col 11 - Ln 1, Col 11]," +
+                "OpenParenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "OpenParenthesis [Ln 1, Col 11 - Ln 1, Col 11]," +
                 "Number [Ln 1, Col 13 - Ln 1, Col 13]," +
                 "Operator [Ln 1, Col 15 - Ln 1, Col 15]," +
                 "Operator [Ln 1, Col 17 - Ln 1, Col 17]," +
                 "Number [Ln 1, Col 18 - Ln 1, Col 18]," +
-                "Parenthesis [Ln 1, Col 20 - Ln 1, Col 20]," +
-                "Parenthesis [Ln 1, Col 21 - Ln 1, Col 21]")]
+                "CloseParenthesis [Ln 1, Col 20 - Ln 1, Col 20]," +
+                "CloseParenthesis [Ln 1, Col 21 - Ln 1, Col 21]")]
 
     [InlineData("1 < 2 > 3 <= 4",
 
@@ -196,6 +197,32 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Operator [Ln 1, Col 10 - Ln 1, Col 11]," +
                 "Number [Ln 1, Col 13 - Ln 1, Col 13]")]
+
+    [InlineData("1 in (1, 2) == (1, 2)",
+
+                "[Ln 1, Col 0 - Ln 1, Col 20] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 20] ComparisonExpression\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1) (in)\n" +
+                "    [Ln 1, Col 5 - Ln 1, Col 10] TupleExpression\n" +
+                "      [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (2) (==)\n" +
+                "    [Ln 1, Col 15 - Ln 1, Col 20] TupleExpression\n" +
+                "      [Ln 1, Col 16 - Ln 1, Col 16] NumberConstantExpression (1)\n" +
+                "      [Ln 1, Col 19 - Ln 1, Col 19] NumberConstantExpression (2)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Operator [Ln 1, Col 2 - Ln 1, Col 3]," +
+                "OpenParenthesis [Ln 1, Col 5 - Ln 1, Col 5]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]," +
+                "Symbol [Ln 1, Col 7 - Ln 1, Col 7]," +
+                "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "CloseParenthesis [Ln 1, Col 10 - Ln 1, Col 10]," +
+                "Operator [Ln 1, Col 12 - Ln 1, Col 13]," +
+                "OpenParenthesis [Ln 1, Col 15 - Ln 1, Col 15]," +
+                "Number [Ln 1, Col 16 - Ln 1, Col 16]," +
+                "Symbol [Ln 1, Col 17 - Ln 1, Col 17]," +
+                "Number [Ln 1, Col 19 - Ln 1, Col 19]," +
+                "CloseParenthesis [Ln 1, Col 20 - Ln 1, Col 20]")]
 
     [InlineData("True and False and True or False and True",
 
@@ -236,13 +263,13 @@ namespace SeedLang.X.Tests {
                 "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
                 "    [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)",
 
-                "Bracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Bracket [Ln 1, Col 8 - Ln 1, Col 8]")]
+                "CloseBracket [Ln 1, Col 8 - Ln 1, Col 8]")]
 
     [InlineData("[1, 2, 3][1]",
 
@@ -254,16 +281,16 @@ namespace SeedLang.X.Tests {
                 "      [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)\n" +
                 "    [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)",
 
-                "Bracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Bracket [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Bracket [Ln 1, Col 9 - Ln 1, Col 9]," +
+                "CloseBracket [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "OpenBracket [Ln 1, Col 9 - Ln 1, Col 9]," +
                 "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "Bracket [Ln 1, Col 11 - Ln 1, Col 11]")]
+                "CloseBracket [Ln 1, Col 11 - Ln 1, Col 11]")]
 
     [InlineData("add(1, 2)",
 
@@ -274,16 +301,16 @@ namespace SeedLang.X.Tests {
                 "    [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (2)",
 
                 "Variable [Ln 1, Col 0 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "OpenParenthesis [Ln 1, Col 3 - Ln 1, Col 3]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
+                "CloseParenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
 
     [InlineData("a.append(1)",
 
-                "[Ln 1, Col 2 - Ln 1, Col 10] ExpressionStatement\n" +
-                "  [Ln 1, Col 2 - Ln 1, Col 10] CallExpression\n" +
+                "[Ln 1, Col 0 - Ln 1, Col 10] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 10] CallExpression\n" +
                 "    [Ln 1, Col 2 - Ln 1, Col 7] IdentifierExpression (append)\n" +
                 "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
                 "    [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (1)",
@@ -291,17 +318,17 @@ namespace SeedLang.X.Tests {
                 "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Symbol [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Variable [Ln 1, Col 2 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                "OpenParenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
                 "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Parenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
+                "CloseParenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
 
     [InlineData("()",
 
                 "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
                 "  [Ln 1, Col 0 - Ln 1, Col 1] TupleExpression",
 
-                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Parenthesis [Ln 1, Col 1 - Ln 1, Col 1]")]
+                "OpenParenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "CloseParenthesis [Ln 1, Col 1 - Ln 1, Col 1]")]
 
     [InlineData("(1,)",
 
@@ -309,10 +336,10 @@ namespace SeedLang.X.Tests {
                 "  [Ln 1, Col 0 - Ln 1, Col 3] TupleExpression\n" +
                 "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)",
 
-                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenParenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Parenthesis [Ln 1, Col 3 - Ln 1, Col 3]")]
+                "CloseParenthesis [Ln 1, Col 3 - Ln 1, Col 3]")]
 
     [InlineData("(1, 2, 3)",
 
@@ -322,19 +349,33 @@ namespace SeedLang.X.Tests {
                 "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
                 "    [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)",
 
-                "Parenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "OpenParenthesis [Ln 1, Col 0 - Ln 1, Col 0]," +
                 "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
                 "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "Parenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
+                "CloseParenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
+
+    [InlineData("1, 2, 3",
+
+                "[Ln 1, Col 0 - Ln 1, Col 6] ExpressionStatement\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 6] TupleExpression\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 0] NumberConstantExpression (1)\n" +
+                "    [Ln 1, Col 3 - Ln 1, Col 3] NumberConstantExpression (2)\n" +
+                "    [Ln 1, Col 6 - Ln 1, Col 6] NumberConstantExpression (3)",
+
+                "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
+                "Symbol [Ln 1, Col 1 - Ln 1, Col 1]," +
+                "Number [Ln 1, Col 3 - Ln 1, Col 3]," +
+                "Symbol [Ln 1, Col 4 - Ln 1, Col 4]," +
+                "Number [Ln 1, Col 6 - Ln 1, Col 6]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
       Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
-                                out IReadOnlyList<SyntaxToken> tokens));
+                                out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expectedAst, node.ToString());
+      Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), node.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
     }
   }

@@ -36,14 +36,15 @@ conjunction: inversion (AND inversion)*;
 inversion:
   NOT inversion # not
   | comparison  # comparison_as_inversion;
-comparison: bitwise_or compare_op_bitwise_or_pair*;
-compare_op_bitwise_or_pair:
-  EQ_EQUAL bitwise_or        # eq_equal
-  | NOT_EQUAL bitwise_or     # not_equal
-  | LESS_EQUAL bitwise_or    # less_equal
-  | LESS bitwise_or          # less
-  | GREATER_EQUAL bitwise_or # greater_equal
-  | GREATER bitwise_or       # greater;
+comparison: bitwise_or (comparison_op bitwise_or)*;
+comparison_op:
+  EQ_EQUAL
+  | NOT_EQUAL
+  | LESS_EQUAL
+  | LESS
+  | GREATER_EQUAL
+  | GREATER
+  | IN;
 
 // TODO: add bitwise parsing rule
 bitwise_or: sum;
@@ -76,7 +77,9 @@ atom:
   | FALSE    # false
   | NONE     # none
   | NUMBER   # number
+  | STRING+  # strings
   | group    # group_as_atom
+  | dict     # dict_as_atom
   | list     # list_as_atom
   | tuple    # tuple_as_atom;
 
@@ -86,9 +89,14 @@ arguments: expression (COMMA expression)*;
 
 group: OPEN_PAREN expression CLOSE_PAREN;
 
+dict: OPEN_BRACE kvpairs? CLOSE_BRACE;
+
 list: OPEN_BRACK expressions? CLOSE_BRACK;
 
 tuple: OPEN_PAREN expressions? CLOSE_PAREN;
+
+kvpairs: kvpair (COMMA kvpair)*;
+kvpair: expression COLON expression;
 
 /*
  * Lexer rules
@@ -101,6 +109,7 @@ NONE: 'None';
 AND: 'and';
 OR: 'or';
 NOT: 'not';
+IN: 'in';
 
 EQUAL: '=';
 
@@ -119,6 +128,12 @@ FLOOR_DIVIDE: '//';
 POWER: '**';
 MODULO: '%';
 
+ADD_ASSIGN: '+=';
+SUBSTRACT_ASSIGN: '-=';
+MULTIPLY_ASSIGN: '*=';
+DIVIDE_ASSIGN: '/=';
+MODULO_ASSIGN: '%=';
+
 OPEN_PAREN: '(';
 CLOSE_PAREN: ')';
 OPEN_BRACK: '[';
@@ -128,12 +143,13 @@ CLOSE_BRACE: '}';
 
 DOT: '.';
 COMMA: ',';
+COLON: ':';
 
 NAME: ID_START ID_CONTINUE*;
 
 NUMBER: INTEGER | FLOAT_NUMBER;
 
-STRING: '"' .*? '"';
+STRING: SHORT_STRING;
 
 INTEGER: DECIMAL_INTEGER;
 
@@ -143,13 +159,19 @@ FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
 
 NEWLINE: ('\r'? '\n' | '\r' | '\f') SPACES?;
 
-SKIP_: (SPACES | COMMENT | LINE_JOINING) -> skip;
+SKIP_: (SPACES | LINE_JOINING) -> skip;
 
 UNKNOWN_CHAR: .;
 
 /*
  * Fragments
  */
+
+fragment SHORT_STRING:
+  '\'' (STRING_ESCAPE_SEQ | ~[\\\r\n\f'])* '\''
+  | '"' (STRING_ESCAPE_SEQ | ~[\\\r\n\f"])* '"';
+
+fragment STRING_ESCAPE_SEQ: '\\' . | '\\' NEWLINE;
 
 fragment POINT_FLOAT:
   INT_PART? FRACTION
@@ -168,8 +190,6 @@ fragment NON_ZERO_DIGIT: [1-9];
 fragment DIGIT: [0-9];
 
 fragment SPACES: [ \t]+;
-
-fragment COMMENT: '#' ~[\r\n\f]*;
 
 fragment LINE_JOINING:
   '\\' SPACES? ('\r'? '\n' | '\r' | '\f');

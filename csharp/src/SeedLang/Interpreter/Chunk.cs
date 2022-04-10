@@ -18,6 +18,8 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
+  using AbstractNotification = Notification.AbstractNotification;
+
   // A data structure to hold bytecode and constants generated from the AST tree by the compiler.
   internal class Chunk {
     // The maximum number of registers that can be allocated in the stack of a chunk.
@@ -31,21 +33,21 @@ namespace SeedLang.Interpreter {
     // The length of Bytecode and Range lists shall be the same.
     public IReadOnlyList<Range> Ranges => _ranges;
 
+    // The notification information list that is used by VISNOTIFY opcode to create the correspoding
+    // notification events and sent to visualizers.
+    public IReadOnlyList<AbstractNotification> Notifications => _notifications;
+
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
     private readonly List<Range> _ranges = new List<Range>();
+
+    private readonly List<AbstractNotification> _notifications = new List<AbstractNotification>();
 
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
 
     internal static bool IsConstId(uint id) {
       return id >= MaxRegisterCount;
-    }
-
-    // Emits an instruction with the opcode of type A.
-    internal void Emit(Opcode opcode, uint a, Range range) {
-      _bytecode.Add(new Instruction(opcode, a));
-      _ranges.Add(range);
     }
 
     // Emits an instruction with the opcode of type ABC.
@@ -82,6 +84,11 @@ namespace SeedLang.Interpreter {
     // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.
     internal ref readonly Value ValueOfConstId(uint constId) {
       return ref _constants[IndexOfConstId(constId)];
+    }
+
+    internal uint AddNotification(AbstractNotification notification) {
+      _notifications.Add(notification);
+      return (uint)_notifications.Count - 1;
     }
 
     // Converts the constant id to the index in the constant list.

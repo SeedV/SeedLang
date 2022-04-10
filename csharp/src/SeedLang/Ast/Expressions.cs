@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,9 +52,9 @@ namespace SeedLang.Ast {
       return new BooleanConstantExpression(value, range);
     }
 
-    // The factory method to create a none constant expression from a string.
-    internal static NoneConstantExpression NoneConstant(Range range) {
-      return new NoneConstantExpression(range);
+    // The factory method to create a nil constant expression.
+    internal static NilConstantExpression NilConstant(Range range) {
+      return new NilConstantExpression(range);
     }
 
     // The factory method to create a number constant expression.
@@ -64,7 +65,12 @@ namespace SeedLang.Ast {
 
     // The factory method to create a string constant expression.
     internal static StringConstantExpression StringConstant(string value, Range range) {
-      return new StringConstantExpression(value, range);
+      return new StringConstantExpression(ValueHelper.Unescape(value), range);
+    }
+
+    // The factory method to create a dictionary expression.
+    internal static DictExpression Dict(KeyValuePair<Expression, Expression>[] items, Range range) {
+      return new DictExpression(items, range);
     }
 
     // The factory method to create a list expression.
@@ -160,8 +166,8 @@ namespace SeedLang.Ast {
     }
   }
 
-  internal class NoneConstantExpression : Expression {
-    internal NoneConstantExpression(Range range) : base(range) {
+  internal class NilConstantExpression : Expression {
+    internal NilConstantExpression(Range range) : base(range) {
     }
   }
 
@@ -178,6 +184,15 @@ namespace SeedLang.Ast {
 
     internal StringConstantExpression(string value, Range range) : base(range) {
       Value = value;
+    }
+  }
+
+  internal class DictExpression : Expression {
+    public KeyValuePair<Expression, Expression>[] Items { get; }
+
+    internal DictExpression(KeyValuePair<Expression, Expression>[] items, Range range) :
+        base(range) {
+      Items = items;
     }
   }
 

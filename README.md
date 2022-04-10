@@ -1,5 +1,8 @@
 # SeedLang
 
+![build](https://github.com/SeedV/SeedLang/actions/workflows/csharp.yml/badge.svg)
+[![codecov](https://codecov.io/gh/SeedV/SeedLang/branch/main/graph/badge.svg?token=B8M1QLS0MT)](https://codecov.io/gh/SeedV/SeedLang)
+
 SeedLang is a visualizable low-code programming environment that focuses on
 educational purposes.
 

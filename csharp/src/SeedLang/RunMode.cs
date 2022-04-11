@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  // The running type of SeedX source code.
-  public enum RunType {
-    // Dumps source code as AST tree.
-    DumpAst,
-    // Compiles source code to bytecode then prints the disassembled bytecode.
-    Disassemble,
-    // Executes SeedX source code.
-    Execute,
+namespace SeedLang {
+  // The running mode of SeedBlock and SeedX source code.
+  //
+  // The only difference between interactive and script mode is that the evaluated value of
+  // expression statements will be printed if it's not nil in the interactive mode.
+  public enum RunMode {
+    Interactive,
+    Script,
   }
 }

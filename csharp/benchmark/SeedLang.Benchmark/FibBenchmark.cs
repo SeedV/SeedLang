@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using BenchmarkDotNet.Attributes;
-using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
   public class FibBenchmark {
@@ -45,20 +44,24 @@ fib(35)
 
     [Benchmark]
     public void BenchmarkBytecodeFib() {
-      var executor = new Executor();
-      executor.Run(_fibSource, "", SeedXLanguage.SeedPython, RunType.Execute);
+      Run(_fibSource);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeForFib() {
-      var executor = new Executor();
-      executor.Run(_forFibSource, "", SeedXLanguage.SeedPython, RunType.Execute);
+      Run(_forFibSource);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeRecursiveFib() {
-      var executor = new Executor();
-      executor.Run(_recursiveFibSource, "", SeedXLanguage.SeedPython, RunType.Execute);
+      Run(_recursiveFibSource);
+    }
+
+    private static void Run(string source) {
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
+      engine.Parse(source, "");
+      engine.Compile();
+      engine.Run();
     }
   }
 }

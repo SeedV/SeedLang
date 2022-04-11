@@ -13,25 +13,10 @@
 // limitations under the License.
 
 namespace SeedLang {
-  // The running mode of SeedBlock and SeedX source code.
-  //
-  // The only difference between interactive and script mode is that the evaluated value of
-  // expression statements will be printed if it's not nil in the interactive mode.
-  public enum Mode {
-    Interactive,
-    Script,
-  }
-
   // All supported languages include block inline text and other SeedX languages.
   public enum SeedXLanguage {
     SeedBlockInlineText,
     SeedCalc,
     SeedPython,
-  }
-
-  public static class Factory {
-    public static IEngine CreateEngine(SeedXLanguage language, Mode mode) {
-      return new Engine(language, mode);
-    }
   }
 }

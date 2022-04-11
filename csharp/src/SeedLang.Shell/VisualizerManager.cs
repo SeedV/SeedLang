@@ -141,34 +141,33 @@ namespace SeedLang.Shell {
       }
     }
 
-    internal void RegisterToExecutor(IEngine engine) {
-      RegisterToExecutor(engine, _assignmentVisualizer);
-      RegisterToExecutor(engine, _binaryVisualizer);
-      RegisterToExecutor(engine, _booleanVisualizer);
-      RegisterToExecutor(engine, _comparisonVisualizer);
-      RegisterToExecutor(engine, _unaryVisualizer);
-      RegisterToExecutor(engine, _vTagEnteredVisualizer);
-      RegisterToExecutor(engine, _vTagExitedVisualizer);
+    internal void RegisterToEngine(Engine engine) {
+      RegisterToEngine(engine, _assignmentVisualizer);
+      RegisterToEngine(engine, _binaryVisualizer);
+      RegisterToEngine(engine, _booleanVisualizer);
+      RegisterToEngine(engine, _comparisonVisualizer);
+      RegisterToEngine(engine, _unaryVisualizer);
+      RegisterToEngine(engine, _vTagEnteredVisualizer);
+      RegisterToEngine(engine, _vTagExitedVisualizer);
     }
 
-    internal void UnregisterFromExecutor(IEngine engine) {
-      UnregisterFromExecutor(engine, _assignmentVisualizer);
-      UnregisterFromExecutor(engine, _binaryVisualizer);
-      UnregisterFromExecutor(engine, _booleanVisualizer);
-      UnregisterFromExecutor(engine, _comparisonVisualizer);
-      UnregisterFromExecutor(engine, _unaryVisualizer);
-      UnregisterFromExecutor(engine, _vTagEnteredVisualizer);
-      UnregisterFromExecutor(engine, _vTagExitedVisualizer);
+    internal void UnregisterFromEngine(Engine engine) {
+      UnregisterFromEngine(engine, _assignmentVisualizer);
+      UnregisterFromEngine(engine, _binaryVisualizer);
+      UnregisterFromEngine(engine, _booleanVisualizer);
+      UnregisterFromEngine(engine, _comparisonVisualizer);
+      UnregisterFromEngine(engine, _unaryVisualizer);
+      UnregisterFromEngine(engine, _vTagEnteredVisualizer);
+      UnregisterFromEngine(engine, _vTagExitedVisualizer);
     }
 
-    private static void RegisterToExecutor<Event>(IEngine engine, IVisualizer<Event> visualizer) {
+    private static void RegisterToEngine<Event>(Engine engine, IVisualizer<Event> visualizer) {
       if (!(visualizer is null)) {
         engine.Register(visualizer);
       }
     }
 
-    private static void UnregisterFromExecutor<Event>(IEngine engine,
-                                                      IVisualizer<Event> visualizer) {
+    private static void UnregisterFromEngine<Event>(Engine engine, IVisualizer<Event> visualizer) {
       if (!(visualizer is null)) {
         engine.Unregister(visualizer);
       }

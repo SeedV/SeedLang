@@ -13,11 +13,10 @@
 // limitations under the License.
 
 using System.IO;
-using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Tests {
-  public class ExecutePythonTests {
+  public class RunPythonTests {
     [Fact]
     public void TestOperators() {
       string source = @"
@@ -234,10 +233,12 @@ print(array)
     }
 
     private static void TestExecutor(string source, string result) {
-      var engine = Factory.CreateEngine(SeedXLanguage.SeedPython, Mode.Interactive);
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Interactive);
       var stringWriter = new StringWriter();
       engine.RedirectStdout(stringWriter);
-      engine.Run(source, "", SeedXLanguage.SeedPython, RunType.Execute, RunMode.Interactive);
+      engine.Parse(source, "");
+      engine.Compile();
+      engine.Run();
       Assert.Equal(result, stringWriter.ToString());
     }
   }

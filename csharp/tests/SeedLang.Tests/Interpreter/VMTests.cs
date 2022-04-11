@@ -243,13 +243,12 @@ namespace SeedLang.Interpreter.Tests {
 
     private static (string, MockupVisualizer) Run(Statement program) {
       var visualizer = new MockupVisualizer();
-      var vc = new VisualizerCenter();
-      vc.Register(visualizer);
-      var vm = new VM(vc);
+      var vm = new VM();
+      vm.VisualizerCenter.Register(visualizer);
       var stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, vc, RunMode.Interactive);
+      Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
       vm.Run(func);
       return (stringWriter.ToString(), visualizer);
     }

@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using SeedLang.Common;
-using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
   // A class to handle source code input and output.
@@ -23,7 +22,6 @@ namespace SeedLang.Shell {
     private readonly List<string> _lines = new List<string>();
 
     public string Source => string.Join(null, _lines);
-    public SeedXLanguage Language { get; set; }
 
     internal void AddLine(string line) {
       _lines.Add(line + Environment.NewLine);
@@ -31,17 +29,6 @@ namespace SeedLang.Shell {
 
     internal void Reset() {
       _lines.Clear();
-    }
-
-    internal void ParseAndWriteSource() {
-      // Tries to parse semantic tokens out of the source code. Falls back to syntax tokens if the
-      // source code is not valid.
-      var engine = Factory.CreateEngine(SeedXLanguage.SeedPython, Mode.Interactive);
-      if (!engine.ParseSemanticTokens(Source, "", Language,
-                                      out IReadOnlyList<TokenInfo> syntaxTokens)) {
-        engine.ParseSyntaxTokens(Source, "", Language, out syntaxTokens);
-      }
-      WriteSourceWithSyntaxTokens(syntaxTokens);
     }
 
     internal void WriteSourceWithHighlight(TextRange range) {
@@ -65,23 +52,23 @@ namespace SeedLang.Shell {
       }
     }
 
-    internal void WriteSourceWithSyntaxTokens(IReadOnlyList<TokenInfo> syntaxTokens) {
+    internal void WriteSourceWithTokens(IReadOnlyList<TokenInfo> tokens) {
       Console.ResetColor();
       Console.WriteLine("---------- Source ----------");
       int tokenIndex = 0;
       for (int lineId = 1; lineId <= _lines.Count; lineId++) {
-        WriteLineWithSyntaxTokens(lineId, syntaxTokens, ref tokenIndex);
+        WriteLineWithTokens(lineId, tokens, ref tokenIndex);
       }
     }
 
-    private void WriteLineWithSyntaxTokens(int lineId, IReadOnlyList<TokenInfo> syntaxTokens,
-                                           ref int tokenIndex) {
+    private void WriteLineWithTokens(int lineId, IReadOnlyList<TokenInfo> tokens,
+                                     ref int tokenIndex) {
       int column = 0;
       Console.Write($"{lineId,-5} ");
       string line = _lines[lineId - 1];
-      while (column < line.Length && tokenIndex < syntaxTokens.Count &&
-             syntaxTokens[tokenIndex].Range.Start.Line <= lineId) {
-        TokenInfo token = syntaxTokens[tokenIndex];
+      while (column < line.Length && tokenIndex < tokens.Count &&
+             tokens[tokenIndex].Range.Start.Line <= lineId) {
+        TokenInfo token = tokens[tokenIndex];
         if (token.Range.Start.Column > column) {
           Console.Write(line.Substring(column, token.Range.Start.Column - column));
         }

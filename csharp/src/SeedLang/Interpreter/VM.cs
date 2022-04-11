@@ -21,21 +21,17 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
+    public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs);
+    public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
+
     private readonly Sys _sys = new Sys();
-    public readonly GlobalEnvironment Env;
 
     // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
     // can hold maximun 100 recursive function calls.
     private const int _stackSize = 25 * 1024;
 
-    private readonly VisualizerCenter _visualizerCenter;
     private readonly Value[] _stack = new Value[_stackSize];
     private CallStack _callStack;
-
-    internal VM(VisualizerCenter visualizerCenter = null) {
-      Env = new GlobalEnvironment(NativeFunctions.Funcs);
-      _visualizerCenter = visualizerCenter ?? new VisualizerCenter();
-    }
 
     internal void RedirectStdout(TextWriter stdout) {
       _sys.Stdout = stdout;
@@ -198,7 +194,7 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.VISNOTIFY:
-              chunk.Notifications[(int)instr.Bx].Notify(_visualizerCenter, (uint id) => {
+              chunk.Notifications[(int)instr.Bx].Notify(VisualizerCenter, (uint id) => {
                 return ValueOfRK(chunk, id, baseRegister);
               });
               break;

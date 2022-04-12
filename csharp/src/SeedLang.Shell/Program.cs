@@ -14,11 +14,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using CommandLine;
 using CommandLine.Text;
-using SeedLang.Common;
-using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
   internal class Program {
@@ -63,45 +60,11 @@ namespace SeedLang.Shell {
 
     private static void Run(Options options) {
       if (!string.IsNullOrEmpty(options.Filename)) {
-        RunScript(options.Filename, options.Language, options.RunType, options.VisualizerTypes);
+        Executor.RunScript(options.Filename, options.Language, options.RunType,
+                           options.VisualizerTypes);
       } else {
-        var repl = new Repl(options.Language, options.RunType, options.VisualizerTypes);
-        repl.Execute();
+        Executor.Repl(options.Language, options.RunType, options.VisualizerTypes);
       }
-    }
-
-    private static void RunScript(string filename, SeedXLanguage language, RunType runType,
-                                  IEnumerable<VisualizerType> visualizerTypes) {
-      var source = new SourceCode() { Language = language };
-      try {
-        foreach (string line in File.ReadLines(filename)) {
-          source.AddLine(line);
-        }
-      } catch (Exception ex) {
-        Console.WriteLine($"Read file error: {ex}.");
-        return;
-      }
-      source.ParseAndWriteSource();
-      Console.WriteLine();
-      Console.WriteLine("---------- Run ----------");
-      var visualizerManager = new VisualizerManager(source, visualizerTypes);
-      var executor = new Executor();
-      visualizerManager.RegisterToExecutor(executor);
-      var collection = new DiagnosticCollection();
-
-      string result = executor.Run(source.Source, "", language, runType, RunMode.Script,
-                                   collection);
-      if (!(result is null)) {
-        Console.WriteLine(result);
-      }
-
-      foreach (var diagnostic in collection.Diagnostics) {
-        if (diagnostic.Range is TextRange range) {
-          source.WriteSourceWithHighlight(range);
-        }
-        Console.WriteLine($": {diagnostic}");
-      }
-      visualizerManager.UnregisterFromExecutor(executor);
     }
   }
 }

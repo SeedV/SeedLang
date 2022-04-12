@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using BenchmarkDotNet.Attributes;
-using SeedLang.Runtime;
 
 namespace SeedLang.Benchmark {
   public class SumBenchmark {
@@ -51,27 +50,29 @@ func()
 
     [Benchmark]
     public void BenchmarkBytecodeGlobalScopeSum() {
-      var executor = new Executor();
-      executor.Run(_globalScopeSum, "", SeedXLanguage.SeedPython, RunType.Execute);
+      Run(_globalScopeSum);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeGlobalScopeForSum() {
-      var executor = new Executor();
-      executor.Run(_globalScopeForSum, "", SeedXLanguage.SeedPython, RunType.Execute);
+      Run(_globalScopeForSum);
     }
 
 
     [Benchmark]
     public void BenchmarkBytecodeLocalScopeSum() {
-      var executor = new Executor();
-      executor.Run(_localScopeSum, "", SeedXLanguage.SeedPython, RunType.Execute);
+      Run(_localScopeSum);
     }
 
     [Benchmark]
     public void BenchmarkBytecodeLocalScopeForSum() {
-      var executor = new Executor();
-      executor.Run(_localScopeForSum, "", SeedXLanguage.SeedPython, RunType.Execute);
+      Run(_localScopeForSum);
+    }
+
+    private static void Run(string source) {
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
+      engine.Compile(source, "");
+      engine.Run();
     }
   }
 }

@@ -15,8 +15,8 @@
 using System.IO;
 using Xunit;
 
-namespace SeedLang.Runtime.Tests {
-  public class ExecutorBytecodeTests {
+namespace SeedLang.Tests {
+  public class RunPythonTests {
     [Fact]
     public void TestOperators() {
       string source = @"
@@ -233,10 +233,11 @@ print(array)
     }
 
     private static void TestExecutor(string source, string result) {
-      var executor = new Executor();
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Interactive);
       var stringWriter = new StringWriter();
-      executor.RedirectStdout(stringWriter);
-      executor.Run(source, "", SeedXLanguage.SeedPython, RunType.Execute, RunMode.Interactive);
+      engine.RedirectStdout(stringWriter);
+      engine.Compile(source, "");
+      engine.Run();
       Assert.Equal(result, stringWriter.ToString());
     }
   }

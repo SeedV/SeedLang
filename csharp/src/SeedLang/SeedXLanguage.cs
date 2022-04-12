@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  // The running type of SeedX source code.
-  public enum RunType {
-    // Dumps source code as AST tree.
-    DumpAst,
-    // Compiles source code to bytecode then prints the disassembled bytecode.
-    Disassemble,
-    // Executes SeedX source code.
-    Execute,
+namespace SeedLang {
+  // All supported languages include block inline text and other SeedX languages.
+  public enum SeedXLanguage {
+    SeedBlockInlineText,
+    SeedCalc,
+    SeedPython,
   }
 }

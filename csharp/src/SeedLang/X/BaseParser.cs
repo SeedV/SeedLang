@@ -38,7 +38,7 @@ namespace SeedLang.X {
 
     // Parses source code into syntax tokens. The concrete ANTLR4 lexer and parser are created by
     // the derived class.
-    internal void ParseSyntaxTokens(string source, out IReadOnlyList<TokenInfo> tokens) {
+    internal IReadOnlyList<TokenInfo> ParseSyntaxTokens(string source) {
       var tokenList = new List<TokenInfo>();
       Lexer lexer = SetupLexer(source);
       IList<IToken> lexerTokens = lexer.GetAllTokens();
@@ -49,8 +49,7 @@ namespace SeedLang.X {
           tokenList.Add(token);
         }
       }
-      tokens = tokenList;
-      return;
+      return tokenList;
     }
 
     // Parses a valid source code into an AST tree and a list of semantic tokens. The concrete

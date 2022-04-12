@@ -74,6 +74,7 @@ namespace SeedLang.Shell {
       } else {
         source.WriteSourceWithTokens(engine.ParseSyntaxTokens(source.Source, ""));
         Console.WriteLine();
+        Console.WriteLine("---------- Compile Error ----------");
       }
       foreach (var diagnostic in collection.Diagnostics) {
         if (diagnostic.Range is TextRange range) {

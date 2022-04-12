@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;
@@ -152,7 +151,7 @@ namespace SeedLang.X.Tests {
       Assert.NotNull(node);
       Assert.Empty(collection.Diagnostics);
       Assert.Equal(expected.Replace("\n", Environment.NewLine), node.ToString());
-      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
+      Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }
 }

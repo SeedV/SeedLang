@@ -149,7 +149,7 @@ namespace SeedLang.X.Tests {
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
       Assert.Equal(expected.Replace("\n", Environment.NewLine), node.ToString());
-      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
+      Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
 
     [Theory]
@@ -208,7 +208,7 @@ namespace SeedLang.X.Tests {
       Assert.Null(node);
       Assert.Null(semanticTokens);
       IReadOnlyList<TokenInfo> tokens = _parser.ParseSyntaxTokens(input);
-      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
+      Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }
 }

@@ -34,11 +34,9 @@ namespace SeedLang.Tests {
                 "Operator [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "Number [Ln 1, Col 9 - Ln 1, Col 9]")]
     public void TestParseSyntaxTokens(string source, string expectedTokens) {
-      var collection = new DiagnosticCollection();
       var engine = new Engine(SeedXLanguage.SeedCalc, RunMode.Interactive);
-      engine.Compile(source, "");
-      Assert.Equal(expectedTokens,
-                   string.Join(",", engine.SemanticTokens.Select(token => token.ToString())));
+      var tokens = engine.ParseSyntaxTokens(source, "");
+      Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }
 }

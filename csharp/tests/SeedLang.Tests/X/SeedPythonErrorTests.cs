@@ -134,7 +134,7 @@ namespace SeedLang.X.Tests {
       }
       Assert.Null(semanticTokens);
       IReadOnlyList<TokenInfo> tokens = _parser.ParseSyntaxTokens(input);
-      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
+      Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }
 }

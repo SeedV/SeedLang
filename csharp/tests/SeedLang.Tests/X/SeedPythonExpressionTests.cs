@@ -376,7 +376,7 @@ namespace SeedLang.X.Tests {
       Assert.NotNull(node);
       Assert.Empty(_collection.Diagnostics);
       Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), node.ToString());
-      Assert.Equal(expectedTokens, string.Join(",", tokens.Select(token => token.ToString())));
+      Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }
 }

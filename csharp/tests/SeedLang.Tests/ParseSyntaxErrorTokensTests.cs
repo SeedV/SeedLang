@@ -36,7 +36,7 @@ namespace SeedLang.Tests {
     public void TestParseSyntaxTokens(string source, string expectedTokens) {
       var collection = new DiagnosticCollection();
       var engine = new Engine(SeedXLanguage.SeedCalc, RunMode.Interactive);
-      engine.Parse(source, "");
+      engine.Compile(source, "");
       Assert.Equal(expectedTokens,
                    string.Join(",", engine.SemanticTokens.Select(token => token.ToString())));
     }

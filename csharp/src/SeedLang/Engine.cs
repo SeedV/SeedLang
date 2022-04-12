@@ -22,15 +22,23 @@ using SeedLang.Interpreter;
 using SeedLang.X;
 
 namespace SeedLang {
+  // Engine is the facade class of the SeedLang core library. It provides interfaces of compiling
+  // and executing SeedX programs, registering visualizers, and inspecting the execution status of
+  // programs.
   public class Engine {
+    // The semantic tokens of the source code. It falls back to syntax tokens when there are parsing
+    // or compiling errors.
     public IReadOnlyList<TokenInfo> SemanticTokens => _semanticTokens;
 
     private readonly SeedXLanguage _language;
     private readonly RunMode _runMode;
     private readonly VM _vm = new VM();
 
+    // The AST tree of the source code.
+    private AstNode _astNode;
+    // The semantic tokens of the source code.
     private IReadOnlyList<TokenInfo> _semanticTokens;
-    private AstNode _program;
+    // The compiled bytecode function of the source code.
     private Function _func;
 
     public Engine(SeedXLanguage language, RunMode runMode) {
@@ -38,34 +46,37 @@ namespace SeedLang {
       _runMode = runMode;
     }
 
+    // Redirects standard output to the given text writer.
     public void RedirectStdout(TextWriter stdout) {
       _vm.RedirectStdout(stdout);
     }
 
+    // Registers a visualizer into the visualizer center.
     public void Register<Visualizer>(Visualizer visualizer) {
       _vm.VisualizerCenter.Register(visualizer);
     }
 
+    // Un-registers a visualizer from the visualizer center.
     public void Unregister<Visualizer>(Visualizer visualizer) {
       _vm.VisualizerCenter.Unregister(visualizer);
     }
 
     // Parses SeedX source code into a list of syntax tokens. Incomplete or invalid source code can
     // also be parsed with this method, where illegal tokens will be marked as Unknown or other
-    // relevant types.
+    // relevant types. It can be used to get the syntax tokens quickly without parsing and compiling
+    // the source code.
     public IReadOnlyList<TokenInfo> ParseSyntaxTokens(string source, string module) {
       if (string.IsNullOrEmpty(source) || module is null) {
         return new List<TokenInfo>();
       }
-      BaseParser parser = MakeParser(_language);
-      return parser.ParseSyntaxTokens(source);
+      return MakeParser(_language).ParseSyntaxTokens(source);
     }
 
-    // Tries to parse valid SeedX source code into a list of semantic tokens. Returns false and sets
-    // semanticTokens to null if the source code is not valid.
-    public bool Parse(string source, string module, DiagnosticCollection collection = null) {
+    // Parses and compiles valid SeedX source code into AST node, semantic tokens and bytecode
+    // function. Returns false and sets them to null if the source code is not valid.
+    public bool Compile(string source, string module, DiagnosticCollection collection = null) {
       _semanticTokens = null;
-      _program = null;
+      _astNode = null;
       _func = null;
       if (string.IsNullOrEmpty(source) || module is null) {
         return false;
@@ -73,10 +84,10 @@ namespace SeedLang {
       try {
         BaseParser parser = MakeParser(_language);
         var localCollection = collection ?? new DiagnosticCollection();
-        if (!parser.Parse(source, module, localCollection, out _program, out _semanticTokens)) {
-          _semanticTokens = parser.ParseSyntaxTokens(source);
+        if (!parser.Parse(source, module, localCollection, out _astNode, out _semanticTokens)) {
           return false;
         }
+        _func = new Compiler().Compile(_astNode, _vm.Env, _vm.VisualizerCenter, _runMode);
         return true;
       } catch (DiagnosticException exception) {
         collection?.Report(exception.Diagnostic);
@@ -84,29 +95,19 @@ namespace SeedLang {
       }
     }
 
-    public bool Compile(DiagnosticCollection collection = null) {
-      Debug.Assert(!(_program is null));
-      try {
-        _func = new Compiler().Compile(_program, _vm.Env, _vm.VisualizerCenter, _runMode);
-        return true;
-      } catch (DiagnosticException exception) {
-        collection?.Report(exception.Diagnostic);
-        return false;
-      }
-    }
-
+    // Dumps the AST tree of the source code.
     public string DumpAst() {
-      Debug.Assert(!(_program is null));
-      return _program.ToString();
+      Debug.Assert(!(_astNode is null));
+      return _astNode.ToString();
     }
 
+    // Disassembles the compiled bytecode of the source code.
     public string Disassemble() {
       Debug.Assert(!(_func is null));
       return new Disassembler(_func).ToString();
     }
 
-    // Runs or dumps SeedX source code based on the language and run type. Returns string if the
-    // runType is DumpAst or Disassemble, otherwise returns null.
+    // Runs the compiled bytecode of the source code.
     public bool Run(DiagnosticCollection collection = null) {
       Debug.Assert(!(_func is null));
       try {

@@ -236,8 +236,7 @@ print(array)
       var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Interactive);
       var stringWriter = new StringWriter();
       engine.RedirectStdout(stringWriter);
-      engine.Parse(source, "");
-      engine.Compile();
+      engine.Compile(source, "");
       engine.Run();
       Assert.Equal(result, stringWriter.ToString());
     }

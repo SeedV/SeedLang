@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using SeedLang.Common;
 
 namespace SeedLang.Shell {
@@ -37,9 +36,8 @@ namespace SeedLang.Shell {
       visualizerManager.UnregisterFromEngine(engine);
     }
 
-
     internal static void RunScript(string filename, SeedXLanguage language, RunType runType,
-                                  IEnumerable<VisualizerType> visualizerTypes) {
+                                   IEnumerable<VisualizerType> visualizerTypes) {
       var source = new SourceCode();
       try {
         foreach (string line in File.ReadLines(filename)) {
@@ -58,11 +56,10 @@ namespace SeedLang.Shell {
 
     private static void RunSource(Engine engine, SourceCode source, RunType runType) {
       var collection = new DiagnosticCollection();
-      bool parseFlag = engine.Parse(source.Source, "", collection);
-      source.WriteSourceWithTokens(engine.SemanticTokens);
-      Console.WriteLine();
-      Console.WriteLine("---------- Run ----------");
-      if (parseFlag && engine.Compile(collection)) {
+      if (engine.Compile(source.Source, "", collection)) {
+        source.WriteSourceWithTokens(engine.SemanticTokens);
+        Console.WriteLine();
+        Console.WriteLine("---------- Run ----------");
         switch (runType) {
           case RunType.DumpAst:
             engine.DumpAst();
@@ -74,6 +71,9 @@ namespace SeedLang.Shell {
             engine.Run(collection);
             break;
         }
+      } else {
+        source.WriteSourceWithTokens(engine.ParseSyntaxTokens(source.Source, ""));
+        Console.WriteLine();
       }
       foreach (var diagnostic in collection.Diagnostics) {
         if (diagnostic.Range is TextRange range) {
@@ -83,8 +83,7 @@ namespace SeedLang.Shell {
       }
     }
 
-    // Reads the source code from console. Continues to read if there is a ':' character in the end
-    // of this line.
+    // Reads the source code from console. Continues to read if the statement is not complete.
     private static void Read(SourceCode source) {
       source.Reset();
       string line = null;
@@ -92,14 +91,9 @@ namespace SeedLang.Shell {
         line = ReadLine.Read(">>> ").TrimEnd();
       }
       source.AddLine(line);
-      if (line.Last() == ':') {
-        while (true) {
-          line = ReadLine.Read("... ").TrimEnd();
-          if (string.IsNullOrEmpty(line)) {
-            break;
-          }
-          source.AddLine(line);
-        }
+      while (!source.IsCompleteStatement()) {
+        line = ReadLine.Read("... ").TrimEnd();
+        source.AddLine(line);
       }
     }
   }

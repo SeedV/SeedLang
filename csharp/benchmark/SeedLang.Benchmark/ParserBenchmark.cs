@@ -63,7 +63,7 @@ def fib3(n):
     [Benchmark]
     public void BenchmarkSemanticParsePython() {
       var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
-      engine.Parse(_pythonCode, "");
+      engine.Compile(_pythonCode, "");
     }
   }
 }

@@ -14,6 +14,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using SeedLang.Common;
 
 namespace SeedLang.Shell {
@@ -85,9 +87,89 @@ namespace SeedLang.Shell {
       Console.Write(line.Substring(column));
     }
 
+    internal bool IsCompleteStatement() {
+      Debug.Assert(_lines.Count > 0);
+      return IsCompleteStatement(0, _lines.Count - 1);
+    }
+
+    private static bool IsSingleLineVTag(string line) {
+      return new Regex(@"^#[ \t]*\[\[.*\]\][ \t]*\n").IsMatch(line);
+    }
+
+    private static bool IsMultipleLineVTagStart(string line) {
+      return new Regex(@"^#[ \t]*\[\[[^\]]*\n").IsMatch(line);
+    }
+
+    private static bool IsMultipleLineVTagEnd(string line) {
+      return new Regex(@"^#[ \t]*\]\][ \t]*\n").IsMatch(line);
+    }
+
+    private static bool IsFirstLineOfCompoundStatement(string line) {
+      return new Regex(@".*:[ \t]*\n").IsMatch(line);
+    }
+
+    private static bool EndsWithBackSlash(string line) {
+      return new Regex(@".*\\\n").IsMatch(line);
+    }
+
     private static string Substring(string line, int columnStart, int columnEnd) {
       return line.Substring(Math.Max(columnStart, 0),
                             Math.Min(line.Length, columnEnd + 1) - columnStart);
+    }
+
+    private bool IsCompleteStatement(int startLine, int endLine) {
+      if (startLine > endLine) {
+        return false;
+      }
+      if (IsSingleLineVTag(_lines[startLine])) {
+        return IsCompleteStatement(startLine + 1, endLine);
+      } else if (IsMultipleLineVTagStart(_lines[startLine])) {
+        return endLine > startLine && IsMultipleLineVTagEnd(_lines[endLine]);
+      } else if (IsFirstLineOfCompoundStatement(_lines[startLine])) {
+        return endLine > startLine && _lines[endLine] == "\n";
+      }
+      return HaveMatchedBraces(startLine, endLine) && !EndsWithBackSlash(_lines[endLine]);
+    }
+
+    private bool HaveMatchedBraces(int startLine, int endLine) {
+      const char leftBrace = '{';
+      const char rightBrace = '}';
+      const char leftBrack = '[';
+      const char rightBrack = ']';
+      const char leftParen = '(';
+      const char rightParen = ')';
+      var stack = new Stack<char>();
+      for (int i = startLine; i <= endLine; i++) {
+        foreach (char ch in _lines[i]) {
+          switch (ch) {
+            case leftBrace:
+              stack.Push(leftBrace);
+              break;
+            case rightBrace:
+              if (stack.Pop() != leftBrace) {
+                return false;
+              }
+              break;
+            case leftBrack:
+              stack.Push(leftBrack);
+              break;
+            case rightBrack:
+              if (stack.Pop() != leftBrack) {
+                return false;
+              }
+              break;
+            case leftParen:
+              stack.Push(leftParen);
+              break;
+            case rightParen:
+              if (stack.Pop() != leftBrack) {
+                return false;
+              }
+              break;
+          }
+        }
+      }
+      return stack.Count == 0;
     }
 
     private (int, int)? Intersect(int lineId, TextRange range) {

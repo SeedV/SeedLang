@@ -59,8 +59,7 @@ fib(35)
 
     private static void Run(string source) {
       var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
-      engine.Parse(source, "");
-      engine.Compile();
+      engine.Compile(source, "");
       engine.Run();
     }
   }

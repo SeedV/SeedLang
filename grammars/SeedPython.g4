@@ -23,7 +23,9 @@ import Common;
 
 tokens {
   INDENT,
-  DEDENT
+  DEDENT,
+  VTAG_START,
+  VTAG_END
 }
 
 /*
@@ -111,8 +113,5 @@ RETURN: 'return';
 PASS: 'pass';
 
 SEMICOLON: ';';
-
-VTAG_START: '[[';
-VTAG_END: ']]';
 
 COMMENT: '#' ~[\r\n\f]*;

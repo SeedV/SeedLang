@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using System.Linq;
 using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;

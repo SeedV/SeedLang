@@ -162,7 +162,7 @@ namespace SeedLang.Shell {
               stack.Push(leftParen);
               break;
             case rightParen:
-              if (stack.Pop() != leftBrack) {
+              if (stack.Pop() != leftParen) {
                 return false;
               }
               break;

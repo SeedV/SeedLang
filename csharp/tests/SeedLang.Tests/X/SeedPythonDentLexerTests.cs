@@ -121,6 +121,20 @@ namespace SeedLang.X.Tests {
     }
 
     [Fact]
+    public void TestNestedDict() {
+      string source = "[[1]]";
+      var expectedTokens = new string[] {
+          $"[@-1,0:0='[',<{SeedPythonParser.OPEN_BRACK}>,1:0]",
+          $"[@-1,1:1='[',<{SeedPythonParser.OPEN_BRACK}>,1:1]",
+          $"[@-1,2:2='1',<{SeedPythonParser.NUMBER}>,1:2]",
+          $"[@-1,3:3=']',<{SeedPythonParser.CLOSE_BRACK}>,1:3]",
+          $"[@-1,4:4=']',<{SeedPythonParser.CLOSE_BRACK}>,1:4]",
+          $"[@-1,5:5='\\n',<{SeedPythonParser.NEWLINE}>,1:5]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
+    [Fact]
     public void TestVTagWithIndent() {
       string source = "while True:\n" +
                       "  # [[ Assign ]]\n" +

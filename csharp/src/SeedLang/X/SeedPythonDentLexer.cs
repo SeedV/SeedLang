@@ -149,26 +149,73 @@ namespace SeedLang.X {
     }
 
     private void ScanVTag(IToken comment) {
-      if (comment.Text.Length > 1) {
-        Debug.Assert(comment.Text[0] == '#');
-        var inputStream = new AntlrInputStream(comment.Text.Substring(1));
+      Debug.Assert(comment.Text.Length > 0 && comment.Text[0] == '#');
+      if (FindOpenBracks(comment.Text) is int openBracksIndex) {
+        int contentStart = openBracksIndex + 2;
+        _tokens.Enqueue(CommonToken(SeedPythonParser.VTAG_START, comment.StartIndex,
+                                    comment.StartIndex + openBracksIndex + 1, comment.Line,
+                                    comment.Column, comment.Text.Substring(0, contentStart)));
+        int? closeBracksIndex = FindCloseBracks(comment.Text, false);
+        int contentLength = closeBracksIndex is int index ? index - contentStart :
+                                                            comment.Text.Length - contentStart;
+        var inputStream = new AntlrInputStream(comment.Text.Substring(contentStart, contentLength));
         var lexer = new SeedPythonLexer(inputStream);
         var tokens = lexer.GetAllTokens();
-        if (tokens.Count > 0 && (tokens[0].Type == SeedPythonParser.VTAG_START ||
-                                 tokens[0].Type == SeedPythonParser.VTAG_END)) {
-          for (int i = 0; i < tokens.Count; i++) {
-            // Adds back '#' for VTAG_START and VTAG_END tokens.
-            int start = i == 0 ? comment.StartIndex : comment.StartIndex + tokens[i].StartIndex + 1;
-            int column = i == 0 ? comment.Column : comment.Column + tokens[i].StartIndex + 1;
-            // The length of first token is StopIndex + 1 + (length of '#').
-            string text = i == 0 ? comment.Text.Substring(0, tokens[i].StopIndex + 2) :
-                                   tokens[i].Text;
-            _tokens.Enqueue(CommonToken(tokens[i].Type, start,
-                                        comment.StartIndex + tokens[i].StopIndex + 1, comment.Line,
-                                        column, text));
+        foreach (IToken token in tokens) {
+          int tokenStart = contentStart + token.StartIndex;
+          _tokens.Enqueue(CommonToken(token.Type, comment.StartIndex + tokenStart,
+                                      comment.StartIndex + contentStart + token.StopIndex,
+                                      comment.Line, comment.Column + tokenStart, token.Text));
+        }
+        if (closeBracksIndex.HasValue) {
+          int vTagLength = comment.Text.Length - (int)closeBracksIndex;
+          _tokens.Enqueue(CommonToken(SeedPythonParser.VTAG_END,
+                                      comment.StartIndex + (int)closeBracksIndex,
+                                      comment.StopIndex, comment.Line,
+                                      comment.Column + (int)closeBracksIndex,
+                                      comment.Text.Substring((int)closeBracksIndex, vTagLength)));
+        }
+      } else if (FindCloseBracks(comment.Text, true).HasValue) {
+        _tokens.Enqueue(CommonToken(SeedPythonParser.VTAG_END, comment.StartIndex,
+                                    comment.StopIndex, comment.Line, comment.Column, comment.Text));
+      }
+    }
+
+    private static int? FindOpenBracks(string comment) {
+      const char openBrack = '[';
+      int i = 1;
+      while (i < comment.Length && IsSpace(comment[i])) {
+        i++;
+      }
+      if (i < comment.Length - 1 && comment[i] == openBrack && comment[i + 1] == openBrack) {
+        return i;
+      }
+      return null;
+    }
+
+    private int? FindCloseBracks(string comment, bool checkCloseOnly) {
+      const char closeBrack = ']';
+      int i = comment.Length - 1;
+      while (i >= 0 && IsSpace(comment[i])) {
+        i--;
+      }
+      const int minStopIndex = 3;
+      if (i >= minStopIndex && comment[i] == closeBrack && comment[i - 1] == closeBrack) {
+        i--;
+        if (checkCloseOnly) {
+          for (int j = 1; j < i; j++) {
+            if (!IsSpace(comment[j])) {
+              return null;
+            }
           }
         }
+        return i;
       }
+      return null;
+    }
+
+    private static bool IsSpace(char ch) {
+      return ch == ' ' || ch == '\t';
     }
 
     private static bool IsNewline(char ch) {

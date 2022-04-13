@@ -13,8 +13,8 @@
 // limitations under the License.
 
 using System.Linq;
-using Xunit;
 using SeedLang.Common;
+using Xunit;
 
 namespace SeedLang.Block.Tests {
   public class ModuleTests {

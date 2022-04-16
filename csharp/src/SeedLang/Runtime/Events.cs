@@ -32,6 +32,19 @@ namespace SeedLang.Runtime {
   }
 
   public static class Event {
+    // An event which is triggered when an assignment statement is executed.
+    public class Assignment : AbstractEvent {
+      public string Name { get; }
+      public VariableType Type { get; }
+      public IValue Value { get; }
+
+      public Assignment(string name, VariableType type, IValue value, Range range) : base(range) {
+        Name = name;
+        Type = type;
+        Value = value;
+      }
+    }
+
     // An event which is triggered when a binary expression is evaluated.
     public class Binary : AbstractEvent {
       public IValue Left { get; }
@@ -58,7 +71,7 @@ namespace SeedLang.Runtime {
       public IValue Result { get; }
 
       public Boolean(BooleanOperator op, IReadOnlyList<IValue> values, IValue result,
-                          Range range) : base(range) {
+                     Range range) : base(range) {
         Debug.Assert(values.Count > 1);
         Op = op;
         Values = values;
@@ -77,11 +90,33 @@ namespace SeedLang.Runtime {
       public IValue Result { get; }
 
       public Comparison(IValue first, IReadOnlyList<ComparisonOperator> ops,
-                             IReadOnlyList<IValue> values, IValue result, Range range) : base(range) {
+                        IReadOnlyList<IValue> values, IValue result, Range range) : base(range) {
         Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
         First = first;
         Values = values;
         Ops = ops;
+        Result = result;
+      }
+    }
+
+    // An event which is triggered when a function is called.
+    public class FuncCalled : AbstractEvent {
+      public string Name { get; }
+      public IReadOnlyList<IValue> Args { get; }
+
+      public FuncCalled(string name, IReadOnlyList<IValue> args, Range range) : base(range) {
+        Name = name;
+        Args = args;
+      }
+    }
+
+    // An event which is triggered when a function is called.
+    public class FuncReturned : AbstractEvent {
+      public string Name { get; }
+      public IValue Result { get; }
+
+      public FuncReturned(string name, IValue result, Range range) : base(range) {
+        Name = name;
         Result = result;
       }
     }
@@ -97,20 +132,6 @@ namespace SeedLang.Runtime {
         Op = op;
         Value = value;
         Result = result;
-      }
-    }
-
-    // An event which is triggered when an assignment statement is executed.
-    public class Assignment : AbstractEvent {
-      public string Name { get; }
-      public VariableType Type { get; }
-      public IValue Value { get; }
-
-      public Assignment(string name, VariableType type, IValue value, Range range) :
-          base(range) {
-        Name = name;
-        Type = type;
-        Value = value;
       }
     }
 

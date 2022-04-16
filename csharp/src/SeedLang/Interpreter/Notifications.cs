@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -83,6 +82,51 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal class FuncCalled : AbstractNotification {
+      private readonly string _name;
+      private readonly uint _argStartId;
+      private readonly uint _argLength;
+
+      public override string ToString() {
+        return $"Notification.FuncCalled: {_name} {_argStartId} {_argLength} {_range}";
+      }
+
+      internal FuncCalled(string name, uint argStartId, uint argLength, Range range) : base(range) {
+        _name = name;
+        _argStartId = argStartId;
+        _argLength = argLength;
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+        var args = new ValueWrapper[_argLength];
+        for (uint i = 0; i < _argLength; i++) {
+          args[i] = new ValueWrapper(getRKValue(_argStartId + i));
+        }
+        var fce = new Event.FuncCalled(_name, args, _range);
+        visualizerCenter.Notify(fce);
+      }
+    }
+
+    internal class FuncReturned : AbstractNotification {
+      private readonly string _name;
+      private readonly uint? _resultId;
+
+      public override string ToString() {
+        return $"Notification.FuncReturned: {_name} {_resultId} {_range}";
+      }
+
+      internal FuncReturned(string name, uint? resultId, Range range) : base(range) {
+        _name = name;
+        _resultId = resultId;
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+        var result = new ValueWrapper(_resultId.HasValue ? getRKValue((uint)_resultId) :
+                                                           new Value());
+        var fre = new Event.FuncReturned(_name, result, _range);
+        visualizerCenter.Notify(fre);
+      }
+    }
 
     internal class Unary : AbstractNotification {
       private readonly UnaryOperator _op;

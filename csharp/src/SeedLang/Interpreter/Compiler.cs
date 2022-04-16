@@ -66,7 +66,7 @@ namespace SeedLang.Interpreter {
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
       Visit(node);
-      _chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
+      EmitReturn(0, 0, null);
       return _nestedFuncStack.PopFunc();
     }
 
@@ -218,7 +218,7 @@ namespace SeedLang.Interpreter {
             _registerForSubExpr = _variableResolver.AllocateRegister();
             Visit(expr);
           }
-          _chunk.Emit(Opcode.CALL, funcRegister, (uint)call.Arguments.Length, 0, call.Range);
+          EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
           if (needRegister) {
             _chunk.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
           }
@@ -306,7 +306,7 @@ namespace SeedLang.Interpreter {
       }
       Visit(funcDef.Body);
       // Emits a default return opcode.
-      _chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
+      EmitReturn(0, 0, null);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
@@ -347,7 +347,7 @@ namespace SeedLang.Interpreter {
 
     protected override void Visit(ReturnStatement @return) {
       if (@return.Exprs.Length == 0) {
-        _chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
+        EmitReturn(0, 0, @return.Range);
       } else if (@return.Exprs.Length == 1) {
         if (!(GetRegisterId(@return.Exprs[0]) is uint result)) {
           _variableResolver.BeginExpressionScope();
@@ -356,13 +356,13 @@ namespace SeedLang.Interpreter {
           Visit(@return.Exprs[0]);
           _variableResolver.EndExpressionScope();
         }
-        _chunk.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
+        EmitReturn(result, 1, @return.Range);
       } else {
         _variableResolver.BeginExpressionScope();
         uint listRegister = _variableResolver.AllocateRegister();
         _registerForSubExpr = listRegister;
         Visit(Expression.Tuple(@return.Exprs, @return.Range));
-        _chunk.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
+        EmitReturn(listRegister, 1, @return.Range);
         _variableResolver.EndExpressionScope();
       }
     }
@@ -684,6 +684,27 @@ namespace SeedLang.Interpreter {
         default:
           return null;
       }
+    }
+
+    // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
+    // for the FuncCalled event.
+    private void EmitCall(string name, uint funcRegister, uint argLength, Range range) {
+      if (_visualizerCenter.HasVisualizer<Event.FuncCalled>()) {
+        var notification = new Notification.FuncCalled(name, funcRegister + 1, argLength, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+      }
+      _chunk.Emit(Opcode.CALL, funcRegister, argLength, 0, range);
+    }
+
+    // Emits a RETURN instruction. A VISNOTIFY instruction is also emitted if there are visualizers
+    // for the FuncReturned event.
+    private void EmitReturn(uint resultId, uint count, Range range) {
+      if (_visualizerCenter.HasVisualizer<Event.FuncReturned>()) {
+        var name = _nestedFuncStack.CurrentFunc().Name;
+        var notification = new Notification.FuncReturned(name, count > 0 ? resultId : null, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+      }
+      _chunk.Emit(Opcode.RETURN, resultId, count, 0, range);
     }
 
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {

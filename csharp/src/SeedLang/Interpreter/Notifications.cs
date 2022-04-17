@@ -112,7 +112,8 @@ namespace SeedLang.Interpreter {
       private readonly uint? _resultId;
 
       public override string ToString() {
-        return $"Notification.FuncReturned: {_name} {_resultId} {_range}";
+        return $"Notification.FuncReturned: {_name}" +
+               (_resultId is null ? " " : $" {_resultId} ") + $"{_range}";
       }
 
       internal FuncReturned(string name, uint? resultId, Range range) : base(range) {

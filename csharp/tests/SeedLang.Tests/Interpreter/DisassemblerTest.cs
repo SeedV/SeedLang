@@ -32,7 +32,7 @@ namespace SeedLang.Interpreter.Tests {
       chunk.Emit(Opcode.MUL, 0, 1, cache.IdOfConstant(3), _textRange);
       chunk.Emit(Opcode.DIV, 0, cache.IdOfConstant(4), cache.IdOfConstant(5), _textRange);
       chunk.Emit(Opcode.UNM, 0, cache.IdOfConstant(6), 0, _textRange);
-      chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
+      chunk.Emit(Opcode.RETURN, 0, 0, 0, _textRange);
       chunk.SetConstants(cache.ToArray());
       string expected = (
           $"Function <main>\n" +
@@ -44,7 +44,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    MUL       0 1 -5           ; 3                 {_textRange}\n" +
           $"  7    DIV       0 -6 -7          ; 4 5               {_textRange}\n" +
           $"  8    UNM       0 -8             ; 6                 {_textRange}\n" +
-          $"  9    RETURN    0 0                                  \n"
+          $"  9    RETURN    0 0                                  {_textRange}\n"
       ).Replace("\n", System.Environment.NewLine);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }

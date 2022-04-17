@@ -110,7 +110,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    // An event which is triggered when a function is called.
+    // An event which is triggered when a function is returned.
     public class FuncReturned : AbstractEvent {
       public string Name { get; }
       public IValue Result { get; }

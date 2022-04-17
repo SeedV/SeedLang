@@ -156,7 +156,7 @@ namespace SeedLang.Shell {
           Console.Write($"= {ce.Result}");
           break;
         case Event.FuncCalled fce:
-          Console.Write($"FuncCalled: {fce.Name} {string.Join(",", fce.Args)}");
+          Console.Write($"FuncCalled: {fce.Name} {string.Join(", ", fce.Args)}");
           break;
         case Event.FuncReturned fre:
           Console.Write($"FuncReturned: {fre.Name} {fre.Result}");
@@ -167,10 +167,10 @@ namespace SeedLang.Shell {
           }
           break;
         case Event.VTagEntered vee:
-          Console.Write($"VTagEntered: {string.Join(",", vee.VTags)}");
+          Console.Write($"VTagEntered: {string.Join(", ", vee.VTags)}");
           break;
         case Event.VTagExited vee:
-          Console.Write($"VTagExited: {string.Join(",", vee.VTags)}");
+          Console.Write($"VTagExited: {string.Join(", ", vee.VTags)}");
           break;
         default:
           throw new NotImplementedException($"Unsupported event: {e}");

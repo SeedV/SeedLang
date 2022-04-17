@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Ast;
@@ -19,7 +20,7 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  using Array = System.Array;
+  using Range = Common.Range;
 
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
@@ -50,6 +51,9 @@ namespace SeedLang.Interpreter {
     // operator is "And", otherwise a false condition instruction check is emitted.
     private BooleanOperator _nextBooleanOp;
 
+    // The range of the statement that is just compiled.
+    private Range _rangeOfPrevStatement = null;
+
     // The chunk on the top of the function stack.
     private Chunk _chunk;
     // The constant cache on the top of the function stack.
@@ -66,7 +70,6 @@ namespace SeedLang.Interpreter {
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
       Visit(node);
-      EmitReturn(0, 0, null);
       return _nestedFuncStack.PopFunc();
     }
 
@@ -230,6 +233,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
+      _rangeOfPrevStatement = assignment.Range;
       if (assignment.Exprs.Length == 1) {
         Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
       } else {
@@ -238,12 +242,14 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BlockStatement block) {
+      _rangeOfPrevStatement = block.Range;
       foreach (Statement statement in block.Statements) {
         Visit(statement);
       }
     }
 
     protected override void Visit(ExpressionStatement expr) {
+      _rangeOfPrevStatement = expr.Range;
       _variableResolver.BeginExpressionScope();
       _registerForSubExpr = _variableResolver.AllocateRegister();
       switch (_runMode) {
@@ -259,6 +265,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ForInStatement forIn) {
+      _rangeOfPrevStatement = forIn.Range;
       VariableResolver.VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
 
       _variableResolver.BeginBlockScope();
@@ -299,6 +306,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(FuncDefStatement funcDef) {
+      _rangeOfPrevStatement = funcDef.Range;
       VariableResolver.VariableInfo info = DefineVariableIfNeeded(funcDef.Name);
       PushFunc(funcDef.Name);
       foreach (string parameterName in funcDef.Parameters) {
@@ -306,7 +314,8 @@ namespace SeedLang.Interpreter {
       }
       Visit(funcDef.Body);
       // Emits a default return opcode.
-      EmitReturn(0, 0, null);
+      var range = _rangeOfPrevStatement is null ? new TextRange(1, 0, 1, 0) : _rangeOfPrevStatement;
+      EmitReturn(0, 0, range);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
@@ -327,6 +336,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(IfStatement @if) {
+      _rangeOfPrevStatement = @if.Range;
       _nestedJumpStack.PushFrame();
       VisitTest(@if.Test);
       PatchJumps(_nestedJumpStack.TrueJumps);
@@ -343,9 +353,12 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
-    protected override void Visit(PassStatement pass) { }
+    protected override void Visit(PassStatement pass) {
+      _rangeOfPrevStatement = pass.Range;
+    }
 
     protected override void Visit(ReturnStatement @return) {
+      _rangeOfPrevStatement = @return.Range;
       if (@return.Exprs.Length == 0) {
         EmitReturn(0, 0, @return.Range);
       } else if (@return.Exprs.Length == 1) {
@@ -368,6 +381,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(WhileStatement @while) {
+      _rangeOfPrevStatement = @while.Range;
       _nestedJumpStack.PushFrame();
       int start = GetCurrentCodePos();
       VisitTest(@while.Test);
@@ -378,6 +392,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(VTagStatement vTag) {
+      _rangeOfPrevStatement = vTag.Range;
       EmitVTagEnteredNotification(CreateVTagEnteredInfo(vTag), vTag.Range);
       foreach (Statement statement in vTag.Statements) {
         Visit(statement);
@@ -411,7 +426,7 @@ namespace SeedLang.Interpreter {
       return vTagInfos;
     }
 
-    private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
+    private void VisitBooleanOrComparisonExpression(Action action, Range range) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
       // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
       // part of the test condition of if or while statements.
@@ -690,8 +705,8 @@ namespace SeedLang.Interpreter {
     // for the FuncCalled event.
     private void EmitCall(string name, uint funcRegister, uint argLength, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.FuncCalled>()) {
-        var notification = new Notification.FuncCalled(name, funcRegister + 1, argLength, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+        var n = new Notification.FuncCalled(name, funcRegister + 1, argLength, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
       }
       _chunk.Emit(Opcode.CALL, funcRegister, argLength, 0, range);
     }
@@ -701,46 +716,46 @@ namespace SeedLang.Interpreter {
     private void EmitReturn(uint resultId, uint count, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.FuncReturned>()) {
         var name = _nestedFuncStack.CurrentFunc().Name;
-        var notification = new Notification.FuncReturned(name, count > 0 ? resultId : null, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+        var n = new Notification.FuncReturned(name, count > 0 ? resultId : default(uint?), range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
       }
       _chunk.Emit(Opcode.RETURN, resultId, count, 0, range);
     }
 
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
-        var notification = new Notification.Assignment(name, type, valueId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+        var n = new Notification.Assignment(name, type, valueId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
       }
     }
 
     private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
                                         Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
-        var notification = new Notification.Binary(leftId, op, rightId, resultId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+        var n = new Notification.Binary(leftId, op, rightId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
       }
     }
 
     private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
-        var notification = new Notification.Unary(op, valueId, resultId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+        var n = new Notification.Unary(op, valueId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
       }
     }
 
     private void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
-        var notification = new Notification.VTagEntered(vTagInfos, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+        var n = new Notification.VTagEntered(vTagInfos, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
       }
     }
 
     private void EmitVTagExitedNotification(Notification.VTagExited.VTagInfo[] vTagInfos,
                                             Range range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        var notification = new Notification.VTagExited(vTagInfos, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
+        var n = new Notification.VTagExited(vTagInfos, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
       }
     }
 
@@ -761,7 +776,7 @@ namespace SeedLang.Interpreter {
         case BinaryOperator.Modulo:
           return Opcode.MOD;
         default:
-          throw new System.NotImplementedException($"Operator {op} not implemented.");
+          throw new NotImplementedException($"Operator {op} not implemented.");
       }
     }
 
@@ -782,7 +797,7 @@ namespace SeedLang.Interpreter {
         case ComparisonOperator.In:
           return (Opcode.IN, true);
         default:
-          throw new System.NotImplementedException($"Operator {op} not implemented.");
+          throw new NotImplementedException($"Operator {op} not implemented.");
       }
     }
   }

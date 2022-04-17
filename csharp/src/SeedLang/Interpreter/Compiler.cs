@@ -315,7 +315,7 @@ namespace SeedLang.Interpreter {
       Visit(funcDef.Body);
       // Emits a default return opcode.
       var range = _rangeOfPrevStatement is null ? new TextRange(1, 0, 1, 0) : _rangeOfPrevStatement;
-      EmitReturn(0, 0, range);
+      _chunk.Emit(Opcode.RETURN, 0, 0, 0, range);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
@@ -360,7 +360,7 @@ namespace SeedLang.Interpreter {
     protected override void Visit(ReturnStatement @return) {
       _rangeOfPrevStatement = @return.Range;
       if (@return.Exprs.Length == 0) {
-        EmitReturn(0, 0, @return.Range);
+        _chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
       } else if (@return.Exprs.Length == 1) {
         if (!(GetRegisterId(@return.Exprs[0]) is uint result)) {
           _variableResolver.BeginExpressionScope();
@@ -369,13 +369,13 @@ namespace SeedLang.Interpreter {
           Visit(@return.Exprs[0]);
           _variableResolver.EndExpressionScope();
         }
-        EmitReturn(result, 1, @return.Range);
+        _chunk.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
       } else {
         _variableResolver.BeginExpressionScope();
         uint listRegister = _variableResolver.AllocateRegister();
         _registerForSubExpr = listRegister;
         Visit(Expression.Tuple(@return.Exprs, @return.Range));
-        EmitReturn(listRegister, 1, @return.Range);
+        _chunk.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
         _variableResolver.EndExpressionScope();
       }
     }
@@ -704,58 +704,57 @@ namespace SeedLang.Interpreter {
     // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
     // for the FuncCalled event.
     private void EmitCall(string name, uint funcRegister, uint argLength, Range range) {
-      if (_visualizerCenter.HasVisualizer<Event.FuncCalled>()) {
-        var n = new Notification.FuncCalled(name, funcRegister + 1, argLength, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
+      bool isNormalFunc = !NativeFunctions.IsInternalFunction(name);
+      bool notifyCalled = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncCalled>();
+      bool notifyReturned = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncReturned>();
+      uint nId = 0;
+      if (notifyCalled || notifyReturned) {
+        var notification = new Notification.Function(name, funcRegister, argLength, range);
+        nId = _chunk.AddNotification(notification);
+      }
+      if (notifyCalled) {
+        _chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Called, nId, range);
       }
       _chunk.Emit(Opcode.CALL, funcRegister, argLength, 0, range);
-    }
-
-    // Emits a RETURN instruction. A VISNOTIFY instruction is also emitted if there are visualizers
-    // for the FuncReturned event.
-    private void EmitReturn(uint resultId, uint count, Range range) {
-      if (_visualizerCenter.HasVisualizer<Event.FuncReturned>()) {
-        var name = _nestedFuncStack.CurrentFunc().Name;
-        var n = new Notification.FuncReturned(name, count > 0 ? resultId : default(uint?), range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
+      if (notifyReturned) {
+        _chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
       }
-      _chunk.Emit(Opcode.RETURN, resultId, count, 0, range);
     }
 
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
-        var n = new Notification.Assignment(name, type, valueId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
+        var notification = new Notification.Assignment(name, type, valueId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
     private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
                                         Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
-        var n = new Notification.Binary(leftId, op, rightId, resultId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
+        var notification = new Notification.Binary(leftId, op, rightId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
     private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
-        var n = new Notification.Unary(op, valueId, resultId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
+        var notification = new Notification.Unary(op, valueId, resultId, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
     private void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
-        var n = new Notification.VTagEntered(vTagInfos, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
+        var notification = new Notification.VTagEntered(vTagInfos, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
     private void EmitVTagExitedNotification(Notification.VTagExited.VTagInfo[] vTagInfos,
                                             Range range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        var n = new Notification.VTagExited(vTagInfos, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(n), range);
+        var notification = new Notification.VTagExited(vTagInfos, range);
+        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 

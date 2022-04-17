@@ -196,7 +196,7 @@ namespace SeedLang.Interpreter {
             case Opcode.VISNOTIFY:
               chunk.Notifications[(int)instr.Bx].Notify(VisualizerCenter, (uint id) => {
                 return ValueOfRK(chunk, id, baseRegister);
-              });
+              }, instr.A);
               break;
             default:
               throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");

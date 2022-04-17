@@ -53,11 +53,9 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    ADD       1 -1 -2          ; 1 2               {_range}\n" +
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  4    VISNOTIFY 0 1                                  {_range}\n" +
-          $"  5    CALL      0 1 0                                {_range}\n" +
+          $"  4    CALL      0 1 0                                {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  1    Notification.FuncCalled: __printval__ 1 1 {_range}\n"
+          $"  0    Notification.Binary: 250 Add 251 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -84,23 +82,18 @@ namespace SeedLang.Interpreter.Tests {
           $"  6    LOADK     3 -3             ; 2                 {_range}\n" +
           $"  7    VISNOTIFY 0 0                                  {_range}\n" +
           $"  8    CALL      1 2 0                                {_range}\n" +
-          $"  9    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  9    VISNOTIFY 1 0                                  {_range}\n" +
           $"  10   CALL      0 1 0                                {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.FuncCalled: add 2 2 {_range}\n" +
-          $"  1    Notification.FuncCalled: __printval__ 1 1 {_range}\n" +
+          $"  0    Notification.Function: add 1 2 {_range}\n" +
           $"\n" +
           $"Function <add>\n" +
           $"  1    ADD       2 0 1                                {_range}\n" +
           $"  2    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  3    VISNOTIFY 0 1                                  {_range}\n" +
-          $"  4    RETURN    2 1                                  {_range}\n" +
-          $"  5    VISNOTIFY 0 2                                  {_range}\n" +
-          $"  6    RETURN    0 0                                  {_range}\n" +
+          $"  3    RETURN    2 1                                  {_range}\n" +
+          $"  4    RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.Binary: 0 Add 1 2 {_range}\n" +
-          $"  1    Notification.FuncReturned: add 2 {_range}\n" +
-          $"  2    Notification.FuncReturned: add {_range}\n"
+          $"  0    Notification.Binary: 0 Add 1 2 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -114,11 +107,9 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    UNM       1 -1             ; 1                 {_range}\n" +
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  4    VISNOTIFY 0 1                                  {_range}\n" +
-          $"  5    CALL      0 1 0                                {_range}\n" +
+          $"  4    CALL      0 1 0                                {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.Unary: Negative 250 1 {_range}\n" +
-          $"  1    Notification.FuncCalled: __printval__ 1 1 {_range}\n"
+          $"  0    Notification.Unary: Negative 250 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -138,14 +129,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  3    ADD       1 -1 -2          ; 1 2               {_range}\n" +
           $"  4    VISNOTIFY 0 1                                  {_range}\n" +
-          $"  5    VISNOTIFY 0 2                                  {_range}\n" +
-          $"  6    CALL      0 1 0                                {_range}\n" +
-          $"  7    VISNOTIFY 0 3                                  {_range}\n" +
+          $"  5    CALL      0 1 0                                {_range}\n" +
+          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
           $"Notifications\n" +
           $"  0    Notification.VTagEntered: Add {_range}\n" +
           $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  2    Notification.FuncCalled: __printval__ 1 1 {_range}\n" +
-          $"  3    Notification.VTagExited: Add {_range}\n"
+          $"  2    Notification.VTagExited: Add {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -168,14 +157,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  3    ADD       1 -1 -2          ; 1 2               {_range}\n" +
           $"  4    VISNOTIFY 0 1                                  {_range}\n" +
-          $"  5    VISNOTIFY 0 2                                  {_range}\n" +
-          $"  6    CALL      0 1 0                                {_range}\n" +
-          $"  7    VISNOTIFY 0 3                                  {_range}\n" +
+          $"  5    CALL      0 1 0                                {_range}\n" +
+          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
           $"Notifications\n" +
           $"  0    Notification.VTagEntered: Add(1,2) {_range}\n" +
           $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  2    Notification.FuncCalled: __printval__ 1 1 {_range}\n" +
-          $"  3    Notification.VTagExited: Add(250,251) {_range}\n"
+          $"  2    Notification.VTagExited: Add(250,251) {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

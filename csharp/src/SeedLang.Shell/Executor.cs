@@ -13,19 +13,17 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using SeedLang.Common;
 
 namespace SeedLang.Shell {
   internal static class Executor {
-    internal static void Repl(SeedXLanguage language, RunType runType,
-                              IEnumerable<VisualizerType> visualizerTypes) {
+    internal static void Repl(SeedXLanguage language, RunType runType) {
       ReadLine.HistoryEnabled = true;
       var engine = new Engine(language, RunMode.Interactive);
-      var source = new SourceCode();
-      var visualizerManager = new VisualizerManager(source, visualizerTypes);
-      visualizerManager.RegisterToEngine(engine);
+      VisualizerManager.Source = new SourceCode();
+      var source = VisualizerManager.Source;
+      VisualizerManager.RegisterToEngine(engine);
       while (true) {
         Read(source);
         if (source.Source == "quit" + Environment.NewLine) {
@@ -33,12 +31,12 @@ namespace SeedLang.Shell {
         }
         RunSource(engine, source, runType);
       }
-      visualizerManager.UnregisterFromEngine(engine);
+      VisualizerManager.UnregisterFromEngine(engine);
     }
 
-    internal static void RunScript(string filename, SeedXLanguage language, RunType runType,
-                                   IEnumerable<VisualizerType> visualizerTypes) {
-      var source = new SourceCode();
+    internal static void RunScript(string filename, SeedXLanguage language, RunType runType) {
+      VisualizerManager.Source = new SourceCode();
+      var source = VisualizerManager.Source;
       try {
         foreach (string line in File.ReadLines(filename)) {
           source.AddLine(line);
@@ -48,10 +46,9 @@ namespace SeedLang.Shell {
         return;
       }
       var engine = new Engine(language, RunMode.Script);
-      var visualizerManager = new VisualizerManager(source, visualizerTypes);
-      visualizerManager.RegisterToEngine(engine);
+      VisualizerManager.RegisterToEngine(engine);
       RunSource(engine, source, runType);
-      visualizerManager.UnregisterFromEngine(engine);
+      VisualizerManager.UnregisterFromEngine(engine);
     }
 
     private static void RunSource(Engine engine, SourceCode source, RunType runType) {

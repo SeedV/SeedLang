@@ -28,13 +28,13 @@ namespace SeedLang.Shell {
       public RunType RunType { get; set; }
 
       [Option('v', "visualizers", Required = false, Separator = ',',
-              HelpText = "The Visualizers to be enabled. " +
-                         "Valid values: Assignment, Binary, Boolean, Comparison, Unary, " +
-                         "VTagEntered, VTagExited, All.\n" +
-                         "* Use \"--visualizers=Binary,Comparison\" or \"-v Assignment,Binary\" " +
+              HelpText = "The Visualizers to be enabled.\n" +
+                         "* Use '--visualizers=Binary,Comparison' or '-v Assignment,Binary' " +
                          "to enable multiple visualizers.\n" +
-                         "* Use \"-v All\" to enable all visualizers.")]
-      public IEnumerable<VisualizerType> VisualizerTypes { get; set; }
+                         "* Use \"*\" to match any characters in the visualizer name, e.g. " +
+                         "'-v \"*\"' for all visualizers, or '-v \"Func*\"' for all visualizers " +
+                         "that start with \"Func\".")]
+      public IEnumerable<string> Visualizers { get; set; }
 
       [Option('f', "file", Required = false, Default = null,
               HelpText = "Path of the file to be executed.")]
@@ -52,18 +52,23 @@ namespace SeedLang.Shell {
         Console.WriteLine(helpText.Heading);
         Console.WriteLine(helpText.Copyright);
         Console.WriteLine();
+        var visualizers = VisualizerManager.CreateVisualizers(options.Visualizers);
+        Console.WriteLine($"Enabled Visualizers: {string.Join(", ", visualizers)}");
+        Console.WriteLine();
         Run(options);
       }).WithNotParsed(errors => {
-        Console.Error.Write(helpText);
+        helpText.AddPostOptionsText(
+            $"Valid visualizers: {string.Join(", ", VisualizerManager.EventNames)}");
+        Console.Error.WriteLine(helpText);
+        Console.WriteLine();
       });
     }
 
     private static void Run(Options options) {
       if (!string.IsNullOrEmpty(options.Filename)) {
-        Executor.RunScript(options.Filename, options.Language, options.RunType,
-                           options.VisualizerTypes);
+        Executor.RunScript(options.Filename, options.Language, options.RunType);
       } else {
-        Executor.Repl(options.Language, options.RunType, options.VisualizerTypes);
+        Executor.Repl(options.Language, options.RunType);
       }
     }
   }

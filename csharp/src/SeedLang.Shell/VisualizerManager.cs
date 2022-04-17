@@ -14,45 +14,28 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text.RegularExpressions;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Shell {
-  // The visualizer type. Uses All to enable all visualizers.
-  internal enum VisualizerType {
-    Assignment,
-    Binary,
-    Boolean,
-    Comparison,
-    Unary,
-    VTagEntered,
-    VTagExited,
-    All,
-  }
-
   // A class to manage all the visualizers.
-  internal class VisualizerManager {
+  internal static class VisualizerManager {
     // The visualizer for a specified event.
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
-      private readonly Action<TextRange> _writeSourceWithHighlight;
-      private readonly Action<AbstractEvent> _writeEvent;
-
-      public Visualizer(Action<TextRange> writeSourceWithHighlight,
-                        Action<AbstractEvent> writeEvent) {
-        _writeSourceWithHighlight = writeSourceWithHighlight;
-        _writeEvent = writeEvent;
-      }
-
       public void On(Event e) {
         if (e.Range is TextRange range) {
-          _writeSourceWithHighlight(range);
+          Source.WriteSourceWithHighlight(range);
         }
-        _writeEvent(e);
+        WriteEvent(e);
       }
     }
 
-    private readonly Dictionary<BinaryOperator, string> _binaryOperatorStrings =
+    public static IEnumerable<string> EventNames =>
+        Array.ConvertAll(typeof(Event).GetNestedTypes(), type => type.Name);
+    public static SourceCode Source { get; set; }
+
+    private static readonly Dictionary<BinaryOperator, string> _binaryOperatorStrings =
         new Dictionary<BinaryOperator, string>() {
           [BinaryOperator.Add] = "+",
           [BinaryOperator.Subtract] = "-",
@@ -63,13 +46,13 @@ namespace SeedLang.Shell {
           [BinaryOperator.Modulo] = "%",
         };
 
-    private readonly Dictionary<BooleanOperator, string> _booleanOperatorStrings =
+    private static readonly Dictionary<BooleanOperator, string> _booleanOperatorStrings =
         new Dictionary<BooleanOperator, string>() {
           [BooleanOperator.And] = "and",
           [BooleanOperator.Or] = "or",
         };
 
-    private readonly Dictionary<ComparisonOperator, string> _comparisonOperatorStrings =
+    private static readonly Dictionary<ComparisonOperator, string> _comparisonOperatorStrings =
         new Dictionary<ComparisonOperator, string>() {
           [ComparisonOperator.Less] = "<",
           [ComparisonOperator.Greater] = ">",
@@ -79,101 +62,62 @@ namespace SeedLang.Shell {
           [ComparisonOperator.NotEqual] = "!=",
         };
 
-    private readonly Dictionary<UnaryOperator, string> _unaryOperatorStrings =
+    private static readonly Dictionary<UnaryOperator, string> _unaryOperatorStrings =
         new Dictionary<UnaryOperator, string>() {
           [UnaryOperator.Positive] = "+",
           [UnaryOperator.Negative] = "-",
           [UnaryOperator.Not] = "not",
         };
 
+    private static readonly Dictionary<string, dynamic> _visualizers =
+        new Dictionary<string, dynamic>();
 
-    private readonly SourceCode _source;
-    private readonly Visualizer<Event.Assignment> _assignmentVisualizer;
-    private readonly Visualizer<Event.Binary> _binaryVisualizer;
-    private readonly Visualizer<Event.Boolean> _booleanVisualizer;
-    private readonly Visualizer<Event.Comparison> _comparisonVisualizer;
-    private readonly Visualizer<Event.Unary> _unaryVisualizer;
-    private readonly Visualizer<Event.VTagEntered> _vTagEnteredVisualizer;
-    private readonly Visualizer<Event.VTagExited> _vTagExitedVisualizer;
-
-    internal VisualizerManager(SourceCode source, IEnumerable<VisualizerType> visualizerTypes) {
-      _source = source;
-      // Generates an array with all visualizer types if All is included in the visualizerTypes.
-      var visualizers = Enumerable.Contains(visualizerTypes, VisualizerType.All) ?
-                        Enum.GetValues(typeof(VisualizerType)) :
-                        visualizerTypes.ToArray();
-      foreach (VisualizerType type in visualizers) {
-        switch (type) {
-          case VisualizerType.Assignment:
-            _assignmentVisualizer = new Visualizer<Event.Assignment>(
-                _source.WriteSourceWithHighlight, WriteEvent);
-            break;
-          case VisualizerType.Binary:
-            _binaryVisualizer = new Visualizer<Event.Binary>(_source.WriteSourceWithHighlight,
-                                                             WriteEvent);
-            break;
-          case VisualizerType.Boolean:
-            _booleanVisualizer = new Visualizer<Event.Boolean>(_source.WriteSourceWithHighlight,
-                                                               WriteEvent);
-            break;
-          case VisualizerType.Comparison:
-            _comparisonVisualizer = new Visualizer<Event.Comparison>(
-                _source.WriteSourceWithHighlight, WriteEvent);
-            break;
-          case VisualizerType.Unary:
-            _unaryVisualizer = new Visualizer<Event.Unary>(_source.WriteSourceWithHighlight,
-                                                           WriteEvent);
-            break;
-          case VisualizerType.VTagEntered:
-            _vTagEnteredVisualizer = new Visualizer<Event.VTagEntered>(
-                _source.WriteSourceWithHighlight, WriteEvent);
-            break;
-          case VisualizerType.VTagExited:
-            _vTagExitedVisualizer = new Visualizer<Event.VTagExited>(
-                _source.WriteSourceWithHighlight, WriteEvent);
-            break;
-          case VisualizerType.All:
-            // Ignores.
-            break;
-          default:
-            throw new NotImplementedException($"Unsupported visualizer type: {type}.");
-        }
+    internal static ICollection<string> CreateVisualizers(IEnumerable<string> visualizers) {
+      var qualifiedNames = new Dictionary<string, string>();
+      var eventTypes = typeof(Event).GetNestedTypes();
+      for (int i = 0; i < eventTypes.Length; i++) {
+        qualifiedNames[eventTypes[i].Name] = eventTypes[i].AssemblyQualifiedName;
       }
+      foreach (var name in EventClassNames(visualizers, qualifiedNames)) {
+        var type = typeof(Visualizer<>).MakeGenericType(Type.GetType(name.Value));
+        _visualizers[name.Key] = Activator.CreateInstance(type);
+      }
+      return _visualizers.Keys;
     }
 
-    internal void RegisterToEngine(Engine engine) {
-      RegisterToEngine(engine, _assignmentVisualizer);
-      RegisterToEngine(engine, _binaryVisualizer);
-      RegisterToEngine(engine, _booleanVisualizer);
-      RegisterToEngine(engine, _comparisonVisualizer);
-      RegisterToEngine(engine, _unaryVisualizer);
-      RegisterToEngine(engine, _vTagEnteredVisualizer);
-      RegisterToEngine(engine, _vTagExitedVisualizer);
-    }
-
-    internal void UnregisterFromEngine(Engine engine) {
-      UnregisterFromEngine(engine, _assignmentVisualizer);
-      UnregisterFromEngine(engine, _binaryVisualizer);
-      UnregisterFromEngine(engine, _booleanVisualizer);
-      UnregisterFromEngine(engine, _comparisonVisualizer);
-      UnregisterFromEngine(engine, _unaryVisualizer);
-      UnregisterFromEngine(engine, _vTagEnteredVisualizer);
-      UnregisterFromEngine(engine, _vTagExitedVisualizer);
-    }
-
-    private static void RegisterToEngine<Event>(Engine engine, IVisualizer<Event> visualizer) {
-      if (!(visualizer is null)) {
+    internal static void RegisterToEngine(Engine engine) {
+      foreach (var visualizer in _visualizers.Values) {
         engine.Register(visualizer);
       }
     }
 
-    private static void UnregisterFromEngine<Event>(Engine engine, IVisualizer<Event> visualizer) {
-      if (!(visualizer is null)) {
+    internal static void UnregisterFromEngine(Engine engine) {
+      foreach (var visualizer in _visualizers.Values) {
         engine.Unregister(visualizer);
       }
     }
 
-    private void WriteEvent(AbstractEvent e) {
+    private static Dictionary<string, string> EventClassNames(
+        IEnumerable<string> visualizers, Dictionary<string, string> qualifiedNames) {
+      var eventClassNames = new Dictionary<string, string>();
+      foreach (string visualizer in visualizers) {
+        string visualizerName = visualizer.Trim();
+        if (visualizerName.Contains('*')) {
+          var regex = new Regex(visualizerName.Replace("*", ".*"));
+          foreach (string name in qualifiedNames.Keys) {
+            Match match = regex.Match(name);
+            if (match.Success) {
+              eventClassNames[name] = qualifiedNames[name];
+            }
+          }
+        } else if (qualifiedNames.ContainsKey(visualizerName)) {
+          eventClassNames[visualizerName] = qualifiedNames[visualizerName];
+        }
+      }
+      return eventClassNames;
+    }
+
+    private static void WriteEvent(AbstractEvent e) {
       Console.BackgroundColor = ConsoleColor.White;
       Console.ForegroundColor = ConsoleColor.Black;
       switch (e) {
@@ -210,6 +154,12 @@ namespace SeedLang.Shell {
             Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {valueString} ");
           }
           Console.Write($"= {ce.Result}");
+          break;
+        case Event.FuncCalled fce:
+          Console.Write($"FuncCalled: {fce.Name} {string.Join(",", fce.Args)}");
+          break;
+        case Event.FuncReturned fre:
+          Console.Write($"FuncReturned: {fre.Name} {fre.Result}");
           break;
         case Event.Unary ue: {
             var op = _unaryOperatorStrings[ue.Op];

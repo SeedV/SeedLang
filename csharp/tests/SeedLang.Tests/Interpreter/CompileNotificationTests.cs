@@ -37,7 +37,6 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
           $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  4    RETURN    0 0                                  \n" +
           $"Notifications\n" +
           $"  0    Notification.Assignment: 'name': Global 0 {_range}\n"
       ).Replace("\n", Environment.NewLine);
@@ -55,9 +54,46 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    ADD       1 -1 -2          ; 1 2               {_range}\n" +
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
           $"  4    CALL      0 1 0                                {_range}\n" +
-          $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
           $"  0    Notification.Binary: 250 Add 251 1 {_range}\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
+    public void TestCompileFuncCall() {
+      string add = "add";
+      string a = "a";
+      string b = "b";
+      var program = AstHelper.Block(
+          AstHelper.FuncDef(add, AstHelper.Params(a, b),
+                            AstHelper.Return(AstHelper.Binary(AstHelper.Id(a), BinaryOperator.Add,
+                                                              AstHelper.Id(b)))),
+          AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(add), AstHelper.NumberConstant(1),
+                                                  AstHelper.NumberConstant(2)))
+      );
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    LOADK     0 -1             ; Func <add>        {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  3    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  4    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  5    LOADK     2 -2             ; 1                 {_range}\n" +
+          $"  6    LOADK     3 -3             ; 2                 {_range}\n" +
+          $"  7    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  8    CALL      1 2 0                                {_range}\n" +
+          $"  9    VISNOTIFY 1 0                                  {_range}\n" +
+          $"  10   CALL      0 1 0                                {_range}\n" +
+          $"Notifications\n" +
+          $"  0    Notification.Function: add 1 2 {_range}\n" +
+          $"\n" +
+          $"Function <add>\n" +
+          $"  1    ADD       2 0 1                                {_range}\n" +
+          $"  2    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  3    RETURN    2 1                                  {_range}\n" +
+          $"  4    RETURN    0 0                                  {_range}\n" +
+          $"Notifications\n" +
+          $"  0    Notification.Binary: 0 Add 1 2 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -72,12 +108,12 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    UNM       1 -1             ; 1                 {_range}\n" +
           $"  3    VISNOTIFY 0 0                                  {_range}\n" +
           $"  4    CALL      0 1 0                                {_range}\n" +
-          $"  5    RETURN    0 0                                  \n" +
           $"Notifications\n" +
           $"  0    Notification.Unary: Negative 250 1 {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
+
 
     [Fact]
     public void TestCompileVTag() {
@@ -95,7 +131,6 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    VISNOTIFY 0 1                                  {_range}\n" +
           $"  5    CALL      0 1 0                                {_range}\n" +
           $"  6    VISNOTIFY 0 2                                  {_range}\n" +
-          $"  7    RETURN    0 0                                  \n" +
           $"Notifications\n" +
           $"  0    Notification.VTagEntered: Add {_range}\n" +
           $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
@@ -124,7 +159,6 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    VISNOTIFY 0 1                                  {_range}\n" +
           $"  5    CALL      0 1 0                                {_range}\n" +
           $"  6    VISNOTIFY 0 2                                  {_range}\n" +
-          $"  7    RETURN    0 0                                  \n" +
           $"Notifications\n" +
           $"  0    Notification.VTagEntered: Add(1,2) {_range}\n" +
           $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
@@ -167,7 +201,6 @@ namespace SeedLang.Interpreter.Tests {
           $"  11   ADD       2 -1 -2          ; 1 2               {_range}\n" +
           $"  12   VISNOTIFY 0 4                                  {_range}\n" +
           $"  13   VISNOTIFY 0 5                                  {_range}\n" +
-          $"  14   RETURN    0 0                                  \n" +
           $"Notifications\n" +
           $"  0    Notification.VTagEntered: Assign(x,1,y,1+2) {_range}\n" +
           $"  1    Notification.Binary: 250 Add 251 0 {_range}\n" +

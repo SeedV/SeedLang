@@ -1,3 +1,4 @@
+using System.Diagnostics;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,13 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
-using SeedLang.Common;
+using System;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  using Array = System.Array;
-  using Func = System.Func<uint, Value>;
+  using Range = Common.Range;
+  using Func = Func<uint, Value>;
 
   internal static class Notification {
     // The base class of all notification classes, which are used to store information for VISNOTIFY
@@ -31,7 +31,7 @@ namespace SeedLang.Interpreter {
         _range = range;
       }
 
-      internal abstract void Notify(VisualizerCenter visualizerCenter, Func getRKValue);
+      internal abstract void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data);
     }
 
     internal class Assignment : AbstractNotification {
@@ -51,7 +51,7 @@ namespace SeedLang.Interpreter {
         _valueId = valueId;
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data) {
         var ae = new Event.Assignment(_name, _type, new ValueWrapper(getRKValue(_valueId)), _range);
         visualizerCenter.Notify(ae);
       }
@@ -75,7 +75,7 @@ namespace SeedLang.Interpreter {
         _resultId = resultId;
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data) {
         var be = new Event.Binary(new ValueWrapper(getRKValue(_leftId)), _op,
                                   new ValueWrapper(getRKValue(_rightId)),
                                   new ValueWrapper(getRKValue(_resultId)), _range);
@@ -83,6 +83,45 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal class Function : AbstractNotification {
+      internal enum Status : uint {
+        Called,
+        Returned,
+      }
+
+      private readonly string _name;
+      private readonly uint _funcId;
+      private readonly uint _argLength;
+
+      public override string ToString() {
+        return $"Notification.Function: {_name} {_funcId} {_argLength} {_range}";
+      }
+
+      internal Function(string name, uint funcId, uint argLength, Range range) : base(range) {
+        _name = name;
+        _funcId = funcId;
+        _argLength = argLength;
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data) {
+        Debug.Assert(Enum.IsDefined(typeof(Status), data));
+        switch ((Status)data) {
+          case Status.Called:
+            var args = new ValueWrapper[_argLength];
+            uint argStartId = _funcId + 1;
+            for (uint i = 0; i < _argLength; i++) {
+              args[i] = new ValueWrapper(getRKValue(argStartId + i));
+            }
+            var fce = new Event.FuncCalled(_name, args, _range);
+            visualizerCenter.Notify(fce);
+            break;
+          case Status.Returned:
+            var fre = new Event.FuncReturned(_name, new ValueWrapper(getRKValue(_funcId)), _range);
+            visualizerCenter.Notify(fre);
+            break;
+        }
+      }
+    }
 
     internal class Unary : AbstractNotification {
       private readonly UnaryOperator _op;
@@ -100,7 +139,7 @@ namespace SeedLang.Interpreter {
         _resultId = resultId;
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data) {
         var ue = new Event.Unary(_op, new ValueWrapper(getRKValue(_valueId)),
                                  new ValueWrapper(getRKValue(_resultId)), _range);
         visualizerCenter.Notify(ue);
@@ -120,7 +159,7 @@ namespace SeedLang.Interpreter {
         _vTagInfos = vTagInfos;
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data) {
         visualizerCenter.Notify(new Event.VTagEntered(_vTagInfos, _range));
       }
     }
@@ -149,7 +188,7 @@ namespace SeedLang.Interpreter {
         _vTagInfos = vTagInfos;
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue) {
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data) {
         var vTags = Array.ConvertAll(_vTagInfos, vTag => {
           var values = Array.ConvertAll(vTag.ValueIds,
                                         valueId => new ValueWrapper(getRKValue(valueId)));

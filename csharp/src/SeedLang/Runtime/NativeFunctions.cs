@@ -36,6 +36,10 @@ namespace SeedLang.Runtime {
         new NativeFunction(Range, RangeFunc),
     };
 
+    internal static bool IsInternalFunction(string name) {
+      return name.StartsWith("__") && name.EndsWith("__");
+    }
+
     // Prints a value when it's not nil. It's used in interactive mode to print the result of an
     // expression statement.
     private static Value PrintValFunc(Value[] args, int offset, int length, Sys sys) {

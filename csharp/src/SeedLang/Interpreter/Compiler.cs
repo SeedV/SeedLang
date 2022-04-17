@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Ast;
@@ -19,7 +20,7 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  using Array = System.Array;
+  using Range = Common.Range;
 
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
@@ -50,6 +51,9 @@ namespace SeedLang.Interpreter {
     // operator is "And", otherwise a false condition instruction check is emitted.
     private BooleanOperator _nextBooleanOp;
 
+    // The range of the statement that is just compiled.
+    private Range _rangeOfPrevStatement = null;
+
     // The chunk on the top of the function stack.
     private Chunk _chunk;
     // The constant cache on the top of the function stack.
@@ -66,7 +70,6 @@ namespace SeedLang.Interpreter {
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
       Visit(node);
-      _chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
       return _nestedFuncStack.PopFunc();
     }
 
@@ -218,7 +221,7 @@ namespace SeedLang.Interpreter {
             _registerForSubExpr = _variableResolver.AllocateRegister();
             Visit(expr);
           }
-          _chunk.Emit(Opcode.CALL, funcRegister, (uint)call.Arguments.Length, 0, call.Range);
+          EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
           if (needRegister) {
             _chunk.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
           }
@@ -230,6 +233,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(AssignmentStatement assignment) {
+      _rangeOfPrevStatement = assignment.Range;
       if (assignment.Exprs.Length == 1) {
         Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
       } else {
@@ -238,12 +242,14 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(BlockStatement block) {
+      _rangeOfPrevStatement = block.Range;
       foreach (Statement statement in block.Statements) {
         Visit(statement);
       }
     }
 
     protected override void Visit(ExpressionStatement expr) {
+      _rangeOfPrevStatement = expr.Range;
       _variableResolver.BeginExpressionScope();
       _registerForSubExpr = _variableResolver.AllocateRegister();
       switch (_runMode) {
@@ -259,6 +265,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ForInStatement forIn) {
+      _rangeOfPrevStatement = forIn.Range;
       VariableResolver.VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
 
       _variableResolver.BeginBlockScope();
@@ -299,6 +306,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(FuncDefStatement funcDef) {
+      _rangeOfPrevStatement = funcDef.Range;
       VariableResolver.VariableInfo info = DefineVariableIfNeeded(funcDef.Name);
       PushFunc(funcDef.Name);
       foreach (string parameterName in funcDef.Parameters) {
@@ -306,7 +314,8 @@ namespace SeedLang.Interpreter {
       }
       Visit(funcDef.Body);
       // Emits a default return opcode.
-      _chunk.Emit(Opcode.RETURN, 0, 0, 0, null);
+      var range = _rangeOfPrevStatement is null ? new TextRange(1, 0, 1, 0) : _rangeOfPrevStatement;
+      _chunk.Emit(Opcode.RETURN, 0, 0, 0, range);
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
@@ -327,6 +336,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(IfStatement @if) {
+      _rangeOfPrevStatement = @if.Range;
       _nestedJumpStack.PushFrame();
       VisitTest(@if.Test);
       PatchJumps(_nestedJumpStack.TrueJumps);
@@ -343,9 +353,12 @@ namespace SeedLang.Interpreter {
       _nestedJumpStack.PopFrame();
     }
 
-    protected override void Visit(PassStatement pass) { }
+    protected override void Visit(PassStatement pass) {
+      _rangeOfPrevStatement = pass.Range;
+    }
 
     protected override void Visit(ReturnStatement @return) {
+      _rangeOfPrevStatement = @return.Range;
       if (@return.Exprs.Length == 0) {
         _chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
       } else if (@return.Exprs.Length == 1) {
@@ -368,6 +381,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(WhileStatement @while) {
+      _rangeOfPrevStatement = @while.Range;
       _nestedJumpStack.PushFrame();
       int start = GetCurrentCodePos();
       VisitTest(@while.Test);
@@ -378,6 +392,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(VTagStatement vTag) {
+      _rangeOfPrevStatement = vTag.Range;
       EmitVTagEnteredNotification(CreateVTagEnteredInfo(vTag), vTag.Range);
       foreach (Statement statement in vTag.Statements) {
         Visit(statement);
@@ -411,7 +426,7 @@ namespace SeedLang.Interpreter {
       return vTagInfos;
     }
 
-    private void VisitBooleanOrComparisonExpression(System.Action action, Range range) {
+    private void VisitBooleanOrComparisonExpression(Action action, Range range) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
       // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
       // part of the test condition of if or while statements.
@@ -686,6 +701,26 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
+    // for the FuncCalled event.
+    private void EmitCall(string name, uint funcRegister, uint argLength, Range range) {
+      bool isNormalFunc = !NativeFunctions.IsInternalFunction(name);
+      bool notifyCalled = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncCalled>();
+      bool notifyReturned = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncReturned>();
+      uint nId = 0;
+      if (notifyCalled || notifyReturned) {
+        var notification = new Notification.Function(name, funcRegister, argLength, range);
+        nId = _chunk.AddNotification(notification);
+      }
+      if (notifyCalled) {
+        _chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Called, nId, range);
+      }
+      _chunk.Emit(Opcode.CALL, funcRegister, argLength, 0, range);
+      if (notifyReturned) {
+        _chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
+      }
+    }
+
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
         var notification = new Notification.Assignment(name, type, valueId, range);
@@ -740,7 +775,7 @@ namespace SeedLang.Interpreter {
         case BinaryOperator.Modulo:
           return Opcode.MOD;
         default:
-          throw new System.NotImplementedException($"Operator {op} not implemented.");
+          throw new NotImplementedException($"Operator {op} not implemented.");
       }
     }
 
@@ -761,7 +796,7 @@ namespace SeedLang.Interpreter {
         case ComparisonOperator.In:
           return (Opcode.IN, true);
         default:
-          throw new System.NotImplementedException($"Operator {op} not implemented.");
+          throw new NotImplementedException($"Operator {op} not implemented.");
       }
     }
   }

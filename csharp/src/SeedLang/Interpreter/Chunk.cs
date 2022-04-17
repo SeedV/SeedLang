@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   using AbstractNotification = Notification.AbstractNotification;
+  using Range = Common.Range;
 
   // A data structure to hold bytecode and constants generated from the AST tree by the compiler.
   internal class Chunk {
@@ -52,18 +53,27 @@ namespace SeedLang.Interpreter {
 
     // Emits an instruction with the opcode of type ABC.
     internal void Emit(Opcode opcode, uint a, uint b, uint c, Range range) {
+      if (range is null) {
+        throw new ArgumentNullException(nameof(range));
+      }
       _bytecode.Add(new Instruction(opcode, a, b, c));
       _ranges.Add(range);
     }
 
     // Emits an instruction with the opcode of type ABx.
     internal void Emit(Opcode opcode, uint a, uint bx, Range range) {
+      if (range is null) {
+        throw new ArgumentNullException(nameof(range));
+      }
       _bytecode.Add(new Instruction(opcode, a, bx));
       _ranges.Add(range);
     }
 
     // Emits an instruction with the opcode of type SBx.
     internal void Emit(Opcode opcode, uint a, int sbx, Range range) {
+      if (range is null) {
+        throw new ArgumentNullException(nameof(range));
+      }
       _bytecode.Add(new Instruction(opcode, a, sbx));
       _ranges.Add(range);
     }

@@ -19,12 +19,15 @@ using SeedLang.Runtime;
 namespace SeedLang.Tests.Helper {
   internal class MockupVisualizer : IVisualizer<Event.Assignment>, IVisualizer<Event.Binary>,
                                     IVisualizer<Event.Boolean>, IVisualizer<Event.Comparison>,
+                                    IVisualizer<Event.FuncCalled>, IVisualizer<Event.FuncReturned>,
                                     IVisualizer<Event.Unary>, IVisualizer<Event.VTagEntered>,
                                     IVisualizer<Event.VTagExited> {
     private readonly List<Event.Assignment> _assignEvents = new List<Event.Assignment>();
     private readonly List<Event.Binary> _binaryEvents = new List<Event.Binary>();
     private readonly List<Event.Boolean> _booleanEvents = new List<Event.Boolean>();
     private readonly List<Event.Comparison> _comparisonEvents = new List<Event.Comparison>();
+    private readonly List<Event.FuncCalled> _funcCalledEvents = new List<Event.FuncCalled>();
+    private readonly List<Event.FuncReturned> _funcReturnedEvents = new List<Event.FuncReturned>();
     private readonly List<Event.Unary> _unaryEvents = new List<Event.Unary>();
     private readonly List<Event.VTagEntered> _vTagEnteredEvents = new List<Event.VTagEntered>();
     private readonly List<Event.VTagExited> _vTagExitedEvents = new List<Event.VTagExited>();
@@ -55,6 +58,14 @@ namespace SeedLang.Tests.Helper {
 
     public void On(Event.Comparison ce) {
       _comparisonEvents.Add(ce);
+    }
+
+    public void On(Event.FuncCalled fce) {
+      _funcCalledEvents.Add(fce);
+    }
+
+    public void On(Event.FuncReturned fre) {
+      _funcReturnedEvents.Add(fre);
     }
 
     public void On(Event.Unary ue) {

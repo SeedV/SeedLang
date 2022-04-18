@@ -56,15 +56,17 @@ namespace SeedLang.Shell {
       if (engine.Compile(source.Source, "", collection)) {
         source.WriteSourceWithTokens(engine.SemanticTokens);
         Console.WriteLine();
-        Console.WriteLine("---------- Run ----------");
         switch (runType) {
           case RunType.DumpAst:
-            engine.DumpAst();
+            Console.WriteLine("---------- Ast ----------");
+            Console.WriteLine(engine.DumpAst());
             break;
           case RunType.Disassemble:
-            engine.Disassemble();
+            Console.WriteLine("---------- Disassemble ----------");
+            Console.WriteLine(engine.Disassemble());
             break;
           case RunType.Execute:
+            Console.WriteLine("---------- Run ----------");
             engine.Run(collection);
             break;
         }

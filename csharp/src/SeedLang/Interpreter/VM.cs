@@ -14,7 +14,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -188,10 +187,11 @@ namespace SeedLang.Interpreter {
                 _stack[returnRegister] = instr.B > 0 ? _stack[baseRegister + instr.A] : new Value();
               }
               _callStack.PopFunc();
-              Debug.Assert(!_callStack.IsEmpty);
-              chunk = _callStack.CurrentChunk();
-              baseRegister = _callStack.CurrentBase();
-              pc = _callStack.CurrentPC();
+              if (!_callStack.IsEmpty) {
+                chunk = _callStack.CurrentChunk();
+                baseRegister = _callStack.CurrentBase();
+                pc = _callStack.CurrentPC();
+              }
               break;
             case Opcode.VISNOTIFY:
               chunk.Notifications[(int)instr.Bx].Notify(VisualizerCenter, (uint id) => {

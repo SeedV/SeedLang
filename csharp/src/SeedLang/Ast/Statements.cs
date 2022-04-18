@@ -30,6 +30,16 @@ namespace SeedLang.Ast {
       return new BlockStatement(statements, range);
     }
 
+    // The factory method to create break statements.
+    internal static BreakStatement Break(Range range) {
+      return new BreakStatement(range);
+    }
+
+    // The factory method to create continue statements.
+    internal static ContinueStatement Continue(Range range) {
+      return new ContinueStatement(range);
+    }
+
     // The factory method to create expression statements.
     internal static ExpressionStatement Expression(Expression expr, Range range) {
       return new ExpressionStatement(expr, range);
@@ -98,6 +108,14 @@ namespace SeedLang.Ast {
     internal BlockStatement(Statement[] statements, Range range) : base(range) {
       Statements = statements;
     }
+  }
+
+  internal class BreakStatement : Statement {
+    internal BreakStatement(Range range) : base(range) { }
+  }
+
+  internal class ContinueStatement : Statement {
+    internal ContinueStatement(Range range) : base(range) { }
   }
 
   internal class ExpressionStatement : Statement {

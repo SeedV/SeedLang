@@ -47,8 +47,8 @@ simple_stmt:
   | expressions # expression_stmt
   | return_stmt # return_stmt_placeholder
   | PASS        # pass
-  | 'break'     # break
-  | 'continue'  # continue;
+  | BREAK       # break
+  | CONTINUE    # continue;
 
 compound_stmt:
   function_def
@@ -111,6 +111,8 @@ WHILE: 'while';
 DEF: 'def';
 RETURN: 'return';
 PASS: 'pass';
+BREAK: 'break';
+CONTINUE: 'continue';
 
 SEMICOLON: ';';
 

@@ -29,6 +29,7 @@ namespace SeedLang.Interpreter {
     private VariableResolver _variableResolver;
     private NestedFuncStack _nestedFuncStack;
     private NestedJumpStack _nestedJumpStack;
+    private NestedLoopStack _nestedLoopStack;
 
     // The register allocated for the result of sub-expressions. The getter resets the storage to
     // null after getting the value to make sure the result register is set before visiting each
@@ -66,10 +67,12 @@ namespace SeedLang.Interpreter {
       _variableResolver = new VariableResolver(env);
       _nestedFuncStack = new NestedFuncStack();
       _nestedJumpStack = new NestedJumpStack();
+      _nestedLoopStack = new NestedLoopStack();
       // Starts to parse the main function in the global scope.
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
       Visit(node);
+      EmitDefaultReturn();
       return _nestedFuncStack.PopFunc();
     }
 
@@ -248,6 +251,15 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    protected override void Visit(BreakStatement @break) {
+      _chunk.Emit(Opcode.JMP, 0, 0, @break.Range);
+      _nestedLoopStack.AddBreakJump(GetCurrentCodePos());
+    }
+
+    // TODO: implement continue statements.
+    protected override void Visit(ContinueStatement @continue) {
+    }
+
     protected override void Visit(ExpressionStatement expr) {
       _rangeOfPrevStatement = expr.Range;
       _variableResolver.BeginExpressionScope();
@@ -265,6 +277,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(ForInStatement forIn) {
+      _nestedLoopStack.PushLoopFrame();
       _rangeOfPrevStatement = forIn.Range;
       VariableResolver.VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
 
@@ -300,9 +313,11 @@ namespace SeedLang.Interpreter {
           break;
       }
       Visit(forIn.Body);
-      _chunk.PatchSBXAt(bodyStart - 1, _chunk.Bytecode.Count - bodyStart);
+      PatchJumpToCurrentPos(bodyStart - 1);
       _chunk.Emit(Opcode.FORLOOP, index, bodyStart - (_chunk.Bytecode.Count + 1), forIn.Range);
       _variableResolver.EndBlockScope();
+      PatchJumps(_nestedLoopStack.BreaksJumps);
+      _nestedLoopStack.PopLoopFrame();
     }
 
     protected override void Visit(FuncDefStatement funcDef) {
@@ -313,9 +328,8 @@ namespace SeedLang.Interpreter {
         _variableResolver.DefineVariable(parameterName);
       }
       Visit(funcDef.Body);
-      // Emits a default return opcode.
-      var range = _rangeOfPrevStatement is null ? new TextRange(1, 0, 1, 0) : _rangeOfPrevStatement;
-      _chunk.Emit(Opcode.RETURN, 0, 0, 0, range);
+      EmitDefaultReturn();
+
       Function func = PopFunc();
       uint funcId = _constantCache.IdOfConstant(func);
       switch (info.Type) {
@@ -346,7 +360,7 @@ namespace SeedLang.Interpreter {
         int jumpEndPos = GetCurrentCodePos();
         PatchJumps(_nestedJumpStack.FalseJumps);
         Visit(@if.ElseBody);
-        PatchJump(jumpEndPos);
+        PatchJumpToCurrentPos(jumpEndPos);
       } else {
         PatchJumps(_nestedJumpStack.FalseJumps);
       }
@@ -381,6 +395,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void Visit(WhileStatement @while) {
+      _nestedLoopStack.PushLoopFrame();
       _rangeOfPrevStatement = @while.Range;
       _nestedJumpStack.PushFrame();
       int start = GetCurrentCodePos();
@@ -389,6 +404,8 @@ namespace SeedLang.Interpreter {
       _chunk.Emit(Opcode.JMP, 0, start - GetCurrentCodePos() - 1, @while.Range);
       PatchJumps(_nestedJumpStack.FalseJumps);
       _nestedJumpStack.PopFrame();
+      PatchJumps(_nestedLoopStack.BreaksJumps);
+      _nestedLoopStack.PopLoopFrame();
     }
 
     protected override void Visit(VTagStatement vTag) {
@@ -627,12 +644,12 @@ namespace SeedLang.Interpreter {
 
     private void PatchJumps(List<int> jumps) {
       foreach (int jump in jumps) {
-        PatchJump(jump);
+        PatchJumpToCurrentPos(jump);
       }
       jumps.Clear();
     }
 
-    private void PatchJump(int jump) {
+    private void PatchJumpToCurrentPos(int jump) {
       _chunk.PatchSBXAt(jump, _chunk.Bytecode.Count - jump - 1);
     }
 
@@ -719,6 +736,11 @@ namespace SeedLang.Interpreter {
       if (notifyReturned) {
         _chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
       }
+    }
+
+    private void EmitDefaultReturn() {
+      var range = _rangeOfPrevStatement is null ? new TextRange(1, 0, 1, 0) : _rangeOfPrevStatement;
+      _chunk.Emit(Opcode.RETURN, 0, 0, 0, range);
     }
 
     private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {

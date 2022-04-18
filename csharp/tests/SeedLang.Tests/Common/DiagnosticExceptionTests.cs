@@ -19,16 +19,16 @@ namespace SeedLang.Common.Tests {
     [Fact]
     public void TestDiagnosticException() {
       try {
-        throw new DiagnosticException(SystemReporters.SeedBlock, Severity.Error, "Main",
-                                      new BlockRange("1"), Message.Okay);
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "Main",
+                                      new TextRange(1, 0, 1, 1), Message.Okay);
       } catch (DiagnosticException e) {
-        Assert.Equal(e.Diagnostic.Range, new BlockRange("1"));
+        Assert.Equal(e.Diagnostic.Range, new TextRange(1, 0, 1, 1));
         Assert.Equal(Message.Okay, e.Diagnostic.MessageId);
       }
 
       try {
-        throw new DiagnosticException(SystemReporters.SeedBlock, Severity.Error, "Main",
-                                      new BlockRange("2"),
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "Main",
+                                      new TextRange(1, 0, 1, 1),
                                       Message.ExampleMessageWithOneArgument1, "arg1");
       } catch (DiagnosticException e) {
         Assert.Contains("arg1", e.Diagnostic.LocalizedMessage);

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 namespace SeedLang {
-  // The running mode of SeedBlock and SeedX source code.
+  // The running mode of SeedX source code.
   //
   // The only difference between interactive and script mode is that the evaluated value of
   // expression statements will be printed if it's not nil in the interactive mode.

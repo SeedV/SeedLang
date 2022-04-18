@@ -13,9 +13,8 @@
 // limitations under the License.
 
 namespace SeedLang.Runtime {
-  // All supported languages include block inline text and other SeedX languages.
+  // Supported SeedX languages.
   public enum SeedXLanguage {
-    SeedBlockInlineText,
     SeedCalc,
     SeedPython,
   }

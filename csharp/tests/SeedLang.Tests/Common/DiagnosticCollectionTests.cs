@@ -29,13 +29,13 @@ namespace SeedLang.Common.Tests {
                          Message.Okay,
                          Message.Okay.Get()));
       Assert.Single(collection.Diagnostics);
-      collection.Report(SystemReporters.SeedBlock,
+      collection.Report(SystemReporters.SeedAst,
                         Severity.Warning,
                         "module2",
                         null,
                         Message.Okay);
       Assert.Equal(2, collection.Diagnostics.Count);
-      collection.Report(SystemReporters.SeedBlock,
+      collection.Report(SystemReporters.SeedAst,
                         Severity.Warning,
                         "module3",
                         null,
@@ -43,7 +43,7 @@ namespace SeedLang.Common.Tests {
                         "arg1");
       Assert.Equal(3, collection.Diagnostics.Count);
       Assert.Contains("arg1", collection.Diagnostics[2].LocalizedMessage);
-      collection.Report(SystemReporters.SeedBlock,
+      collection.Report(SystemReporters.SeedRuntime,
                         Severity.Warning,
                         "module4",
                         null,
@@ -64,10 +64,10 @@ namespace SeedLang.Common.Tests {
       collection.Report(SystemReporters.SeedAst, Severity.Info,
                         "module2", null,
                         Message.Okay);
-      collection.Report(SystemReporters.SeedBlock, Severity.Fatal,
+      collection.Report(SystemReporters.SeedRuntime, Severity.Fatal,
                         "module3", null,
                         Message.Okay);
-      collection.Report(SystemReporters.SeedBlock, Severity.Warning,
+      collection.Report(SystemReporters.SeedRuntime, Severity.Warning,
                         "module4", null,
                         Message.Okay);
       var query1 = from diagnostic in collection.Diagnostics
@@ -93,8 +93,8 @@ namespace SeedLang.Common.Tests {
       Assert.Equal(SystemReporters.SeedAst, list31[1].Reporter);
       var list32 = list3[1].ToList();
       Assert.Equal(2, list32.Count);
-      Assert.Equal(SystemReporters.SeedBlock, list32[0].Reporter);
-      Assert.Equal(SystemReporters.SeedBlock, list32[1].Reporter);
+      Assert.Equal(SystemReporters.SeedRuntime, list32[0].Reporter);
+      Assert.Equal(SystemReporters.SeedRuntime, list32[1].Reporter);
     }
   }
 }

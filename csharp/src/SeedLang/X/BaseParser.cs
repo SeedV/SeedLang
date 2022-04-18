@@ -19,7 +19,7 @@ using SeedLang.Ast;
 using SeedLang.Common;
 
 namespace SeedLang.X {
-  // The abstract base class of all SeedX language parsers and the SeedBlock inline text parser.
+  // The abstract base class of all SeedX language parsers.
   //
   // It provides interfaces to validate the source code, and parse it into an AST tree based on the
   // predefined rules.

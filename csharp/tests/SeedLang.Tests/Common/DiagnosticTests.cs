@@ -21,9 +21,9 @@ namespace SeedLang.Common.Tests {
       string ts = Utils.Timestamp();
       var diagnostic = new Diagnostic(null, Severity.Error, null, null, Message.Okay, null);
       Assert.Equal("Error () <> [] 0: ", diagnostic.ToString().Substring(ts.Length + 1));
-      diagnostic = new Diagnostic(SystemReporters.SeedBlock, Severity.Info,
+      diagnostic = new Diagnostic(SystemReporters.SeedAst, Severity.Info,
                                   "main", null, Message.Okay, "A sample message.");
-      Assert.Equal("Info (SeedLang.Block) <main> [] 0: A sample message.",
+      Assert.Equal("Info (SeedLang.Ast) <main> [] 0: A sample message.",
                    diagnostic.ToString().Substring(ts.Length + 1));
       diagnostic = new Diagnostic(SystemReporters.SeedX, Severity.Info,
                                   "main", new TextRange(1, 1, 1, 3),

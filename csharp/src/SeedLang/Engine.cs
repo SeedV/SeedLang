@@ -121,8 +121,6 @@ namespace SeedLang {
 
     private static BaseParser MakeParser(SeedXLanguage language) {
       switch (language) {
-        case SeedXLanguage.SeedBlockInlineText:
-          return new SeedBlockInlineText();
         case SeedXLanguage.SeedCalc:
           return new SeedCalc();
         case SeedXLanguage.SeedPython:

@@ -41,20 +41,5 @@ namespace SeedLang.Common.Tests {
     public void TestTextPositionToString(int line, int column, string desc) {
       Assert.Equal(desc, new TextPosition(line, column).ToString());
     }
-
-    [Fact]
-    public void TestBlockPositions() {
-      Assert.True(new BlockPosition("001").Equals(new BlockPosition("001")));
-      Assert.True(new BlockPosition("001") == new BlockPosition("001"));
-      Assert.False(new BlockPosition("001").Equals(new BlockPosition("002")));
-      Assert.True(new BlockPosition("001") != new BlockPosition("002"));
-    }
-
-    [Theory]
-    [InlineData("001", "Block: 001")]
-    [InlineData("someId", "Block: someId")]
-    public void TestBlockPositionToString(string blockId, string desc) {
-      Assert.Equal(desc, new BlockPosition(blockId).ToString());
-    }
   }
 }

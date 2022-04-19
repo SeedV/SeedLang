@@ -91,6 +91,12 @@ namespace SeedLang.Ast {
         case BlockStatement block:
           Visit(block);
           break;
+        case BreakStatement @break:
+          Visit(@break);
+          break;
+        case ContinueStatement @continue:
+          Visit(@continue);
+          break;
         case ExpressionStatement expr:
           Visit(expr);
           break;
@@ -138,6 +144,8 @@ namespace SeedLang.Ast {
 
     protected abstract void Visit(AssignmentStatement assignment);
     protected abstract void Visit(BlockStatement block);
+    protected abstract void Visit(BreakStatement @break);
+    protected abstract void Visit(ContinueStatement @continue);
     protected abstract void Visit(ExpressionStatement expr);
     protected abstract void Visit(ForInStatement forIn);
     protected abstract void Visit(FuncDefStatement funcDef);

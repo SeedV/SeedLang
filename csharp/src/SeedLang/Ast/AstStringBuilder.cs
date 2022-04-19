@@ -228,6 +228,16 @@ namespace SeedLang.Ast {
       Exit();
     }
 
+    protected override void Visit(BreakStatement @break) {
+      Enter(@break);
+      Exit();
+    }
+
+    protected override void Visit(ContinueStatement @continue) {
+      Enter(@continue);
+      Exit();
+    }
+
     protected override void Visit(ExpressionStatement expr) {
       Enter(expr);
       Visit(expr.Expr);

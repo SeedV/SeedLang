@@ -55,7 +55,15 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitPass([NotNull] SeedPythonParser.PassContext context) {
-      return _helper.BuildPass(context.PASS().Symbol);
+      return _helper.BuildTokenOnlyStatement(context.PASS().Symbol, Statement.Pass);
+    }
+
+    public override AstNode VisitBreak([NotNull] SeedPythonParser.BreakContext context) {
+      return _helper.BuildTokenOnlyStatement(context.BREAK().Symbol, Statement.Break);
+    }
+
+    public override AstNode VisitContinue([NotNull] SeedPythonParser.ContinueContext context) {
+      return _helper.BuildTokenOnlyStatement(context.CONTINUE().Symbol, Statement.Continue);
     }
 
     public override AstNode VisitSingle_line_vtag_stmt(

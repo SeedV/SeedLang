@@ -498,6 +498,42 @@ namespace SeedLang.X.Tests {
       TestPythonParser(source, expected, expectedTokens);
     }
 
+    [Fact]
+    public void TestBreak() {
+      string source = "while True:\n" +
+                      "  break";
+      string expected = "[Ln 1, Col 0 - Ln 2, Col 6] WhileStatement\n" +
+                        "  [Ln 1, Col 6 - Ln 1, Col 9] BooleanConstantExpression (True)\n" +
+                        "  [Ln 2, Col 2 - Ln 2, Col 6] BreakStatement";
+      string expectedTokens = "Keyword [Ln 1, Col 0 - Ln 1, Col 4]," +
+                              "Boolean [Ln 1, Col 6 - Ln 1, Col 9]," +
+                              "Symbol [Ln 1, Col 10 - Ln 1, Col 10]," +
+                              "Keyword [Ln 2, Col 2 - Ln 2, Col 6]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
+
+    [Fact]
+    public void TestContinue() {
+      string source = "for i in range(10):\n" +
+                      "  continue";
+      string expected = "[Ln 1, Col 0 - Ln 2, Col 9] ForInStatement\n" +
+                        "  [Ln 1, Col 4 - Ln 1, Col 4] IdentifierExpression (i)\n" +
+                        "  [Ln 1, Col 9 - Ln 1, Col 17] CallExpression\n" +
+                        "    [Ln 1, Col 9 - Ln 1, Col 13] IdentifierExpression (range)\n" +
+                        "    [Ln 1, Col 15 - Ln 1, Col 16] NumberConstantExpression (10)\n" +
+                        "  [Ln 2, Col 2 - Ln 2, Col 9] ContinueStatement";
+      string expectedTokens = "Keyword [Ln 1, Col 0 - Ln 1, Col 2]," +
+                              "Variable [Ln 1, Col 4 - Ln 1, Col 4]," +
+                              "Keyword [Ln 1, Col 6 - Ln 1, Col 7]," +
+                              "Variable [Ln 1, Col 9 - Ln 1, Col 13]," +
+                              "OpenParenthesis [Ln 1, Col 14 - Ln 1, Col 14]," +
+                              "Number [Ln 1, Col 15 - Ln 1, Col 16]," +
+                              "CloseParenthesis [Ln 1, Col 17 - Ln 1, Col 17]," +
+                              "Symbol [Ln 1, Col 18 - Ln 1, Col 18]," +
+                              "Keyword [Ln 2, Col 2 - Ln 2, Col 9]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
+
     private static void TestPythonParser(string input, string expected, string expectedTokens) {
       var collection = new DiagnosticCollection();
       Assert.True(new SeedPython().Parse(input, "", collection, out AstNode node,

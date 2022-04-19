@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -22,7 +23,7 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.X {
-  using Array = System.Array;
+  using Range = Common.Range;
   using VTagInfo = VTagStatement.VTagInfo;
 
   // A helper class to build AST nodes from parser tree contexts.
@@ -541,11 +542,11 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Builds pass statements.
-    internal AstNode BuildPass(IToken passToken) {
-      TextRange range = CodeReferenceUtils.RangeOfToken(passToken);
+    // Builds token only statements like pass, break, and continue.
+    internal S BuildTokenOnlyStatement<S>(IToken token, Func<Range, S> statementCreator) {
+      TextRange range = CodeReferenceUtils.RangeOfToken(token);
       AddSemanticToken(TokenType.Keyword, range);
-      return Statement.Pass(range);
+      return statementCreator(range);
     }
 
     // Builds while statements.
@@ -566,7 +567,7 @@ namespace SeedLang.X {
     }
 
     // Builds VTag statements.
-    // 
+    //
     // Semantic tokens are not parsed for names and arguments of VTags.
     internal AstNode BuildVTag(IToken startToken, IToken[] names, ParserRuleContext[][] argContexts,
                                IToken endToken, ParserRuleContext[] statementContexts,

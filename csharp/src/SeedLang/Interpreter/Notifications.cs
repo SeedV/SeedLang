@@ -15,9 +15,9 @@ using System.Diagnostics;
 
 using System;
 using SeedLang.Runtime;
+using SeedLang.Common;
 
 namespace SeedLang.Interpreter {
-  using Range = Common.Range;
   using Func = Func<uint, Value>;
 
   internal static class Notification {
@@ -25,9 +25,9 @@ namespace SeedLang.Interpreter {
     // instruction. The VM will create the correspding event object based on the information and
     // send to visualizers.
     internal abstract class AbstractNotification {
-      protected readonly Range _range;
+      protected readonly TextRange _range;
 
-      internal AbstractNotification(Range range) {
+      internal AbstractNotification(TextRange range) {
         _range = range;
       }
 
@@ -44,7 +44,7 @@ namespace SeedLang.Interpreter {
         return $"Notification.Assignment: '{_name}': {_type} {_valueId} {_range}";
       }
 
-      internal Assignment(string name, VariableType type, uint valueId, Range range) :
+      internal Assignment(string name, VariableType type, uint valueId, TextRange range) :
           base(range) {
         _name = name;
         _type = type;
@@ -68,7 +68,7 @@ namespace SeedLang.Interpreter {
       }
 
       internal Binary(uint leftId, BinaryOperator op, uint rightId, uint resultId,
-                                  Range range) : base(range) {
+                      TextRange range) : base(range) {
         _leftId = leftId;
         _op = op;
         _rightId = rightId;
@@ -97,7 +97,7 @@ namespace SeedLang.Interpreter {
         return $"Notification.Function: {_name} {_funcId} {_argLength} {_range}";
       }
 
-      internal Function(string name, uint funcId, uint argLength, Range range) : base(range) {
+      internal Function(string name, uint funcId, uint argLength, TextRange range) : base(range) {
         _name = name;
         _funcId = funcId;
         _argLength = argLength;
@@ -132,7 +132,7 @@ namespace SeedLang.Interpreter {
         return $"Notification.Unary: {_op} {_valueId} {_resultId} {_range}";
       }
 
-      internal Unary(UnaryOperator op, uint valueId, uint resultId, Range range) :
+      internal Unary(UnaryOperator op, uint valueId, uint resultId, TextRange range) :
           base(range) {
         _op = op;
         _valueId = valueId;
@@ -154,7 +154,7 @@ namespace SeedLang.Interpreter {
         return $"Notification.VTagEntered: {vTagInfoStr} {_range}";
       }
 
-      internal VTagEntered(Event.VTagEntered.VTagInfo[] vTagInfos, Range range) :
+      internal VTagEntered(Event.VTagEntered.VTagInfo[] vTagInfos, TextRange range) :
           base(range) {
         _vTagInfos = vTagInfos;
       }
@@ -184,7 +184,7 @@ namespace SeedLang.Interpreter {
         return $"Notification.VTagExited: {string.Join<VTagInfo>(",", _vTagInfos)} {_range}";
       }
 
-      internal VTagExited(VTagInfo[] vTagInfos, Range range) : base(range) {
+      internal VTagExited(VTagInfo[] vTagInfos, TextRange range) : base(range) {
         _vTagInfos = vTagInfos;
       }
 

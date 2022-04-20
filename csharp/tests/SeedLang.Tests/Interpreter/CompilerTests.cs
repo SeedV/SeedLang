@@ -27,7 +27,7 @@ namespace SeedLang.Interpreter.Tests {
           return func.Name == NativeFunctions.PrintVal;
         });
     private readonly int _firstGlob = NativeFunctions.Funcs.Length;
-    private readonly Common.Range _range = AstHelper.TextRange;
+    private readonly TextRange _range = AstHelper.TextRange;
 
     [Fact]
     public void TestCompileNilConstant() {

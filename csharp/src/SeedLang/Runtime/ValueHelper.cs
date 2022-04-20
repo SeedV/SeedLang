@@ -212,7 +212,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal static void CheckOverflow(double value, Range range = null) {
+    internal static void CheckOverflow(double value, TextRange range = null) {
       // TODO: do we need separate NaN as another runtime error?
       if (double.IsInfinity(value) || double.IsNaN(value)) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", range,

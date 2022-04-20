@@ -23,7 +23,6 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.X {
-  using Range = Common.Range;
   using VTagInfo = VTagStatement.VTagInfo;
 
   // A helper class to build AST nodes from parser tree contexts.
@@ -46,10 +45,7 @@ namespace SeedLang.X {
         AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
         if (visitor.Visit(rightContext) is Expression right) {
           if (range is null) {
-            Debug.Assert(left.Range is TextRange);
-            Debug.Assert(right.Range is TextRange);
-            range = CodeReferenceUtils.CombineRanges(left.Range as TextRange,
-                                                     right.Range as TextRange);
+            range = CodeReferenceUtils.CombineRanges(left.Range, right.Range);
           }
           return Expression.Binary(left, op, right, range);
         }
@@ -364,10 +360,7 @@ namespace SeedLang.X {
       if (visitor.Visit(targetContext) is Expression target) {
         AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
         if (visitor.Visit(exprContext) is Expression expr) {
-          Debug.Assert(target.Range is TextRange);
-          Debug.Assert(expr.Range is TextRange);
-          Range range = CodeReferenceUtils.CombineRanges(target.Range as TextRange,
-                                                         expr.Range as TextRange);
+          TextRange range = CodeReferenceUtils.CombineRanges(target.Range, expr.Range);
           Expression binary = Expression.Binary(target, op, expr, range);
           return Statement.Assignment(new Expression[] { target }, new Expression[] { binary },
                                       range);
@@ -403,11 +396,8 @@ namespace SeedLang.X {
       }
       Expression[] exprs = BuildExpressions(exprContexts, commaNodes, visitor);
       Debug.Assert(exprs.Length > 1);
-      Debug.Assert(exprs[0].Range is TextRange);
-      Debug.Assert(exprs[exprs.Length - 1].Range is TextRange);
-      var firstRange = exprs[0].Range as TextRange;
-      var lastRange = exprs[exprs.Length - 1].Range as TextRange;
-      TextRange range = CodeReferenceUtils.CombineRanges(firstRange, lastRange);
+      TextRange range = CodeReferenceUtils.CombineRanges(exprs[0].Range,
+                                                         exprs[exprs.Length - 1].Range);
       return Statement.Expression(Expression.Tuple(exprs, range), range);
     }
 
@@ -435,8 +425,7 @@ namespace SeedLang.X {
       AddSemanticToken(TokenType.CloseParenthesis, CodeReferenceUtils.RangeOfToken(closeParenToken));
       AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
       if (visitor.Visit(blockContext) is Statement block) {
-        Debug.Assert(block.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(defRange, block.Range as TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(defRange, block.Range);
         return Statement.FuncDef(nameToken.Text, arguments, block, range);
       }
       return null;
@@ -543,7 +532,7 @@ namespace SeedLang.X {
     }
 
     // Builds token only statements like pass, break, and continue.
-    internal S BuildTokenOnlyStatement<S>(IToken token, Func<Range, S> statementCreator) {
+    internal S BuildTokenOnlyStatement<S>(IToken token, Func<TextRange, S> statementCreator) {
       TextRange range = CodeReferenceUtils.RangeOfToken(token);
       AddSemanticToken(TokenType.Keyword, range);
       return statementCreator(range);
@@ -608,8 +597,7 @@ namespace SeedLang.X {
       }
       Statement first = statements[0];
       Statement last = statements[statements.Length - 1];
-      Range range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
-                                                     last.Range as TextRange);
+      TextRange range = CodeReferenceUtils.CombineRanges(first.Range, last.Range);
       return new BlockStatement(statements, range);
     }
 

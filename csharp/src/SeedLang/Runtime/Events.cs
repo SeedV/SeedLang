@@ -24,9 +24,9 @@ namespace SeedLang.Runtime {
 
   public abstract class AbstractEvent {
     // The range of source code.
-    public Range Range { get; }
+    public TextRange Range { get; }
 
-    public AbstractEvent(Range range) {
+    public AbstractEvent(TextRange range) {
       Range = range;
     }
   }
@@ -38,7 +38,8 @@ namespace SeedLang.Runtime {
       public VariableType Type { get; }
       public IValue Value { get; }
 
-      public Assignment(string name, VariableType type, IValue value, Range range) : base(range) {
+      public Assignment(string name, VariableType type, IValue value, TextRange range) :
+          base(range) {
         Name = name;
         Type = type;
         Value = value;
@@ -52,7 +53,7 @@ namespace SeedLang.Runtime {
       public IValue Right { get; }
       public IValue Result { get; }
 
-      public Binary(IValue left, BinaryOperator op, IValue right, IValue result, Range range) :
+      public Binary(IValue left, BinaryOperator op, IValue right, IValue result, TextRange range) :
           base(range) {
         Left = left;
         Op = op;
@@ -71,7 +72,7 @@ namespace SeedLang.Runtime {
       public IValue Result { get; }
 
       public Boolean(BooleanOperator op, IReadOnlyList<IValue> values, IValue result,
-                     Range range) : base(range) {
+                     TextRange range) : base(range) {
         Debug.Assert(values.Count > 1);
         Op = op;
         Values = values;
@@ -89,8 +90,9 @@ namespace SeedLang.Runtime {
       public IReadOnlyList<IValue> Values { get; }
       public IValue Result { get; }
 
-      public Comparison(IValue first, IReadOnlyList<ComparisonOperator> ops,
-                        IReadOnlyList<IValue> values, IValue result, Range range) : base(range) {
+      public Comparison(
+          IValue first, IReadOnlyList<ComparisonOperator> ops, IReadOnlyList<IValue> values,
+          IValue result, TextRange range) : base(range) {
         Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
         First = first;
         Values = values;
@@ -104,7 +106,7 @@ namespace SeedLang.Runtime {
       public string Name { get; }
       public IReadOnlyList<IValue> Args { get; }
 
-      public FuncCalled(string name, IReadOnlyList<IValue> args, Range range) : base(range) {
+      public FuncCalled(string name, IReadOnlyList<IValue> args, TextRange range) : base(range) {
         Name = name;
         Args = args;
       }
@@ -115,7 +117,7 @@ namespace SeedLang.Runtime {
       public string Name { get; }
       public IValue Result { get; }
 
-      public FuncReturned(string name, IValue result, Range range) : base(range) {
+      public FuncReturned(string name, IValue result, TextRange range) : base(range) {
         Name = name;
         Result = result;
       }
@@ -127,8 +129,7 @@ namespace SeedLang.Runtime {
       public IValue Value { get; }
       public IValue Result { get; }
 
-      public Unary(UnaryOperator op, IValue value, IValue result, Range range) :
-          base(range) {
+      public Unary(UnaryOperator op, IValue value, IValue result, TextRange range) : base(range) {
         Op = op;
         Value = value;
         Result = result;
@@ -153,7 +154,7 @@ namespace SeedLang.Runtime {
 
       public IReadOnlyList<VTagInfo> VTags { get; }
 
-      public VTagEntered(IReadOnlyList<VTagInfo> vTags, Range range) : base(range) {
+      public VTagEntered(IReadOnlyList<VTagInfo> vTags, TextRange range) : base(range) {
         VTags = vTags;
       }
     }
@@ -176,7 +177,7 @@ namespace SeedLang.Runtime {
 
       public IReadOnlyList<VTagInfo> VTags { get; }
 
-      public VTagExited(IReadOnlyList<VTagInfo> vTags, Range range) : base(range) {
+      public VTagExited(IReadOnlyList<VTagInfo> vTags, TextRange range) : base(range) {
         VTags = vTags;
       }
     }

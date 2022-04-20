@@ -15,14 +15,12 @@
 using Xunit;
 
 namespace SeedLang.Common.Tests {
-  public class RangeTests {
+  public class TextRangeTests {
     [Fact]
     public void TestRanges() {
-      Range range = null;
       TextRange textRange = null;
 
       Assert.False(new TextRange(1, 1, 1, 1).Equals(null));
-      Assert.False(new TextRange(1, 1, 1, 1).Equals(range));
       Assert.False(new TextRange(1, 1, 1, 1).Equals(textRange));
 
       textRange = new TextRange(1, 1, 1, 1);

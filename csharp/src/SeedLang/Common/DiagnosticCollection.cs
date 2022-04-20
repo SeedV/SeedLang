@@ -52,7 +52,7 @@ namespace SeedLang.Common {
     public void Report(string reporter,
                        Severity severity,
                        string module,
-                       Range range,
+                       TextRange range,
                        Message messageId) {
       _diagnostics.Add(
         new Diagnostic(reporter, severity, module, range, messageId, messageId.Format()));
@@ -62,7 +62,7 @@ namespace SeedLang.Common {
     public void Report(string reporter,
                        Severity severity,
                        string module,
-                       Range range,
+                       TextRange range,
                        Message messageId,
                        params string[] arguments) {
       _diagnostics.Add(

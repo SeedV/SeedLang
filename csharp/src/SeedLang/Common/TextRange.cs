@@ -16,7 +16,7 @@ using System;
 
 namespace SeedLang.Common {
   // Represents a range in a plaintext source code.
-  public class TextRange : Range {
+  public sealed class TextRange : IEquatable<TextRange> {
     public TextPosition Start { get; }
     public TextPosition End { get; }
 
@@ -35,20 +35,32 @@ namespace SeedLang.Common {
     }
 
     public override int GetHashCode() {
-      return Tuple.Create(Start.GetHashCode(), End.GetHashCode()).GetHashCode();
+      return new { Start, End }.GetHashCode();
     }
 
-    public override bool Equals(Range range) {
+    public override bool Equals(object obj) {
+      return Equals(obj as TextRange);
+    }
+
+    public bool Equals(TextRange range) {
       if (range is null) {
         return false;
       }
       if (ReferenceEquals(this, range)) {
         return true;
       }
-      if (GetType() != range.GetType()) {
-        return false;
+      return Start == range.Start && End == range.End;
+    }
+
+    public static bool operator ==(TextRange range1, TextRange range2) {
+      if (range1 is null) {
+        return range2 is null;
       }
-      return Start == (range as TextRange).Start && End == (range as TextRange).End;
+      return range1.Equals(range2);
+    }
+
+    public static bool operator !=(TextRange range1, TextRange range2) {
+      return !(range1 == range2);
     }
   }
 }

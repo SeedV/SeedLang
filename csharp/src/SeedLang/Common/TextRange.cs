@@ -35,7 +35,7 @@ namespace SeedLang.Common {
     }
 
     public override int GetHashCode() {
-      return HashCode.Combine(Start, End);
+      return new { Start, End }.GetHashCode();
     }
 
     public override bool Equals(object obj) {

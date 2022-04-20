@@ -30,7 +30,7 @@ namespace SeedLang.Common {
     }
 
     public override int GetHashCode() {
-      return HashCode.Combine(Line, Column);
+      return new { Line, Column }.GetHashCode();
     }
 
     public int CompareTo(TextPosition pos) {

@@ -84,7 +84,7 @@ namespace SeedLang.X {
       return false;
     }
 
-    private void ReportDiagnostic(Range range, Message messageId, params string[] arguments) {
+    private void ReportDiagnostic(TextRange range, Message messageId, params string[] arguments) {
       _collection.Report(SystemReporters.SeedX, Severity.Fatal, _module, range, messageId,
                          arguments);
     }

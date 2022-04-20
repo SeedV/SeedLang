@@ -21,70 +21,70 @@ namespace SeedLang.Ast {
   internal abstract class Statement : AstNode {
     // The factory method to create assignment statements.
     internal static AssignmentStatement Assignment(Expression[] targets, Expression[] exprs,
-                                                   Range range) {
+                                                   TextRange range) {
       return new AssignmentStatement(targets, exprs, range);
     }
 
     // The factory method to create block statements.
-    internal static BlockStatement Block(Statement[] statements, Range range) {
+    internal static BlockStatement Block(Statement[] statements, TextRange range) {
       return new BlockStatement(statements, range);
     }
 
     // The factory method to create break statements.
-    internal static BreakStatement Break(Range range) {
+    internal static BreakStatement Break(TextRange range) {
       return new BreakStatement(range);
     }
 
     // The factory method to create continue statements.
-    internal static ContinueStatement Continue(Range range) {
+    internal static ContinueStatement Continue(TextRange range) {
       return new ContinueStatement(range);
     }
 
     // The factory method to create expression statements.
-    internal static ExpressionStatement Expression(Expression expr, Range range) {
+    internal static ExpressionStatement Expression(Expression expr, TextRange range) {
       return new ExpressionStatement(expr, range);
     }
 
     // The factory method to create for in statements.
     internal static ForInStatement ForIn(IdentifierExpression id, Expression expr, Statement body,
-                                         Range range) {
+                                         TextRange range) {
       return new ForInStatement(id, expr, body, range);
     }
 
     // The factory method to create function define statements.
     internal static FuncDefStatement FuncDef(string name, string[] parameters, Statement body,
-                                             Range range) {
+                                             TextRange range) {
       return new FuncDefStatement(name, parameters, body, range);
     }
 
     // The factory method to create if statements.
     internal static IfStatement If(Expression test, Statement thenBody, Statement elseBody,
-                                   Range range) {
+                                   TextRange range) {
       return new IfStatement(test, thenBody, elseBody, range);
     }
 
     // The factory method to create pass statements.
-    internal static PassStatement Pass(Range range) {
+    internal static PassStatement Pass(TextRange range) {
       return new PassStatement(range);
     }
 
     // The factory method to create return statements.
-    internal static ReturnStatement Return(Expression[] exprs, Range range) {
+    internal static ReturnStatement Return(Expression[] exprs, TextRange range) {
       return new ReturnStatement(exprs, range);
     }
 
     // The factory method to create while statements.
-    internal static WhileStatement While(Expression test, Statement body, Range range) {
+    internal static WhileStatement While(Expression test, Statement body, TextRange range) {
       return new WhileStatement(test, body, range);
     }
 
     // The factory method to create VTag statements.
     internal static VTagStatement VTag(VTagStatement.VTagInfo[] vTagInfos, Statement[] statements,
-                                       Range range) {
+                                       TextRange range) {
       return new VTagStatement(vTagInfos, statements, range);
     }
 
-    internal Statement(Range range) : base(range) { }
+    internal Statement(TextRange range) : base(range) { }
   }
 
   internal class AssignmentStatement : Statement {
@@ -95,7 +95,7 @@ namespace SeedLang.Ast {
     // to be the same.
     public Expression[] Exprs { get; }
 
-    internal AssignmentStatement(Expression[] targets, Expression[] exprs, Range range) :
+    internal AssignmentStatement(Expression[] targets, Expression[] exprs, TextRange range) :
         base(range) {
       Targets = targets;
       Exprs = exprs;
@@ -105,23 +105,23 @@ namespace SeedLang.Ast {
   internal class BlockStatement : Statement {
     public Statement[] Statements { get; }
 
-    internal BlockStatement(Statement[] statements, Range range) : base(range) {
+    internal BlockStatement(Statement[] statements, TextRange range) : base(range) {
       Statements = statements;
     }
   }
 
   internal class BreakStatement : Statement {
-    internal BreakStatement(Range range) : base(range) { }
+    internal BreakStatement(TextRange range) : base(range) { }
   }
 
   internal class ContinueStatement : Statement {
-    internal ContinueStatement(Range range) : base(range) { }
+    internal ContinueStatement(TextRange range) : base(range) { }
   }
 
   internal class ExpressionStatement : Statement {
     public Expression Expr { get; }
 
-    internal ExpressionStatement(Expression expr, Range range) : base(range) {
+    internal ExpressionStatement(Expression expr, TextRange range) : base(range) {
       Expr = expr;
     }
   }
@@ -131,8 +131,8 @@ namespace SeedLang.Ast {
     public Expression Expr { get; }
     public Statement Body { get; }
 
-    internal ForInStatement(IdentifierExpression id, Expression expr, Statement body, Range range) :
-        base(range) {
+    internal ForInStatement(IdentifierExpression id, Expression expr, Statement body,
+                            TextRange range) : base(range) {
       Id = id;
       Expr = expr;
       Body = body;
@@ -144,7 +144,7 @@ namespace SeedLang.Ast {
     public string[] Parameters { get; }
     public Statement Body { get; }
 
-    internal FuncDefStatement(string name, string[] parameters, Statement body, Range range) :
+    internal FuncDefStatement(string name, string[] parameters, Statement body, TextRange range) :
         base(range) {
       Name = name;
       Parameters = parameters;
@@ -158,7 +158,7 @@ namespace SeedLang.Ast {
     // The else body of if statements, could be null.
     public Statement ElseBody { get; }
 
-    internal IfStatement(Expression test, Statement thenBody, Statement elseBody, Range range) :
+    internal IfStatement(Expression test, Statement thenBody, Statement elseBody, TextRange range) :
         base(range) {
       Test = test;
       ThenBody = thenBody;
@@ -167,13 +167,13 @@ namespace SeedLang.Ast {
   }
 
   internal class PassStatement : Statement {
-    internal PassStatement(Range range) : base(range) { }
+    internal PassStatement(TextRange range) : base(range) { }
   }
 
   internal class ReturnStatement : Statement {
     public Expression[] Exprs { get; }
 
-    internal ReturnStatement(Expression[] exprs, Range range) : base(range) {
+    internal ReturnStatement(Expression[] exprs, TextRange range) : base(range) {
       Exprs = exprs;
     }
   }
@@ -182,7 +182,7 @@ namespace SeedLang.Ast {
     public Expression Test { get; }
     public Statement Body { get; }
 
-    internal WhileStatement(Expression test, Statement body, Range range) : base(range) {
+    internal WhileStatement(Expression test, Statement body, TextRange range) : base(range) {
       Test = test;
       Body = body;
     }
@@ -229,7 +229,7 @@ namespace SeedLang.Ast {
     // The statements enclosed in the VTag.
     public Statement[] Statements { get; }
 
-    internal VTagStatement(VTagInfo[] vTagInfos, Statement[] statements, Range range) :
+    internal VTagStatement(VTagInfo[] vTagInfos, Statement[] statements, TextRange range) :
         base(range) {
       VTagInfos = vTagInfos;
       Statements = statements;

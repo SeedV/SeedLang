@@ -16,7 +16,7 @@ using System;
 
 namespace SeedLang.Common {
   // An immutable class to represent a position in a plaintext source code.
-  public struct TextPosition : IComparable<TextPosition>, IEquatable<TextPosition> {
+  public sealed class TextPosition : IComparable<TextPosition>, IEquatable<TextPosition> {
     public int Line { get; }
     public int Column { get; }
 
@@ -30,7 +30,7 @@ namespace SeedLang.Common {
     }
 
     public override int GetHashCode() {
-      return Tuple.Create(Line, Column).GetHashCode();
+      return HashCode.Combine(Line, Column);
     }
 
     public int CompareTo(TextPosition pos) {
@@ -50,11 +50,17 @@ namespace SeedLang.Common {
     }
 
     public bool Equals(TextPosition pos) {
+      if (pos is null) {
+        return false;
+      }
+      if (ReferenceEquals(this, pos)) {
+        return true;
+      }
       return CompareTo(pos) == 0;
     }
 
     public override bool Equals(object obj) {
-      return (obj is TextPosition objTextPosition) && Equals(objTextPosition);
+      return Equals(obj as TextPosition);
     }
 
     public static bool operator ==(TextPosition pos1, TextPosition pos2) {

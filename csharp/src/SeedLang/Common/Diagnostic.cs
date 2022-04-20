@@ -42,7 +42,7 @@ namespace SeedLang.Common {
     // The name of the source code module.
     public string Module { get; set; }
     // The corresponding code range of the diagnostic.
-    public Range Range { get; set; }
+    public TextRange Range { get; set; }
     // The ID of the message. For now, message IDs are the values of the enum type Message. The ID
     // of a message is unique but not stable, since the messages in the enum is arranged in
     // alphabetical order.
@@ -56,7 +56,7 @@ namespace SeedLang.Common {
     public Diagnostic(string reporter,
                       Severity severity,
                       string module,
-                      Range range,
+                      TextRange range,
                       Message messageId,
                       string localizedMessage) {
       Reporter = reporter;

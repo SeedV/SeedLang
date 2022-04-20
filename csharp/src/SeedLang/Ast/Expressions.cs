@@ -22,84 +22,87 @@ namespace SeedLang.Ast {
   internal abstract class Expression : AstNode {
     // The factory method to create a binary expression.
     internal static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right,
-                                            Range range) {
+                                            TextRange range) {
       return new BinaryExpression(left, op, right, range);
     }
 
     // The factory method to create a boolean expression.
-    internal static BooleanExpression Boolean(BooleanOperator op, Expression[] exprs, Range range) {
+    internal static BooleanExpression Boolean(BooleanOperator op, Expression[] exprs,
+                                              TextRange range) {
       return new BooleanExpression(op, exprs, range);
     }
 
     // The factory method to create a comparison expression.
     internal static ComparisonExpression Comparison(Expression first, ComparisonOperator[] ops,
-                                                    Expression[] exprs, Range range) {
+                                                    Expression[] exprs, TextRange range) {
       return new ComparisonExpression(first, ops, exprs, range);
     }
 
     // The factory method to create a unary expression.
-    internal static UnaryExpression Unary(UnaryOperator op, Expression expr, Range range) {
+    internal static UnaryExpression Unary(UnaryOperator op, Expression expr, TextRange range) {
       return new UnaryExpression(op, expr, range);
     }
 
     // The factory method to create an identifier expression.
-    internal static IdentifierExpression Identifier(string name, Range range) {
+    internal static IdentifierExpression Identifier(string name, TextRange range) {
       return new IdentifierExpression(name, range);
     }
 
     // The factory method to create a boolean constant expression from a string.
-    internal static BooleanConstantExpression BooleanConstant(bool value, Range range) {
+    internal static BooleanConstantExpression BooleanConstant(bool value, TextRange range) {
       return new BooleanConstantExpression(value, range);
     }
 
     // The factory method to create a nil constant expression.
-    internal static NilConstantExpression NilConstant(Range range) {
+    internal static NilConstantExpression NilConstant(TextRange range) {
       return new NilConstantExpression(range);
     }
 
     // The factory method to create a number constant expression.
-    internal static NumberConstantExpression NumberConstant(double value, Range range) {
+    internal static NumberConstantExpression NumberConstant(double value, TextRange range) {
       Debug.Assert(!double.IsInfinity(value) && !double.IsNaN(value));
       return new NumberConstantExpression(value, range);
     }
 
     // The factory method to create a string constant expression.
-    internal static StringConstantExpression StringConstant(string value, Range range) {
+    internal static StringConstantExpression StringConstant(string value, TextRange range) {
       return new StringConstantExpression(ValueHelper.Unescape(value), range);
     }
 
     // The factory method to create a dictionary expression.
-    internal static DictExpression Dict(KeyValuePair<Expression, Expression>[] items, Range range) {
+    internal static DictExpression Dict(KeyValuePair<Expression, Expression>[] items,
+                                        TextRange range) {
       return new DictExpression(items, range);
     }
 
     // The factory method to create a list expression.
-    internal static ListExpression List(Expression[] exprs, Range range) {
+    internal static ListExpression List(Expression[] exprs, TextRange range) {
       return new ListExpression(exprs, range);
     }
 
     // The factory method to create a tuple expression.
-    internal static TupleExpression Tuple(Expression[] exprs, Range range) {
+    internal static TupleExpression Tuple(Expression[] exprs, TextRange range) {
       return new TupleExpression(exprs, range);
     }
 
     // The factory method to create a subscript expression.
-    internal static SubscriptExpression Subscript(Expression expr, Expression index, Range range) {
+    internal static SubscriptExpression Subscript(Expression expr, Expression index,
+                                                  TextRange range) {
       return new SubscriptExpression(expr, index, range);
     }
 
     // The factory method to create a call expression.
-    internal static CallExpression Call(Expression func, Expression[] arguments, Range range) {
+    internal static CallExpression Call(Expression func, Expression[] arguments, TextRange range) {
       return new CallExpression(func, arguments, range);
     }
 
     // The factory method to create an attribute expression.
     internal static AttributeExpression Attribute(Expression expr, IdentifierExpression attr,
-                                                  Range range) {
+                                                  TextRange range) {
       return new AttributeExpression(expr, attr, range);
     }
 
-    internal Expression(Range range) : base(range) { }
+    internal Expression(TextRange range) : base(range) { }
   }
 
   internal class BinaryExpression : Expression {
@@ -108,7 +111,7 @@ namespace SeedLang.Ast {
     public Expression Right { get; }
 
     internal BinaryExpression(Expression left, BinaryOperator op, Expression right,
-                              Range range) : base(range) {
+                              TextRange range) : base(range) {
       Left = left;
       Op = op;
       Right = right;
@@ -119,7 +122,8 @@ namespace SeedLang.Ast {
     public BooleanOperator Op { get; }
     public Expression[] Exprs { get; }
 
-    internal BooleanExpression(BooleanOperator op, Expression[] exprs, Range range) : base(range) {
+    internal BooleanExpression(BooleanOperator op, Expression[] exprs, TextRange range) :
+        base(range) {
       Debug.Assert(exprs.Length > 1);
       Op = op;
       Exprs = exprs;
@@ -132,7 +136,7 @@ namespace SeedLang.Ast {
     public Expression[] Exprs { get; }
 
     internal ComparisonExpression(Expression first, ComparisonOperator[] ops, Expression[] exprs,
-                                  Range range) : base(range) {
+                                  TextRange range) : base(range) {
       Debug.Assert(ops.Length > 0 && ops.Length == exprs.Length);
       First = first;
       Ops = ops;
@@ -144,7 +148,7 @@ namespace SeedLang.Ast {
     public UnaryOperator Op { get; }
     public Expression Expr { get; }
 
-    internal UnaryExpression(UnaryOperator op, Expression expr, Range range) : base(range) {
+    internal UnaryExpression(UnaryOperator op, Expression expr, TextRange range) : base(range) {
       Op = op;
       Expr = expr;
     }
@@ -153,7 +157,7 @@ namespace SeedLang.Ast {
   internal class IdentifierExpression : Expression {
     public string Name { get; }
 
-    internal IdentifierExpression(string name, Range range) : base(range) {
+    internal IdentifierExpression(string name, TextRange range) : base(range) {
       Name = name;
     }
   }
@@ -161,20 +165,19 @@ namespace SeedLang.Ast {
   internal class BooleanConstantExpression : Expression {
     public bool Value { get; }
 
-    internal BooleanConstantExpression(bool value, Range range) : base(range) {
+    internal BooleanConstantExpression(bool value, TextRange range) : base(range) {
       Value = value;
     }
   }
 
   internal class NilConstantExpression : Expression {
-    internal NilConstantExpression(Range range) : base(range) {
-    }
+    internal NilConstantExpression(TextRange range) : base(range) { }
   }
 
   internal class NumberConstantExpression : Expression {
     public double Value { get; }
 
-    internal NumberConstantExpression(double value, Range range) : base(range) {
+    internal NumberConstantExpression(double value, TextRange range) : base(range) {
       Value = value;
     }
   }
@@ -182,7 +185,7 @@ namespace SeedLang.Ast {
   internal class StringConstantExpression : Expression {
     public string Value { get; }
 
-    internal StringConstantExpression(string value, Range range) : base(range) {
+    internal StringConstantExpression(string value, TextRange range) : base(range) {
       Value = value;
     }
   }
@@ -190,7 +193,7 @@ namespace SeedLang.Ast {
   internal class DictExpression : Expression {
     public KeyValuePair<Expression, Expression>[] Items { get; }
 
-    internal DictExpression(KeyValuePair<Expression, Expression>[] items, Range range) :
+    internal DictExpression(KeyValuePair<Expression, Expression>[] items, TextRange range) :
         base(range) {
       Items = items;
     }
@@ -199,7 +202,7 @@ namespace SeedLang.Ast {
   internal class ListExpression : Expression {
     public Expression[] Exprs { get; }
 
-    internal ListExpression(Expression[] exprs, Range range) : base(range) {
+    internal ListExpression(Expression[] exprs, TextRange range) : base(range) {
       Exprs = exprs;
     }
   }
@@ -207,7 +210,7 @@ namespace SeedLang.Ast {
   internal class TupleExpression : Expression {
     public Expression[] Exprs { get; }
 
-    internal TupleExpression(Expression[] exprs, Range range) : base(range) {
+    internal TupleExpression(Expression[] exprs, TextRange range) : base(range) {
       Exprs = exprs;
     }
   }
@@ -216,7 +219,7 @@ namespace SeedLang.Ast {
     public Expression Expr { get; }
     public Expression Index { get; }
 
-    internal SubscriptExpression(Expression expr, Expression index, Range range) : base(range) {
+    internal SubscriptExpression(Expression expr, Expression index, TextRange range) : base(range) {
       Expr = expr;
       Index = index;
     }
@@ -226,7 +229,8 @@ namespace SeedLang.Ast {
     public Expression Func { get; }
     public Expression[] Arguments { get; }
 
-    internal CallExpression(Expression func, Expression[] arguments, Range range) : base(range) {
+    internal CallExpression(Expression func, Expression[] arguments, TextRange range) :
+        base(range) {
       Func = func;
       Arguments = arguments;
     }
@@ -236,7 +240,7 @@ namespace SeedLang.Ast {
     public Expression Value { get; }
     public IdentifierExpression Attr { get; }
 
-    internal AttributeExpression(Expression value, IdentifierExpression attr, Range range) :
+    internal AttributeExpression(Expression value, IdentifierExpression attr, TextRange range) :
         base(range) {
       Value = value;
       Attr = attr;

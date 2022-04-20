@@ -15,11 +15,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   using AbstractNotification = Notification.AbstractNotification;
-  using Range = Common.Range;
 
   // A data structure to hold bytecode and constants generated from the AST tree by the compiler.
   internal class Chunk {
@@ -32,7 +32,7 @@ namespace SeedLang.Interpreter {
     // Source code ranges of the instructions in bytecode.
     //
     // The length of Bytecode and Range lists shall be the same.
-    public IReadOnlyList<Range> Ranges => _ranges;
+    public IReadOnlyList<TextRange> Ranges => _ranges;
 
     // The notification information list that is used by VISNOTIFY opcode to create the correspoding
     // notification events and sent to visualizers.
@@ -40,7 +40,7 @@ namespace SeedLang.Interpreter {
 
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
-    private readonly List<Range> _ranges = new List<Range>();
+    private readonly List<TextRange> _ranges = new List<TextRange>();
 
     private readonly List<AbstractNotification> _notifications = new List<AbstractNotification>();
 
@@ -52,7 +52,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Emits an instruction with the opcode of type ABC.
-    internal void Emit(Opcode opcode, uint a, uint b, uint c, Range range) {
+    internal void Emit(Opcode opcode, uint a, uint b, uint c, TextRange range) {
       if (range is null) {
         throw new ArgumentNullException(nameof(range));
       }
@@ -61,7 +61,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Emits an instruction with the opcode of type ABx.
-    internal void Emit(Opcode opcode, uint a, uint bx, Range range) {
+    internal void Emit(Opcode opcode, uint a, uint bx, TextRange range) {
       if (range is null) {
         throw new ArgumentNullException(nameof(range));
       }
@@ -70,7 +70,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Emits an instruction with the opcode of type SBx.
-    internal void Emit(Opcode opcode, uint a, int sbx, Range range) {
+    internal void Emit(Opcode opcode, uint a, int sbx, TextRange range) {
       if (range is null) {
         throw new ArgumentNullException(nameof(range));
       }

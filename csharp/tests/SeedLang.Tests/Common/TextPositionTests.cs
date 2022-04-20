@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using Xunit;
 
 namespace SeedLang.Common.Tests {
-  public class PositionTests {
+  public class TextPositionTests {
     [Fact]
     public void TestTextPositions() {
       Assert.True(new TextPosition(1, 3).Equals(new TextPosition(1, 3)));

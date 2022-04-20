@@ -41,7 +41,7 @@ namespace SeedLang.Interpreter {
         for (int i = 0; i < _chunk.Bytecode.Count; ++i) {
           Debug.Assert(i < _chunk.Ranges.Count);
           Instruction instr = _chunk.Bytecode[i];
-          Range range = _chunk.Ranges[i];
+          TextRange range = _chunk.Ranges[i];
           int index = i + 1;
           sb.Append($"  {index,_indexColumnWidth}{instr.Opcode,_opcodeColumnWidth}");
           sb.Append($"{OperandsToString(instr),_operandsColumnWidth}");

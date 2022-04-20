@@ -20,8 +20,6 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  using Range = Common.Range;
-
   // The compiler to convert an AST tree to bytecode.
   internal class Compiler : AstWalker {
     private VisualizerCenter _visualizerCenter;
@@ -53,7 +51,7 @@ namespace SeedLang.Interpreter {
     private BooleanOperator _nextBooleanOp;
 
     // The range of the statement that is just compiled.
-    private Range _rangeOfPrevStatement = null;
+    private TextRange _rangeOfPrevStatement = null;
 
     // The chunk on the top of the function stack.
     private Chunk _chunk;
@@ -443,7 +441,7 @@ namespace SeedLang.Interpreter {
       return vTagInfos;
     }
 
-    private void VisitBooleanOrComparisonExpression(Action action, Range range) {
+    private void VisitBooleanOrComparisonExpression(Action action, TextRange range) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
       // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
       // part of the test condition of if or while statements.
@@ -485,7 +483,7 @@ namespace SeedLang.Interpreter {
     }
 
     private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
-                                       Range range) {
+                                       TextRange range) {
       _variableResolver.BeginExpressionScope();
       uint leftRegister = VisitExpressionForRKId(left);
       uint rightRegister = VisitExpressionForRKId(right);
@@ -507,7 +505,7 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExpressionScope();
     }
 
-    private void Pack(Expression[] targets, Expression[] exprs, Range range) {
+    private void Pack(Expression[] targets, Expression[] exprs, TextRange range) {
       if (targets.Length == 1) {
         Assign(targets[0], Expression.Tuple(exprs, range), range);
       } else if (targets.Length == exprs.Length) {
@@ -518,7 +516,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void Unpack(Expression[] targets, Expression expr, Range range) {
+    private void Unpack(Expression[] targets, Expression expr, TextRange range) {
       if (targets.Length == 1) {
         Assign(targets[0], expr, range);
       } else {
@@ -549,7 +547,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void Assign(Expression target, Expression expr, Range range) {
+    private void Assign(Expression target, Expression expr, TextRange range) {
       if (target is IdentifierExpression id) {
         DefineVariableIfNeeded(id.Name);
       }
@@ -559,7 +557,7 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExpressionScope();
     }
 
-    private void AssignMultipleTargets(Expression[] targets, Expression[] exprs, Range range) {
+    private void AssignMultipleTargets(Expression[] targets, Expression[] exprs, TextRange range) {
       for (int i = 0; i < targets.Length; i++) {
         if (targets[i] is IdentifierExpression id) {
           DefineVariableIfNeeded(id.Name);
@@ -576,7 +574,7 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExpressionScope();
     }
 
-    private void Assign(Expression expr, uint valueId, Range range) {
+    private void Assign(Expression expr, uint valueId, TextRange range) {
       switch (expr) {
         case IdentifierExpression id:
           Assign(id, valueId, range);
@@ -589,7 +587,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void Assign(IdentifierExpression id, uint valueId, Range range) {
+    private void Assign(IdentifierExpression id, uint valueId, TextRange range) {
       VariableResolver.VariableInfo info = _variableResolver.FindVariable(id.Name).Value;
       switch (info.Type) {
         case VariableResolver.VariableType.Global:
@@ -615,7 +613,8 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs, Range range) {
+    private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs,
+                                   TextRange range) {
       _variableResolver.BeginExpressionScope();
       uint target = _registerForSubExpr;
       uint? first = null;
@@ -720,7 +719,7 @@ namespace SeedLang.Interpreter {
 
     // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
     // for the FuncCalled event.
-    private void EmitCall(string name, uint funcRegister, uint argLength, Range range) {
+    private void EmitCall(string name, uint funcRegister, uint argLength, TextRange range) {
       bool isNormalFunc = !NativeFunctions.IsInternalFunction(name);
       bool notifyCalled = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncCalled>();
       bool notifyReturned = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncReturned>();
@@ -743,7 +742,8 @@ namespace SeedLang.Interpreter {
       _chunk.Emit(Opcode.RETURN, 0, 0, 0, range);
     }
 
-    private void EmitAssignNotification(string name, VariableType type, uint valueId, Range range) {
+    private void EmitAssignNotification(string name, VariableType type, uint valueId,
+                                        TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
         var notification = new Notification.Assignment(name, type, valueId, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
@@ -751,21 +751,23 @@ namespace SeedLang.Interpreter {
     }
 
     private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
-                                        Range range) {
+                                        TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
         var notification = new Notification.Binary(leftId, op, rightId, resultId, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
-    private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId, Range range) {
+    private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId,
+                                       TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
         var notification = new Notification.Unary(op, valueId, resultId, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
       }
     }
 
-    private void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos, Range range) {
+    private void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos,
+                                             TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
         var notification = new Notification.VTagEntered(vTagInfos, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
@@ -773,7 +775,7 @@ namespace SeedLang.Interpreter {
     }
 
     private void EmitVTagExitedNotification(Notification.VTagExited.VTagInfo[] vTagInfos,
-                                            Range range) {
+                                            TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
         var notification = new Notification.VTagExited(vTagInfos, range);
         _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);

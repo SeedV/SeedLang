@@ -1,0 +1,317 @@
+// Copyright 2021-2022 The SeedV Lab.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using System;
+using System.Text;
+using SeedLang.Runtime;
+
+namespace SeedLang.Ast {
+  internal static class OperatorExtensions {
+    // Returns the internal string representation of binary operators.
+    internal static string Symbol(this BinaryOperator op) {
+      switch (op) {
+        case BinaryOperator.Add:
+          return "+";
+        case BinaryOperator.Subtract:
+          return "-";
+        case BinaryOperator.Multiply:
+          return "*";
+        case BinaryOperator.Divide:
+          return "/";
+        case BinaryOperator.FloorDivide:
+          return "//";
+        case BinaryOperator.Power:
+          return "**";
+        case BinaryOperator.Modulo:
+          return "%";
+        default:
+          throw new NotImplementedException($"Unsupported binary operator: {op}.");
+      }
+    }
+
+    // Returns the internal string representation of boolean operators.
+    internal static string Symbol(this BooleanOperator op) {
+      switch (op) {
+        case BooleanOperator.And:
+          return "And";
+        case BooleanOperator.Or:
+          return "Or";
+        default:
+          throw new NotImplementedException($"Unsupported boolean operator: {op}.");
+      }
+    }
+
+    // Returns the internal string representation of comparison operators.
+    internal static string Symbol(this ComparisonOperator op) {
+      switch (op) {
+        case ComparisonOperator.Less:
+          return "<";
+        case ComparisonOperator.Greater:
+          return ">";
+        case ComparisonOperator.LessEqual:
+          return "<=";
+        case ComparisonOperator.GreaterEqual:
+          return ">=";
+        case ComparisonOperator.EqEqual:
+          return "==";
+        case ComparisonOperator.NotEqual:
+          return "!=";
+        case ComparisonOperator.In:
+          return "in";
+        default:
+          throw new NotImplementedException($"Unsupported comparison operator: {op}.");
+      }
+    }
+
+    // Returns the internal string representation of unary operators.
+    internal static string Symbol(this UnaryOperator op) {
+      switch (op) {
+        case UnaryOperator.Positive:
+          return "+";
+        case UnaryOperator.Negative:
+          return "-";
+        case UnaryOperator.Not:
+          return "Not";
+        default:
+          throw new NotImplementedException($"Unsupported unary operator: {op}.");
+      }
+    }
+  }
+
+  // A helper class to create the string representation of an AST tree.
+  internal class AstDumper {
+    internal class Level {
+      private readonly StringBuilder _builder;
+      private int _level = 0;
+
+      internal Level(StringBuilder builder) {
+        _builder = builder;
+      }
+
+      internal void Enter(AstNode node) {
+        if (_level > 0) {
+          _builder.AppendLine();
+          _builder.Append($"{new string(' ', _level * 2)}");
+        }
+        _builder.Append($"{node.Range} {node.GetType().Name}");
+        _level++;
+      }
+
+      internal void Exit(AstNode _) {
+        _level--;
+      }
+    }
+
+    internal class ExpressionDumper : ExpressionWalker {
+      private readonly StringBuilder _builder;
+      private readonly Level _level;
+
+      public ExpressionDumper(StringBuilder builder, Level level) {
+        _builder = builder;
+        _level = level;
+      }
+
+      protected override void Enter(Expression expr) {
+        _level.Enter(expr);
+      }
+
+      protected override void Exit(Expression expr) {
+        _level.Exit(expr);
+      }
+
+      protected override void VisitBinary(BinaryExpression binary) {
+        _builder.Append($" ({binary.Op.Symbol()})");
+        Visit(binary.Left);
+        Visit(binary.Right);
+      }
+
+      protected override void VisitBoolean(BooleanExpression boolean) {
+        _builder.Append($" ({boolean.Op.Symbol()})");
+        foreach (Expression expr in boolean.Exprs) {
+          Visit(expr);
+        }
+      }
+
+      protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant) {
+        _builder.Append($" ({booleanConstant.Value})");
+      }
+
+      protected override void VisitCall(CallExpression call) {
+        Visit(call.Func);
+        foreach (Expression argument in call.Arguments) {
+          Visit(argument);
+        }
+      }
+
+      protected override void VisitComparison(ComparisonExpression comparison) {
+        Visit(comparison.First);
+        for (int i = 0; i < comparison.Ops.Length; ++i) {
+          _builder.Append($" ({comparison.Ops[i].Symbol()})");
+          Visit(comparison.Exprs[i]);
+        }
+      }
+
+      protected override void VisitDict(DictExpression dict) {
+        foreach (var item in dict.Items) {
+          Visit(item.Key);
+          Visit(item.Value);
+        }
+      }
+
+      protected override void VisitIdentifier(IdentifierExpression identifier) {
+        _builder.Append($" ({identifier.Name})");
+      }
+
+      protected override void VisitList(ListExpression list) {
+        foreach (Expression expr in list.Exprs) {
+          Visit(expr);
+        }
+      }
+
+      protected override void VisitNilConstant(NilConstantExpression nilConstant) { }
+
+      protected override void VisitNumberConstant(NumberConstantExpression numberConstant) {
+        _builder.Append($" ({numberConstant.Value})");
+      }
+
+      protected override void VisitStringConstant(StringConstantExpression stringConstant) {
+        _builder.Append($" ({stringConstant.Value})");
+      }
+
+      protected override void VisitSubscript(SubscriptExpression subscript) {
+        Visit(subscript.Expr);
+        Visit(subscript.Index);
+      }
+
+      protected override void VisitTuple(TupleExpression tuple) {
+        foreach (Expression expr in tuple.Exprs) {
+          Visit(expr);
+        }
+      }
+
+      protected override void VisitUnary(UnaryExpression unary) {
+        _builder.Append($" ({unary.Op.Symbol()})");
+        Visit(unary.Expr);
+      }
+    }
+
+    internal class StatementDumper : StatementWalker {
+      private readonly ExpressionDumper _exprDumper;
+      private readonly StringBuilder _builder;
+      private readonly Level _level;
+      public StatementDumper(StringBuilder builder, Level level, ExpressionDumper exprDumper) {
+        _builder = builder;
+        _level = level;
+        _exprDumper = exprDumper;
+      }
+
+      protected override void Enter(Statement statement) {
+        _level.Enter(statement);
+      }
+
+      protected override void Exit(Statement statement) {
+        _level.Exit(statement);
+      }
+
+      protected override void VisitAssignment(AssignmentStatement assignment) {
+        for (int i = 0; i < assignment.Targets.Length; i++) {
+          _exprDumper.Visit(assignment.Targets[i]);
+        }
+        for (int i = 0; i < assignment.Exprs.Length; i++) {
+          _exprDumper.Visit(assignment.Exprs[i]);
+        }
+      }
+
+      protected override void VisitBlock(BlockStatement block) {
+        foreach (var statement in block.Statements) {
+          Visit(statement);
+        }
+      }
+
+      protected override void VisitBreak(BreakStatement @break) { }
+
+      protected override void VisitContinue(ContinueStatement @continue) { }
+
+      protected override void VisitExpression(ExpressionStatement expr) {
+        _exprDumper.Visit(expr.Expr);
+      }
+
+      protected override void VisitForIn(ForInStatement forIn) {
+        _exprDumper.Visit(forIn.Id);
+        _exprDumper.Visit(forIn.Expr);
+        Visit(forIn.Body);
+      }
+
+      protected override void VisitFuncDef(FuncDefStatement funcDef) {
+        _builder.Append($" ({funcDef.Name}");
+        if (funcDef.Parameters.Length > 0) {
+          _builder.Append($":{string.Join(",", funcDef.Parameters)}");
+        }
+        _builder.Append(')');
+        Visit(funcDef.Body);
+      }
+
+      protected override void VisitIf(IfStatement @if) {
+        _exprDumper.Visit(@if.Test);
+        Visit(@if.ThenBody);
+        if (!(@if.ElseBody is null)) {
+          Visit(@if.ElseBody);
+        }
+      }
+
+      protected override void VisitPass(PassStatement pass) { }
+
+      protected override void VisitReturn(ReturnStatement @return) {
+        foreach (Expression value in @return.Exprs) {
+          _exprDumper.Visit(value);
+        }
+      }
+
+      protected override void VisitVTag(VTagStatement vTag) {
+        _builder.Append($" ({string.Join<VTagStatement.VTagInfo>(",", vTag.VTagInfos)})");
+        foreach (var statement in vTag.Statements) {
+          Visit(statement);
+        }
+      }
+
+      protected override void VisitWhile(WhileStatement @while) {
+        _exprDumper.Visit(@while.Test);
+        Visit(@while.Body);
+      }
+    }
+
+    private readonly StringBuilder _builder = new StringBuilder();
+    private readonly ExpressionDumper _expressionDumper;
+    private readonly StatementDumper _statementDumper;
+    private readonly Level _level;
+
+    internal AstDumper() {
+      _level = new Level(_builder);
+      _expressionDumper = new ExpressionDumper(_builder, _level);
+      _statementDumper = new StatementDumper(_builder, _level, _expressionDumper);
+    }
+
+    internal string Dump(AstNode node) {
+      switch (node) {
+        case Expression expression:
+          _expressionDumper.Visit(expression);
+          break;
+        case Statement statement:
+          _statementDumper.Visit(statement);
+          break;
+      }
+      return _builder.ToString();
+    }
+  }
+}

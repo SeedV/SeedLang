@@ -69,17 +69,15 @@ namespace SeedLang.X {
       }
       if (range is null) {
         Expression last = exprs[exprs.Length - 1];
-        Debug.Assert(first.Range is TextRange);
-        Debug.Assert(last.Range is TextRange);
-        range = CodeReferenceUtils.CombineRanges(first.Range as TextRange, last.Range as TextRange);
+        range = CodeReferenceUtils.CombineRanges(first.Range, last.Range);
       }
       return Expression.Comparison(first, ops, exprs, range);
     }
 
     // Builds boolean expressions.
-    internal AstNode BuildAndOr(BooleanOperator op, ParserRuleContext[] operandContexts,
-                                ITerminalNode[] orNodes,
-                                AbstractParseTreeVisitor<AstNode> visitor) {
+    internal BooleanExpression BuildAndOr(BooleanOperator op, ParserRuleContext[] operandContexts,
+                                          ITerminalNode[] orNodes,
+                                          AbstractParseTreeVisitor<AstNode> visitor) {
       Debug.Assert(orNodes.Length > 0 && operandContexts.Length == orNodes.Length + 1);
       var exprs = new Expression[operandContexts.Length];
       if (visitor.Visit(operandContexts[0]) is Expression first) {
@@ -94,10 +92,7 @@ namespace SeedLang.X {
           }
         }
         Expression last = exprs[exprs.Length - 1];
-        Debug.Assert(first.Range is TextRange);
-        Debug.Assert(last.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(first.Range as TextRange,
-                                                           last.Range as TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(first.Range, last.Range);
         return Expression.Boolean(op, exprs, range);
       }
       return null;
@@ -115,8 +110,7 @@ namespace SeedLang.X {
 
       if (visitor.Visit(exprContext) is Expression expr) {
         if (range is null) {
-          Debug.Assert(expr.Range is TextRange);
-          range = CodeReferenceUtils.CombineRanges(opRange, expr.Range as TextRange);
+          range = CodeReferenceUtils.CombineRanges(opRange, expr.Range);
         }
         return Expression.Unary(op, expr, range);
       }
@@ -127,8 +121,9 @@ namespace SeedLang.X {
     // the largest grouping range.
     // There is no corresponding grouping AST node. The order of the expression node in the AST tree
     // represents the grouping structure.
-    internal AstNode BuildGrouping(IToken openParen, ParserRuleContext exprContext,
-                                   IToken closeParen, AbstractParseTreeVisitor<AstNode> visitor) {
+    internal Expression BuildGrouping(IToken openParen, ParserRuleContext exprContext,
+                                      IToken closeParen,
+                                      AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange openRange = CodeReferenceUtils.RangeOfToken(openParen);
       TextRange closeRange = CodeReferenceUtils.RangeOfToken(closeParen);
       AddSemanticToken(TokenType.OpenParenthesis, openRange);
@@ -137,7 +132,7 @@ namespace SeedLang.X {
         _groupingRange = CodeReferenceUtils.CombineRanges(openRange, closeRange);
       }
 
-      AstNode node = visitor.Visit(exprContext);
+      var node = visitor.Visit(exprContext) as Expression;
       AddSemanticToken(TokenType.CloseParenthesis, closeRange);
       return node;
     }
@@ -264,8 +259,7 @@ namespace SeedLang.X {
         if (visitor.Visit(exprContext) is Expression expr) {
           TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
           AddSemanticToken(TokenType.CloseBracket, closeBrackRange);
-          Debug.Assert(primary.Range is TextRange);
-          var primaryRange = primary.Range as TextRange;
+          var primaryRange = primary.Range;
           TextRange range = CodeReferenceUtils.CombineRanges(primaryRange, closeBrackRange);
           return Expression.Subscript(primary, expr, range);
         }
@@ -280,10 +274,7 @@ namespace SeedLang.X {
       if (visitor.Visit(primaryContext) is Expression value) {
         AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(dotToken));
         if (visitor.Visit(identifierContext) is IdentifierExpression identifier) {
-          Debug.Assert(value.Range is TextRange && identifier.Range is TextRange);
-          var primaryRange = value.Range as TextRange;
-          var identifierRange = identifier.Range as TextRange;
-          TextRange range = CodeReferenceUtils.CombineRanges(primaryRange, identifierRange);
+          TextRange range = CodeReferenceUtils.CombineRanges(value.Range, identifier.Range);
           return Expression.Attribute(value, identifier, range);
         }
       }
@@ -325,9 +316,7 @@ namespace SeedLang.X {
         }
         TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
         AddSemanticToken(TokenType.CloseParenthesis, closeParenRange);
-        Debug.Assert(callee.Range is TextRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(callee.Range as TextRange,
-                                                           closeParenRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(callee.Range, closeParenRange);
         return Expression.Call(func, exprs, range);
       }
       return null;
@@ -346,17 +335,18 @@ namespace SeedLang.X {
       var exprs = BuildExpressions(exprContexts, exprCommaNodes, visitor);
       if (!(targets is null) && !(exprs is null)) {
         Debug.Assert(targets.Length > 0 && exprs.Length > 0);
-        TextRange range = CodeReferenceUtils.CombineRanges(
-            targets[0].Range as TextRange, exprs[exprs.Length - 1].Range as TextRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(targets[0].Range,
+                                                           exprs[exprs.Length - 1].Range);
         return Statement.Assignment(targets, exprs, range);
       }
       return null;
     }
 
     // Builds augmented assignment statements.
-    internal AstNode BuildAugAssignment(ParserRuleContext targetContext, IToken opToken,
-                                        BinaryOperator op, ParserRuleContext exprContext,
-                                        AbstractParseTreeVisitor<AstNode> visitor) {
+    internal AssignmentStatement BuildAugAssignment(ParserRuleContext targetContext, IToken opToken,
+                                                    BinaryOperator op,
+                                                    ParserRuleContext exprContext,
+                                                    AbstractParseTreeVisitor<AstNode> visitor) {
       if (visitor.Visit(targetContext) is Expression target) {
         AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(opToken));
         if (visitor.Visit(exprContext) is Expression expr) {
@@ -370,9 +360,9 @@ namespace SeedLang.X {
     }
 
     // Builds block statements.
-    internal static AstNode BuildBlock(ITerminalNode[] newLineNodes,
-                                       ParserRuleContext[] statementContexts,
-                                       AbstractParseTreeVisitor<AstNode> visitor) {
+    internal static Statement BuildBlock(ITerminalNode[] newLineNodes,
+                                         ParserRuleContext[] statementContexts,
+                                         AbstractParseTreeVisitor<AstNode> visitor) {
       if (statementContexts.Length == 0) {
         TextRange range = null;
         if (newLineNodes.Length > 0) {
@@ -381,7 +371,7 @@ namespace SeedLang.X {
         }
         return Statement.Block(Array.Empty<Statement>(), range);
       } else if (statementContexts.Length == 1) {
-        return visitor.Visit(statementContexts[0]);
+        return visitor.Visit(statementContexts[0]) as Statement;
       }
       return BuildBlock(Array.ConvertAll(statementContexts,
                                          context => visitor.Visit(context) as Statement));
@@ -432,16 +422,17 @@ namespace SeedLang.X {
     }
 
     // Builds "if" statements of "if ... elif" statements.
-    internal AstNode BuildIfElif(IToken ifToken, ParserRuleContext exprContext, IToken colonToken,
-                                 ParserRuleContext blockContext, ParserRuleContext elifContext,
-                                 AbstractParseTreeVisitor<AstNode> visitor) {
+    internal IfStatement BuildIfElif(IToken ifToken, ParserRuleContext exprContext,
+                                     IToken colonToken, ParserRuleContext blockContext,
+                                     ParserRuleContext elifContext,
+                                     AbstractParseTreeVisitor<AstNode> visitor) {
       TextRange ifRange = CodeReferenceUtils.RangeOfToken(ifToken);
       AddSemanticToken(TokenType.Keyword, ifRange);
       if (visitor.Visit(exprContext) is Expression expr) {
         AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
         if (visitor.Visit(blockContext) is Statement block &&
             visitor.Visit(elifContext) is Statement elif) {
-          TextRange range = CodeReferenceUtils.CombineRanges(ifRange, elif.Range as TextRange);
+          TextRange range = CodeReferenceUtils.CombineRanges(ifRange, elif.Range);
           return Statement.If(expr, block, elif, range);
         }
       }
@@ -460,7 +451,7 @@ namespace SeedLang.X {
         if (visitor.Visit(blockContext) is Statement block) {
           AstNode elseBlock = elseBlockContext is null ? null : visitor.Visit(elseBlockContext);
           TextRange range = CodeReferenceUtils.CombineRanges(
-              ifRange, elseBlock is null ? block.Range as TextRange : elseBlock.Range as TextRange);
+              ifRange, elseBlock is null ? block.Range : elseBlock.Range);
           return Statement.If(expr, block, elseBlock as Statement, range);
         }
       }
@@ -488,16 +479,15 @@ namespace SeedLang.X {
       Expression[] exprs = BuildExpressions(exprContexts, commaNodes, visitor);
       TextRange range = returnRange;
       if (exprs.Length > 0) {
-        range = CodeReferenceUtils.CombineRanges(returnRange,
-                                                 exprs[exprs.Length - 1].Range as TextRange);
+        range = CodeReferenceUtils.CombineRanges(returnRange, exprs[exprs.Length - 1].Range);
       }
       return Statement.Return(exprs, range);
     }
 
     // Builds a block of simple statements.
-    internal AstNode BuildSimpleStatements(ParserRuleContext[] statementContexts,
-                                           ITerminalNode[] semicolonNodes,
-                                           AbstractParseTreeVisitor<AstNode> visitor) {
+    internal Statement BuildSimpleStatements(ParserRuleContext[] statementContexts,
+                                             ITerminalNode[] semicolonNodes,
+                                             AbstractParseTreeVisitor<AstNode> visitor) {
       Debug.Assert(statementContexts.Length == semicolonNodes.Length + 1 ||
                    statementContexts.Length == semicolonNodes.Length);
       var statements = new Statement[statementContexts.Length];
@@ -523,7 +513,7 @@ namespace SeedLang.X {
         if (visitor.Visit(exprContext) is Expression expr) {
           AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
           if (visitor.Visit(blockContext) is Statement block) {
-            TextRange range = CodeReferenceUtils.CombineRanges(forRange, block.Range as TextRange);
+            TextRange range = CodeReferenceUtils.CombineRanges(forRange, block.Range);
             return Statement.ForIn(loopVar, expr, block, range);
           }
         }
@@ -548,7 +538,7 @@ namespace SeedLang.X {
         AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
         if (visitor.Visit(blockContext) is Statement block) {
           Debug.Assert(block.Range is TextRange);
-          TextRange range = CodeReferenceUtils.CombineRanges(whileRange, block.Range as TextRange);
+          TextRange range = CodeReferenceUtils.CombineRanges(whileRange, block.Range);
           return Statement.While(expr, block, range);
         }
       }
@@ -558,9 +548,10 @@ namespace SeedLang.X {
     // Builds VTag statements.
     //
     // Semantic tokens are not parsed for names and arguments of VTags.
-    internal AstNode BuildVTag(IToken startToken, IToken[] names, ParserRuleContext[][] argContexts,
-                               IToken endToken, ParserRuleContext[] statementContexts,
-                               AbstractParseTreeVisitor<AstNode> visitor) {
+    internal VTagStatement BuildVTag(IToken startToken, IToken[] names,
+                                     ParserRuleContext[][] argContexts, IToken endToken,
+                                     ParserRuleContext[] statementContexts,
+                                     AbstractParseTreeVisitor<AstNode> visitor) {
       _addSemanticTokens = false;
       TextRange startRange = CodeReferenceUtils.RangeOfToken(startToken);
       TextRange endRange = CodeReferenceUtils.RangeOfToken(endToken);
@@ -584,13 +575,12 @@ namespace SeedLang.X {
         return visitor.Visit(context) as Statement;
       });
       if (statements.Length > 0) {
-        range = CodeReferenceUtils.CombineRanges(
-            range, statements[statements.Length - 1].Range as TextRange);
+        range = CodeReferenceUtils.CombineRanges(range, statements[statements.Length - 1].Range);
       }
       return Statement.VTag(vTags, statements, range);
     }
 
-    private static AstNode BuildBlock(Statement[] statements) {
+    private static Statement BuildBlock(Statement[] statements) {
       Debug.Assert(statements.Length > 0);
       if (statements.Length == 1) {
         return statements[0];

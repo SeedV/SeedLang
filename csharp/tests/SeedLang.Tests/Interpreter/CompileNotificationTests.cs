@@ -220,13 +220,13 @@ namespace SeedLang.Interpreter.Tests {
       TestCompiler(program, expected, RunMode.Interactive);
     }
 
-    private static void TestCompiler(AstNode node, string expected, RunMode mode) {
+    private static void TestCompiler(Statement statement, string expected, RunMode mode) {
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var vc = new VisualizerCenter();
       var visualizer = new MockupVisualizer();
       vc.Register(visualizer);
       var compiler = new Compiler();
-      var func = compiler.Compile(node, env, vc, mode);
+      var func = compiler.Compile(statement, env, vc, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }

@@ -97,9 +97,10 @@ namespace SeedLang.Interpreter {
       return ref _constants[IndexOfConstId(constId)];
     }
 
+    // TODO: 
     internal uint AddNotification(AbstractNotification notification) {
       _notifications.Add(notification);
-      return (uint)_notifications.Count - 1;
+      return (uint)_notifications.Count;
     }
 
     // Converts the constant id to the index in the constant list.

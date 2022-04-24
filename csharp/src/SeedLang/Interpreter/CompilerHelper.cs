@@ -124,7 +124,7 @@ namespace SeedLang.Interpreter {
       bool notifyReturned = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncReturned>();
       uint nId = 0;
       if (notifyCalled || notifyReturned) {
-        var notification = new Notification.Function(name, funcRegister, argLength, range);
+        var notification = new Notification.Function(name, funcRegister, argLength);
         nId = Chunk.AddNotification(notification);
       }
       if (notifyCalled) {
@@ -139,7 +139,7 @@ namespace SeedLang.Interpreter {
     internal void EmitAssignNotification(string name, VariableType type, uint valueId,
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
-        var notification = new Notification.Assignment(name, type, valueId, range);
+        var notification = new Notification.Assignment(name, type, valueId);
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
@@ -147,7 +147,7 @@ namespace SeedLang.Interpreter {
     internal void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId,
                                          uint resultId, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
-        var notification = new Notification.Binary(leftId, op, rightId, resultId, range);
+        var notification = new Notification.Binary(leftId, op, rightId, resultId);
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
@@ -155,7 +155,7 @@ namespace SeedLang.Interpreter {
     internal void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId,
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
-        var notification = new Notification.Unary(op, valueId, resultId, range);
+        var notification = new Notification.Unary(op, valueId, resultId);
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
@@ -164,7 +164,7 @@ namespace SeedLang.Interpreter {
     internal void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos,
                                               TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
-        var notification = new Notification.VTagEntered(vTagInfos, range);
+        var notification = new Notification.VTagEntered(vTagInfos);
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
@@ -172,7 +172,7 @@ namespace SeedLang.Interpreter {
     internal void EmitVTagExitedNotification(Notification.VTagExited.VTagInfo[] vTagInfos,
                                              TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        var notification = new Notification.VTagExited(vTagInfos, range);
+        var notification = new Notification.VTagExited(vTagInfos);
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }

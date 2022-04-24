@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -37,12 +38,12 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
           $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  3    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  3    VISNOTIFY 0 1                                  {_range}\n" +
           $"  4    RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.Assignment: 'name': Global 0 {_range}\n"
+          $"  0    Notification.Assignment: 'name': Global 0\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(program, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
 
     [Fact]
@@ -54,13 +55,13 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    ADD       1 -1 -2          ; 1 2               {_range}\n" +
-          $"  3    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  3    VISNOTIFY 0 1                                  {_range}\n" +
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.Binary: 250 Add 251 1 {_range}\n"
+          $"  0    Notification.Binary: 250 Add 251 1\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(program, expected, new Type[] { typeof(Event.Binary) }, RunMode.Interactive);
     }
 
     [Fact]
@@ -83,23 +84,27 @@ namespace SeedLang.Interpreter.Tests {
           $"  4    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
           $"  5    LOADK     2 -2             ; 1                 {_range}\n" +
           $"  6    LOADK     3 -3             ; 2                 {_range}\n" +
-          $"  7    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  7    VISNOTIFY 0 1                                  {_range}\n" +
           $"  8    CALL      1 2 0                                {_range}\n" +
-          $"  9    VISNOTIFY 1 0                                  {_range}\n" +
+          $"  9    VISNOTIFY 1 1                                  {_range}\n" +
           $"  10   CALL      0 1 0                                {_range}\n" +
           $"  11   RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.Function: add 1 2 {_range}\n" +
+          $"  0    Notification.Function: add 1 2\n" +
           $"\n" +
           $"Function <add>\n" +
           $"  1    ADD       2 0 1                                {_range}\n" +
-          $"  2    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  2    VISNOTIFY 0 1                                  {_range}\n" +
           $"  3    RETURN    2 1                                  {_range}\n" +
           $"  4    RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.Binary: 0 Add 1 2 {_range}\n"
+          $"  0    Notification.Binary: 0 Add 1 2\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(program, expected, new Type[] {
+        typeof(Event.Binary),
+        typeof(Event.FuncCalled),
+        typeof(Event.FuncReturned),
+      }, RunMode.Interactive);
     }
 
     [Fact]
@@ -110,15 +115,14 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    UNM       1 -1             ; 1                 {_range}\n" +
-          $"  3    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  3    VISNOTIFY 0 1                                  {_range}\n" +
           $"  4    CALL      0 1 0                                {_range}\n" +
           $"  5    RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.Unary: Negative 250 1 {_range}\n"
+          $"  0    Notification.Unary: Negative 250 1\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(program, expected, new Type[] { typeof(Event.Unary) }, RunMode.Interactive);
     }
-
 
     [Fact]
     public void TestCompileVTag() {
@@ -130,19 +134,23 @@ namespace SeedLang.Interpreter.Tests {
       ));
       string expected = (
           $"Function <main>\n" +
-          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  1    VISNOTIFY 0 1                                  {_range}\n" +
           $"  2    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  3    ADD       1 -1 -2          ; 1 2               {_range}\n" +
-          $"  4    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  4    VISNOTIFY 0 2                                  {_range}\n" +
           $"  5    CALL      0 1 0                                {_range}\n" +
-          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
+          $"  6    VISNOTIFY 0 3                                  {_range}\n" +
           $"  7    RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.VTagEntered: Add {_range}\n" +
-          $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  2    Notification.VTagExited: Add {_range}\n"
+          $"  0    Notification.VTagEntered: Add\n" +
+          $"  1    Notification.Binary: 250 Add 251 1\n" +
+          $"  2    Notification.VTagExited: Add\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(program, expected, new Type[] {
+        typeof(Event.Binary),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Interactive);
     }
 
     [Fact]
@@ -159,19 +167,23 @@ namespace SeedLang.Interpreter.Tests {
       ));
       string expected = (
           $"Function <main>\n" +
-          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  1    VISNOTIFY 0 1                                  {_range}\n" +
           $"  2    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  3    ADD       1 -1 -2          ; 1 2               {_range}\n" +
-          $"  4    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  4    VISNOTIFY 0 2                                  {_range}\n" +
           $"  5    CALL      0 1 0                                {_range}\n" +
-          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
+          $"  6    VISNOTIFY 0 3                                  {_range}\n" +
           $"  7    RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.VTagEntered: Add(1,2) {_range}\n" +
-          $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  2    Notification.VTagExited: Add(250,251) {_range}\n"
+          $"  0    Notification.VTagEntered: Add(1,2)\n" +
+          $"  1    Notification.Binary: 250 Add 251 1\n" +
+          $"  2    Notification.VTagExited: Add(250,251)\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(program, expected, new Type[] {
+        typeof(Event.Binary),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Interactive);
     }
 
     [Fact]
@@ -195,36 +207,42 @@ namespace SeedLang.Interpreter.Tests {
       );
       string expected = (
           $"Function <main>\n" +
-          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
+          $"  1    VISNOTIFY 0 1                                  {_range}\n" +
           $"  2    ADD       0 -1 -2          ; 1 2               {_range}\n" +
-          $"  3    VISNOTIFY 0 1                                  {_range}\n" +
+          $"  3    VISNOTIFY 0 2                                  {_range}\n" +
           $"  4    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  5    SETGLOB   1 {_firstGlob}                                  {_range}\n" +
-          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
+          $"  6    VISNOTIFY 0 3                                  {_range}\n" +
           $"  7    SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
-          $"  8    VISNOTIFY 0 3                                  {_range}\n" +
+          $"  8    VISNOTIFY 0 4                                  {_range}\n" +
           $"  9    GETGLOB   0 {_firstGlob}                                  {_range}\n" +
           $"  10   GETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
           $"  11   ADD       2 -1 -2          ; 1 2               {_range}\n" +
-          $"  12   VISNOTIFY 0 4                                  {_range}\n" +
-          $"  13   VISNOTIFY 0 5                                  {_range}\n" +
+          $"  12   VISNOTIFY 0 5                                  {_range}\n" +
+          $"  13   VISNOTIFY 0 6                                  {_range}\n" +
           $"  14   RETURN    0 0                                  {_range}\n" +
           $"Notifications\n" +
-          $"  0    Notification.VTagEntered: Assign(x,1,y,1+2) {_range}\n" +
-          $"  1    Notification.Binary: 250 Add 251 0 {_range}\n" +
-          $"  2    Notification.Assignment: 'x': Global 1 {_range}\n" +
-          $"  3    Notification.Assignment: 'y': Global 0 {_range}\n" +
-          $"  4    Notification.Binary: 250 Add 251 2 {_range}\n" +
-          $"  5    Notification.VTagExited: Assign(0,250,1,2) {_range}\n"
+          $"  0    Notification.VTagEntered: Assign(x,1,y,1+2)\n" +
+          $"  1    Notification.Binary: 250 Add 251 0\n" +
+          $"  2    Notification.Assignment: 'x': Global 1\n" +
+          $"  3    Notification.Assignment: 'y': Global 0\n" +
+          $"  4    Notification.Binary: 250 Add 251 2\n" +
+          $"  5    Notification.VTagExited: Assign(0,250,1,2)\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(program, expected, new Type[] {
+        typeof(Event.Assignment),
+        typeof(Event.Binary),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Interactive);
     }
 
-    private static void TestCompiler(Statement statement, string expected, RunMode mode) {
+    private static void TestCompiler(Statement statement, string expected,
+                                     IReadOnlyList<Type> eventTypes, RunMode mode) {
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var vc = new VisualizerCenter();
-      var visualizer = new MockupVisualizer();
-      vc.Register(visualizer);
+      var vh = new VisualizerHelper(eventTypes);
+      vh.RegisterToVisualizerCenter(vc);
       var compiler = new Compiler();
       var func = compiler.Compile(statement, env, vc, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());

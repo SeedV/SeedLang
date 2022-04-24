@@ -161,6 +161,9 @@ namespace SeedLang.Shell {
         case Event.FuncReturned fre:
           Console.Write($"FuncReturned: {fre.Name} {fre.Result}");
           break;
+        case Event.SingleStep sse:
+          Console.Write($"SingleStep");
+          break;
         case Event.Unary ue: {
             var op = _unaryOperatorStrings[ue.Op];
             Console.Write($"Unary: {op} {ue.Value} = {ue.Result}");

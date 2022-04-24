@@ -82,7 +82,7 @@ namespace SeedLang.Ast {
         case UnaryOperator.Negative:
           return "-";
         case UnaryOperator.Not:
-          return "Not";
+          return "not";
         default:
           throw new NotImplementedException($"Unsupported unary operator: {op}.");
       }

@@ -36,14 +36,15 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitProgram([NotNull] SeedPythonParser.ProgramContext context) {
-      return VisitStatements(context.statements());
+      return Visit(context.statements());
     }
 
     public override AstNode VisitStatements([NotNull] SeedPythonParser.StatementsContext context) {
       return VisitorHelper.BuildBlock(context.NEWLINE(), context.statement(), this);
     }
 
-    public override AstNode VisitSimple_stmts([NotNull] SeedPythonParser.Simple_stmtsContext context) {
+    public override AstNode VisitSimple_stmts(
+        [NotNull] SeedPythonParser.Simple_stmtsContext context) {
       return _helper.BuildSimpleStatements(context.simple_stmt(), context.SEMICOLON(), this);
     }
 
@@ -186,14 +187,14 @@ namespace SeedLang.X {
 
     public override AstNode VisitStatements_as_block(
         [NotNull] SeedPythonParser.Statements_as_blockContext context) {
-      return Visit(context.statements()) as Statement;
+      return Visit(context.statements());
     }
 
     public override AstNode VisitDisjunction(
         [NotNull] SeedPythonParser.DisjunctionContext context) {
       ParserRuleContext[] operands = context.conjunction();
       if (operands.Length == 1) {
-        return Visit(operands[0]) as Expression;
+        return Visit(operands[0]);
       }
       return _helper.BuildAndOr(BooleanOperator.Or, operands, context.OR(), this);
     }
@@ -202,7 +203,7 @@ namespace SeedLang.X {
         [NotNull] SeedPythonParser.ConjunctionContext context) {
       ParserRuleContext[] operands = context.inversion();
       if (operands.Length == 1) {
-        return Visit(operands[0]) as Expression;
+        return Visit(operands[0]);
       }
       return _helper.BuildAndOr(BooleanOperator.And, operands, context.AND(), this);
     }
@@ -217,7 +218,7 @@ namespace SeedLang.X {
       ParserRuleContext[] operators = context.comparison_op();
       if (operators.Length == 0) {
         Debug.Assert(operands.Length == 1);
-        return Visit(operands[0]) as Expression;
+        return Visit(operands[0]);
       }
       var opTokens = new IToken[operators.Length];
       var ops = new ComparisonOperator[operators.Length];

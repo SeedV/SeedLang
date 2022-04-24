@@ -28,6 +28,7 @@ namespace SeedLang.Interpreter {
 
     // The bytecode of this chunk.
     public IReadOnlyList<Instruction> Bytecode => _bytecode;
+    public int LatestCodePos => _bytecode.Count - 1;
 
     // Source code ranges of the instructions in bytecode.
     //

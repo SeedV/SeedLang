@@ -91,11 +91,11 @@ namespace SeedLang.Ast {
 
   // A helper class to create the string representation of an AST tree.
   internal class AstDumper {
-    internal class Level {
+    private class HeaderDumper {
       private readonly StringBuilder _builder;
       private int _level = 0;
 
-      internal Level(StringBuilder builder) {
+      internal HeaderDumper(StringBuilder builder) {
         _builder = builder;
       }
 
@@ -113,21 +113,21 @@ namespace SeedLang.Ast {
       }
     }
 
-    internal class ExpressionDumper : ExpressionWalker {
+    private class ExpressionDumper : ExpressionWalker {
       private readonly StringBuilder _builder;
-      private readonly Level _level;
+      private readonly HeaderDumper _headerDumper;
 
-      public ExpressionDumper(StringBuilder builder, Level level) {
+      public ExpressionDumper(StringBuilder builder, HeaderDumper headerDumper) {
         _builder = builder;
-        _level = level;
+        _headerDumper = headerDumper;
       }
 
       protected override void Enter(Expression expr) {
-        _level.Enter(expr);
+        _headerDumper.Enter(expr);
       }
 
       protected override void Exit(Expression expr) {
-        _level.Exit(expr);
+        _headerDumper.Exit(expr);
       }
 
       protected override void VisitBinary(BinaryExpression binary) {
@@ -206,35 +206,37 @@ namespace SeedLang.Ast {
       }
     }
 
-    internal class StatementDumper : StatementWalker {
-      private readonly ExpressionDumper _exprDumper;
+    private class StatementDumper : StatementWalker {
       private readonly StringBuilder _builder;
-      private readonly Level _level;
-      public StatementDumper(StringBuilder builder, Level level, ExpressionDumper exprDumper) {
+      private readonly ExpressionDumper _exprDumper;
+      private readonly HeaderDumper _headerDumper;
+
+      public StatementDumper(StringBuilder builder, HeaderDumper headerDumper,
+                             ExpressionDumper exprDumper) {
         _builder = builder;
-        _level = level;
+        _headerDumper = headerDumper;
         _exprDumper = exprDumper;
       }
 
       protected override void Enter(Statement statement) {
-        _level.Enter(statement);
+        _headerDumper.Enter(statement);
       }
 
       protected override void Exit(Statement statement) {
-        _level.Exit(statement);
+        _headerDumper.Exit(statement);
       }
 
       protected override void VisitAssignment(AssignmentStatement assignment) {
-        for (int i = 0; i < assignment.Targets.Length; i++) {
-          _exprDumper.Visit(assignment.Targets[i]);
+        foreach (Expression expr in assignment.Targets) {
+          _exprDumper.Visit(expr);
         }
-        for (int i = 0; i < assignment.Exprs.Length; i++) {
-          _exprDumper.Visit(assignment.Exprs[i]);
+        foreach (Expression expr in assignment.Exprs) {
+          _exprDumper.Visit(expr);
         }
       }
 
       protected override void VisitBlock(BlockStatement block) {
-        foreach (var statement in block.Statements) {
+        foreach (Statement statement in block.Statements) {
           Visit(statement);
         }
       }
@@ -294,12 +296,12 @@ namespace SeedLang.Ast {
     private readonly StringBuilder _builder = new StringBuilder();
     private readonly ExpressionDumper _expressionDumper;
     private readonly StatementDumper _statementDumper;
-    private readonly Level _level;
+    private readonly HeaderDumper _headerDumper;
 
     internal AstDumper() {
-      _level = new Level(_builder);
-      _expressionDumper = new ExpressionDumper(_builder, _level);
-      _statementDumper = new StatementDumper(_builder, _level, _expressionDumper);
+      _headerDumper = new HeaderDumper(_builder);
+      _expressionDumper = new ExpressionDumper(_builder, _headerDumper);
+      _statementDumper = new StatementDumper(_builder, _headerDumper, _expressionDumper);
     }
 
     internal string Dump(AstNode node) {

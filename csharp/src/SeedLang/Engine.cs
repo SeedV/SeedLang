@@ -34,7 +34,7 @@ namespace SeedLang {
     private readonly RunMode _runMode;
     private readonly VM _vm = new VM();
 
-    // The AST tree of the source code.
+    // The AST tree of the program.
     private Statement _program;
     // The semantic tokens of the source code.
     private IReadOnlyList<TokenInfo> _semanticTokens;

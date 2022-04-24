@@ -73,7 +73,7 @@ namespace SeedLang.X {
         // The visitor will throw an overflow runtime exception if any constant number in the source
         // code is overflowed.
         program = visitor.Visit(programContext) as Statement;
-        Debug.Assert(!(program is null), "The parsed program shall be a statement.");
+        Debug.Assert(!(program is null), "The generated program shall be a statement.");
         return true;
       } catch (DiagnosticException e) {
         collection.Report(e.Diagnostic);

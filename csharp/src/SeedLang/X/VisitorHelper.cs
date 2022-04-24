@@ -133,6 +133,7 @@ namespace SeedLang.X {
       }
 
       var node = visitor.Visit(exprContext) as Expression;
+      Debug.Assert(!(node is null));
       AddSemanticToken(TokenType.CloseParenthesis, closeRange);
       return node;
     }
@@ -259,8 +260,7 @@ namespace SeedLang.X {
         if (visitor.Visit(exprContext) is Expression expr) {
           TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
           AddSemanticToken(TokenType.CloseBracket, closeBrackRange);
-          var primaryRange = primary.Range;
-          TextRange range = CodeReferenceUtils.CombineRanges(primaryRange, closeBrackRange);
+          TextRange range = CodeReferenceUtils.CombineRanges(primary.Range, closeBrackRange);
           return Expression.Subscript(primary, expr, range);
         }
       }
@@ -537,7 +537,6 @@ namespace SeedLang.X {
       if (visitor.Visit(exprContext) is Expression expr) {
         AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
         if (visitor.Visit(blockContext) is Statement block) {
-          Debug.Assert(block.Range is TextRange);
           TextRange range = CodeReferenceUtils.CombineRanges(whileRange, block.Range);
           return Statement.While(expr, block, range);
         }

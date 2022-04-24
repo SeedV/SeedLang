@@ -226,12 +226,12 @@ namespace SeedLang.X.Tests {
     [InlineData("True and False and True or False and True",
 
                 "[Ln 1, Col 0 - Ln 1, Col 40] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 40] BooleanExpression (Or)\n" +
-                "    [Ln 1, Col 0 - Ln 1, Col 22] BooleanExpression (And)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 40] BooleanExpression (or)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 22] BooleanExpression (and)\n" +
                 "      [Ln 1, Col 0 - Ln 1, Col 3] BooleanConstantExpression (True)\n" +
                 "      [Ln 1, Col 9 - Ln 1, Col 13] BooleanConstantExpression (False)\n" +
                 "      [Ln 1, Col 19 - Ln 1, Col 22] BooleanConstantExpression (True)\n" +
-                "    [Ln 1, Col 27 - Ln 1, Col 40] BooleanExpression (And)\n" +
+                "    [Ln 1, Col 27 - Ln 1, Col 40] BooleanExpression (and)\n" +
                 "      [Ln 1, Col 27 - Ln 1, Col 31] BooleanConstantExpression (False)\n" +
                 "      [Ln 1, Col 37 - Ln 1, Col 40] BooleanConstantExpression (True)",
 

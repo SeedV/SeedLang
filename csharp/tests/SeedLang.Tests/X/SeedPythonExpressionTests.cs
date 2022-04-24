@@ -248,7 +248,7 @@ namespace SeedLang.X.Tests {
     [InlineData("not True",
 
                 "[Ln 1, Col 0 - Ln 1, Col 7] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (Not)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (not)\n" +
                 "    [Ln 1, Col 4 - Ln 1, Col 7] BooleanConstantExpression (True)",
 
                 "Operator [Ln 1, Col 0 - Ln 1, Col 2]," +

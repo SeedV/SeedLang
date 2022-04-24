@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using SeedLang.Ast;
@@ -56,26 +57,27 @@ namespace SeedLang.X {
     // ANTLR4 lexer and parser are created by the derived class. The out parameters will be set to
     // null if the given source code is not valid.
     internal bool Parse(string source, string module, DiagnosticCollection collection,
-                        out AstNode node, out IReadOnlyList<TokenInfo> semanticTokens) {
+                        out Statement program, out IReadOnlyList<TokenInfo> semanticTokens) {
       int diagnosticCount = collection.Diagnostics.Count;
       Parser parser = SetupParser(source, module, collection);
       var tokenList = new List<TokenInfo>();
       semanticTokens = tokenList;
       AbstractParseTreeVisitor<AstNode> visitor = MakeVisitor(tokenList);
-      ParserRuleContext program = Program(parser);
+      ParserRuleContext programContext = Program(parser);
       if (collection.Diagnostics.Count > diagnosticCount) {
-        node = null;
+        program = null;
         semanticTokens = null;
         return false;
       }
       try {
         // The visitor will throw an overflow runtime exception if any constant number in the source
         // code is overflowed.
-        node = visitor.Visit(program);
+        program = visitor.Visit(programContext) as Statement;
+        Debug.Assert(!(program is null), "The generated program shall be a statement.");
         return true;
       } catch (DiagnosticException e) {
         collection.Report(e.Diagnostic);
-        node = null;
+        program = null;
         semanticTokens = null;
         return false;
       }

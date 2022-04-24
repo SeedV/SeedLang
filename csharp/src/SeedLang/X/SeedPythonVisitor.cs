@@ -317,8 +317,7 @@ namespace SeedLang.X {
       return _helper.BuildStringConstant(context.STRING());
     }
 
-    public override AstNode VisitIdentifier(
-        [NotNull] SeedPythonParser.IdentifierContext context) {
+    public override AstNode VisitIdentifier([NotNull] SeedPythonParser.IdentifierContext context) {
       return _helper.BuildIdentifier(context.NAME().Symbol);
     }
 

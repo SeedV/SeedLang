@@ -240,11 +240,11 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 20 - Ln 1, Col 20]," +
                 "Number [Ln 1, Col 22 - Ln 1, Col 22]")]
     public void TestSeedCalcParser(string input, string expected, string expectedTokens) {
-      Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
+      Assert.True(_parser.Parse(input, "", _collection, out Statement statement,
                                 out IReadOnlyList<TokenInfo> tokens));
-      Assert.NotNull(node);
+      Assert.NotNull(statement);
       Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expected.Replace("\n", Environment.NewLine), node.ToString());
+      Assert.Equal(expected.Replace("\n", Environment.NewLine), statement.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
 
@@ -336,9 +336,9 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
     public void TestParsePartialOrInvalidExpressions(string input, string[] errorMessages,
                                                      string expectedTokens) {
-      Assert.False(_parser.Parse(input, "", _collection, out AstNode node,
+      Assert.False(_parser.Parse(input, "", _collection, out Statement statement,
                    out IReadOnlyList<TokenInfo> semanticTokens));
-      Assert.Null(node);
+      Assert.Null(statement);
       Assert.Equal(errorMessages.Length, _collection.Diagnostics.Count);
       for (int i = 0; i < errorMessages.Length; ++i) {
         Assert.Equal(SystemReporters.SeedX, _collection.Diagnostics[i].Reporter);

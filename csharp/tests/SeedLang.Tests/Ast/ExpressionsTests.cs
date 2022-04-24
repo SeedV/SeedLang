@@ -51,7 +51,7 @@ namespace SeedLang.Ast.Tests {
         var boolean = AstHelper.Boolean(BooleanOperator.And, AstHelper.BooleanConstant(false),
                                         AstHelper.BooleanConstant(true));
         var expectedOutput = (
-            $"{AstHelper.TextRange} BooleanExpression (And)\n" +
+            $"{AstHelper.TextRange} BooleanExpression (and)\n" +
             $"  {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
             $"  {AstHelper.TextRange} BooleanConstantExpression (True)"
         ).Replace("\n", Environment.NewLine);
@@ -66,8 +66,8 @@ namespace SeedLang.Ast.Tests {
           AstHelper.BooleanConstant(false)
         );
         var expectedOutput = (
-            $"{AstHelper.TextRange} BooleanExpression (Or)\n" +
-            $"  {AstHelper.TextRange} BooleanExpression (And)\n" +
+            $"{AstHelper.TextRange} BooleanExpression (or)\n" +
+            $"  {AstHelper.TextRange} BooleanExpression (and)\n" +
             $"    {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
             $"    {AstHelper.TextRange} BooleanConstantExpression (True)\n" +
             $"  {AstHelper.TextRange} BooleanConstantExpression (False)"

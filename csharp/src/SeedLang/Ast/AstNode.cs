@@ -26,7 +26,7 @@ namespace SeedLang.Ast {
 
     // Creates the string representation of the AST node.
     public override string ToString() {
-      return AstStringBuilder.AstToString(this);
+      return new AstDumper().Dump(this);
     }
   }
 }

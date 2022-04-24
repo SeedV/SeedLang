@@ -13,228 +13,43 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
-  internal class Compiler : AstWalker {
-    private VisualizerCenter _visualizerCenter;
+  internal class Compiler : StatementWalker {
     private RunMode _runMode;
-    private VariableResolver _variableResolver;
+    private CompilerHelper _helper;
+    private ExprCompiler _exprCompiler;
+
     private NestedFuncStack _nestedFuncStack;
-    private NestedJumpStack _nestedJumpStack;
     private NestedLoopStack _nestedLoopStack;
-
-    // The register allocated for the result of sub-expressions. The getter resets the storage to
-    // null after getting the value to make sure the result register is set before visiting each
-    // sub-expression.
-    private uint _registerForSubExpr {
-      get {
-        Debug.Assert(_registerForSubExprStorage.HasValue,
-                     "The result register must be set before visiting sub-expressions.");
-        uint value = _registerForSubExprStorage.Value;
-        _registerForSubExprStorage = null;
-        return value;
-      }
-      set {
-        _registerForSubExprStorage = value;
-      }
-    }
-    private uint? _registerForSubExprStorage;
-
-    // The next boolean operator. A true condition check instruction is emitted if the next boolean
-    // operator is "And", otherwise a false condition instruction check is emitted.
-    private BooleanOperator _nextBooleanOp;
 
     // The range of the statement that is just compiled.
     private TextRange _rangeOfPrevStatement = null;
 
-    // The chunk on the top of the function stack.
-    private Chunk _chunk;
-    // The constant cache on the top of the function stack.
-    private ConstantCache _constantCache;
-
-    internal Function Compile(AstNode node, GlobalEnvironment env,
+    internal Function Compile(Statement program, GlobalEnvironment env,
                               VisualizerCenter visualizerCenter, RunMode runMode) {
-      _visualizerCenter = visualizerCenter;
       _runMode = runMode;
-      _variableResolver = new VariableResolver(env);
+      _helper = new CompilerHelper(visualizerCenter, env);
       _nestedFuncStack = new NestedFuncStack();
-      _nestedJumpStack = new NestedJumpStack();
       _nestedLoopStack = new NestedLoopStack();
+      _exprCompiler = new ExprCompiler(_helper);
       // Starts to parse the main function in the global scope.
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
-      Visit(node);
+      Visit(program);
       EmitDefaultReturn();
       return _nestedFuncStack.PopFunc();
     }
 
-    protected override void Visit(BinaryExpression binary) {
-      _variableResolver.BeginExpressionScope();
-      uint register = _registerForSubExpr;
-      uint left = VisitExpressionForRKId(binary.Left);
-      uint right = VisitExpressionForRKId(binary.Right);
-      _chunk.Emit(OpcodeOfBinaryOperator(binary.Op), register, left, right, binary.Range);
-      EmitBinaryNotification(left, binary.Op, right, register, binary.Range);
-      _variableResolver.EndExpressionScope();
+    protected override void Enter(Statement statement) {
+      _rangeOfPrevStatement = statement.Range;
     }
 
-    protected override void Visit(BooleanExpression boolean) {
-      VisitBooleanOrComparisonExpression(() => {
-        BooleanOperator nextBooleanOp = _nextBooleanOp;
-        for (int i = 0; i < boolean.Exprs.Length; i++) {
-          _nextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : nextBooleanOp;
-          Visit(boolean.Exprs[i]);
-          if (i < boolean.Exprs.Length - 1) {
-            switch (boolean.Op) {
-              case BooleanOperator.And:
-                PatchJumps(_nestedJumpStack.TrueJumps);
-                break;
-              case BooleanOperator.Or:
-                PatchJumps(_nestedJumpStack.FalseJumps);
-                break;
-            }
-          }
-        }
-      }, boolean.Range);
-    }
-
-    protected override void Visit(ComparisonExpression comparison) {
-      Debug.Assert(comparison.Ops.Length > 0 && comparison.Exprs.Length > 0);
-      VisitBooleanOrComparisonExpression(() => {
-        BooleanOperator nextBooleanOp = _nextBooleanOp;
-        Expression left = comparison.First;
-        for (int i = 0; i < comparison.Exprs.Length; i++) {
-          _nextBooleanOp = i < comparison.Exprs.Length - 1 ? BooleanOperator.And : nextBooleanOp;
-          VisitSingleComparison(left, comparison.Ops[i], comparison.Exprs[i], comparison.Range);
-          left = comparison.Exprs[i];
-        }
-      }, comparison.Range);
-    }
-
-    protected override void Visit(UnaryExpression unary) {
-      _variableResolver.BeginExpressionScope();
-      uint register = _registerForSubExpr;
-      uint exprId = VisitExpressionForRKId(unary.Expr);
-      _chunk.Emit(Opcode.UNM, register, exprId, 0, unary.Range);
-      EmitUnaryNotification(unary.Op, exprId, register, unary.Range);
-      _variableResolver.EndExpressionScope();
-    }
-
-    protected override void Visit(IdentifierExpression identifier) {
-      if (_variableResolver.FindVariable(identifier.Name) is VariableResolver.VariableInfo info) {
-        switch (info.Type) {
-          case VariableResolver.VariableType.Global:
-            _chunk.Emit(Opcode.GETGLOB, _registerForSubExpr, info.Id, identifier.Range);
-            break;
-          case VariableResolver.VariableType.Local:
-            _chunk.Emit(Opcode.MOVE, _registerForSubExpr, info.Id, 0, identifier.Range);
-            break;
-          case VariableResolver.VariableType.Upvalue:
-            // TODO: handle upvalues.
-            break;
-        }
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Fatal, "",
-                                      identifier.Range, Message.RuntimeErrorVariableNotDefined);
-      }
-    }
-
-    protected override void Visit(NilConstantExpression nilConstant) {
-      _chunk.Emit(Opcode.LOADNIL, _registerForSubExpr, 1, 0, nilConstant.Range);
-    }
-
-    protected override void Visit(BooleanConstantExpression booleanConstant) {
-      _chunk.Emit(Opcode.LOADBOOL, _registerForSubExpr, booleanConstant.Value ? 1u : 0, 0,
-                  booleanConstant.Range);
-    }
-
-    protected override void Visit(NumberConstantExpression numberConstant) {
-      uint id = _constantCache.IdOfConstant(numberConstant.Value);
-      _chunk.Emit(Opcode.LOADK, _registerForSubExpr, id, numberConstant.Range);
-    }
-
-    protected override void Visit(StringConstantExpression stringConstant) {
-      uint id = _constantCache.IdOfConstant(stringConstant.Value);
-      _chunk.Emit(Opcode.LOADK, _registerForSubExpr, id, stringConstant.Range);
-    }
-
-    protected override void Visit(DictExpression dict) {
-      _variableResolver.BeginExpressionScope();
-      uint target = _registerForSubExpr;
-      uint? first = null;
-      foreach (var item in dict.Items) {
-        uint register = _variableResolver.AllocateRegister();
-        if (!first.HasValue) {
-          first = register;
-        }
-        _registerForSubExpr = register;
-        Visit(item.Key);
-        _registerForSubExpr = _variableResolver.AllocateRegister();
-        Visit(item.Value);
-      }
-      _chunk.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Items.Length * 2, dict.Range);
-      _variableResolver.EndExpressionScope();
-    }
-
-    protected override void Visit(ListExpression list) {
-      CreateTupleOrList(Opcode.NEWLIST, list.Exprs, list.Range);
-    }
-
-    protected override void Visit(TupleExpression tuple) {
-      CreateTupleOrList(Opcode.NEWTUPLE, tuple.Exprs, tuple.Range);
-    }
-
-    protected override void Visit(SubscriptExpression subscript) {
-      _variableResolver.BeginExpressionScope();
-      uint targetId = _registerForSubExpr;
-      uint listId = VisitExpressionForRegisterId(subscript.Expr);
-      uint indexId = VisitExpressionForRKId(subscript.Index);
-      _chunk.Emit(Opcode.GETELEM, targetId, listId, indexId, subscript.Range);
-      _variableResolver.EndExpressionScope();
-    }
-
-    protected override void Visit(CallExpression call) {
-      _variableResolver.BeginExpressionScope();
-      // TODO: should call.Func always be IdentifierExpression?
-      if (call.Func is IdentifierExpression identifier) {
-        if (_variableResolver.FindVariable(identifier.Name) is VariableResolver.VariableInfo info) {
-          uint resultRegister = _registerForSubExpr;
-          bool needRegister = resultRegister != _variableResolver.LastRegister;
-          uint funcRegister = needRegister ? _variableResolver.AllocateRegister() : resultRegister;
-          switch (info.Type) {
-            case VariableResolver.VariableType.Global:
-              _chunk.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
-              break;
-            case VariableResolver.VariableType.Local:
-              _chunk.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
-              break;
-            case VariableResolver.VariableType.Upvalue:
-              // TODO: handle upvalues.
-              break;
-          }
-          foreach (Expression expr in call.Arguments) {
-            _registerForSubExpr = _variableResolver.AllocateRegister();
-            Visit(expr);
-          }
-          EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
-          if (needRegister) {
-            _chunk.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
-          }
-        } else {
-          // TODO: throw a variable not defined runtime error.
-        }
-      }
-      _variableResolver.EndExpressionScope();
-    }
-
-    protected override void Visit(AssignmentStatement assignment) {
-      _rangeOfPrevStatement = assignment.Range;
+    protected override void VisitAssignment(AssignmentStatement assignment) {
       if (assignment.Exprs.Length == 1) {
         Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
       } else {
@@ -242,104 +57,103 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    protected override void Visit(BlockStatement block) {
-      _rangeOfPrevStatement = block.Range;
+    protected override void VisitBlock(BlockStatement block) {
       foreach (Statement statement in block.Statements) {
         Visit(statement);
       }
     }
 
-    protected override void Visit(BreakStatement @break) {
-      _chunk.Emit(Opcode.JMP, 0, 0, @break.Range);
-      _nestedLoopStack.AddBreakJump(GetCurrentCodePos());
+    protected override void VisitBreak(BreakStatement @break) {
+      _helper.Chunk.Emit(Opcode.JMP, 0, 0, @break.Range);
+      _nestedLoopStack.AddBreakJump(_helper.Chunk.LatestCodePos);
     }
 
     // TODO: implement continue statements.
-    protected override void Visit(ContinueStatement @continue) {
+    protected override void VisitContinue(ContinueStatement @continue) {
     }
 
-    protected override void Visit(ExpressionStatement expr) {
-      _rangeOfPrevStatement = expr.Range;
-      _variableResolver.BeginExpressionScope();
-      _registerForSubExpr = _variableResolver.AllocateRegister();
+    protected override void VisitExpression(ExpressionStatement expr) {
+      _helper.BeginExpressionScope();
+      _exprCompiler.RegisterForSubExpr = _helper.AllocateRegister();
       switch (_runMode) {
         case RunMode.Interactive:
           Expression eval = Expression.Identifier(NativeFunctions.PrintVal, expr.Range);
-          Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
+          _exprCompiler.Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
           break;
         case RunMode.Script:
-          Visit(expr.Expr);
+          _exprCompiler.Visit(expr.Expr);
           break;
       }
-      _variableResolver.EndExpressionScope();
+      _helper.EndExpressionScope();
     }
 
-    protected override void Visit(ForInStatement forIn) {
+    protected override void VisitForIn(ForInStatement forIn) {
       _nestedLoopStack.PushLoopFrame();
-      _rangeOfPrevStatement = forIn.Range;
       VariableResolver.VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
 
-      _variableResolver.BeginBlockScope();
-      if (!(GetRegisterId(forIn.Expr) is uint sequence)) {
-        sequence = _variableResolver.AllocateRegister();
-        _registerForSubExpr = sequence;
-        Visit(forIn.Expr);
+      _helper.BeginBlockScope();
+      if (!(_helper.GetRegisterId(forIn.Expr) is uint sequence)) {
+        sequence = _helper.AllocateRegister();
+        _exprCompiler.RegisterForSubExpr = sequence;
+        _exprCompiler.Visit(forIn.Expr);
       }
-      uint index = _variableResolver.AllocateRegister();
-      _chunk.Emit(Opcode.LOADK, index, _constantCache.IdOfConstant(0), forIn.Range);
-      uint limit = _variableResolver.AllocateRegister();
-      _chunk.Emit(Opcode.LEN, limit, sequence, 0, forIn.Range);
-      uint step = _variableResolver.AllocateRegister();
-      _chunk.Emit(Opcode.LOADK, step, _constantCache.IdOfConstant(1), forIn.Range);
-      _chunk.Emit(Opcode.FORPREP, index, 0, forIn.Range);
-      int bodyStart = _chunk.Bytecode.Count;
+      uint index = _helper.AllocateRegister();
+      _helper.Chunk.Emit(Opcode.LOADK, index, _helper.ConstantCache.IdOfConstant(0), forIn.Range);
+      uint limit = _helper.AllocateRegister();
+      _helper.Chunk.Emit(Opcode.LEN, limit, sequence, 0, forIn.Range);
+      uint step = _helper.AllocateRegister();
+      _helper.Chunk.Emit(Opcode.LOADK, step, _helper.ConstantCache.IdOfConstant(1), forIn.Range);
+      _helper.Chunk.Emit(Opcode.FORPREP, index, 0, forIn.Range);
+      int bodyStart = _helper.Chunk.Bytecode.Count;
       switch (loopVar.Type) {
         case VariableResolver.VariableType.Global:
-          _variableResolver.BeginExpressionScope();
-          uint targetId = _variableResolver.AllocateRegister();
-          _chunk.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
-          _chunk.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
-          EmitAssignNotification(forIn.Id.Name, VariableType.Global, targetId, forIn.Id.Range);
-          _variableResolver.EndExpressionScope();
+          _helper.BeginExpressionScope();
+          uint targetId = _helper.AllocateRegister();
+          _helper.Chunk.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
+          _helper.Chunk.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
+          _helper.EmitAssignNotification(forIn.Id.Name, VariableType.Global, targetId,
+                                         forIn.Id.Range);
+          _helper.EndExpressionScope();
           break;
         case VariableResolver.VariableType.Local:
-          _chunk.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
-          EmitAssignNotification(forIn.Id.Name, VariableType.Local, loopVar.Id, forIn.Id.Range);
+          _helper.Chunk.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
+          _helper.EmitAssignNotification(forIn.Id.Name, VariableType.Local, loopVar.Id,
+                                         forIn.Id.Range);
           break;
         case VariableResolver.VariableType.Upvalue:
           // TODO: handle upvalues.
           break;
       }
       Visit(forIn.Body);
-      PatchJumpToCurrentPos(bodyStart - 1);
-      _chunk.Emit(Opcode.FORLOOP, index, bodyStart - (_chunk.Bytecode.Count + 1), forIn.Range);
-      _variableResolver.EndBlockScope();
-      PatchJumps(_nestedLoopStack.BreaksJumps);
+      _helper.PatchJumpToCurrentPos(bodyStart - 1);
+      _helper.Chunk.Emit(Opcode.FORLOOP, index, bodyStart - (_helper.Chunk.Bytecode.Count + 1),
+                         forIn.Range);
+      _helper.EndBlockScope();
+      _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
       _nestedLoopStack.PopLoopFrame();
     }
 
-    protected override void Visit(FuncDefStatement funcDef) {
-      _rangeOfPrevStatement = funcDef.Range;
+    protected override void VisitFuncDef(FuncDefStatement funcDef) {
       VariableResolver.VariableInfo info = DefineVariableIfNeeded(funcDef.Name);
       PushFunc(funcDef.Name);
       foreach (string parameterName in funcDef.Parameters) {
-        _variableResolver.DefineVariable(parameterName);
+        _helper.DefineVariable(parameterName);
       }
       Visit(funcDef.Body);
       EmitDefaultReturn();
 
       Function func = PopFunc();
-      uint funcId = _constantCache.IdOfConstant(func);
+      uint funcId = _helper.ConstantCache.IdOfConstant(func);
       switch (info.Type) {
         case VariableResolver.VariableType.Global:
-          _variableResolver.BeginExpressionScope();
-          uint registerId = _variableResolver.AllocateRegister();
-          _chunk.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
-          _chunk.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
-          _variableResolver.EndExpressionScope();
+          _helper.BeginExpressionScope();
+          uint registerId = _helper.AllocateRegister();
+          _helper.Chunk.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
+          _helper.Chunk.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
+          _helper.EndExpressionScope();
           break;
         case VariableResolver.VariableType.Local:
-          _chunk.Emit(Opcode.LOADK, info.Id, funcId, funcDef.Range);
+          _helper.Chunk.Emit(Opcode.LOADK, info.Id, funcId, funcDef.Range);
           break;
         case VariableResolver.VariableType.Upvalue:
           // TODO: handle upvalues.
@@ -347,72 +161,66 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    protected override void Visit(IfStatement @if) {
-      _rangeOfPrevStatement = @if.Range;
-      _nestedJumpStack.PushFrame();
+    protected override void VisitIf(IfStatement @if) {
+      _helper.NestedJumpStack.PushFrame();
       VisitTest(@if.Test);
-      PatchJumps(_nestedJumpStack.TrueJumps);
+      _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.TrueJumps);
       Visit(@if.ThenBody);
       if (!(@if.ElseBody is null)) {
-        _chunk.Emit(Opcode.JMP, 0, 0, @if.Range);
-        int jumpEndPos = GetCurrentCodePos();
-        PatchJumps(_nestedJumpStack.FalseJumps);
+        _helper.Chunk.Emit(Opcode.JMP, 0, 0, @if.Range);
+        int jumpEndPos = _helper.Chunk.LatestCodePos;
+        _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
         Visit(@if.ElseBody);
-        PatchJumpToCurrentPos(jumpEndPos);
+        _helper.PatchJumpToCurrentPos(jumpEndPos);
       } else {
-        PatchJumps(_nestedJumpStack.FalseJumps);
+        _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
       }
-      _nestedJumpStack.PopFrame();
+      _helper.NestedJumpStack.PopFrame();
     }
 
-    protected override void Visit(PassStatement pass) {
-      _rangeOfPrevStatement = pass.Range;
-    }
+    protected override void VisitPass(PassStatement pass) { }
 
-    protected override void Visit(ReturnStatement @return) {
-      _rangeOfPrevStatement = @return.Range;
+    protected override void VisitReturn(ReturnStatement @return) {
       if (@return.Exprs.Length == 0) {
-        _chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
+        _helper.Chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
       } else if (@return.Exprs.Length == 1) {
-        if (!(GetRegisterId(@return.Exprs[0]) is uint result)) {
-          _variableResolver.BeginExpressionScope();
-          result = _variableResolver.AllocateRegister();
-          _registerForSubExpr = result;
-          Visit(@return.Exprs[0]);
-          _variableResolver.EndExpressionScope();
+        if (!(_helper.GetRegisterId(@return.Exprs[0]) is uint result)) {
+          _helper.BeginExpressionScope();
+          result = _helper.AllocateRegister();
+          _exprCompiler.RegisterForSubExpr = result;
+          _exprCompiler.Visit(@return.Exprs[0]);
+          _helper.EndExpressionScope();
         }
-        _chunk.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
+        _helper.Chunk.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
       } else {
-        _variableResolver.BeginExpressionScope();
-        uint listRegister = _variableResolver.AllocateRegister();
-        _registerForSubExpr = listRegister;
-        Visit(Expression.Tuple(@return.Exprs, @return.Range));
-        _chunk.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
-        _variableResolver.EndExpressionScope();
+        _helper.BeginExpressionScope();
+        uint listRegister = _helper.AllocateRegister();
+        _exprCompiler.RegisterForSubExpr = listRegister;
+        _exprCompiler.Visit(Expression.Tuple(@return.Exprs, @return.Range));
+        _helper.Chunk.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
+        _helper.EndExpressionScope();
       }
     }
 
-    protected override void Visit(WhileStatement @while) {
+    protected override void VisitWhile(WhileStatement @while) {
       _nestedLoopStack.PushLoopFrame();
-      _rangeOfPrevStatement = @while.Range;
-      _nestedJumpStack.PushFrame();
-      int start = GetCurrentCodePos();
+      _helper.NestedJumpStack.PushFrame();
+      int start = _helper.Chunk.LatestCodePos;
       VisitTest(@while.Test);
       Visit(@while.Body);
-      _chunk.Emit(Opcode.JMP, 0, start - GetCurrentCodePos() - 1, @while.Range);
-      PatchJumps(_nestedJumpStack.FalseJumps);
-      _nestedJumpStack.PopFrame();
-      PatchJumps(_nestedLoopStack.BreaksJumps);
+      _helper.Chunk.Emit(Opcode.JMP, 0, start - _helper.Chunk.LatestCodePos - 1, @while.Range);
+      _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
+      _helper.NestedJumpStack.PopFrame();
+      _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
       _nestedLoopStack.PopLoopFrame();
     }
 
-    protected override void Visit(VTagStatement vTag) {
-      _rangeOfPrevStatement = vTag.Range;
-      EmitVTagEnteredNotification(CreateVTagEnteredInfo(vTag), vTag.Range);
+    protected override void VisitVTag(VTagStatement vTag) {
+      _helper.EmitVTagEnteredNotification(CreateVTagEnteredInfo(vTag), vTag.Range);
       foreach (Statement statement in vTag.Statements) {
         Visit(statement);
       }
-      EmitVTagExitedNotification(CreateVTagExitedInfo(vTag), vTag.Range);
+      _helper.EmitVTagExitedNotification(CreateVTagExitedInfo(vTag), vTag.Range);
     }
 
     private static Event.VTagEntered.VTagInfo[] CreateVTagEnteredInfo(VTagStatement vTag) {
@@ -423,86 +231,41 @@ namespace SeedLang.Interpreter {
     }
 
     private Notification.VTagExited.VTagInfo[] CreateVTagExitedInfo(VTagStatement vTag) {
-      _variableResolver.BeginBlockScope();
+      _helper.BeginBlockScope();
       var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
         var valueIds = new uint[vTagInfo.Args.Length];
         for (int j = 0; j < vTagInfo.Args.Length; j++) {
-          if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
+          if (_helper.GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
             valueIds[j] = id;
           } else {
-            valueIds[j] = _variableResolver.AllocateRegister();
-            _registerForSubExpr = valueIds[j];
-            Visit(vTagInfo.Args[j].Expr);
+            valueIds[j] = _helper.AllocateRegister();
+            _exprCompiler.RegisterForSubExpr = valueIds[j];
+            _exprCompiler.Visit(vTagInfo.Args[j].Expr);
           }
         }
         return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
       });
-      _variableResolver.EndBlockScope();
+      _helper.EndBlockScope();
       return vTagInfos;
-    }
-
-    private void VisitBooleanOrComparisonExpression(Action action, TextRange range) {
-      // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
-      // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
-      // part of the test condition of if or while statements.
-      uint? register = null;
-      if (!(_registerForSubExprStorage is null)) {
-        register = _registerForSubExpr;
-        _nestedJumpStack.PushFrame();
-      }
-      action();
-      if (register.HasValue) {
-        PatchJumps(_nestedJumpStack.TrueJumps);
-        // Loads True into the register, and increases PC.
-        _chunk.Emit(Opcode.LOADBOOL, (uint)register, 1, 1, range);
-        PatchJumps(_nestedJumpStack.FalseJumps);
-        // Loads False into the register.
-        _chunk.Emit(Opcode.LOADBOOL, (uint)register, 0, 0, range);
-        _nestedJumpStack.PopFrame();
-      }
     }
 
     private void VisitTest(Expression test) {
       if (test is ComparisonExpression || test is BooleanExpression) {
-        Visit(test);
+        _exprCompiler.Visit(test);
       } else {
-        if (GetRegisterId(test) is uint registerId) {
-          _chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
+        if (_helper.GetRegisterId(test) is uint registerId) {
+          _helper.Chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
         } else {
-          _variableResolver.BeginExpressionScope();
-          registerId = _variableResolver.AllocateRegister();
-          _registerForSubExpr = registerId;
-          Visit(test);
-          _chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
-          _variableResolver.EndExpressionScope();
+          _helper.BeginExpressionScope();
+          registerId = _helper.AllocateRegister();
+          _exprCompiler.RegisterForSubExpr = registerId;
+          _exprCompiler.Visit(test);
+          _helper.Chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
+          _helper.EndExpressionScope();
         }
-        _chunk.Emit(Opcode.JMP, 0, 0, test.Range);
-        int jump = GetCurrentCodePos();
-        _nestedJumpStack.FalseJumps.Add(jump);
+        _helper.Chunk.Emit(Opcode.JMP, 0, 0, test.Range);
+        _helper.NestedJumpStack.FalseJumps.Add(_helper.Chunk.LatestCodePos);
       }
-    }
-
-    private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
-                                       TextRange range) {
-      _variableResolver.BeginExpressionScope();
-      uint leftRegister = VisitExpressionForRKId(left);
-      uint rightRegister = VisitExpressionForRKId(right);
-      (Opcode opcode, bool checkFlag) = OpcodeAndCheckFlagOfComparisonOperator(op);
-      if (_nextBooleanOp == BooleanOperator.Or) {
-        checkFlag = !checkFlag;
-      }
-      _chunk.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
-      _chunk.Emit(Opcode.JMP, 0, 0, range);
-      int jump = GetCurrentCodePos();
-      switch (_nextBooleanOp) {
-        case BooleanOperator.And:
-          _nestedJumpStack.FalseJumps.Add(jump);
-          break;
-        case BooleanOperator.Or:
-          _nestedJumpStack.TrueJumps.Add(jump);
-          break;
-      }
-      _variableResolver.EndExpressionScope();
     }
 
     private void Pack(Expression[] targets, Expression[] exprs, TextRange range) {
@@ -531,19 +294,19 @@ namespace SeedLang.Interpreter {
             DefineVariableIfNeeded(id.Name);
           }
         }
-        _variableResolver.BeginExpressionScope();
+        _helper.BeginExpressionScope();
         uint listId = VisitExpressionForRegisterId(expr);
-        uint valueId = _variableResolver.AllocateRegister();
+        uint valueId = _helper.AllocateRegister();
         for (int i = 0; i < targets.Length; i++) {
-          _variableResolver.BeginExpressionScope();
-          uint constId = _constantCache.IdOfConstant(i);
-          uint indexId = _variableResolver.AllocateRegister();
-          _chunk.Emit(Opcode.LOADK, indexId, constId, range);
-          _chunk.Emit(Opcode.GETELEM, valueId, listId, indexId, range);
+          _helper.BeginExpressionScope();
+          uint constId = _helper.ConstantCache.IdOfConstant(i);
+          uint indexId = _helper.AllocateRegister();
+          _helper.Chunk.Emit(Opcode.LOADK, indexId, constId, range);
+          _helper.Chunk.Emit(Opcode.GETELEM, valueId, listId, indexId, range);
           Assign(targets[i], valueId, range);
-          _variableResolver.EndExpressionScope();
+          _helper.EndExpressionScope();
         }
-        _variableResolver.EndExpressionScope();
+        _helper.EndExpressionScope();
       }
     }
 
@@ -551,10 +314,10 @@ namespace SeedLang.Interpreter {
       if (target is IdentifierExpression id) {
         DefineVariableIfNeeded(id.Name);
       }
-      _variableResolver.BeginExpressionScope();
+      _helper.BeginExpressionScope();
       uint valueId = VisitExpressionForRKId(expr);
       Assign(target, valueId, range);
-      _variableResolver.EndExpressionScope();
+      _helper.EndExpressionScope();
     }
 
     private void AssignMultipleTargets(Expression[] targets, Expression[] exprs, TextRange range) {
@@ -563,7 +326,7 @@ namespace SeedLang.Interpreter {
           DefineVariableIfNeeded(id.Name);
         }
       }
-      _variableResolver.BeginExpressionScope();
+      _helper.BeginExpressionScope();
       var exprIds = new uint[targets.Length];
       for (int i = 0; i < targets.Length; i++) {
         exprIds[i] = VisitExpressionForRKId(exprs[i]);
@@ -571,7 +334,7 @@ namespace SeedLang.Interpreter {
       for (int i = 0; i < targets.Length; i++) {
         Assign(targets[i], exprIds[i], range);
       }
-      _variableResolver.EndExpressionScope();
+      _helper.EndExpressionScope();
     }
 
     private void Assign(Expression expr, uint valueId, TextRange range) {
@@ -582,30 +345,30 @@ namespace SeedLang.Interpreter {
         case SubscriptExpression subscript:
           uint listId = VisitExpressionForRegisterId(subscript.Expr);
           uint indexId = VisitExpressionForRKId(subscript.Index);
-          _chunk.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
+          _helper.Chunk.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
           break;
       }
     }
 
     private void Assign(IdentifierExpression id, uint valueId, TextRange range) {
-      VariableResolver.VariableInfo info = _variableResolver.FindVariable(id.Name).Value;
+      VariableResolver.VariableInfo info = _helper.FindVariable(id.Name).Value;
       switch (info.Type) {
         case VariableResolver.VariableType.Global:
           uint tempRegister = valueId;
           if (Chunk.IsConstId(valueId)) {
-            tempRegister = _variableResolver.AllocateRegister();
-            _chunk.Emit(Opcode.LOADK, tempRegister, valueId, range);
+            tempRegister = _helper.AllocateRegister();
+            _helper.Chunk.Emit(Opcode.LOADK, tempRegister, valueId, range);
           }
-          _chunk.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
-          EmitAssignNotification(id.Name, VariableType.Global, tempRegister, range);
+          _helper.Chunk.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
+          _helper.EmitAssignNotification(id.Name, VariableType.Global, tempRegister, range);
           break;
         case VariableResolver.VariableType.Local:
           if (Chunk.IsConstId(valueId)) {
-            _chunk.Emit(Opcode.LOADK, info.Id, valueId, range);
+            _helper.Chunk.Emit(Opcode.LOADK, info.Id, valueId, range);
           } else {
-            _chunk.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
+            _helper.Chunk.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
           }
-          EmitAssignNotification(id.Name, VariableType.Local, valueId, range);
+          _helper.EmitAssignNotification(id.Name, VariableType.Local, valueId, range);
           break;
         case VariableResolver.VariableType.Upvalue:
           // TODO: handle upvalues.
@@ -613,215 +376,52 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs,
-                                   TextRange range) {
-      _variableResolver.BeginExpressionScope();
-      uint target = _registerForSubExpr;
-      uint? first = null;
-      foreach (var expr in exprs) {
-        uint register = _variableResolver.AllocateRegister();
-        if (!first.HasValue) {
-          first = register;
-        }
-        _registerForSubExpr = register;
-        Visit(expr);
-      }
-      _chunk.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);
-      _variableResolver.EndExpressionScope();
-    }
-
     private VariableResolver.VariableInfo DefineVariableIfNeeded(string name) {
-      if (_variableResolver.FindVariable(name) is VariableResolver.VariableInfo info) {
+      if (_helper.FindVariable(name) is VariableResolver.VariableInfo info) {
         return info;
       }
-      return _variableResolver.DefineVariable(name);
-    }
-
-    private int GetCurrentCodePos() {
-      return _chunk.Bytecode.Count - 1;
-    }
-
-    private void PatchJumps(List<int> jumps) {
-      foreach (int jump in jumps) {
-        PatchJumpToCurrentPos(jump);
-      }
-      jumps.Clear();
-    }
-
-    private void PatchJumpToCurrentPos(int jump) {
-      _chunk.PatchSBXAt(jump, _chunk.Bytecode.Count - jump - 1);
+      return _helper.DefineVariable(name);
     }
 
     private void PushFunc(string name) {
       _nestedFuncStack.PushFunc(name);
       CacheTopFunction();
-      _variableResolver.BeginFunctionScope();
+      _helper.BeginFunctionScope();
     }
 
     private Function PopFunc() {
-      _variableResolver.EndFunctionScope();
+      _helper.EndFunctionScope();
       Function func = _nestedFuncStack.PopFunc();
       CacheTopFunction();
       return func;
     }
 
     private void CacheTopFunction() {
-      _chunk = _nestedFuncStack.CurrentChunk();
-      _constantCache = _nestedFuncStack.CurrentConstantCache();
+      _helper.Chunk = _nestedFuncStack.CurrentChunk();
+      _helper.ConstantCache = _nestedFuncStack.CurrentConstantCache();
     }
 
     private uint VisitExpressionForRegisterId(Expression expr) {
-      if (!(GetRegisterId(expr) is uint exprId)) {
-        exprId = _variableResolver.AllocateRegister();
-        _registerForSubExpr = exprId;
-        Visit(expr);
+      if (!(_helper.GetRegisterId(expr) is uint exprId)) {
+        exprId = _helper.AllocateRegister();
+        _exprCompiler.RegisterForSubExpr = exprId;
+        _exprCompiler.Visit(expr);
       }
       return exprId;
     }
 
     private uint VisitExpressionForRKId(Expression expr) {
-      if (!(GetRegisterOrConstantId(expr) is uint exprId)) {
-        exprId = _variableResolver.AllocateRegister();
-        _registerForSubExpr = exprId;
-        Visit(expr);
+      if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
+        exprId = _helper.AllocateRegister();
+        _exprCompiler.RegisterForSubExpr = exprId;
+        _exprCompiler.Visit(expr);
       }
       return exprId;
     }
 
-    private uint? GetRegisterOrConstantId(Expression expr) {
-      if (GetRegisterId(expr) is uint registerId) {
-        return registerId;
-      } else if (GetConstantId(expr) is uint constantId) {
-        return constantId;
-      }
-      return null;
-    }
-
-    private uint? GetRegisterId(Expression expr) {
-      if (expr is IdentifierExpression identifier &&
-          _variableResolver.FindVariable(identifier.Name) is VariableResolver.VariableInfo info &&
-          info.Type == VariableResolver.VariableType.Local) {
-        return info.Id;
-      }
-      return null;
-    }
-
-    private uint? GetConstantId(Expression expr) {
-      switch (expr) {
-        case NumberConstantExpression number:
-          return _constantCache.IdOfConstant(number.Value);
-        case StringConstantExpression str:
-          return _constantCache.IdOfConstant(str.Value);
-        default:
-          return null;
-      }
-    }
-
-    // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
-    // for the FuncCalled event.
-    private void EmitCall(string name, uint funcRegister, uint argLength, TextRange range) {
-      bool isNormalFunc = !NativeFunctions.IsInternalFunction(name);
-      bool notifyCalled = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncCalled>();
-      bool notifyReturned = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncReturned>();
-      uint nId = 0;
-      if (notifyCalled || notifyReturned) {
-        var notification = new Notification.Function(name, funcRegister, argLength, range);
-        nId = _chunk.AddNotification(notification);
-      }
-      if (notifyCalled) {
-        _chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Called, nId, range);
-      }
-      _chunk.Emit(Opcode.CALL, funcRegister, argLength, 0, range);
-      if (notifyReturned) {
-        _chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
-      }
-    }
-
     private void EmitDefaultReturn() {
       var range = _rangeOfPrevStatement is null ? new TextRange(1, 0, 1, 0) : _rangeOfPrevStatement;
-      _chunk.Emit(Opcode.RETURN, 0, 0, 0, range);
-    }
-
-    private void EmitAssignNotification(string name, VariableType type, uint valueId,
-                                        TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
-        var notification = new Notification.Assignment(name, type, valueId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
-      }
-    }
-
-    private void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId, uint resultId,
-                                        TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
-        var notification = new Notification.Binary(leftId, op, rightId, resultId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
-      }
-    }
-
-    private void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId,
-                                       TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
-        var notification = new Notification.Unary(op, valueId, resultId, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
-      }
-    }
-
-    private void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos,
-                                             TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
-        var notification = new Notification.VTagEntered(vTagInfos, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
-      }
-    }
-
-    private void EmitVTagExitedNotification(Notification.VTagExited.VTagInfo[] vTagInfos,
-                                            TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        var notification = new Notification.VTagExited(vTagInfos, range);
-        _chunk.Emit(Opcode.VISNOTIFY, 0, _chunk.AddNotification(notification), range);
-      }
-    }
-
-    private static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {
-      switch (op) {
-        case BinaryOperator.Add:
-          return Opcode.ADD;
-        case BinaryOperator.Subtract:
-          return Opcode.SUB;
-        case BinaryOperator.Multiply:
-          return Opcode.MUL;
-        case BinaryOperator.Divide:
-          return Opcode.DIV;
-        case BinaryOperator.FloorDivide:
-          return Opcode.FLOORDIV;
-        case BinaryOperator.Power:
-          return Opcode.POW;
-        case BinaryOperator.Modulo:
-          return Opcode.MOD;
-        default:
-          throw new NotImplementedException($"Operator {op} not implemented.");
-      }
-    }
-
-    private static (Opcode, bool) OpcodeAndCheckFlagOfComparisonOperator(ComparisonOperator op) {
-      switch (op) {
-        case ComparisonOperator.Less:
-          return (Opcode.LT, true);
-        case ComparisonOperator.Greater:
-          return (Opcode.LE, false);
-        case ComparisonOperator.LessEqual:
-          return (Opcode.LE, true);
-        case ComparisonOperator.GreaterEqual:
-          return (Opcode.LT, false);
-        case ComparisonOperator.EqEqual:
-          return (Opcode.EQ, true);
-        case ComparisonOperator.NotEqual:
-          return (Opcode.EQ, false);
-        case ComparisonOperator.In:
-          return (Opcode.IN, true);
-        default:
-          throw new NotImplementedException($"Operator {op} not implemented.");
-      }
+      _helper.Chunk.Emit(Opcode.RETURN, 0, 0, 0, range);
     }
   }
 }

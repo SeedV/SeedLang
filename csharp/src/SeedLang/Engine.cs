@@ -34,8 +34,8 @@ namespace SeedLang {
     private readonly RunMode _runMode;
     private readonly VM _vm = new VM();
 
-    // The AST tree of the source code.
-    private AstNode _astNode;
+    // The AST tree of the program.
+    private Statement _astTree;
     // The semantic tokens of the source code.
     private IReadOnlyList<TokenInfo> _semanticTokens;
     // The compiled bytecode function of the source code.
@@ -76,7 +76,7 @@ namespace SeedLang {
     // function. Returns false and sets them to null if the source code is not valid.
     public bool Compile(string source, string module, DiagnosticCollection collection = null) {
       _semanticTokens = null;
-      _astNode = null;
+      _astTree = null;
       _func = null;
       if (string.IsNullOrEmpty(source) || module is null) {
         return false;
@@ -84,10 +84,10 @@ namespace SeedLang {
       try {
         BaseParser parser = MakeParser(_language);
         var localCollection = collection ?? new DiagnosticCollection();
-        if (!parser.Parse(source, module, localCollection, out _astNode, out _semanticTokens)) {
+        if (!parser.Parse(source, module, localCollection, out _astTree, out _semanticTokens)) {
           return false;
         }
-        _func = new Compiler().Compile(_astNode, _vm.Env, _vm.VisualizerCenter, _runMode);
+        _func = new Compiler().Compile(_astTree, _vm.Env, _vm.VisualizerCenter, _runMode);
         return true;
       } catch (DiagnosticException exception) {
         collection?.Report(exception.Diagnostic);
@@ -97,8 +97,8 @@ namespace SeedLang {
 
     // Dumps the AST tree of the source code.
     public string DumpAst() {
-      Debug.Assert(!(_astNode is null));
-      return _astNode.ToString();
+      Debug.Assert(!(_astTree is null));
+      return _astTree.ToString();
     }
 
     // Disassembles the compiled bytecode of the source code.

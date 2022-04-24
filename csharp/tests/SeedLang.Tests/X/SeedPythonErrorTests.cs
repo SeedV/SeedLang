@@ -120,9 +120,9 @@ namespace SeedLang.X.Tests {
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 5]")]
     public void TestParseSyntaxError(string input, string[] errorMessages, string expectedTokens) {
-      Assert.False(_parser.Parse(input, "", _collection, out AstNode node,
+      Assert.False(_parser.Parse(input, "", _collection, out Statement statement,
                                  out IReadOnlyList<TokenInfo> semanticTokens));
-      Assert.Null(node);
+      Assert.Null(statement);
       Assert.Equal(errorMessages.Length, _collection.Diagnostics.Count);
       for (int i = 0; i < errorMessages.Length; ++i) {
         Assert.True(_collection.Diagnostics[i].Reporter == SystemReporters.SeedX ||

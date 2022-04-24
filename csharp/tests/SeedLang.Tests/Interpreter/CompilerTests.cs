@@ -936,11 +936,11 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(Message.RuntimeErrorVariableNotDefined, exception.Diagnostic.MessageId);
     }
 
-    private static void TestCompiler(AstNode node, string expected, RunMode mode) {
+    private static void TestCompiler(Statement statement, string expected, RunMode mode) {
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var vc = new VisualizerCenter();
       var compiler = new Compiler();
-      var func = compiler.Compile(node, env, vc, mode);
+      var func = compiler.Compile(statement, env, vc, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }

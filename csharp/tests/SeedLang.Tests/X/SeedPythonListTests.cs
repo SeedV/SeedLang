@@ -84,11 +84,11 @@ namespace SeedLang.X.Tests {
                 "Operator [Ln 1, Col 5 - Ln 1, Col 5]," +
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
-      Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
+      Assert.True(_parser.Parse(input, "", _collection, out Statement statement,
                                 out IReadOnlyList<TokenInfo> tokens));
-      Assert.NotNull(node);
+      Assert.NotNull(statement);
       Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), node.ToString());
+      Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), statement.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }

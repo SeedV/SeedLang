@@ -58,11 +58,11 @@ namespace SeedLang.X.Tests {
     private static void TestPythonParser(string source, string expected, string expectedTokens) {
       var collection = new DiagnosticCollection();
       var parser = new SeedPython();
-      Assert.True(parser.Parse(source, "", collection, out AstNode node,
+      Assert.True(parser.Parse(source, "", collection, out Statement statement,
                                out IReadOnlyList<TokenInfo> tokens));
-      Assert.NotNull(node);
+      Assert.NotNull(statement);
       Assert.Empty(collection.Diagnostics);
-      Assert.Equal(expected.Replace("\n", Environment.NewLine), node.ToString());
+      Assert.Equal(expected.Replace("\n", Environment.NewLine), statement.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }

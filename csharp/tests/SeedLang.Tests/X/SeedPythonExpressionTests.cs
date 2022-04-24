@@ -226,12 +226,12 @@ namespace SeedLang.X.Tests {
     [InlineData("True and False and True or False and True",
 
                 "[Ln 1, Col 0 - Ln 1, Col 40] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 40] BooleanExpression (Or)\n" +
-                "    [Ln 1, Col 0 - Ln 1, Col 22] BooleanExpression (And)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 40] BooleanExpression (or)\n" +
+                "    [Ln 1, Col 0 - Ln 1, Col 22] BooleanExpression (and)\n" +
                 "      [Ln 1, Col 0 - Ln 1, Col 3] BooleanConstantExpression (True)\n" +
                 "      [Ln 1, Col 9 - Ln 1, Col 13] BooleanConstantExpression (False)\n" +
                 "      [Ln 1, Col 19 - Ln 1, Col 22] BooleanConstantExpression (True)\n" +
-                "    [Ln 1, Col 27 - Ln 1, Col 40] BooleanExpression (And)\n" +
+                "    [Ln 1, Col 27 - Ln 1, Col 40] BooleanExpression (and)\n" +
                 "      [Ln 1, Col 27 - Ln 1, Col 31] BooleanConstantExpression (False)\n" +
                 "      [Ln 1, Col 37 - Ln 1, Col 40] BooleanConstantExpression (True)",
 
@@ -248,7 +248,7 @@ namespace SeedLang.X.Tests {
     [InlineData("not True",
 
                 "[Ln 1, Col 0 - Ln 1, Col 7] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (Not)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 7] UnaryExpression (not)\n" +
                 "    [Ln 1, Col 4 - Ln 1, Col 7] BooleanConstantExpression (True)",
 
                 "Operator [Ln 1, Col 0 - Ln 1, Col 2]," +
@@ -370,11 +370,11 @@ namespace SeedLang.X.Tests {
                 "Symbol [Ln 1, Col 4 - Ln 1, Col 4]," +
                 "Number [Ln 1, Col 6 - Ln 1, Col 6]")]
     public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
-      Assert.True(_parser.Parse(input, "", _collection, out AstNode node,
+      Assert.True(_parser.Parse(input, "", _collection, out Statement statement,
                                 out IReadOnlyList<TokenInfo> tokens));
-      Assert.NotNull(node);
+      Assert.NotNull(statement);
       Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), node.ToString());
+      Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), statement.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }

@@ -54,8 +54,8 @@ namespace SeedLang.Interpreter {
       uint register = RegisterForSubExpr;
       uint left = VisitExpressionForRKId(binary.Left);
       uint right = VisitExpressionForRKId(binary.Right);
-      _helper.Chunk.Emit(CompilerHelper.OpcodeOfBinaryOperator(binary.Op), register, left, right,
-                         binary.Range);
+      _helper.Emit(CompilerHelper.OpcodeOfBinaryOperator(binary.Op), register, left, right,
+                   binary.Range);
       _helper.EmitBinaryNotification(left, binary.Op, right, register, binary.Range);
       _helper.EndExpressionScope();
     }
@@ -81,8 +81,8 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant) {
-      _helper.Chunk.Emit(Opcode.LOADBOOL, RegisterForSubExpr, booleanConstant.Value ? 1u : 0, 0,
-                  booleanConstant.Range);
+      _helper.Emit(Opcode.LOADBOOL, RegisterForSubExpr, booleanConstant.Value ? 1u : 0, 0,
+                   booleanConstant.Range);
     }
 
     protected override void VisitCall(CallExpression call) {
@@ -95,10 +95,10 @@ namespace SeedLang.Interpreter {
           uint funcRegister = needRegister ? _helper.AllocateRegister() : resultRegister;
           switch (info.Type) {
             case VariableResolver.VariableType.Global:
-              _helper.Chunk.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
+              _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
               break;
             case VariableResolver.VariableType.Local:
-              _helper.Chunk.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
+              _helper.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
               break;
             case VariableResolver.VariableType.Upvalue:
               // TODO: handle upvalues.
@@ -110,7 +110,7 @@ namespace SeedLang.Interpreter {
           }
           _helper.EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
           if (needRegister) {
-            _helper.Chunk.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
+            _helper.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
           }
         } else {
           // TODO: throw a variable not defined runtime error.
@@ -146,8 +146,8 @@ namespace SeedLang.Interpreter {
         RegisterForSubExpr = _helper.AllocateRegister();
         Visit(item.Value);
       }
-      _helper.Chunk.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Items.Length * 2,
-                         dict.Range);
+      _helper.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Items.Length * 2,
+                   dict.Range);
       _helper.EndExpressionScope();
     }
 
@@ -155,10 +155,10 @@ namespace SeedLang.Interpreter {
       if (_helper.FindVariable(identifier.Name) is VariableResolver.VariableInfo info) {
         switch (info.Type) {
           case VariableResolver.VariableType.Global:
-            _helper.Chunk.Emit(Opcode.GETGLOB, RegisterForSubExpr, info.Id, identifier.Range);
+            _helper.Emit(Opcode.GETGLOB, RegisterForSubExpr, info.Id, identifier.Range);
             break;
           case VariableResolver.VariableType.Local:
-            _helper.Chunk.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
+            _helper.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
             break;
           case VariableResolver.VariableType.Upvalue:
             // TODO: handle upvalues.
@@ -175,17 +175,17 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitNilConstant(NilConstantExpression nilConstant) {
-      _helper.Chunk.Emit(Opcode.LOADNIL, RegisterForSubExpr, 1, 0, nilConstant.Range);
+      _helper.Emit(Opcode.LOADNIL, RegisterForSubExpr, 1, 0, nilConstant.Range);
     }
 
     protected override void VisitNumberConstant(NumberConstantExpression numberConstant) {
       uint id = _helper.ConstantCache.IdOfConstant(numberConstant.Value);
-      _helper.Chunk.Emit(Opcode.LOADK, RegisterForSubExpr, id, numberConstant.Range);
+      _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, numberConstant.Range);
     }
 
     protected override void VisitStringConstant(StringConstantExpression stringConstant) {
       uint id = _helper.ConstantCache.IdOfConstant(stringConstant.Value);
-      _helper.Chunk.Emit(Opcode.LOADK, RegisterForSubExpr, id, stringConstant.Range);
+      _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, stringConstant.Range);
     }
 
     protected override void VisitSubscript(SubscriptExpression subscript) {
@@ -193,7 +193,7 @@ namespace SeedLang.Interpreter {
       uint targetId = RegisterForSubExpr;
       uint listId = VisitExpressionForRegisterId(subscript.Expr);
       uint indexId = VisitExpressionForRKId(subscript.Index);
-      _helper.Chunk.Emit(Opcode.GETELEM, targetId, listId, indexId, subscript.Range);
+      _helper.Emit(Opcode.GETELEM, targetId, listId, indexId, subscript.Range);
       _helper.EndExpressionScope();
     }
 
@@ -205,7 +205,7 @@ namespace SeedLang.Interpreter {
       _helper.BeginExpressionScope();
       uint register = RegisterForSubExpr;
       uint exprId = VisitExpressionForRKId(unary.Expr);
-      _helper.Chunk.Emit(Opcode.UNM, register, exprId, 0, unary.Range);
+      _helper.Emit(Opcode.UNM, register, exprId, 0, unary.Range);
       _helper.EmitUnaryNotification(unary.Op, exprId, register, unary.Range);
       _helper.EndExpressionScope();
     }
@@ -223,10 +223,10 @@ namespace SeedLang.Interpreter {
       if (register.HasValue) {
         _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.TrueJumps);
         // Loads True into the register, and increases PC.
-        _helper.Chunk.Emit(Opcode.LOADBOOL, (uint)register, 1, 1, range);
+        _helper.Emit(Opcode.LOADBOOL, (uint)register, 1, 1, range);
         _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
         // Loads False into the register.
-        _helper.Chunk.Emit(Opcode.LOADBOOL, (uint)register, 0, 0, range);
+        _helper.Emit(Opcode.LOADBOOL, (uint)register, 0, 0, range);
         _helper.NestedJumpStack.PopFrame();
       }
     }
@@ -240,8 +240,8 @@ namespace SeedLang.Interpreter {
       if (_nextBooleanOp == BooleanOperator.Or) {
         checkFlag = !checkFlag;
       }
-      _helper.Chunk.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
-      _helper.Chunk.Emit(Opcode.JMP, 0, 0, range);
+      _helper.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
+      _helper.Emit(Opcode.JMP, 0, 0, range);
       switch (_nextBooleanOp) {
         case BooleanOperator.And:
           _helper.NestedJumpStack.FalseJumps.Add(_helper.Chunk.LatestCodePos);
@@ -266,7 +266,7 @@ namespace SeedLang.Interpreter {
         RegisterForSubExpr = register;
         Visit(expr);
       }
-      _helper.Chunk.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);
+      _helper.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);
       _helper.EndExpressionScope();
     }
 

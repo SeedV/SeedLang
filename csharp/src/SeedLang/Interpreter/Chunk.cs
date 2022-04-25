@@ -97,7 +97,7 @@ namespace SeedLang.Interpreter {
       return ref _constants[IndexOfConstId(constId)];
     }
 
-    // TODO: 
+    // TODO:
     internal uint AddNotification(AbstractNotification notification) {
       _notifications.Add(notification);
       return (uint)_notifications.Count;

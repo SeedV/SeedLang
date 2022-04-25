@@ -128,11 +128,11 @@ namespace SeedLang.Interpreter {
         nId = Chunk.AddNotification(notification);
       }
       if (notifyCalled) {
-        Chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Called, nId, range);
+        Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Called, nId, range);
       }
-      Chunk.Emit(Opcode.CALL, funcRegister, argLength, 0, range);
+      Emit(Opcode.CALL, funcRegister, argLength, 0, range);
       if (notifyReturned) {
-        Chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
+        Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
       }
     }
 
@@ -140,7 +140,7 @@ namespace SeedLang.Interpreter {
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
         var notification = new Notification.Assignment(name, type, valueId);
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
 
@@ -148,7 +148,7 @@ namespace SeedLang.Interpreter {
                                          uint resultId, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
         var notification = new Notification.Binary(leftId, op, rightId, resultId);
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
 
@@ -156,25 +156,58 @@ namespace SeedLang.Interpreter {
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
         var notification = new Notification.Unary(op, valueId, resultId);
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
 
-
-    internal void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos,
-                                              TextRange range) {
+    internal void EmitVTagEnteredNotification(VTagStatement vTag) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
+        Event.VTagEntered.VTagInfo[] vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
+          var argTexts = Array.ConvertAll(vTagInfo.Args, args => args.Text);
+          return new Event.VTagEntered.VTagInfo(vTagInfo.Name, argTexts);
+        });
         var notification = new Notification.VTagEntered(vTagInfos);
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
       }
     }
 
-    internal void EmitVTagExitedNotification(Notification.VTagExited.VTagInfo[] vTagInfos,
-                                             TextRange range) {
+    internal void EmitVTagExitedNotification(VTagStatement vTag, ExprCompiler exprCompiler) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
+        BeginBlockScope();
+        var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
+          var valueIds = new uint[vTagInfo.Args.Length];
+          for (int j = 0; j < vTagInfo.Args.Length; j++) {
+            if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
+              valueIds[j] = id;
+            } else {
+              valueIds[j] = AllocateRegister();
+              exprCompiler.RegisterForSubExpr = valueIds[j];
+              exprCompiler.Visit(vTagInfo.Args[j].Expr);
+            }
+          }
+          return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
+        });
+        EndBlockScope();
         var notification = new Notification.VTagExited(vTagInfos);
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
       }
+    }
+
+    internal void Emit(Opcode opcode, uint a, uint b, uint c, TextRange range) {
+      TryEmitSingleStepNotification(range);
+      Chunk.Emit(opcode, a, b, c, range);
+    }
+
+    internal void Emit(Opcode opcode, uint a, uint bx, TextRange range) {
+      TryEmitSingleStepNotification(range);
+      Chunk.Emit(opcode, a, bx, range);
+    }
+
+    internal void Emit(Opcode opcode, uint a, int sbx, TextRange range) {
+      if (TryEmitSingleStepNotification(range)) {
+        sbx--;
+      }
+      Chunk.Emit(opcode, a, sbx, range);
     }
 
     internal static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {
@@ -217,6 +250,19 @@ namespace SeedLang.Interpreter {
         default:
           throw new NotImplementedException($"Operator {op} not implemented.");
       }
+    }
+
+    private int _previousLine = 0;
+
+    private bool TryEmitSingleStepNotification(TextRange range) {
+      if (_visualizerCenter.HasVisualizer<Event.SingleStep>()) {
+        if (range.Start.Line != _previousLine) {
+          Chunk.Emit(Opcode.VISNOTIFY, 0, 0u, range);
+          _previousLine = range.Start.Line;
+          return true;
+        }
+      }
+      return false;
     }
   }
 }

@@ -34,6 +34,7 @@ namespace SeedLang.Interpreter {
 
     private readonly VariableResolver _variableResolver;
 
+    private int _prevSourceLineOfBytecode = 0;
 
     internal CompilerHelper(VisualizerCenter visualizerCenter, GlobalEnvironment env) {
       _variableResolver = new VariableResolver(env);
@@ -112,8 +113,12 @@ namespace SeedLang.Interpreter {
       jumps.Clear();
     }
 
+    internal void PatchJumpToPos(int jump, int pos) {
+      Chunk.PatchSBXAt(jump, pos - jump - 1);
+    }
+
     internal void PatchJumpToCurrentPos(int jump) {
-      Chunk.PatchSBXAt(jump, Chunk.LatestCodePos - jump);
+      PatchJumpToPos(jump, Chunk.Bytecode.Count);
     }
 
     // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
@@ -204,9 +209,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal void Emit(Opcode opcode, uint a, int sbx, TextRange range) {
-      if (TryEmitSingleStepNotification(range)) {
-        sbx--;
-      }
+      TryEmitSingleStepNotification(range);
       Chunk.Emit(opcode, a, sbx, range);
     }
 
@@ -252,17 +255,13 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private int _previousLine = 0;
-
-    private bool TryEmitSingleStepNotification(TextRange range) {
+    private void TryEmitSingleStepNotification(TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.SingleStep>()) {
-        if (range.Start.Line != _previousLine) {
+        if (range.Start.Line != _prevSourceLineOfBytecode) {
           Chunk.Emit(Opcode.VISNOTIFY, 0, 0u, range);
-          _previousLine = range.Start.Line;
-          return true;
+          _prevSourceLineOfBytecode = range.Start.Line;
         }
       }
-      return false;
     }
   }
 }

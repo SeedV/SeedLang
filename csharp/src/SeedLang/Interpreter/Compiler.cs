@@ -125,8 +125,8 @@ namespace SeedLang.Interpreter {
       }
       Visit(forIn.Body);
       _helper.PatchJumpToCurrentPos(bodyStart - 1);
-      _helper.Emit(Opcode.FORLOOP, index, bodyStart - (_helper.Chunk.Bytecode.Count + 1),
-                   forIn.Range);
+      _helper.Emit(Opcode.FORLOOP, index, 0, forIn.Range);
+      _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, bodyStart);
       _helper.EndBlockScope();
       _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
       _nestedLoopStack.PopLoopFrame();
@@ -204,10 +204,11 @@ namespace SeedLang.Interpreter {
     protected override void VisitWhile(WhileStatement @while) {
       _nestedLoopStack.PushLoopFrame();
       _helper.NestedJumpStack.PushFrame();
-      int start = _helper.Chunk.LatestCodePos;
+      int start = _helper.Chunk.Bytecode.Count;
       VisitTest(@while.Test);
       Visit(@while.Body);
-      _helper.Emit(Opcode.JMP, 0, start - _helper.Chunk.LatestCodePos - 1, @while.Range);
+      _helper.Emit(Opcode.JMP, 0, 0, @while.Range);
+      _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, start);
       _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
       _helper.NestedJumpStack.PopFrame();
       _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);

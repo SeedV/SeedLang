@@ -124,9 +124,9 @@ namespace SeedLang.Interpreter {
           break;
       }
       Visit(forIn.Body);
-      _helper.PatchJumpToCurrentPos(bodyStart - 1);
       _helper.Emit(Opcode.FORLOOP, index, 0, forIn.Range);
       _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, bodyStart);
+      _helper.PatchJumpToPos(bodyStart - 1, _helper.Chunk.LatestCodePos);
       _helper.EndBlockScope();
       _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
       _nestedLoopStack.PopLoopFrame();
@@ -207,7 +207,10 @@ namespace SeedLang.Interpreter {
       int start = _helper.Chunk.Bytecode.Count;
       VisitTest(@while.Test);
       Visit(@while.Body);
-      _helper.Emit(Opcode.JMP, 0, 0, @while.Range);
+      // Doesn't emit single step notifications because this bytecode is in the same line of
+      // @while.Test. The single step notification in the first bytecode of @while.Test will trigger
+      // the correct single step event.
+      _helper.Chunk.Emit(Opcode.JMP, 0, 0, @while.Range);
       _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, start);
       _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
       _helper.NestedJumpStack.PopFrame();

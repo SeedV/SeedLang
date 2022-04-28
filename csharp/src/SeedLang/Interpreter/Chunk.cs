@@ -44,6 +44,7 @@ namespace SeedLang.Interpreter {
     private readonly List<TextRange> _ranges = new List<TextRange>();
 
     private readonly List<AbstractNotification> _notifications = new List<AbstractNotification>();
+    private uint? _indexOfSingleStepNotification = null;
 
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
@@ -100,7 +101,15 @@ namespace SeedLang.Interpreter {
     // TODO:
     internal uint AddNotification(AbstractNotification notification) {
       _notifications.Add(notification);
-      return (uint)_notifications.Count;
+      return (uint)_notifications.Count - 1;
+    }
+
+    internal uint AddNotification(Notification.SingleStep notification) {
+      if (_indexOfSingleStepNotification is null) {
+        _notifications.Add(notification);
+        _indexOfSingleStepNotification = (uint)_notifications.Count - 1;
+      }
+      return (uint)_indexOfSingleStepNotification;
     }
 
     // Converts the constant id to the index in the constant list.

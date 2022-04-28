@@ -119,6 +119,17 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal class SingleStep : AbstractNotification {
+      public override string ToString() {
+        return $"Notification.SingleStep";
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
+                                    TextRange range) {
+        visualizerCenter.Notify(new Event.SingleStep(range));
+      }
+    }
+
     internal class Unary : AbstractNotification {
       private readonly UnaryOperator _op;
       private readonly uint _valueId;

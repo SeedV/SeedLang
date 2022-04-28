@@ -39,7 +39,7 @@ namespace SeedLang.Interpreter.Tests {
         $"  1    LOADK     0 -1             ; 1                 [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"  2    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
-        $"  3    VISNOTIFY 0 1                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
+        $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"  4    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"Notifications\n" +
         $"  0    Notification.Assignment: 'name': Global 0\n"
@@ -55,7 +55,7 @@ namespace SeedLang.Interpreter.Tests {
         $"  1    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"  2    ADD       1 -1 -2          ; 1 2               [Ln 1, Col 0 - Ln 1, Col 4]\n" +
-        $"  3    VISNOTIFY 0 1                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"  4    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"  5    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"Notifications\n" +
@@ -82,9 +82,9 @@ add(1, 2)
         $"                                  [Ln 4, Col 0 - Ln 4, Col 2]\n" +
         $"  5    LOADK     2 -2             ; 1                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
         $"  6    LOADK     3 -3             ; 2                 [Ln 4, Col 7 - Ln 4, Col 7]\n" +
-        $"  7    VISNOTIFY 0 1                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  7    VISNOTIFY 0 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  8    CALL      1 2 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  9    VISNOTIFY 1 1                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  9    VISNOTIFY 1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  10   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  11   RETURN    0 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"Notifications\n" +
@@ -92,7 +92,7 @@ add(1, 2)
         $"\n" +
         $"Function <add>\n" +
         $"  1    ADD       2 0 1                                [Ln 3, Col 9 - Ln 3, Col 13]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  2    VISNOTIFY 0 0                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
         $"  3    RETURN    2 1                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
         $"  4    RETURN    0 0                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
         $"Notifications\n" +
@@ -113,7 +113,7 @@ add(1, 2)
         $"  1    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
         $"  2    UNM       1 -1             ; 1                 [Ln 1, Col 0 - Ln 1, Col 1]\n" +
-        $"  3    VISNOTIFY 0 1                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
+        $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
         $"  4    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 1]\n" +
         $"  5    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
         $"Notifications\n" +
@@ -130,13 +130,13 @@ add(1, 2)
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  2    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  3    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  4    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  5    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  6    VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Add\n" +
@@ -158,13 +158,13 @@ add(1, 2)
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  2    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  3    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  4    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  5    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  6    VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Add(1,2)\n" +
@@ -187,23 +187,23 @@ x, y = 1, 1 + 2
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
         $"  2    ADD       0 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
-        $"  3    VISNOTIFY 0 2                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  3    VISNOTIFY 0 1                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
         $"  4    LOADK     1 -1             ; 1                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"  5    SETGLOB   1 {_firstGlob}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  6    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"  7    SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  8    VISNOTIFY 0 4                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  8    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"  9    GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
         $"  10   GETGLOB   1 {_firstGlob + 1}" +
         $"                                  [Ln 2, Col 18 - Ln 2, Col 18]\n" +
         $"  11   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
-        $"  12   VISNOTIFY 0 5                                  [Ln 2, Col 21 - Ln 2, Col 25]\n" +
-        $"  13   VISNOTIFY 0 6                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
+        $"  12   VISNOTIFY 0 4                                  [Ln 2, Col 21 - Ln 2, Col 25]\n" +
+        $"  13   VISNOTIFY 0 5                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
         $"  14   RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Assign(x,1,y,1+2)\n" +
@@ -240,35 +240,35 @@ print(sum)
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
         $"  2    LOADK     0 -1             ; Func <inc>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
         $"  3    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
-        $"  4    VISNOTIFY 0 0                                  [Ln 5, Col 0 - Ln 5, Col 6]\n" +
+        $"  4    VISNOTIFY 0 0                                  [Ln 5, Col 0 - Ln 5, Col 0]\n" +
         $"  5    LOADK     0 -2             ; 0                 [Ln 5, Col 0 - Ln 5, Col 6]\n" +
         $"  6    SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 5, Col 0 - Ln 5, Col 6]\n" +
-        $"  7    VISNOTIFY 0 0                                  [Ln 6, Col 0 - Ln 6, Col 4]\n" +
+        $"  7    VISNOTIFY 0 0                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
         $"  8    LOADK     0 -2             ; 0                 [Ln 6, Col 0 - Ln 6, Col 4]\n" +
         $"  9    SETGLOB   0 {_firstGlob + 2}" +
         $"                                  [Ln 6, Col 0 - Ln 6, Col 4]\n" +
-        $"  10   VISNOTIFY 0 0                                  [Ln 7, Col 6 - Ln 7, Col 6]\n" +
+        $"  10   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
         $"  11   GETGLOB   0 {_firstGlob + 2}" +
         $"                                  [Ln 7, Col 6 - Ln 7, Col 6]\n" +
         $"  12   LT        1 0 -3           ; 10                [Ln 7, Col 6 - Ln 7, Col 11]\n" +
-        $"  13   JMP       0 30             ; to 44             [Ln 7, Col 6 - Ln 7, Col 11]\n" +
-        $"  14   VISNOTIFY 0 0                                  [Ln 8, Col 11 - Ln 8, Col 15]\n" +
+        $"  13   JMP       0 29             ; to 43             [Ln 7, Col 6 - Ln 7, Col 11]\n" +
+        $"  14   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
         $"  15   GETGLOB   0 5                                  [Ln 8, Col 11 - Ln 8, Col 15]\n" +
         $"  16   LOADK     1 -4             ; 5                 [Ln 8, Col 17 - Ln 8, Col 17]\n" +
         $"  17   CALL      0 1 0                                [Ln 8, Col 11 - Ln 8, Col 18]\n" +
         $"  18   LOADK     1 -2             ; 0                 [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  19   LEN       2 0 0                                [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  20   LOADK     3 -5             ; 1                 [Ln 8, Col 2 - Ln 11, Col 19]\n" +
-        $"  21   FORPREP   1 14             ; to 36             [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  21   FORPREP   1 15             ; to 37             [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  22   GETELEM   4 0 1                                [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  23   SETGLOB   4 {_firstGlob + 3}" +
         $"                                  [Ln 8, Col 2 - Ln 11, Col 19]\n" +
-        $"  24   VISNOTIFY 0 0                                  [Ln 9, Col 7 - Ln 9, Col 7]\n" +
+        $"  24   VISNOTIFY 0 0                                  [Ln 9, Col 0 - Ln 9, Col 0]\n" +
         $"  25   GETGLOB   4 {_firstGlob + 2}" +
         $"                                  [Ln 9, Col 7 - Ln 9, Col 7]\n" +
         $"  26   LT        1 4 -6           ; 8                 [Ln 9, Col 7 - Ln 9, Col 11]\n" +
@@ -277,7 +277,7 @@ print(sum)
         $"                                  [Ln 9, Col 17 - Ln 9, Col 17]\n" +
         $"  29   LT        1 4 -7           ; 3                 [Ln 9, Col 17 - Ln 9, Col 21]\n" +
         $"  30   JMP       0 5              ; to 36             [Ln 9, Col 17 - Ln 9, Col 21]\n" +
-        $"  31   VISNOTIFY 0 0                                  [Ln 11, Col 12 - Ln 11, Col 14]\n" +
+        $"  31   VISNOTIFY 0 0                                  [Ln 11, Col 0 - Ln 11, Col 0]\n" +
         $"  32   GETGLOB   4 {_firstGlob}" +
         $"                                  [Ln 11, Col 12 - Ln 11, Col 14]\n" +
         $"  33   GETGLOB   5 {_firstGlob + 1}" +
@@ -285,28 +285,31 @@ print(sum)
         $"  34   CALL      4 1 0                                [Ln 11, Col 12 - Ln 11, Col 19]\n" +
         $"  35   SETGLOB   4 {_firstGlob + 1}" +
         $"                                  [Ln 11, Col 6 - Ln 11, Col 19]\n" +
-        $"  36   VISNOTIFY 0 0                                  [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  36   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
         $"  37   FORLOOP   1 -16            ; to 22             [Ln 8, Col 2 - Ln 11, Col 19]\n" +
-        $"  38   VISNOTIFY 0 0                                  [Ln 12, Col 2 - Ln 12, Col 2]\n" +
+        $"  38   VISNOTIFY 0 0                                  [Ln 12, Col 0 - Ln 12, Col 0]\n" +
         $"  39   GETGLOB   1 {_firstGlob + 2}" +
         $"                                  [Ln 12, Col 2 - Ln 12, Col 2]\n" +
         $"  40   ADD       0 1 -5           ; 1                 [Ln 12, Col 2 - Ln 12, Col 7]\n" +
         $"  41   SETGLOB   0 {_firstGlob + 2}" +
         $"                                  [Ln 12, Col 2 - Ln 12, Col 7]\n" +
-        $"  42   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 12, Col 7]\n" +
-        $"  43   JMP       0 -34            ; to 10             [Ln 7, Col 0 - Ln 12, Col 7]\n" +
-        $"  44   VISNOTIFY 0 0                                  [Ln 14, Col 0 - Ln 14, Col 4]\n" +
-        $"  45   GETGLOB   0 4                                  [Ln 14, Col 0 - Ln 14, Col 4]\n" +
-        $"  46   GETGLOB   1 {_firstGlob + 1}" +
+        $"  42   JMP       0 -33            ; to 10             [Ln 7, Col 0 - Ln 12, Col 7]\n" +
+        $"  43   VISNOTIFY 0 0                                  [Ln 14, Col 0 - Ln 14, Col 0]\n" +
+        $"  44   GETGLOB   0 4                                  [Ln 14, Col 0 - Ln 14, Col 4]\n" +
+        $"  45   GETGLOB   1 {_firstGlob + 1}" +
         $"                                  [Ln 14, Col 6 - Ln 14, Col 8]\n" +
-        $"  47   CALL      0 1 0                                [Ln 14, Col 0 - Ln 14, Col 9]\n" +
-        $"  48   RETURN    0 0                                  [Ln 14, Col 0 - Ln 14, Col 9]\n" +
+        $"  46   CALL      0 1 0                                [Ln 14, Col 0 - Ln 14, Col 9]\n" +
+        $"  47   RETURN    0 0                                  [Ln 14, Col 0 - Ln 14, Col 9]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.SingleStep\n" +
         $"\n" +
         $"Function <inc>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  2    ADD       1 0 -1           ; 2                 [Ln 3, Col 9 - Ln 3, Col 13]\n" +
         $"  3    RETURN    1 1                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
-        $"  4    RETURN    0 0                                  [Ln 3, Col 2 - Ln 3, Col 13]\n"
+        $"  4    RETURN    0 0                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.SingleStep\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SingleStep) }, RunMode.Script);
     }

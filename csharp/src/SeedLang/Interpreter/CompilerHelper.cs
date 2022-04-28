@@ -258,7 +258,8 @@ namespace SeedLang.Interpreter {
     private void TryEmitSingleStepNotification(TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.SingleStep>()) {
         if (range.Start.Line != _prevSourceLineOfBytecode) {
-          Chunk.Emit(Opcode.VISNOTIFY, 0, 0u, range);
+          var notification = new Notification.SingleStep();
+          Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), new TextRange(range.Start.Line, 0, range.Start.Line, 0));
           _prevSourceLineOfBytecode = range.Start.Line;
         }
       }

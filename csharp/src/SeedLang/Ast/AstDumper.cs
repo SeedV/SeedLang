@@ -44,9 +44,9 @@ namespace SeedLang.Ast {
     internal static string Symbol(this BooleanOperator op) {
       switch (op) {
         case BooleanOperator.And:
-          return "And";
+          return "and";
         case BooleanOperator.Or:
-          return "Or";
+          return "or";
         default:
           throw new NotImplementedException($"Unsupported boolean operator: {op}.");
       }
@@ -82,7 +82,7 @@ namespace SeedLang.Ast {
         case UnaryOperator.Negative:
           return "-";
         case UnaryOperator.Not:
-          return "Not";
+          return "not";
         default:
           throw new NotImplementedException($"Unsupported unary operator: {op}.");
       }

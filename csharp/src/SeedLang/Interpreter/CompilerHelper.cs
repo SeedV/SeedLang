@@ -34,7 +34,8 @@ namespace SeedLang.Interpreter {
 
     private readonly VariableResolver _variableResolver;
 
-    private int _prevSourceLineOfBytecode = 0;
+    // The source code line number (1-based) of the previous bytecode.
+    private int _sourceLineOfPrevBytecode = 0;
 
     internal CompilerHelper(VisualizerCenter visualizerCenter, GlobalEnvironment env) {
       _variableResolver = new VariableResolver(env);
@@ -198,16 +199,22 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    // Emits an ABC instruction to the chunk. Also emits a single step notification before each line
+    // if there are visualizers for this event.
     internal void Emit(Opcode opcode, uint a, uint b, uint c, TextRange range) {
       TryEmitSingleStepNotification(range);
       Chunk.Emit(opcode, a, b, c, range);
     }
 
+    // Emits an ABx instruction to the chunk. Also emits a single step notification before each line
+    // if there are visualizers for this event.
     internal void Emit(Opcode opcode, uint a, uint bx, TextRange range) {
       TryEmitSingleStepNotification(range);
       Chunk.Emit(opcode, a, bx, range);
     }
 
+    // Emits a SBx instruction to the chunk. Also emits a single step notification before each line
+    // if there are visualizers for this event.
     internal void Emit(Opcode opcode, uint a, int sbx, TextRange range) {
       TryEmitSingleStepNotification(range);
       Chunk.Emit(opcode, a, sbx, range);
@@ -255,12 +262,33 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    private static bool CanFollowSingleStep(Opcode opcode) {
+      switch (opcode) {
+        case Opcode.LOADBOOL:
+        case Opcode.EQ:
+        case Opcode.LT:
+        case Opcode.LE:
+        case Opcode.IN:
+        case Opcode.TEST:
+        case Opcode.TESTSET:
+          return false;
+        default:
+          return true;
+      }
+    }
+
+    private bool CanAddSingleStep() {
+      return Chunk.Bytecode.Count == 0 ||
+             CanFollowSingleStep(Chunk.Bytecode[Chunk.LatestCodePos].Opcode);
+    }
+
     private void TryEmitSingleStepNotification(TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.SingleStep>()) {
-        if (range.Start.Line != _prevSourceLineOfBytecode) {
-          var notification = new Notification.SingleStep();
-          Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), new TextRange(range.Start.Line, 0, range.Start.Line, 0));
-          _prevSourceLineOfBytecode = range.Start.Line;
+        if (range.Start.Line != _sourceLineOfPrevBytecode && CanAddSingleStep()) {
+          // Creates the text range to indicate the start of a single step source line.
+          var eventRange = new TextRange(range.Start.Line, 0, range.Start.Line, 0);
+          Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.IdOfSingleStepNotification(), eventRange);
+          _sourceLineOfPrevBytecode = range.Start.Line;
         }
       }
     }

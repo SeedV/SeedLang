@@ -18,6 +18,7 @@ using System.Text;
 using SeedLang.Runtime;
 
 namespace SeedLang.Tests.Helper {
+  // A helper class to manage visualizers.
   internal class VisualizerHelper {
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
       private readonly List<Event> _events = new List<Event>();

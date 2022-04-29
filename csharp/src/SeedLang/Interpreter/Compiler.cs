@@ -125,7 +125,9 @@ namespace SeedLang.Interpreter {
       }
       Visit(forIn.Body);
       _helper.Emit(Opcode.FORLOOP, index, 0, forIn.Range);
+      // Patches the jump position of the FORLOOP instruction to the start point of the body.
       _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, bodyStart);
+      // Patches the jump position of the FORPREP instruction to the latest FORLOOP.
       _helper.PatchJumpToPos(bodyStart - 1, _helper.Chunk.LatestCodePos);
       _helper.EndBlockScope();
       _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
@@ -207,9 +209,9 @@ namespace SeedLang.Interpreter {
       int start = _helper.Chunk.Bytecode.Count;
       VisitTest(@while.Test);
       Visit(@while.Body);
-      // Doesn't emit single step notifications because this bytecode is in the same line of
-      // @while.Test. The single step notification in the first bytecode of @while.Test will trigger
-      // the correct single step event.
+      // Doesn't emit single step notifications for this jump instruction, because it's at the same
+      // line with the while statement. The single step notification in the first instruction of
+      // the while statement will trigger correct single step events.
       _helper.Chunk.Emit(Opcode.JMP, 0, 0, @while.Range);
       _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, start);
       _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,7 @@ using System.Diagnostics;
 // limitations under the License.
 
 using System;
+using System.Diagnostics;
 using SeedLang.Runtime;
 using SeedLang.Common;
 
@@ -22,8 +22,8 @@ namespace SeedLang.Interpreter {
 
   internal static class Notification {
     // The base class of all notification classes, which are used to store information for VISNOTIFY
-    // instruction. The VM will create the correspding event object based on the information and
-    // send to visualizers.
+    // instructions. The VM will create the correspding event object based on the information and
+    // then send to visualizers.
     internal abstract class AbstractNotification {
       internal abstract void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
                                     TextRange range);

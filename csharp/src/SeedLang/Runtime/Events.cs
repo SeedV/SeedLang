@@ -123,7 +123,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    // An event which is triggered when a single statement is starting to execute.
+    // An event which is triggered when each statement is starting to execute.
     public class SingleStep : AbstractEvent {
       public SingleStep(TextRange range) : base(range) { }
     }

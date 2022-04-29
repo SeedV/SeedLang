@@ -162,7 +162,7 @@ namespace SeedLang.Shell {
           Console.Write($"FuncReturned: {fre.Name} {fre.Result}");
           break;
         case Event.SingleStep sse:
-          Console.Write($"SingleStep");
+          Console.Write($"SingleStep: {sse.Range.Start.Line}");
           break;
         case Event.Unary ue: {
             var op = _unaryOperatorStrings[ue.Op];

@@ -314,6 +314,44 @@ print(sum)
       TestCompiler(source, expected, new Type[] { typeof(Event.SingleStep) }, RunMode.Script);
     }
 
+    [Fact]
+    public void TestCompileSingleStepWithJoiningLine() {
+      var source = @"
+x = 0
+flag = \
+  x < \
+  5
+flag = \
+  True
+";
+      string expected = (
+        $"Function <main>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
+        $"  2    LOADK     0 -1             ; 0                 [Ln 2, Col 0 - Ln 2, Col 4]\n" +
+        $"  3    SETGLOB   0 {_firstGlob}" +
+        $"                                  [Ln 2, Col 0 - Ln 2, Col 4]\n" +
+        $"  4    VISNOTIFY 0 0                                  [Ln 4, Col 0 - Ln 4, Col 0]\n" +
+        $"  5    GETGLOB   1 {_firstGlob}" +
+        $"                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
+        $"  6    LT        1 1 -2           ; 5                 [Ln 4, Col 2 - Ln 5, Col 2]\n" +
+        $"  7    JMP       0 1              ; to 9              [Ln 4, Col 2 - Ln 5, Col 2]\n" +
+        $"  8    LOADBOOL  0 1 1                                [Ln 4, Col 2 - Ln 5, Col 2]\n" +
+        $"  9    LOADBOOL  0 0 0                                [Ln 4, Col 2 - Ln 5, Col 2]\n" +
+        $"  10   VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"  11   SETGLOB   0 {_firstGlob + 1}" +
+        $"                                  [Ln 3, Col 0 - Ln 5, Col 2]\n" +
+        $"  12   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
+        $"  13   LOADBOOL  0 1 0                                [Ln 7, Col 2 - Ln 7, Col 5]\n" +
+        $"  14   VISNOTIFY 0 0                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
+        $"  15   SETGLOB   0 {_firstGlob + 1}" +
+        $"                                  [Ln 6, Col 0 - Ln 7, Col 5]\n" +
+        $"  16   RETURN    0 0                                  [Ln 6, Col 0 - Ln 7, Col 5]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.SingleStep\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(source, expected, new Type[] { typeof(Event.SingleStep) }, RunMode.Script);
+    }
+
     private static void TestCompiler(string source, string expected, IReadOnlyList<Type> eventTypes,
                                      RunMode mode) {
       Assert.True(new SeedPython().Parse(source, "", new DiagnosticCollection(),

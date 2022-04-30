@@ -262,29 +262,9 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private static bool CanFollowSingleStep(Opcode opcode) {
-      switch (opcode) {
-        case Opcode.LOADBOOL:
-        case Opcode.EQ:
-        case Opcode.LT:
-        case Opcode.LE:
-        case Opcode.IN:
-        case Opcode.TEST:
-        case Opcode.TESTSET:
-          return false;
-        default:
-          return true;
-      }
-    }
-
-    private bool CanAddSingleStep() {
-      return Chunk.Bytecode.Count == 0 ||
-             CanFollowSingleStep(Chunk.Bytecode[Chunk.LatestCodePos].Opcode);
-    }
-
     private void TryEmitSingleStepNotification(TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.SingleStep>()) {
-        if (range.Start.Line != _sourceLineOfPrevBytecode && CanAddSingleStep()) {
+        if (range.Start.Line != _sourceLineOfPrevBytecode) {
           // Creates the text range to indicate the start of a single step source line.
           var eventRange = new TextRange(range.Start.Line, 0, range.Start.Line, 0);
           Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.IdOfSingleStepNotification(), eventRange);

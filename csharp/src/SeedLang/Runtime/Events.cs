@@ -123,6 +123,11 @@ namespace SeedLang.Runtime {
       }
     }
 
+    // An event which is triggered when each statement is starting to execute.
+    public class SingleStep : AbstractEvent {
+      public SingleStep(TextRange range) : base(range) { }
+    }
+
     // An event which is triggered when an unary expression is executed.
     public class Unary : AbstractEvent {
       public UnaryOperator Op { get; }

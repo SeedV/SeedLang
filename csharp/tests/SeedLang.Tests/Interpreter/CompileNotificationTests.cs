@@ -13,10 +13,12 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
+using SeedLang.X;
 using Xunit;
 using static SeedLang.Runtime.HeapObject;
 
@@ -31,202 +33,344 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileAssignment() {
-      var program = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("name")),
-                                                       AstHelper.NumberConstant(1));
+      string source = "name = 1";
       string expected = (
-          $"Function <main>\n" +
-          $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  3    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  4    RETURN    0 0                                  {_range}\n" +
-          $"Notifications\n" +
-          $"  0    Notification.Assignment: 'name': Global 0 {_range}\n"
+        $"Function <main>\n" +
+        $"  1    LOADK     0 -1             ; 1                 [Ln 1, Col 0 - Ln 1, Col 7]\n" +
+        $"  2    SETGLOB   0 {_firstGlob}" +
+        $"                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
+        $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
+        $"  4    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.Assignment: 'name': Global 0\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(source, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileBinary() {
-      var program = AstHelper.ExpressionStmt(AstHelper.Binary(AstHelper.NumberConstant(1),
-                                                              BinaryOperator.Add,
-                                                              AstHelper.NumberConstant(2)));
+      string source = "1 + 2";
       string expected = (
-          $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  2    ADD       1 -1 -2          ; 1 2               {_range}\n" +
-          $"  3    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  4    CALL      0 1 0                                {_range}\n" +
-          $"  5    RETURN    0 0                                  {_range}\n" +
-          $"Notifications\n" +
-          $"  0    Notification.Binary: 250 Add 251 1 {_range}\n"
+        $"Function <main>\n" +
+        $"  1    GETGLOB   0 {_printValFunc}" +
+        $"                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  2    ADD       1 -1 -2          ; 1 2               [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  4    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  5    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.Binary: 250 Add 251 1\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(source, expected, new Type[] { typeof(Event.Binary) }, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileFuncCall() {
-      string add = "add";
-      string a = "a";
-      string b = "b";
-      var program = AstHelper.Block(
-          AstHelper.FuncDef(add, AstHelper.Params(a, b),
-                            AstHelper.Return(AstHelper.Binary(AstHelper.Id(a), BinaryOperator.Add,
-                                                              AstHelper.Id(b)))),
-          AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(add), AstHelper.NumberConstant(1),
-                                                  AstHelper.NumberConstant(2)))
-      );
+      string source = @"
+def add(a, b):
+  return a + b
+add(1, 2)
+";
       string expected = (
-          $"Function <main>\n" +
-          $"  1    LOADK     0 -1             ; Func <add>        {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  3    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  4    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
-          $"  5    LOADK     2 -2             ; 1                 {_range}\n" +
-          $"  6    LOADK     3 -3             ; 2                 {_range}\n" +
-          $"  7    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  8    CALL      1 2 0                                {_range}\n" +
-          $"  9    VISNOTIFY 1 0                                  {_range}\n" +
-          $"  10   CALL      0 1 0                                {_range}\n" +
-          $"  11   RETURN    0 0                                  {_range}\n" +
-          $"Notifications\n" +
-          $"  0    Notification.Function: add 1 2 {_range}\n" +
-          $"\n" +
-          $"Function <add>\n" +
-          $"  1    ADD       2 0 1                                {_range}\n" +
-          $"  2    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  3    RETURN    2 1                                  {_range}\n" +
-          $"  4    RETURN    0 0                                  {_range}\n" +
-          $"Notifications\n" +
-          $"  0    Notification.Binary: 0 Add 1 2 {_range}\n"
+        $"Function <main>\n" +
+        $"  1    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  2    SETGLOB   0 {_firstGlob}" +
+        $"                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  3    GETGLOB   0 {_printValFunc}" +
+        $"                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  4    GETGLOB   1 {_firstGlob}" +
+        $"                                  [Ln 4, Col 0 - Ln 4, Col 2]\n" +
+        $"  5    LOADK     2 -2             ; 1                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
+        $"  6    LOADK     3 -3             ; 2                 [Ln 4, Col 7 - Ln 4, Col 7]\n" +
+        $"  7    VISNOTIFY 0 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  8    CALL      1 2 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  9    VISNOTIFY 1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  10   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  11   RETURN    0 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.Function: add 1 2\n" +
+        $"\n" +
+        $"Function <add>\n" +
+        $"  1    ADD       2 0 1                                [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  2    VISNOTIFY 0 0                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  3    RETURN    2 1                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"  4    RETURN    0 0                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.Binary: 0 Add 1 2\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(source, expected, new Type[] {
+        typeof(Event.Binary),
+        typeof(Event.FuncCalled),
+        typeof(Event.FuncReturned),
+      }, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileUnary() {
-      var program = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
-                                                             AstHelper.NumberConstant(1)));
+      string source = "-1";
       string expected = (
-          $"Function <main>\n" +
-          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  2    UNM       1 -1             ; 1                 {_range}\n" +
-          $"  3    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  4    CALL      0 1 0                                {_range}\n" +
-          $"  5    RETURN    0 0                                  {_range}\n" +
-          $"Notifications\n" +
-          $"  0    Notification.Unary: Negative 250 1 {_range}\n"
+        $"Function <main>\n" +
+        $"  1    GETGLOB   0 {_printValFunc}" +
+        $"                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
+        $"  2    UNM       1 -1             ; 1                 [Ln 1, Col 0 - Ln 1, Col 1]\n" +
+        $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
+        $"  4    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 1]\n" +
+        $"  5    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.Unary: Negative 250 1\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(source, expected, new Type[] { typeof(Event.Unary) }, RunMode.Interactive);
     }
-
 
     [Fact]
     public void TestCompileVTag() {
-      var vTagInfos = AstHelper.VTagInfos(AstHelper.VTagInfo("Add"));
-      var program = AstHelper.VTag(vTagInfos, AstHelper.ExpressionStmt(
-          AstHelper.Binary(AstHelper.NumberConstant(1),
-                           BinaryOperator.Add,
-                           AstHelper.NumberConstant(2))
-      ));
+      var source = @"
+# [[ Add ]]
+1 + 2
+";
       string expected = (
-          $"Function <main>\n" +
-          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  2    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  3    ADD       1 -1 -2          ; 1 2               {_range}\n" +
-          $"  4    VISNOTIFY 0 1                                  {_range}\n" +
-          $"  5    CALL      0 1 0                                {_range}\n" +
-          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
-          $"  7    RETURN    0 0                                  {_range}\n" +
-          $"Notifications\n" +
-          $"  0    Notification.VTagEntered: Add {_range}\n" +
-          $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  2    Notification.VTagExited: Add {_range}\n"
+        $"Function <main>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  2    GETGLOB   0 {_printValFunc}" +
+        $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  3    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  5    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.VTagEntered: Add\n" +
+        $"  1    Notification.Binary: 250 Add 251 1\n" +
+        $"  2    Notification.VTagExited: Add\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(source, expected, new Type[] {
+        typeof(Event.Binary),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileVTagWithArguments() {
-      var vTagInfos = AstHelper.VTagInfos(AstHelper.VTagInfo(
-          "Add",
-          AstHelper.VTagArg("1", AstHelper.NumberConstant(1)),
-          AstHelper.VTagArg("2", AstHelper.NumberConstant(2))
-      ));
-      var program = AstHelper.VTag(vTagInfos, AstHelper.ExpressionStmt(
-          AstHelper.Binary(AstHelper.NumberConstant(1),
-                           BinaryOperator.Add,
-                           AstHelper.NumberConstant(2))
-      ));
+      var source = @"
+# [[ Add(1, 2) ]]
+1 + 2
+";
       string expected = (
-          $"Function <main>\n" +
-          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  2    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  3    ADD       1 -1 -2          ; 1 2               {_range}\n" +
-          $"  4    VISNOTIFY 0 1                                  {_range}\n" +
-          $"  5    CALL      0 1 0                                {_range}\n" +
-          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
-          $"  7    RETURN    0 0                                  {_range}\n" +
-          $"Notifications\n" +
-          $"  0    Notification.VTagEntered: Add(1,2) {_range}\n" +
-          $"  1    Notification.Binary: 250 Add 251 1 {_range}\n" +
-          $"  2    Notification.VTagExited: Add(250,251) {_range}\n"
+        $"Function <main>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  2    GETGLOB   0 {_printValFunc}" +
+        $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  3    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  5    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.VTagEntered: Add(1,2)\n" +
+        $"  1    Notification.Binary: 250 Add 251 1\n" +
+        $"  2    Notification.VTagExited: Add(250,251)\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(source, expected, new Type[] {
+        typeof(Event.Binary),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Interactive);
     }
 
     [Fact]
     public void TestCompileVTagWithComplexArguments() {
-      string x = "x";
-      string y = "y";
-      var vTagInfos = AstHelper.VTagInfos(AstHelper.VTagInfo(
-          "Assign",
-          AstHelper.VTagArg("x", AstHelper.Id(x)),
-          AstHelper.VTagArg("1", AstHelper.NumberConstant(1)),
-          AstHelper.VTagArg("y", AstHelper.Id(y)),
-          AstHelper.VTagArg("1+2", AstHelper.Binary(AstHelper.NumberConstant(1),
-                                                      BinaryOperator.Add,
-                                                      AstHelper.NumberConstant(2)))
-      ));
-      var program = AstHelper.VTag(vTagInfos,
-          AstHelper.Assign(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y")),
-                           AstHelper.NumberConstant(1),
-                           AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
-                                            AstHelper.NumberConstant(2)))
-      );
+      var source = @"
+# [[ Assign(x, 1, y, 1 + 2)
+x, y = 1, 1 + 2
+# ]]
+";
       string expected = (
-          $"Function <main>\n" +
-          $"  1    VISNOTIFY 0 0                                  {_range}\n" +
-          $"  2    ADD       0 -1 -2          ; 1 2               {_range}\n" +
-          $"  3    VISNOTIFY 0 1                                  {_range}\n" +
-          $"  4    LOADK     1 -1             ; 1                 {_range}\n" +
-          $"  5    SETGLOB   1 {_firstGlob}                                  {_range}\n" +
-          $"  6    VISNOTIFY 0 2                                  {_range}\n" +
-          $"  7    SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
-          $"  8    VISNOTIFY 0 3                                  {_range}\n" +
-          $"  9    GETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  10   GETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
-          $"  11   ADD       2 -1 -2          ; 1 2               {_range}\n" +
-          $"  12   VISNOTIFY 0 4                                  {_range}\n" +
-          $"  13   VISNOTIFY 0 5                                  {_range}\n" +
-          $"  14   RETURN    0 0                                  {_range}\n" +
-          $"Notifications\n" +
-          $"  0    Notification.VTagEntered: Assign(x,1,y,1+2) {_range}\n" +
-          $"  1    Notification.Binary: 250 Add 251 0 {_range}\n" +
-          $"  2    Notification.Assignment: 'x': Global 1 {_range}\n" +
-          $"  3    Notification.Assignment: 'y': Global 0 {_range}\n" +
-          $"  4    Notification.Binary: 250 Add 251 2 {_range}\n" +
-          $"  5    Notification.VTagExited: Assign(0,250,1,2) {_range}\n"
+        $"Function <main>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
+        $"  2    ADD       0 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  3    VISNOTIFY 0 1                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  4    LOADK     1 -1             ; 1                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  5    SETGLOB   1 {_firstGlob}" +
+        $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  7    SETGLOB   0 {_firstGlob + 1}" +
+        $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  8    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  9    GETGLOB   0 {_firstGlob}" +
+        $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
+        $"  10   GETGLOB   1 {_firstGlob + 1}" +
+        $"                                  [Ln 2, Col 18 - Ln 2, Col 18]\n" +
+        $"  11   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
+        $"  12   VISNOTIFY 0 4                                  [Ln 2, Col 21 - Ln 2, Col 25]\n" +
+        $"  13   VISNOTIFY 0 5                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
+        $"  14   RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.VTagEntered: Assign(x,1,y,1+2)\n" +
+        $"  1    Notification.Binary: 250 Add 251 0\n" +
+        $"  2    Notification.Assignment: 'x': Global 1\n" +
+        $"  3    Notification.Assignment: 'y': Global 0\n" +
+        $"  4    Notification.Binary: 250 Add 251 2\n" +
+        $"  5    Notification.VTagExited: Assign(0,250,1,2)\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(program, expected, RunMode.Interactive);
+      TestCompiler(source, expected, new Type[] {
+        typeof(Event.Assignment),
+        typeof(Event.Binary),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Interactive);
     }
 
-    private static void TestCompiler(Statement statement, string expected, RunMode mode) {
+    [Fact]
+    public void TestCompileSingleStep() {
+      var source = @"
+def inc(n):
+  return n + 2
+
+sum = 0
+i = 0
+while i < 10:
+  for j in range(5):
+    if i < 8 and j < 3:
+      # [[ Inc(sum) ]]
+      sum = inc(sum)
+  i += 1
+
+print(sum)
+";
+      string expected = (
+        $"Function <main>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
+        $"  2    LOADK     0 -1             ; Func <inc>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  3    SETGLOB   0 {_firstGlob}" +
+        $"                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  4    VISNOTIFY 0 0                                  [Ln 5, Col 0 - Ln 5, Col 0]\n" +
+        $"  5    LOADK     0 -2             ; 0                 [Ln 5, Col 0 - Ln 5, Col 6]\n" +
+        $"  6    SETGLOB   0 {_firstGlob + 1}" +
+        $"                                  [Ln 5, Col 0 - Ln 5, Col 6]\n" +
+        $"  7    VISNOTIFY 0 0                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
+        $"  8    LOADK     0 -2             ; 0                 [Ln 6, Col 0 - Ln 6, Col 4]\n" +
+        $"  9    SETGLOB   0 {_firstGlob + 2}" +
+        $"                                  [Ln 6, Col 0 - Ln 6, Col 4]\n" +
+        $"  10   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
+        $"  11   GETGLOB   0 {_firstGlob + 2}" +
+        $"                                  [Ln 7, Col 6 - Ln 7, Col 6]\n" +
+        $"  12   LT        1 0 -3           ; 10                [Ln 7, Col 6 - Ln 7, Col 11]\n" +
+        $"  13   JMP       0 29             ; to 43             [Ln 7, Col 6 - Ln 7, Col 11]\n" +
+        $"  14   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
+        $"  15   GETGLOB   0 5                                  [Ln 8, Col 11 - Ln 8, Col 15]\n" +
+        $"  16   LOADK     1 -4             ; 5                 [Ln 8, Col 17 - Ln 8, Col 17]\n" +
+        $"  17   CALL      0 1 0                                [Ln 8, Col 11 - Ln 8, Col 18]\n" +
+        $"  18   LOADK     1 -2             ; 0                 [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  19   LEN       2 0 0                                [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  20   LOADK     3 -5             ; 1                 [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  21   FORPREP   1 15             ; to 37             [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  22   GETELEM   4 0 1                                [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  23   SETGLOB   4 {_firstGlob + 3}" +
+        $"                                  [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  24   VISNOTIFY 0 0                                  [Ln 9, Col 0 - Ln 9, Col 0]\n" +
+        $"  25   GETGLOB   4 {_firstGlob + 2}" +
+        $"                                  [Ln 9, Col 7 - Ln 9, Col 7]\n" +
+        $"  26   LT        1 4 -6           ; 8                 [Ln 9, Col 7 - Ln 9, Col 11]\n" +
+        $"  27   JMP       0 8              ; to 36             [Ln 9, Col 7 - Ln 9, Col 11]\n" +
+        $"  28   GETGLOB   4 {_firstGlob + 3}" +
+        $"                                  [Ln 9, Col 17 - Ln 9, Col 17]\n" +
+        $"  29   LT        1 4 -7           ; 3                 [Ln 9, Col 17 - Ln 9, Col 21]\n" +
+        $"  30   JMP       0 5              ; to 36             [Ln 9, Col 17 - Ln 9, Col 21]\n" +
+        $"  31   VISNOTIFY 0 0                                  [Ln 11, Col 0 - Ln 11, Col 0]\n" +
+        $"  32   GETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 11, Col 12 - Ln 11, Col 14]\n" +
+        $"  33   GETGLOB   5 {_firstGlob + 1}" +
+        $"                                  [Ln 11, Col 16 - Ln 11, Col 18]\n" +
+        $"  34   CALL      4 1 0                                [Ln 11, Col 12 - Ln 11, Col 19]\n" +
+        $"  35   SETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 11, Col 6 - Ln 11, Col 19]\n" +
+        $"  36   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
+        $"  37   FORLOOP   1 -16            ; to 22             [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"  38   VISNOTIFY 0 0                                  [Ln 12, Col 0 - Ln 12, Col 0]\n" +
+        $"  39   GETGLOB   1 {_firstGlob + 2}" +
+        $"                                  [Ln 12, Col 2 - Ln 12, Col 2]\n" +
+        $"  40   ADD       0 1 -5           ; 1                 [Ln 12, Col 2 - Ln 12, Col 7]\n" +
+        $"  41   SETGLOB   0 {_firstGlob + 2}" +
+        $"                                  [Ln 12, Col 2 - Ln 12, Col 7]\n" +
+        $"  42   JMP       0 -33            ; to 10             [Ln 7, Col 0 - Ln 12, Col 7]\n" +
+        $"  43   VISNOTIFY 0 0                                  [Ln 14, Col 0 - Ln 14, Col 0]\n" +
+        $"  44   GETGLOB   0 4                                  [Ln 14, Col 0 - Ln 14, Col 4]\n" +
+        $"  45   GETGLOB   1 {_firstGlob + 1}" +
+        $"                                  [Ln 14, Col 6 - Ln 14, Col 8]\n" +
+        $"  46   CALL      0 1 0                                [Ln 14, Col 0 - Ln 14, Col 9]\n" +
+        $"  47   RETURN    0 0                                  [Ln 14, Col 0 - Ln 14, Col 9]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.SingleStep\n" +
+        $"\n" +
+        $"Function <inc>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"  2    ADD       1 0 -1           ; 2                 [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  3    RETURN    1 1                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"  4    RETURN    0 0                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.SingleStep\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(source, expected, new Type[] { typeof(Event.SingleStep) }, RunMode.Script);
+    }
+
+    [Fact]
+    public void TestCompileSingleStepWithJoiningLine() {
+      var source = @"
+x = 0
+flag = \
+  x < \
+  5
+# [[ Reset ]]
+flag = \
+  True
+";
+      string expected = (
+        $"Function <main>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
+        $"  2    LOADK     0 -1             ; 0                 [Ln 2, Col 0 - Ln 2, Col 4]\n" +
+        $"  3    SETGLOB   0 {_firstGlob}" +
+        $"                                  [Ln 2, Col 0 - Ln 2, Col 4]\n" +
+        $"  4    VISNOTIFY 0 0                                  [Ln 4, Col 0 - Ln 4, Col 0]\n" +
+        $"  5    GETGLOB   1 {_firstGlob}" +
+        $"                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
+        $"  6    LT        1 1 -2           ; 5                 [Ln 4, Col 2 - Ln 5, Col 2]\n" +
+        $"  7    JMP       0 1              ; to 9              [Ln 4, Col 2 - Ln 5, Col 2]\n" +
+        $"  8    LOADBOOL  0 1 1                                [Ln 4, Col 2 - Ln 5, Col 2]\n" +
+        $"  9    LOADBOOL  0 0 0                                [Ln 4, Col 2 - Ln 5, Col 2]\n" +
+        $"  10   VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"  11   SETGLOB   0 {_firstGlob + 1}" +
+        $"                                  [Ln 3, Col 0 - Ln 5, Col 2]\n" +
+        $"  12   VISNOTIFY 0 1                                  [Ln 6, Col 0 - Ln 8, Col 5]\n" +
+        $"  13   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
+        $"  14   LOADBOOL  0 1 0                                [Ln 8, Col 2 - Ln 8, Col 5]\n" +
+        $"  15   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
+        $"  16   SETGLOB   0 {_firstGlob + 1}" +
+        $"                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
+        $"  17   VISNOTIFY 0 2                                  [Ln 6, Col 0 - Ln 8, Col 5]\n" +
+        $"  18   RETURN    0 0                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.SingleStep\n" +
+        $"  1    Notification.VTagEntered: Reset\n" +
+        $"  2    Notification.VTagExited: Reset\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(source, expected, new Type[] {
+        typeof(Event.SingleStep),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Script);
+    }
+
+    private static void TestCompiler(string source, string expected, IReadOnlyList<Type> eventTypes,
+                                     RunMode mode) {
+      Assert.True(new SeedPython().Parse(source, "", new DiagnosticCollection(),
+                                         out Statement program, out IReadOnlyList<TokenInfo> _));
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
-      var vc = new VisualizerCenter();
-      var visualizer = new MockupVisualizer();
-      vc.Register(visualizer);
+      var visualizerCenter = new VisualizerCenter();
+      var visualizerHelper = new VisualizerHelper(eventTypes);
+      visualizerHelper.RegisterToVisualizerCenter(visualizerCenter);
       var compiler = new Compiler();
-      var func = compiler.Compile(statement, env, vc, mode);
+      var func = compiler.Compile(program, env, visualizerCenter, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }

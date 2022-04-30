@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -64,7 +63,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitBreak(BreakStatement @break) {
-      _helper.Chunk.Emit(Opcode.JMP, 0, 0, @break.Range);
+      _helper.Emit(Opcode.JMP, 0, 0, @break.Range);
       _nestedLoopStack.AddBreakJump(_helper.Chunk.LatestCodePos);
     }
 
@@ -98,25 +97,25 @@ namespace SeedLang.Interpreter {
         _exprCompiler.Visit(forIn.Expr);
       }
       uint index = _helper.AllocateRegister();
-      _helper.Chunk.Emit(Opcode.LOADK, index, _helper.ConstantCache.IdOfConstant(0), forIn.Range);
+      _helper.Emit(Opcode.LOADK, index, _helper.ConstantCache.IdOfConstant(0), forIn.Range);
       uint limit = _helper.AllocateRegister();
-      _helper.Chunk.Emit(Opcode.LEN, limit, sequence, 0, forIn.Range);
+      _helper.Emit(Opcode.LEN, limit, sequence, 0, forIn.Range);
       uint step = _helper.AllocateRegister();
-      _helper.Chunk.Emit(Opcode.LOADK, step, _helper.ConstantCache.IdOfConstant(1), forIn.Range);
-      _helper.Chunk.Emit(Opcode.FORPREP, index, 0, forIn.Range);
+      _helper.Emit(Opcode.LOADK, step, _helper.ConstantCache.IdOfConstant(1), forIn.Range);
+      _helper.Emit(Opcode.FORPREP, index, 0, forIn.Range);
       int bodyStart = _helper.Chunk.Bytecode.Count;
       switch (loopVar.Type) {
         case VariableResolver.VariableType.Global:
           _helper.BeginExpressionScope();
           uint targetId = _helper.AllocateRegister();
-          _helper.Chunk.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
-          _helper.Chunk.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
+          _helper.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
+          _helper.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
           _helper.EmitAssignNotification(forIn.Id.Name, VariableType.Global, targetId,
                                          forIn.Id.Range);
           _helper.EndExpressionScope();
           break;
         case VariableResolver.VariableType.Local:
-          _helper.Chunk.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
+          _helper.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
           _helper.EmitAssignNotification(forIn.Id.Name, VariableType.Local, loopVar.Id,
                                          forIn.Id.Range);
           break;
@@ -125,9 +124,11 @@ namespace SeedLang.Interpreter {
           break;
       }
       Visit(forIn.Body);
-      _helper.PatchJumpToCurrentPos(bodyStart - 1);
-      _helper.Chunk.Emit(Opcode.FORLOOP, index, bodyStart - (_helper.Chunk.Bytecode.Count + 1),
-                         forIn.Range);
+      _helper.Emit(Opcode.FORLOOP, index, 0, forIn.Range);
+      // Patches the jump position of the FORLOOP instruction to the start point of the body.
+      _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, bodyStart);
+      // Patches the jump position of the FORPREP instruction to the latest FORLOOP.
+      _helper.PatchJumpToPos(bodyStart - 1, _helper.Chunk.LatestCodePos);
       _helper.EndBlockScope();
       _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
       _nestedLoopStack.PopLoopFrame();
@@ -148,12 +149,12 @@ namespace SeedLang.Interpreter {
         case VariableResolver.VariableType.Global:
           _helper.BeginExpressionScope();
           uint registerId = _helper.AllocateRegister();
-          _helper.Chunk.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
-          _helper.Chunk.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
+          _helper.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
+          _helper.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
           _helper.EndExpressionScope();
           break;
         case VariableResolver.VariableType.Local:
-          _helper.Chunk.Emit(Opcode.LOADK, info.Id, funcId, funcDef.Range);
+          _helper.Emit(Opcode.LOADK, info.Id, funcId, funcDef.Range);
           break;
         case VariableResolver.VariableType.Upvalue:
           // TODO: handle upvalues.
@@ -167,7 +168,7 @@ namespace SeedLang.Interpreter {
       _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.TrueJumps);
       Visit(@if.ThenBody);
       if (!(@if.ElseBody is null)) {
-        _helper.Chunk.Emit(Opcode.JMP, 0, 0, @if.Range);
+        _helper.Emit(Opcode.JMP, 0, 0, @if.Range);
         int jumpEndPos = _helper.Chunk.LatestCodePos;
         _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
         Visit(@if.ElseBody);
@@ -182,7 +183,7 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitReturn(ReturnStatement @return) {
       if (@return.Exprs.Length == 0) {
-        _helper.Chunk.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
+        _helper.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
       } else if (@return.Exprs.Length == 1) {
         if (!(_helper.GetRegisterId(@return.Exprs[0]) is uint result)) {
           _helper.BeginExpressionScope();
@@ -191,13 +192,13 @@ namespace SeedLang.Interpreter {
           _exprCompiler.Visit(@return.Exprs[0]);
           _helper.EndExpressionScope();
         }
-        _helper.Chunk.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
+        _helper.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
       } else {
         _helper.BeginExpressionScope();
         uint listRegister = _helper.AllocateRegister();
         _exprCompiler.RegisterForSubExpr = listRegister;
         _exprCompiler.Visit(Expression.Tuple(@return.Exprs, @return.Range));
-        _helper.Chunk.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
+        _helper.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
         _helper.EndExpressionScope();
       }
     }
@@ -205,10 +206,14 @@ namespace SeedLang.Interpreter {
     protected override void VisitWhile(WhileStatement @while) {
       _nestedLoopStack.PushLoopFrame();
       _helper.NestedJumpStack.PushFrame();
-      int start = _helper.Chunk.LatestCodePos;
+      int start = _helper.Chunk.Bytecode.Count;
       VisitTest(@while.Test);
       Visit(@while.Body);
-      _helper.Chunk.Emit(Opcode.JMP, 0, start - _helper.Chunk.LatestCodePos - 1, @while.Range);
+      // Doesn't emit single step notifications for this jump instruction, because it's at the same
+      // line with the while statement. The single step notification in the first instruction of
+      // the while statement will trigger correct single step events.
+      _helper.Chunk.Emit(Opcode.JMP, 0, 0, @while.Range);
+      _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, start);
       _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
       _helper.NestedJumpStack.PopFrame();
       _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
@@ -216,37 +221,11 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitVTag(VTagStatement vTag) {
-      _helper.EmitVTagEnteredNotification(CreateVTagEnteredInfo(vTag), vTag.Range);
+      _helper.EmitVTagEnteredNotification(vTag);
       foreach (Statement statement in vTag.Statements) {
         Visit(statement);
       }
-      _helper.EmitVTagExitedNotification(CreateVTagExitedInfo(vTag), vTag.Range);
-    }
-
-    private static Event.VTagEntered.VTagInfo[] CreateVTagEnteredInfo(VTagStatement vTag) {
-      return Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
-        var argTexts = Array.ConvertAll(vTagInfo.Args, args => args.Text);
-        return new Event.VTagEntered.VTagInfo(vTagInfo.Name, argTexts);
-      });
-    }
-
-    private Notification.VTagExited.VTagInfo[] CreateVTagExitedInfo(VTagStatement vTag) {
-      _helper.BeginBlockScope();
-      var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
-        var valueIds = new uint[vTagInfo.Args.Length];
-        for (int j = 0; j < vTagInfo.Args.Length; j++) {
-          if (_helper.GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
-            valueIds[j] = id;
-          } else {
-            valueIds[j] = _helper.AllocateRegister();
-            _exprCompiler.RegisterForSubExpr = valueIds[j];
-            _exprCompiler.Visit(vTagInfo.Args[j].Expr);
-          }
-        }
-        return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
-      });
-      _helper.EndBlockScope();
-      return vTagInfos;
+      _helper.EmitVTagExitedNotification(vTag, _exprCompiler);
     }
 
     private void VisitTest(Expression test) {
@@ -254,16 +233,16 @@ namespace SeedLang.Interpreter {
         _exprCompiler.Visit(test);
       } else {
         if (_helper.GetRegisterId(test) is uint registerId) {
-          _helper.Chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
+          _helper.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
         } else {
           _helper.BeginExpressionScope();
           registerId = _helper.AllocateRegister();
           _exprCompiler.RegisterForSubExpr = registerId;
           _exprCompiler.Visit(test);
-          _helper.Chunk.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
+          _helper.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
           _helper.EndExpressionScope();
         }
-        _helper.Chunk.Emit(Opcode.JMP, 0, 0, test.Range);
+        _helper.Emit(Opcode.JMP, 0, 0, test.Range);
         _helper.NestedJumpStack.FalseJumps.Add(_helper.Chunk.LatestCodePos);
       }
     }
@@ -301,8 +280,8 @@ namespace SeedLang.Interpreter {
           _helper.BeginExpressionScope();
           uint constId = _helper.ConstantCache.IdOfConstant(i);
           uint indexId = _helper.AllocateRegister();
-          _helper.Chunk.Emit(Opcode.LOADK, indexId, constId, range);
-          _helper.Chunk.Emit(Opcode.GETELEM, valueId, listId, indexId, range);
+          _helper.Emit(Opcode.LOADK, indexId, constId, range);
+          _helper.Emit(Opcode.GETELEM, valueId, listId, indexId, range);
           Assign(targets[i], valueId, range);
           _helper.EndExpressionScope();
         }
@@ -345,7 +324,7 @@ namespace SeedLang.Interpreter {
         case SubscriptExpression subscript:
           uint listId = VisitExpressionForRegisterId(subscript.Expr);
           uint indexId = VisitExpressionForRKId(subscript.Index);
-          _helper.Chunk.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
+          _helper.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
           break;
       }
     }
@@ -357,16 +336,16 @@ namespace SeedLang.Interpreter {
           uint tempRegister = valueId;
           if (Chunk.IsConstId(valueId)) {
             tempRegister = _helper.AllocateRegister();
-            _helper.Chunk.Emit(Opcode.LOADK, tempRegister, valueId, range);
+            _helper.Emit(Opcode.LOADK, tempRegister, valueId, range);
           }
-          _helper.Chunk.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
+          _helper.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
           _helper.EmitAssignNotification(id.Name, VariableType.Global, tempRegister, range);
           break;
         case VariableResolver.VariableType.Local:
           if (Chunk.IsConstId(valueId)) {
-            _helper.Chunk.Emit(Opcode.LOADK, info.Id, valueId, range);
+            _helper.Emit(Opcode.LOADK, info.Id, valueId, range);
           } else {
-            _helper.Chunk.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
+            _helper.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
           }
           _helper.EmitAssignNotification(id.Name, VariableType.Local, valueId, range);
           break;
@@ -421,7 +400,7 @@ namespace SeedLang.Interpreter {
 
     private void EmitDefaultReturn() {
       var range = _rangeOfPrevStatement is null ? new TextRange(1, 0, 1, 0) : _rangeOfPrevStatement;
-      _helper.Chunk.Emit(Opcode.RETURN, 0, 0, 0, range);
+      _helper.Emit(Opcode.RETURN, 0, 0, 0, range);
     }
   }
 }

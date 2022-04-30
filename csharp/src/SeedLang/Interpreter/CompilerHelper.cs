@@ -34,6 +34,8 @@ namespace SeedLang.Interpreter {
 
     private readonly VariableResolver _variableResolver;
 
+    // The source code line number (1-based) of the previous bytecode.
+    private int _sourceLineOfPrevBytecode = 0;
 
     internal CompilerHelper(VisualizerCenter visualizerCenter, GlobalEnvironment env) {
       _variableResolver = new VariableResolver(env);
@@ -112,8 +114,12 @@ namespace SeedLang.Interpreter {
       jumps.Clear();
     }
 
+    internal void PatchJumpToPos(int jump, int pos) {
+      Chunk.PatchSBXAt(jump, pos - jump - 1);
+    }
+
     internal void PatchJumpToCurrentPos(int jump) {
-      Chunk.PatchSBXAt(jump, Chunk.LatestCodePos - jump);
+      PatchJumpToPos(jump, Chunk.Bytecode.Count);
     }
 
     // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
@@ -124,14 +130,15 @@ namespace SeedLang.Interpreter {
       bool notifyReturned = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncReturned>();
       uint nId = 0;
       if (notifyCalled || notifyReturned) {
-        var notification = new Notification.Function(name, funcRegister, argLength, range);
+        var notification = new Notification.Function(name, funcRegister, argLength);
         nId = Chunk.AddNotification(notification);
       }
       if (notifyCalled) {
         Chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Called, nId, range);
       }
-      Chunk.Emit(Opcode.CALL, funcRegister, argLength, 0, range);
+      Emit(Opcode.CALL, funcRegister, argLength, 0, range);
       if (notifyReturned) {
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
       }
     }
@@ -139,7 +146,8 @@ namespace SeedLang.Interpreter {
     internal void EmitAssignNotification(string name, VariableType type, uint valueId,
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
-        var notification = new Notification.Assignment(name, type, valueId, range);
+        var notification = new Notification.Assignment(name, type, valueId);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
@@ -147,7 +155,8 @@ namespace SeedLang.Interpreter {
     internal void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId,
                                          uint resultId, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
-        var notification = new Notification.Binary(leftId, op, rightId, resultId, range);
+        var notification = new Notification.Binary(leftId, op, rightId, resultId);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
@@ -155,26 +164,66 @@ namespace SeedLang.Interpreter {
     internal void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId,
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
-        var notification = new Notification.Unary(op, valueId, resultId, range);
+        var notification = new Notification.Unary(op, valueId, resultId);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
 
-
-    internal void EmitVTagEnteredNotification(Event.VTagEntered.VTagInfo[] vTagInfos,
-                                              TextRange range) {
+    internal void EmitVTagEnteredNotification(VTagStatement vTag) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
-        var notification = new Notification.VTagEntered(vTagInfos, range);
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Event.VTagEntered.VTagInfo[] vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
+          var argTexts = Array.ConvertAll(vTagInfo.Args, args => args.Text);
+          return new Event.VTagEntered.VTagInfo(vTagInfo.Name, argTexts);
+        });
+        var notification = new Notification.VTagEntered(vTagInfos);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
       }
     }
 
-    internal void EmitVTagExitedNotification(Notification.VTagExited.VTagInfo[] vTagInfos,
-                                             TextRange range) {
+    internal void EmitVTagExitedNotification(VTagStatement vTag, ExprCompiler exprCompiler) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        var notification = new Notification.VTagExited(vTagInfos, range);
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        BeginBlockScope();
+        var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
+          var valueIds = new uint[vTagInfo.Args.Length];
+          for (int j = 0; j < vTagInfo.Args.Length; j++) {
+            if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
+              valueIds[j] = id;
+            } else {
+              valueIds[j] = AllocateRegister();
+              exprCompiler.RegisterForSubExpr = valueIds[j];
+              exprCompiler.Visit(vTagInfo.Args[j].Expr);
+            }
+          }
+          return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
+        });
+        EndBlockScope();
+        var notification = new Notification.VTagExited(vTagInfos);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
       }
+    }
+
+    // Emits an ABC instruction to the chunk. Also emits a single step notification before each line
+    // if there are visualizers for this event.
+    internal void Emit(Opcode opcode, uint a, uint b, uint c, TextRange range) {
+      TryEmitSingleStepNotification(range);
+      Chunk.Emit(opcode, a, b, c, range);
+    }
+
+    // Emits an ABx instruction to the chunk. Also emits a single step notification before each line
+    // if there are visualizers for this event.
+    internal void Emit(Opcode opcode, uint a, uint bx, TextRange range) {
+      TryEmitSingleStepNotification(range);
+      Chunk.Emit(opcode, a, bx, range);
+    }
+
+    // Emits a SBx instruction to the chunk. Also emits a single step notification before each line
+    // if there are visualizers for this event.
+    internal void Emit(Opcode opcode, uint a, int sbx, TextRange range) {
+      TryEmitSingleStepNotification(range);
+      Chunk.Emit(opcode, a, sbx, range);
     }
 
     internal static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {
@@ -216,6 +265,17 @@ namespace SeedLang.Interpreter {
           return (Opcode.IN, true);
         default:
           throw new NotImplementedException($"Operator {op} not implemented.");
+      }
+    }
+
+    private void TryEmitSingleStepNotification(TextRange range) {
+      if (_visualizerCenter.HasVisualizer<Event.SingleStep>()) {
+        if (range.Start.Line != _sourceLineOfPrevBytecode) {
+          // Creates the text range to indicate the start of a single step source line.
+          var eventRange = new TextRange(range.Start.Line, 0, range.Start.Line, 0);
+          Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.IdOfSingleStepNotification(), eventRange);
+          _sourceLineOfPrevBytecode = range.Start.Line;
+        }
       }
     }
   }

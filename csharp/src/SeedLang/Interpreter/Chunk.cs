@@ -45,6 +45,9 @@ namespace SeedLang.Interpreter {
 
     private readonly List<AbstractNotification> _notifications = new List<AbstractNotification>();
 
+    // The cached index of the shared single step notification.
+    private uint? _indexOfSingleStepNotification = null;
+
     // The constant list to hold all the constants used in this chunk.
     private Value[] _constants;
 
@@ -97,9 +100,19 @@ namespace SeedLang.Interpreter {
       return ref _constants[IndexOfConstId(constId)];
     }
 
+    // Adds an notification into the notification list.
     internal uint AddNotification(AbstractNotification notification) {
       _notifications.Add(notification);
       return (uint)_notifications.Count - 1;
+    }
+
+    // Returns the cached index of the shared single step notification.
+    internal uint IdOfSingleStepNotification() {
+      if (_indexOfSingleStepNotification is null) {
+        _notifications.Add(new Notification.SingleStep());
+        _indexOfSingleStepNotification = (uint)_notifications.Count - 1;
+      }
+      return (uint)_indexOfSingleStepNotification;
     }
 
     // Converts the constant id to the index in the constant list.

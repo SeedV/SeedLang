@@ -321,6 +321,7 @@ x = 0
 flag = \
   x < \
   5
+# [[ Reset ]]
 flag = \
   True
 ";
@@ -340,16 +341,24 @@ flag = \
         $"  10   VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  11   SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 3, Col 0 - Ln 5, Col 2]\n" +
-        $"  12   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
-        $"  13   LOADBOOL  0 1 0                                [Ln 7, Col 2 - Ln 7, Col 5]\n" +
-        $"  14   VISNOTIFY 0 0                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
-        $"  15   SETGLOB   0 {_firstGlob + 1}" +
-        $"                                  [Ln 6, Col 0 - Ln 7, Col 5]\n" +
-        $"  16   RETURN    0 0                                  [Ln 6, Col 0 - Ln 7, Col 5]\n" +
+        $"  12   VISNOTIFY 0 1                                  [Ln 6, Col 0 - Ln 8, Col 5]\n" +
+        $"  13   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
+        $"  14   LOADBOOL  0 1 0                                [Ln 8, Col 2 - Ln 8, Col 5]\n" +
+        $"  15   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
+        $"  16   SETGLOB   0 {_firstGlob + 1}" +
+        $"                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
+        $"  17   VISNOTIFY 0 2                                  [Ln 6, Col 0 - Ln 8, Col 5]\n" +
+        $"  18   RETURN    0 0                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
         $"Notifications\n" +
-        $"  0    Notification.SingleStep\n"
+        $"  0    Notification.SingleStep\n" +
+        $"  1    Notification.VTagEntered: Reset\n" +
+        $"  2    Notification.VTagExited: Reset\n"
       ).Replace("\n", Environment.NewLine);
-      TestCompiler(source, expected, new Type[] { typeof(Event.SingleStep) }, RunMode.Script);
+      TestCompiler(source, expected, new Type[] {
+        typeof(Event.SingleStep),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Script);
     }
 
     private static void TestCompiler(string source, string expected, IReadOnlyList<Type> eventTypes,

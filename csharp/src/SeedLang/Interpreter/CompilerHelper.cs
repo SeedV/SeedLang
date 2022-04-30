@@ -134,11 +134,12 @@ namespace SeedLang.Interpreter {
         nId = Chunk.AddNotification(notification);
       }
       if (notifyCalled) {
-        Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Called, nId, range);
+        Chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Called, nId, range);
       }
       Emit(Opcode.CALL, funcRegister, argLength, 0, range);
       if (notifyReturned) {
-        Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
       }
     }
 
@@ -146,7 +147,8 @@ namespace SeedLang.Interpreter {
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
         var notification = new Notification.Assignment(name, type, valueId);
-        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
 
@@ -154,7 +156,8 @@ namespace SeedLang.Interpreter {
                                          uint resultId, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
         var notification = new Notification.Binary(leftId, op, rightId, resultId);
-        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
 
@@ -162,7 +165,8 @@ namespace SeedLang.Interpreter {
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
         var notification = new Notification.Unary(op, valueId, resultId);
-        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
       }
     }
 
@@ -173,7 +177,8 @@ namespace SeedLang.Interpreter {
           return new Event.VTagEntered.VTagInfo(vTagInfo.Name, argTexts);
         });
         var notification = new Notification.VTagEntered(vTagInfos);
-        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
       }
     }
 
@@ -195,7 +200,8 @@ namespace SeedLang.Interpreter {
         });
         EndBlockScope();
         var notification = new Notification.VTagExited(vTagInfos);
-        Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
       }
     }
 

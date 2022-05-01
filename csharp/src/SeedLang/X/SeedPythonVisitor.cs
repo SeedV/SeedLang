@@ -289,7 +289,7 @@ namespace SeedLang.X {
 
     public override AstNode VisitSubscript([NotNull] SeedPythonParser.SubscriptContext context) {
       return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
-                                    context.expression(), context.CLOSE_BRACK().Symbol, this);
+                                    context.slice_index(), context.CLOSE_BRACK().Symbol, this);
     }
 
     public override AstNode VisitAttribute([NotNull] SeedPythonParser.AttributeContext context) {

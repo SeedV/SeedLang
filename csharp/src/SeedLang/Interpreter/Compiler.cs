@@ -328,7 +328,7 @@ namespace SeedLang.Interpreter {
           break;
         case SubscriptExpression subscript:
           uint listId = VisitExpressionForRegisterId(subscript.Expr);
-          uint indexId = VisitExpressionForRKId(subscript.Index);
+          uint indexId = VisitExpressionForRKId(subscript.SliceExpr);
           _helper.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
           break;
       }

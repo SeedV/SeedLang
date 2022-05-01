@@ -20,75 +20,81 @@ using Xunit;
 
 namespace SeedLang.X.Tests {
   public class SeedPythonListTests {
-    private readonly DiagnosticCollection _collection = new DiagnosticCollection();
-    private readonly SeedPython _parser = new SeedPython();
+    [Fact]
+    public void TestEmptyList() {
+      string source = "[]";
+      string expected = "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
+                        "  [Ln 1, Col 0 - Ln 1, Col 1] ListExpression";
+      string expectedTokens = "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                              "CloseBracket [Ln 1, Col 1 - Ln 1, Col 1]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
 
-    [Theory]
-    [InlineData("[]",
+    [Fact]
+    public void TestList() {
+      string source = "[1, 2, 3]";
+      string expected = "[Ln 1, Col 0 - Ln 1, Col 8] ExpressionStatement\n" +
+                        "  [Ln 1, Col 0 - Ln 1, Col 8] ListExpression\n" +
+                        "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                        "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
+                        "    [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)";
+      string expectedTokens = "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                              "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                              "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
+                              "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
+                              "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
+                              "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
+                              "CloseBracket [Ln 1, Col 8 - Ln 1, Col 8]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
 
-                "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 1] ListExpression",
+    [Fact]
+    public void TestSubscript() {
+      string source = "[1, 2, 3][1]";
+      string expected = "[Ln 1, Col 0 - Ln 1, Col 11] ExpressionStatement\n" +
+                        "  [Ln 1, Col 0 - Ln 1, Col 11] SubscriptExpression\n" +
+                        "    [Ln 1, Col 0 - Ln 1, Col 8] ListExpression\n" +
+                        "      [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
+                        "      [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
+                        "      [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)\n" +
+                        "    [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)";
+      string expectedTokens = "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
+                              "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
+                              "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
+                              "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
+                              "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
+                              "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
+                              "CloseBracket [Ln 1, Col 8 - Ln 1, Col 8]," +
+                              "OpenBracket [Ln 1, Col 9 - Ln 1, Col 9]," +
+                              "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
+                              "CloseBracket [Ln 1, Col 11 - Ln 1, Col 11]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
 
-                "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "CloseBracket [Ln 1, Col 1 - Ln 1, Col 1]")]
+    [Fact]
+    public void TestSubscriptAssignment() {
+      string source = "a[0] = 1";
+      string expected = "[Ln 1, Col 0 - Ln 1, Col 7] AssignmentStatement\n" +
+                        "  [Ln 1, Col 0 - Ln 1, Col 3] SubscriptExpression\n" +
+                        "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
+                        "    [Ln 1, Col 2 - Ln 1, Col 2] NumberConstantExpression (0)\n" +
+                        "  [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (1)";
+      string expectedTokens = "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
+                              "OpenBracket [Ln 1, Col 1 - Ln 1, Col 1]," +
+                              "Number [Ln 1, Col 2 - Ln 1, Col 2]," +
+                              "CloseBracket [Ln 1, Col 3 - Ln 1, Col 3]," +
+                              "Operator [Ln 1, Col 5 - Ln 1, Col 5]," +
+                              "Number [Ln 1, Col 7 - Ln 1, Col 7]";
+      TestPythonParser(source, expected, expectedTokens);
+    }
 
-    [InlineData("[1, 2, 3]",
-
-                "[Ln 1, Col 0 - Ln 1, Col 8] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 8] ListExpression\n" +
-                "    [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
-                "    [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
-                "    [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)",
-
-                "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
-                "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "CloseBracket [Ln 1, Col 8 - Ln 1, Col 8]")]
-
-    [InlineData("[1, 2, 3][1]",
-
-                "[Ln 1, Col 0 - Ln 1, Col 11] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 11] SubscriptExpression\n" +
-                "    [Ln 1, Col 0 - Ln 1, Col 8] ListExpression\n" +
-                "      [Ln 1, Col 1 - Ln 1, Col 1] NumberConstantExpression (1)\n" +
-                "      [Ln 1, Col 4 - Ln 1, Col 4] NumberConstantExpression (2)\n" +
-                "      [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (3)\n" +
-                "    [Ln 1, Col 10 - Ln 1, Col 10] NumberConstantExpression (1)",
-
-                "OpenBracket [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Number [Ln 1, Col 1 - Ln 1, Col 1]," +
-                "Symbol [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "Number [Ln 1, Col 4 - Ln 1, Col 4]," +
-                "Symbol [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
-                "CloseBracket [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "OpenBracket [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "Number [Ln 1, Col 10 - Ln 1, Col 10]," +
-                "CloseBracket [Ln 1, Col 11 - Ln 1, Col 11]")]
-
-    [InlineData("a[0] = 1",
-
-                "[Ln 1, Col 0 - Ln 1, Col 7] AssignmentStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 3] SubscriptExpression\n" +
-                "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
-                "    [Ln 1, Col 2 - Ln 1, Col 2] NumberConstantExpression (0)\n" +
-                "  [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (1)",
-
-                "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "OpenBracket [Ln 1, Col 1 - Ln 1, Col 1]," +
-                "Number [Ln 1, Col 2 - Ln 1, Col 2]," +
-                "CloseBracket [Ln 1, Col 3 - Ln 1, Col 3]," +
-                "Operator [Ln 1, Col 5 - Ln 1, Col 5]," +
-                "Number [Ln 1, Col 7 - Ln 1, Col 7]")]
-    public void TestPythonParser(string input, string expectedAst, string expectedTokens) {
-      Assert.True(_parser.Parse(input, "", _collection, out Statement statement,
-                                out IReadOnlyList<TokenInfo> tokens));
+    private static void TestPythonParser(string source, string expected, string expectedTokens) {
+      var collection = new DiagnosticCollection();
+      Assert.True(new SeedPython().Parse(source, "", collection, out Statement statement,
+                                         out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(statement);
-      Assert.Empty(_collection.Diagnostics);
-      Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), statement.ToString());
+      Assert.Empty(collection.Diagnostics);
+      Assert.Equal(expected.Replace("\n", Environment.NewLine), statement.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens));
     }
   }

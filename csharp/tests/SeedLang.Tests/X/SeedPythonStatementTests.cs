@@ -534,9 +534,9 @@ namespace SeedLang.X.Tests {
       TestPythonParser(source, expected, expectedTokens);
     }
 
-    private static void TestPythonParser(string input, string expected, string expectedTokens) {
+    private static void TestPythonParser(string source, string expected, string expectedTokens) {
       var collection = new DiagnosticCollection();
-      Assert.True(new SeedPython().Parse(input, "", collection, out Statement statement,
+      Assert.True(new SeedPython().Parse(source, "", collection, out Statement statement,
                                          out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(statement);
       Assert.Empty(collection.Diagnostics);

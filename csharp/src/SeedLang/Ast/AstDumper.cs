@@ -185,13 +185,17 @@ namespace SeedLang.Ast {
         _builder.Append($" ({numberConstant.Value})");
       }
 
+      protected override void VisitSlice(SliceExpression slice) {
+        _builder.Append($" ({slice.Start}:{slice.Stop}:{slice.Step})");
+      }
+
       protected override void VisitStringConstant(StringConstantExpression stringConstant) {
         _builder.Append($" ({stringConstant.Value})");
       }
 
       protected override void VisitSubscript(SubscriptExpression subscript) {
         Visit(subscript.Expr);
-        Visit(subscript.Index);
+        Visit(subscript.SliceExpr);
       }
 
       protected override void VisitTuple(TupleExpression tuple) {

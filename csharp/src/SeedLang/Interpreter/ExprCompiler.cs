@@ -183,6 +183,10 @@ namespace SeedLang.Interpreter {
       _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, numberConstant.Range);
     }
 
+    protected override void VisitSlice(SliceExpression slice) {
+      throw new NotImplementedException();
+    }
+
     protected override void VisitStringConstant(StringConstantExpression stringConstant) {
       uint id = _helper.ConstantCache.IdOfConstant(stringConstant.Value);
       _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, stringConstant.Range);
@@ -192,7 +196,7 @@ namespace SeedLang.Interpreter {
       _helper.BeginExpressionScope();
       uint targetId = RegisterForSubExpr;
       uint listId = VisitExpressionForRegisterId(subscript.Expr);
-      uint indexId = VisitExpressionForRKId(subscript.Index);
+      uint indexId = VisitExpressionForRKId(subscript.SliceExpr);
       _helper.Emit(Opcode.GETELEM, targetId, listId, indexId, subscript.Range);
       _helper.EndExpressionScope();
     }

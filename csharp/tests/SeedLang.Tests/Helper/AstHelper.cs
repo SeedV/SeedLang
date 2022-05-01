@@ -45,6 +45,10 @@ namespace SeedLang.Tests.Helper {
       return Expression.BooleanConstant(value, TextRange);
     }
 
+    internal static BreakStatement Break() {
+      return Statement.Break(TextRange);
+    }
+
     internal static CallExpression Call(Expression func, params Expression[] arguments) {
       return Expression.Call(func, arguments, TextRange);
     }
@@ -56,6 +60,19 @@ namespace SeedLang.Tests.Helper {
 
     internal static ComparisonOperator[] CompOps(params ComparisonOperator[] ops) {
       return ops;
+    }
+
+    internal static ContinueStatement Continue() {
+      return Statement.Continue(TextRange);
+    }
+
+    internal static DictExpression Dict(params KeyValuePair<Expression, Expression>[] items) {
+      return Expression.Dict(items, TextRange);
+    }
+
+    internal static KeyValuePair<Expression, Expression> KeyValue(Expression key,
+                                                                  Expression value) {
+      return new KeyValuePair<Expression, Expression>(key, value);
     }
 
     internal static ExpressionStatement ExpressionStmt(Expression expr) {
@@ -82,20 +99,8 @@ namespace SeedLang.Tests.Helper {
       return Statement.If(test, thenBody, elseBody, TextRange);
     }
 
-    internal static DictExpression Dict(params KeyValuePair<Expression, Expression>[] items) {
-      return Expression.Dict(items, TextRange);
-    }
-
-    internal static KeyValuePair<Expression, Expression> KeyValue(Expression key, Expression value) {
-      return new KeyValuePair<Expression, Expression>(key, value);
-    }
-
     internal static ListExpression List(params Expression[] exprs) {
       return Expression.List(exprs, TextRange);
-    }
-
-    internal static TupleExpression Tuple(params Expression[] exprs) {
-      return Expression.Tuple(exprs, TextRange);
     }
 
     internal static NilConstantExpression NilConstant() {
@@ -122,12 +127,12 @@ namespace SeedLang.Tests.Helper {
       return Expression.Subscript(expr, index, TextRange);
     }
 
-    internal static UnaryExpression Unary(UnaryOperator op, Expression expr) {
-      return Expression.Unary(op, expr, TextRange);
+    internal static TupleExpression Tuple(params Expression[] exprs) {
+      return Expression.Tuple(exprs, TextRange);
     }
 
-    internal static WhileStatement While(Expression test, Statement body) {
-      return Statement.While(test, body, TextRange);
+    internal static UnaryExpression Unary(UnaryOperator op, Expression expr) {
+      return Expression.Unary(op, expr, TextRange);
     }
 
     internal static VTagStatement VTag(VTagStatement.VTagInfo[] vTagInfo,
@@ -146,6 +151,10 @@ namespace SeedLang.Tests.Helper {
 
     internal static VTagStatement.VTagInfo.Argument VTagArg(string text, Expression expr) {
       return new VTagStatement.VTagInfo.Argument(text, expr);
+    }
+
+    internal static WhileStatement While(Expression test, Statement body) {
+      return Statement.While(test, body, TextRange);
     }
   }
 }

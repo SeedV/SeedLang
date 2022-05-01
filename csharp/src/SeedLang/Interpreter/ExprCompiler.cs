@@ -69,10 +69,10 @@ namespace SeedLang.Interpreter {
           if (i < boolean.Exprs.Length - 1) {
             switch (boolean.Op) {
               case BooleanOperator.And:
-                _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.TrueJumps);
+                _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.TrueJumps);
                 break;
               case BooleanOperator.Or:
-                _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
+                _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
                 break;
             }
           }
@@ -217,17 +217,17 @@ namespace SeedLang.Interpreter {
       uint? register = null;
       if (!(_registerForSubExprStorage is null)) {
         register = RegisterForSubExpr;
-        _helper.NestedJumpStack.PushFrame();
+        _helper.ExprJumpStack.PushFrame();
       }
       action();
       if (register.HasValue) {
-        _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.TrueJumps);
+        _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.TrueJumps);
         // Loads True into the register, and increases PC.
         _helper.Emit(Opcode.LOADBOOL, (uint)register, 1, 1, range);
-        _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
+        _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
         // Loads False into the register.
         _helper.Emit(Opcode.LOADBOOL, (uint)register, 0, 0, range);
-        _helper.NestedJumpStack.PopFrame();
+        _helper.ExprJumpStack.PopFrame();
       }
     }
 
@@ -244,10 +244,10 @@ namespace SeedLang.Interpreter {
       _helper.Emit(Opcode.JMP, 0, 0, range);
       switch (_nextBooleanOp) {
         case BooleanOperator.And:
-          _helper.NestedJumpStack.FalseJumps.Add(_helper.Chunk.LatestCodePos);
+          _helper.ExprJumpStack.AddFalseJump(_helper.Chunk.LatestCodePos);
           break;
         case BooleanOperator.Or:
-          _helper.NestedJumpStack.TrueJumps.Add(_helper.Chunk.LatestCodePos);
+          _helper.ExprJumpStack.AddTrueJump(_helper.Chunk.LatestCodePos);
           break;
       }
       _helper.EndExpressionScope();

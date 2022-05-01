@@ -11,3 +11,9 @@ for ch in "string":
     if ch == "i":
         break
     print(ch)
+
+
+for ch in "string":
+    if ch == "i":
+        continue
+    print(ch)

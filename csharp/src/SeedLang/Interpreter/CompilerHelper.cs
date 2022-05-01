@@ -19,6 +19,7 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
+  // A helper class to encapsulate common functions of Compiler and ExprCompiler classes.
   internal class CompilerHelper {
     // The chunk on the top of the function stack.
     public Chunk Chunk { get; set; }
@@ -27,8 +28,9 @@ namespace SeedLang.Interpreter {
 
     public uint LastRegister => _variableResolver.LastRegister;
 
-    // TODO: refactor the NestedJumpStack and NestedLoopStack classes to extrat the similarities.
-    public NestedJumpStack NestedJumpStack { get; } = new NestedJumpStack();
+    // The stack to collect positions of nested true and false jump bytecode for comparison and
+    // boolean expressions.
+    public ExprJumpStack ExprJumpStack { get; } = new ExprJumpStack();
 
     private readonly VisualizerCenter _visualizerCenter;
 
@@ -105,6 +107,13 @@ namespace SeedLang.Interpreter {
         default:
           return null;
       }
+    }
+
+    internal void PatchJumpsToPos(List<int> jumps, int pos) {
+      foreach (int jump in jumps) {
+        PatchJumpToPos(jump, pos);
+      }
+      jumps.Clear();
     }
 
     internal void PatchJumpsToCurrentPos(List<int> jumps) {

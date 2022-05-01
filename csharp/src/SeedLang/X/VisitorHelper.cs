@@ -166,7 +166,7 @@ namespace SeedLang.X {
         double value = double.Parse(token.Text);
         ValueHelper.CheckOverflow(value, range);
         return Expression.NumberConstant(value, range);
-      } catch (System.OverflowException) {
+      } catch (OverflowException) {
         throw new DiagnosticException(SystemReporters.SeedX, Severity.Fatal, "", range,
                                       Message.RuntimeErrorOverflow);
       }

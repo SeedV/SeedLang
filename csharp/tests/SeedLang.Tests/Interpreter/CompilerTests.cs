@@ -936,6 +936,22 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(Message.RuntimeErrorVariableNotDefined, exception.Diagnostic.MessageId);
     }
 
+    [Fact]
+    public void TestBreakOutOfLoop() {
+      var expr = AstHelper.Break();
+      var exception = Assert.Throws<DiagnosticException>(
+          () => TestCompiler(expr, "", RunMode.Interactive));
+      Assert.Equal(Message.RuntimeErrorBreakOutsideLoop, exception.Diagnostic.MessageId);
+    }
+
+    [Fact]
+    public void TestContinueOutOfLoop() {
+      var expr = AstHelper.Continue();
+      var exception = Assert.Throws<DiagnosticException>(
+          () => TestCompiler(expr, "", RunMode.Interactive));
+      Assert.Equal(Message.RuntimeErrorContinueOutsideLoop, exception.Diagnostic.MessageId);
+    }
+
     private static void TestCompiler(Statement statement, string expected, RunMode mode) {
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var vc = new VisualizerCenter();

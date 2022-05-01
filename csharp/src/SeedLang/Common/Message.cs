@@ -69,10 +69,12 @@ namespace SeedLang.Common {
     InvalidJson1,                       // Not a valid JSON string/file.
     InvalidOperatorName1,               // Invalid operator name.
     InvalidPrimitiveValue1,             // Invalid primitive value.
-    RuntimeErrorInvalidCast,            // Invalid cast of value types runtime error.
+    RuntimeErrorBreakOutsideLoop,       // The Break statement is outside of loop statements.
+    RuntimeErrorContinueOutsideLoop,    // The Continue statement is outside of loop statements.
     RuntimeErrorDivideByZero,           // Divide by zero runtime error.
     RuntimeErrorIncorrectArgsCount,     // Incorrect arguments count runtime error.
     RuntimeErrorIncorrectUnpackCount,   // Incorrect number of values to be unpack runtime error.
+    RuntimeErrorInvalidCast,            // Invalid cast of value types runtime error.
     RuntimeErrorInvalidIndex,           // Not a valid integer index runtime error.
     RuntimeErrorNoKey,                  // Couldn't find the given key in the dictionary.
     RuntimeErrorNotCallable,            // Value type not callable runtime error.

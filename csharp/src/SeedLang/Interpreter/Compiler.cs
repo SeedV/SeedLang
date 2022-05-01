@@ -64,11 +64,13 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitBreak(BreakStatement @break) {
       _helper.Emit(Opcode.JMP, 0, 0, @break.Range);
-      _nestedLoopStack.AddBreakJump(_helper.Chunk.LatestCodePos);
+      _nestedLoopStack.AddBreakJump(_helper.Chunk.LatestCodePos, @break.Range);
     }
 
     // TODO: implement continue statements.
     protected override void VisitContinue(ContinueStatement @continue) {
+      _helper.Emit(Opcode.JMP, 0, 0, @continue.Range);
+      _nestedLoopStack.AddContinueJump(_helper.Chunk.LatestCodePos, @continue.Range);
     }
 
     protected override void VisitExpression(ExpressionStatement expr) {
@@ -87,7 +89,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitForIn(ForInStatement forIn) {
-      _nestedLoopStack.PushLoopFrame();
+      _nestedLoopStack.PushFrame();
       VariableResolver.VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
 
       _helper.BeginBlockScope();
@@ -124,14 +126,16 @@ namespace SeedLang.Interpreter {
           break;
       }
       Visit(forIn.Body);
+      // Patches all continue jumps to the FORLOOP instruction.
+      _helper.PatchJumpsToCurrentPos(_nestedLoopStack.ContinueJumps);
       _helper.Emit(Opcode.FORLOOP, index, 0, forIn.Range);
       // Patches the jump position of the FORLOOP instruction to the start point of the body.
       _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, bodyStart);
       // Patches the jump position of the FORPREP instruction to the latest FORLOOP.
       _helper.PatchJumpToPos(bodyStart - 1, _helper.Chunk.LatestCodePos);
       _helper.EndBlockScope();
-      _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
-      _nestedLoopStack.PopLoopFrame();
+      _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreakJumps);
+      _nestedLoopStack.PopFrame();
     }
 
     protected override void VisitFuncDef(FuncDefStatement funcDef) {
@@ -163,20 +167,20 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitIf(IfStatement @if) {
-      _helper.NestedJumpStack.PushFrame();
+      _helper.ExprJumpStack.PushFrame();
       VisitTest(@if.Test);
-      _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.TrueJumps);
+      _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.TrueJumps);
       Visit(@if.ThenBody);
       if (!(@if.ElseBody is null)) {
         _helper.Emit(Opcode.JMP, 0, 0, @if.Range);
         int jumpEndPos = _helper.Chunk.LatestCodePos;
-        _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
+        _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
         Visit(@if.ElseBody);
         _helper.PatchJumpToCurrentPos(jumpEndPos);
       } else {
-        _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
+        _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
       }
-      _helper.NestedJumpStack.PopFrame();
+      _helper.ExprJumpStack.PopFrame();
     }
 
     protected override void VisitPass(PassStatement pass) { }
@@ -204,8 +208,8 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitWhile(WhileStatement @while) {
-      _nestedLoopStack.PushLoopFrame();
-      _helper.NestedJumpStack.PushFrame();
+      _nestedLoopStack.PushFrame();
+      _helper.ExprJumpStack.PushFrame();
       int start = _helper.Chunk.Bytecode.Count;
       VisitTest(@while.Test);
       Visit(@while.Body);
@@ -214,10 +218,11 @@ namespace SeedLang.Interpreter {
       // the while statement will trigger correct single step events.
       _helper.Chunk.Emit(Opcode.JMP, 0, 0, @while.Range);
       _helper.PatchJumpToPos(_helper.Chunk.LatestCodePos, start);
-      _helper.PatchJumpsToCurrentPos(_helper.NestedJumpStack.FalseJumps);
-      _helper.NestedJumpStack.PopFrame();
-      _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreaksJumps);
-      _nestedLoopStack.PopLoopFrame();
+      _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
+      _helper.PatchJumpsToCurrentPos(_nestedLoopStack.BreakJumps);
+      _helper.PatchJumpsToPos(_nestedLoopStack.ContinueJumps, start);
+      _helper.ExprJumpStack.PopFrame();
+      _nestedLoopStack.PopFrame();
     }
 
     protected override void VisitVTag(VTagStatement vTag) {
@@ -243,7 +248,7 @@ namespace SeedLang.Interpreter {
           _helper.EndExpressionScope();
         }
         _helper.Emit(Opcode.JMP, 0, 0, test.Range);
-        _helper.NestedJumpStack.FalseJumps.Add(_helper.Chunk.LatestCodePos);
+        _helper.ExprJumpStack.AddFalseJump(_helper.Chunk.LatestCodePos);
       }
     }
 

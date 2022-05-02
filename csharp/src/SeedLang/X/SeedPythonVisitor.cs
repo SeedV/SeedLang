@@ -292,6 +292,23 @@ namespace SeedLang.X {
                                     context.slice_index(), context.CLOSE_BRACK().Symbol, this);
     }
 
+    public override AstNode VisitSlice([NotNull] SeedPythonParser.SliceContext context) {
+      int length = 3;
+      var exprs = new ParserRuleContext[length];
+      int index = 0;
+      for (int i = 0; i < length; i++) {
+        if (index < context.children.Count && context.children[index] is ParserRuleContext expr) {
+          exprs[i] = expr;
+          // Adds 2 to index to skip this expression and next colon.
+          index += 2;
+        } else {
+          exprs[i] = null;
+          index++;
+        }
+      }
+      return _helper.BuildSlice(exprs, context.COLON(), this);
+    }
+
     public override AstNode VisitAttribute([NotNull] SeedPythonParser.AttributeContext context) {
       return _helper.BuildAttribute(context.primary(), context.DOT().Symbol, context.identifier(),
                                     this);

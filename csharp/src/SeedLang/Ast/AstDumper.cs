@@ -186,7 +186,18 @@ namespace SeedLang.Ast {
       }
 
       protected override void VisitSlice(SliceExpression slice) {
-        _builder.Append($" ({slice.Start}:{slice.Stop}:{slice.Step})");
+        _builder.Append($" ({(slice.Start is null ? "" : "start")}:");
+        _builder.Append($"{(slice.Stop is null ? "" : "stop")}:");
+        _builder.Append($"{(slice.Step is null ? "" : "step")})");
+        if (!(slice.Start is null)) {
+          Visit(slice.Start);
+        }
+        if (!(slice.Stop is null)) {
+          Visit(slice.Stop);
+        }
+        if (!(slice.Step is null)) {
+          Visit(slice.Step);
+        }
       }
 
       protected override void VisitStringConstant(StringConstantExpression stringConstant) {

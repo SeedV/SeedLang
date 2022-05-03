@@ -24,17 +24,21 @@ namespace SeedLang.Runtime.Tests {
 
   internal class MockupValue : IValue {
     public bool IsNil => false;
+
     public bool IsBoolean => false;
     public bool IsNumber => true;
     public bool IsString => false;
-    public bool IsList => false;
-    public bool IsFunction => false;
 
-    public bool Boolean => false;
-    public double Number => 0;
-    public string String => "false";
+    public bool IsDict => false;
+    public bool IsList => false;
+    public bool IsTuple => false;
+
     public int Length => 0;
     public IValue this[int index] => new ValueWrapper(new Value());
+
+    public bool AsBoolean() { return false; }
+    public double AsNumber() { return 0; }
+    public string AsString() { return ""; }
   }
 
   internal class MockupBinaryVisualizer : IVisualizer<Event.Binary> {

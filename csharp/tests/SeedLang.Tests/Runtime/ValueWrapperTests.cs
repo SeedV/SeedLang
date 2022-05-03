@@ -12,24 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  // The interface of all value types.
-  public interface IValue {
-    bool IsNil { get; }
+using Xunit;
 
-    bool IsBoolean { get; }
-    bool IsNumber { get; }
-    bool IsString { get; }
+namespace SeedLang.Runtime.Tests {
+  public class ValueWrapperTests {
+    [Fact]
+    public void TestValues() {
+      IValue nil = new ValueWrapper(new Value());
+      Assert.True(nil.IsNil);
 
-    bool IsDict { get; }
-    bool IsList { get; }
-    bool IsTuple { get; }
+      IValue number = new ValueWrapper(new Value(1));
+      Assert.True(number.IsNumber);
+      Assert.Equal(1, number.AsNumber());
 
-    int Length { get; }
-    IValue this[int index] { get; }
-
-    bool AsBoolean();
-    double AsNumber();
-    string AsString();
+      IValue str = new ValueWrapper(new Value("string"));
+      Assert.True(str.IsString);
+      Assert.Equal("string", str.AsString());
+    }
   }
 }

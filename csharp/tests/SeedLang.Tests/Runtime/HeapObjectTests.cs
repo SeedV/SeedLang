@@ -25,7 +25,7 @@ namespace SeedLang.Runtime.Tests {
       var range = new HeapObject(new Range(10));
       Assert.Equal(10, range.Length);
       for (int i = 0; i < 10; i++) {
-        Assert.Equal(i, range[new Value(i)].AsNumber());
+        Assert.Equal(i, range[new VMValue(i)].AsNumber());
       }
 
       int start = 3;
@@ -35,7 +35,7 @@ namespace SeedLang.Runtime.Tests {
       range = new HeapObject(new Range(start, stop, step));
       Assert.Equal(length, range.Length);
       for (int i = 0; i < length; i++) {
-        Assert.Equal(start + i * step, range[new Value(i)].AsNumber());
+        Assert.Equal(start + i * step, range[new VMValue(i)].AsNumber());
       }
 
       start = 10;
@@ -45,7 +45,7 @@ namespace SeedLang.Runtime.Tests {
       range = new HeapObject(new Range(start, stop, step));
       Assert.Equal(length, range.Length);
       for (int i = 0; i < length; i++) {
-        Assert.Equal(start + i * step, range[new Value(i)].AsNumber());
+        Assert.Equal(start + i * step, range[new VMValue(i)].AsNumber());
       }
 
       start = 1;
@@ -58,21 +58,21 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestTuple() {
-      var tuple = new HeapObject(ImmutableArray.Create<Value>());
+      var tuple = new HeapObject(ImmutableArray.Create<VMValue>());
       Assert.Equal(0, tuple.Length);
       Assert.Equal("()", tuple.AsString());
 
-      tuple = new HeapObject(ImmutableArray.Create(new Value(1), new Value(2)));
+      tuple = new HeapObject(ImmutableArray.Create(new VMValue(1), new VMValue(2)));
       Assert.Equal(2, tuple.Length);
-      Assert.Equal(1, tuple[new Value(0)].AsNumber());
-      Assert.Equal(2, tuple[new Value(1)].AsNumber());
+      Assert.Equal(1, tuple[new VMValue(0)].AsNumber());
+      Assert.Equal(2, tuple[new VMValue(1)].AsNumber());
       Assert.Equal("(1, 2)", tuple.AsString());
 
-      Assert.Equal(new HeapObject(ImmutableArray.Create(new Value(1), new Value(2))), tuple);
-      Assert.Equal(new HeapObject(ImmutableArray.Create(new Value(1), new Value(2))).GetHashCode(),
-                   tuple.GetHashCode());
+      var anotherTuple = new HeapObject(ImmutableArray.Create(new VMValue(1), new VMValue(2)));
+      Assert.Equal(anotherTuple, tuple);
+      Assert.Equal(anotherTuple.GetHashCode(), tuple.GetHashCode());
 
-      var ex = Assert.Throws<DiagnosticException>(() => tuple[new Value(1)] = new Value());
+      var ex = Assert.Throws<DiagnosticException>(() => tuple[new VMValue(1)] = new VMValue());
       Assert.Equal(Message.RuntimeErrorNotSupportAssignment, ex.Diagnostic.MessageId);
     }
   }

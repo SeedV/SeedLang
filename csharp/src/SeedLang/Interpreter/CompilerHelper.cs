@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // A helper class to encapsulate common functions of Compiler and ExprCompiler classes.

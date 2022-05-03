@@ -21,11 +21,11 @@ namespace SeedLang.Interpreter {
   // constant list of the chunk.
   internal class ConstantCache {
     // A list to collect constatnt values during compilation.
-    private readonly List<Value> _constants = new List<Value>();
+    private readonly List<VMValue> _constants = new List<VMValue>();
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
 
-    internal Value[] ToArray() {
+    internal VMValue[] ToArray() {
       return _constants.ToArray();
     }
 
@@ -33,7 +33,7 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(double number) {
       if (!_numbers.ContainsKey(number)) {
-        _constants.Add(new Value(number));
+        _constants.Add(new VMValue(number));
         _numbers[number] = IdOfLastConst();
       }
       return _numbers[number];
@@ -43,14 +43,14 @@ namespace SeedLang.Interpreter {
     // is not exist.
     internal uint IdOfConstant(string str) {
       if (!_strings.ContainsKey(str)) {
-        _constants.Add(new Value(str));
+        _constants.Add(new VMValue(str));
         _strings[str] = IdOfLastConst();
       }
       return _strings[str];
     }
 
     internal uint IdOfConstant(Function func) {
-      _constants.Add(new Value(func));
+      _constants.Add(new VMValue(func));
       return IdOfLastConst();
     }
 

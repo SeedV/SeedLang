@@ -15,8 +15,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Common;
+using SeedLang.Runtime;
 
-namespace SeedLang.Runtime {
+namespace SeedLang.Visualization {
   public enum VariableType {
     Global,
     Local,
@@ -36,9 +37,9 @@ namespace SeedLang.Runtime {
     public class Assignment : AbstractEvent {
       public string Name { get; }
       public VariableType Type { get; }
-      public IValue Value { get; }
+      public Value Value { get; }
 
-      public Assignment(string name, VariableType type, IValue value, TextRange range) :
+      public Assignment(string name, VariableType type, Value value, TextRange range) :
           base(range) {
         Name = name;
         Type = type;
@@ -48,12 +49,12 @@ namespace SeedLang.Runtime {
 
     // An event which is triggered when a binary expression is evaluated.
     public class Binary : AbstractEvent {
-      public IValue Left { get; }
+      public Value Left { get; }
       public BinaryOperator Op { get; }
-      public IValue Right { get; }
-      public IValue Result { get; }
+      public Value Right { get; }
+      public Value Result { get; }
 
-      public Binary(IValue left, BinaryOperator op, IValue right, IValue result, TextRange range) :
+      public Binary(Value left, BinaryOperator op, Value right, Value result, TextRange range) :
           base(range) {
         Left = left;
         Op = op;
@@ -68,10 +69,10 @@ namespace SeedLang.Runtime {
     // filled as null.
     public class Boolean : AbstractEvent {
       public BooleanOperator Op { get; }
-      public IReadOnlyList<IValue> Values { get; }
-      public IValue Result { get; }
+      public IReadOnlyList<Value> Values { get; }
+      public Value Result { get; }
 
-      public Boolean(BooleanOperator op, IReadOnlyList<IValue> values, IValue result,
+      public Boolean(BooleanOperator op, IReadOnlyList<Value> values, Value result,
                      TextRange range) : base(range) {
         Debug.Assert(values.Count > 1);
         Op = op;
@@ -85,14 +86,13 @@ namespace SeedLang.Runtime {
     // The count of values is as same as Ops. But not all the expressions are evaluated due to short
     // circuit. The values without evaluated are filled as null.
     public class Comparison : AbstractEvent {
-      public IValue First { get; }
+      public Value First { get; }
       public IReadOnlyList<ComparisonOperator> Ops { get; }
-      public IReadOnlyList<IValue> Values { get; }
-      public IValue Result { get; }
+      public IReadOnlyList<Value> Values { get; }
+      public Value Result { get; }
 
-      public Comparison(
-          IValue first, IReadOnlyList<ComparisonOperator> ops, IReadOnlyList<IValue> values,
-          IValue result, TextRange range) : base(range) {
+      public Comparison(Value first, IReadOnlyList<ComparisonOperator> ops,
+                        IReadOnlyList<Value> values, Value result, TextRange range) : base(range) {
         Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
         First = first;
         Values = values;
@@ -104,9 +104,9 @@ namespace SeedLang.Runtime {
     // An event which is triggered when a function is called.
     public class FuncCalled : AbstractEvent {
       public string Name { get; }
-      public IReadOnlyList<IValue> Args { get; }
+      public IReadOnlyList<Value> Args { get; }
 
-      public FuncCalled(string name, IReadOnlyList<IValue> args, TextRange range) : base(range) {
+      public FuncCalled(string name, IReadOnlyList<Value> args, TextRange range) : base(range) {
         Name = name;
         Args = args;
       }
@@ -115,9 +115,9 @@ namespace SeedLang.Runtime {
     // An event which is triggered when a function is returned.
     public class FuncReturned : AbstractEvent {
       public string Name { get; }
-      public IValue Result { get; }
+      public Value Result { get; }
 
-      public FuncReturned(string name, IValue result, TextRange range) : base(range) {
+      public FuncReturned(string name, Value result, TextRange range) : base(range) {
         Name = name;
         Result = result;
       }
@@ -131,10 +131,10 @@ namespace SeedLang.Runtime {
     // An event which is triggered when an unary expression is executed.
     public class Unary : AbstractEvent {
       public UnaryOperator Op { get; }
-      public IValue Value { get; }
-      public IValue Result { get; }
+      public Value Value { get; }
+      public Value Result { get; }
 
-      public Unary(UnaryOperator op, IValue value, IValue result, TextRange range) : base(range) {
+      public Unary(UnaryOperator op, Value value, Value result, TextRange range) : base(range) {
         Op = op;
         Value = value;
         Result = result;
@@ -168,9 +168,9 @@ namespace SeedLang.Runtime {
     public class VTagExited : AbstractEvent {
       public class VTagInfo {
         public string Name { get; }
-        public IReadOnlyList<IValue> Args { get; }
+        public IReadOnlyList<Value> Args { get; }
 
-        public VTagInfo(string name, IReadOnlyList<IValue> args) {
+        public VTagInfo(string name, IReadOnlyList<Value> args) {
           Name = name;
           Args = args;
         }

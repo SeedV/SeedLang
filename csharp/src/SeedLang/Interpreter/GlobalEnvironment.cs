@@ -20,18 +20,18 @@ namespace SeedLang.Interpreter {
   // The environment to store names and values of build-in and global variables.
   internal class GlobalEnvironment {
     private readonly Dictionary<string, uint> _globals = new Dictionary<string, uint>();
-    private readonly List<Value> _values = new List<Value>();
+    private readonly List<VMValue> _values = new List<VMValue>();
 
     internal GlobalEnvironment(HeapObject.NativeFunction[] nativeFunctions) {
       foreach (var func in nativeFunctions) {
-        _values.Add(new Value(func));
+        _values.Add(new VMValue(func));
         _globals[func.Name] = (uint)_values.Count - 1;
       }
     }
 
     internal uint DefineVariable(string name) {
       Debug.Assert(!_globals.ContainsKey(name));
-      _values.Add(new Value());
+      _values.Add(new VMValue());
       _globals[name] = (uint)_values.Count - 1;
       return _globals[name];
     }
@@ -43,12 +43,12 @@ namespace SeedLang.Interpreter {
       return null;
     }
 
-    internal void SetVariable(uint id, in Value value) {
+    internal void SetVariable(uint id, in VMValue value) {
       Debug.Assert(id < _values.Count);
       _values[(int)id] = value;
     }
 
-    internal Value GetVariable(uint id) {
+    internal VMValue GetVariable(uint id) {
       Debug.Assert(id < _values.Count);
       return _values[(int)id];
     }

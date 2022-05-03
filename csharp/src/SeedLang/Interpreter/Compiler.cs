@@ -15,6 +15,7 @@
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.

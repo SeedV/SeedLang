@@ -55,22 +55,25 @@ namespace SeedLang.Runtime {
       }
     }
 
-    private readonly ValueType _type = ValueType.Nil;
-    private readonly double _number = 0;
-    private readonly HeapObject _object = null;
+    private readonly ValueType _type;
+    private readonly double _number;
+    private readonly HeapObject _object;
 
     internal VMValue(bool value) {
       _type = ValueType.Boolean;
       _number = ValueHelper.BooleanToNumber(value);
+      _object = null;
     }
 
     internal VMValue(double value) {
       _type = ValueType.Number;
       _number = value;
+      _object = null;
     }
 
     internal VMValue(object obj) {
       _type = ValueType.Object;
+      _number = 0;
       _object = new HeapObject(obj);
     }
 

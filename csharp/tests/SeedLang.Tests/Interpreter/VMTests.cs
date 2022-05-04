@@ -18,6 +18,7 @@ using System.IO;
 using SeedLang.Ast;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
+using SeedLang.Visualization;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {

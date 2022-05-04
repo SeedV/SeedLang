@@ -49,7 +49,7 @@ namespace SeedLang.Interpreter {
     private uint? _indexOfSingleStepNotification = null;
 
     // The constant list to hold all the constants used in this chunk.
-    private Value[] _constants;
+    private VMValue[] _constants;
 
     internal static bool IsConstId(uint id) {
       return id >= MaxRegisterCount;
@@ -87,7 +87,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Sets the constant list. It must be called by the compiler after compilation.
-    internal void SetConstants(Value[] constants) {
+    internal void SetConstants(VMValue[] constants) {
       _constants = constants;
     }
 
@@ -96,7 +96,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.
-    internal ref readonly Value ValueOfConstId(uint constId) {
+    internal ref readonly VMValue ValueOfConstId(uint constId) {
       return ref _constants[IndexOfConstId(constId)];
     }
 

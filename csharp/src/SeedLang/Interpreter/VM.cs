@@ -17,6 +17,7 @@ using System.Collections.Immutable;
 using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
@@ -30,7 +31,7 @@ namespace SeedLang.Interpreter {
     // can hold maximun 100 recursive function calls.
     private const int _stackSize = 25 * 1024;
 
-    private readonly Value[] _stack = new Value[_stackSize];
+    private readonly VMValue[] _stack = new VMValue[_stackSize];
     private CallStack _callStack;
 
     internal void RedirectStdout(TextWriter stdout) {
@@ -52,11 +53,11 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.LOADNIL:
               for (int i = 0; i < instr.B; i++) {
-                _stack[baseRegister + instr.A + i] = new Value();
+                _stack[baseRegister + instr.A + i] = new VMValue();
               }
               break;
             case Opcode.LOADBOOL:
-              _stack[baseRegister + instr.A] = new Value(instr.B == 1);
+              _stack[baseRegister + instr.A] = new VMValue(instr.B == 1);
               if (instr.C == 1) {
                 pc++;
               }
@@ -65,29 +66,29 @@ namespace SeedLang.Interpreter {
               _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
               break;
             case Opcode.NEWTUPLE:
-              var builder = ImmutableArray.CreateBuilder<Value>((int)instr.C);
+              var builder = ImmutableArray.CreateBuilder<VMValue>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
                 builder.Add(_stack[baseRegister + instr.B + i]);
               }
-              _stack[baseRegister + instr.A] = new Value(builder.MoveToImmutable());
+              _stack[baseRegister + instr.A] = new VMValue(builder.MoveToImmutable());
               break;
             case Opcode.NEWLIST:
-              var list = new List<Value>((int)instr.C);
+              var list = new List<VMValue>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
                 list.Add(_stack[baseRegister + instr.B + i]);
               }
-              _stack[baseRegister + instr.A] = new Value(list);
+              _stack[baseRegister + instr.A] = new VMValue(list);
               break;
             case Opcode.NEWDICT:
               int count = (int)instr.C / 2;
-              var dict = new Dictionary<Value, Value>(count);
+              var dict = new Dictionary<VMValue, VMValue>(count);
               uint dictRegister = baseRegister + instr.A;
               uint kvStart = baseRegister + instr.B;
               for (uint i = 0; i < count; i++) {
                 uint keyRegister = kvStart + i * 2;
                 dict[_stack[keyRegister]] = _stack[keyRegister + 1];
               }
-              _stack[dictRegister] = new Value(dict);
+              _stack[dictRegister] = new VMValue(dict);
               break;
             case Opcode.GETGLOB:
               _stack[baseRegister + instr.A] = Env.GetVariable(instr.Bx);
@@ -112,10 +113,10 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.UNM:
               _stack[baseRegister + instr.A] =
-                  new Value(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
+                  new VMValue(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
               break;
             case Opcode.LEN:
-              _stack[baseRegister + instr.A] = new Value(_stack[baseRegister + instr.B].Length);
+              _stack[baseRegister + instr.A] = new VMValue(_stack[baseRegister + instr.B].Length);
               break;
             case Opcode.JMP:
               pc += instr.SBx;
@@ -184,7 +185,8 @@ namespace SeedLang.Interpreter {
               // TODO: only support one return value now.
               if (baseRegister > 0) {
                 uint returnRegister = baseRegister - 1;
-                _stack[returnRegister] = instr.B > 0 ? _stack[baseRegister + instr.A] : new Value();
+                _stack[returnRegister] = instr.B > 0 ? _stack[baseRegister + instr.A] :
+                                                       new VMValue();
               }
               _callStack.PopFunc();
               if (!_callStack.IsEmpty) {
@@ -211,18 +213,18 @@ namespace SeedLang.Interpreter {
     }
 
     private void GetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      Value index = ValueOfRK(chunk, instr.C, baseRegister);
+      VMValue index = ValueOfRK(chunk, instr.C, baseRegister);
       _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][index];
     }
 
     private void SetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      Value index = ValueOfRK(chunk, instr.B, baseRegister);
+      VMValue index = ValueOfRK(chunk, instr.B, baseRegister);
       _stack[baseRegister + instr.A][index] = ValueOfRK(chunk, instr.C, baseRegister);
     }
 
     private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister) {
-      Value left = ValueOfRK(chunk, instr.B, baseRegister);
-      Value right = ValueOfRK(chunk, instr.C, baseRegister);
+      VMValue left = ValueOfRK(chunk, instr.B, baseRegister);
+      VMValue right = ValueOfRK(chunk, instr.C, baseRegister);
       uint register = baseRegister + instr.A;
       switch (instr.Opcode) {
         case Opcode.ADD:
@@ -268,7 +270,7 @@ namespace SeedLang.Interpreter {
 
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to
     // avoid copying.
-    private ref readonly Value ValueOfRK(Chunk chunk, uint rkPos, uint baseRegister) {
+    private ref readonly VMValue ValueOfRK(Chunk chunk, uint rkPos, uint baseRegister) {
       if (rkPos < Chunk.MaxRegisterCount) {
         return ref _stack[baseRegister + rkPos];
       }

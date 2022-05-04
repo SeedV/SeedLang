@@ -50,7 +50,7 @@ namespace SeedLang.Interpreter {
           sb.AppendLine();
 
           if (instr.Opcode == Opcode.LOADK) {
-            Value value = _chunk.ValueOfConstId(instr.Bx);
+            VMValue value = _chunk.ValueOfConstId(instr.Bx);
             if (value.IsFunction && value.AsFunction() is Function func) {
               _functions.Enqueue(func);
             }

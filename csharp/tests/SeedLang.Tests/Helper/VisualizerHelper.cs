@@ -15,7 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Tests.Helper {
   // A helper class to manage visualizers.

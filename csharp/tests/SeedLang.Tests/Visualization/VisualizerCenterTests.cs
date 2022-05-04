@@ -14,29 +14,14 @@
 
 using System;
 using SeedLang.Common;
+using SeedLang.Runtime;
 using Xunit;
 
-namespace SeedLang.Runtime.Tests {
+namespace SeedLang.Visualization.Tests {
   using BinaryVisualizerCenter = Tuple<VisualizerCenter, MockupBinaryVisualizer>;
   using MultipleVisualizerCenter = Tuple<VisualizerCenter,
                                          MockupBinaryVisualizer,
                                          MockupMultipleVisualizer>;
-
-  internal class MockupValue : IValue {
-    public bool IsNil => false;
-    public bool IsBoolean => false;
-    public bool IsNumber => true;
-    public bool IsString => false;
-    public bool IsList => false;
-    public bool IsFunction => false;
-
-    public bool Boolean => false;
-    public double Number => 0;
-    public string String => "false";
-    public int Length => 0;
-    public IValue this[int index] => new ValueWrapper(new Value());
-  }
-
   internal class MockupBinaryVisualizer : IVisualizer<Event.Binary> {
     public Event.Binary BinaryEvent { get; private set; }
 
@@ -99,8 +84,8 @@ namespace SeedLang.Runtime.Tests {
     }
 
     private static Event.Binary NewBinaryEvent() {
-      return new Event.Binary(new MockupValue(), BinaryOperator.Add, new MockupValue(),
-                              new MockupValue(), new TextRange(0, 1, 2, 3));
+      return new Event.Binary(new Value(1), BinaryOperator.Add, new Value(2), new Value(3),
+                              new TextRange(0, 1, 2, 3));
     }
   }
 }

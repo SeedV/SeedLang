@@ -17,13 +17,13 @@ using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
+using SeedLang.Visualization;
 using Xunit;
-using static SeedLang.Runtime.HeapObject;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
     private static int _printValFunc =>
-        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
+        Array.FindIndex(NativeFunctions.Funcs, (HeapObject.NativeFunction func) => {
           return func.Name == NativeFunctions.PrintVal;
         });
     private readonly int _firstGlob = NativeFunctions.Funcs.Length;

@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Shell {
   // A class to manage all the visualizers.
@@ -140,9 +141,8 @@ namespace SeedLang.Shell {
           }
         case Event.Boolean be: {
             var op = _booleanOperatorStrings[be.Op];
-            foreach (IValue value in be.Values) {
-              string valueString = value.IsBoolean ? value.String : "?";
-              Console.Write($"{op} {valueString} ");
+            foreach (Value value in be.Values) {
+              Console.Write($"{op} {value} ");
             }
             Console.Write($"= {be.Result}");
             break;
@@ -150,8 +150,7 @@ namespace SeedLang.Shell {
         case Event.Comparison ce:
           Console.Write($"Comparison: {ce.First} ");
           for (int i = 0; i < ce.Ops.Count; i++) {
-            string valueString = ce.Values[i].IsNumber ? ce.Values[i].String : "?";
-            Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {valueString} ");
+            Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {ce.Values[i]} ");
           }
           Console.Write($"= {ce.Result}");
           break;

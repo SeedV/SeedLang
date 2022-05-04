@@ -15,7 +15,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SeedLang.Runtime {
+namespace SeedLang.Visualization {
   // The visualizer center to observe execution events and dispatch them to the subscribed
   // visualizers.
   internal class VisualizerCenter {

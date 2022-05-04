@@ -25,7 +25,7 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestEmptyList() {
       var listFunc = Function(NativeFunctions.List);
-      Value list = listFunc.Call(Array.Empty<Value>(), 0, 0, null);
+      VMValue list = listFunc.Call(Array.Empty<VMValue>(), 0, 0, null);
       Assert.True(list.IsList);
       Assert.Equal(0, list.Length);
     }
@@ -33,29 +33,29 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestListWithListArgument() {
       var listFunc = Function(NativeFunctions.List);
-      var args = new Value[] {
-        new Value(new List<Value>() {
-          new Value(1),
-          new Value(2)
+      var args = new VMValue[] {
+        new VMValue(new List<VMValue>() {
+          new VMValue(1),
+          new VMValue(2)
         })
       };
-      Value list = listFunc.Call(args, 0, args.Length, null);
+      VMValue list = listFunc.Call(args, 0, args.Length, null);
       Assert.True(list.IsList);
       Assert.Equal(2, list.Length);
-      Assert.Equal(1, list[new Value(0)].AsNumber());
-      Assert.Equal(2, list[new Value(1)].AsNumber());
+      Assert.Equal(1, list[new VMValue(0)].AsNumber());
+      Assert.Equal(2, list[new VMValue(1)].AsNumber());
     }
 
     [Fact]
     public void TestListWithRangeArgument() {
       var listFunc = Function(NativeFunctions.List);
       var length = 10;
-      var args = new Value[] { new Value(new Range(length)) };
-      Value list = listFunc.Call(args, 0, args.Length, null);
+      var args = new VMValue[] { new VMValue(new Range(length)) };
+      VMValue list = listFunc.Call(args, 0, args.Length, null);
       Assert.True(list.IsList);
       Assert.Equal(length, list.Length);
       for (int i = 0; i < length; i++) {
-        Assert.Equal(i, list[new Value(i)].AsNumber());
+        Assert.Equal(i, list[new VMValue(i)].AsNumber());
       }
     }
 
@@ -63,7 +63,7 @@ namespace SeedLang.Runtime.Tests {
     public void TestPrint() {
       var sys = new Sys() { Stdout = new StringWriter() };
       var print = Function(NativeFunctions.Print);
-      var args = new Value[] { new Value(1), new Value(2), new Value(3) };
+      var args = new VMValue[] { new VMValue(1), new VMValue(2), new VMValue(3) };
       print.Call(args, 0, args.Length, sys);
       var expected = "1 2 3" + Environment.NewLine;
       Assert.Equal(expected, sys.Stdout.ToString());

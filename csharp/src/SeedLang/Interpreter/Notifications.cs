@@ -19,15 +19,13 @@ using SeedLang.Runtime;
 using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
-  using Func = Func<uint, VMValue>;
-
   internal static class Notification {
     // The base class of all notification classes, which are used to store information for VISNOTIFY
     // instructions. The VM will create the correspding event object based on the information and
     // then send to visualizers.
     internal abstract class AbstractNotification {
-      internal abstract void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range);
+      internal abstract void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range);
     }
 
     internal class Assignment : AbstractNotification {
@@ -46,8 +44,8 @@ namespace SeedLang.Interpreter {
         return $"Notification.Assignment: '{_name}': {_type} {_valueId}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
+      internal override void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
         var ae = new Event.Assignment(_name, _type, new Value(getRKValue(_valueId)), range);
         visualizerCenter.Notify(ae);
       }
@@ -70,12 +68,12 @@ namespace SeedLang.Interpreter {
         return $"Notification.Binary: {_leftId} {_op} {_rightId} {_resultId}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
-        var be = new Event.Binary(new Value(getRKValue(_leftId)), _op,
-                                  new Value(getRKValue(_rightId)),
-                                  new Value(getRKValue(_resultId)), range);
-        visualizerCenter.Notify(be);
+      internal override void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        var e = new Event.Binary(new Value(getRKValue(_leftId)), _op,
+                                 new Value(getRKValue(_rightId)), new Value(getRKValue(_resultId)),
+                                 range);
+        visualizerCenter.Notify(e);
       }
     }
 
@@ -99,8 +97,8 @@ namespace SeedLang.Interpreter {
         return $"Notification.Function: {_name} {_funcId} {_argLength}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
+      internal override void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
         Debug.Assert(Enum.IsDefined(typeof(Status), data));
         switch ((Status)data) {
           case Status.Called:
@@ -109,12 +107,11 @@ namespace SeedLang.Interpreter {
             for (uint i = 0; i < _argLength; i++) {
               args[i] = new Value(getRKValue(argStartId + i));
             }
-            var fce = new Event.FuncCalled(_name, args, range);
-            visualizerCenter.Notify(fce);
+            visualizerCenter.Notify(new Event.FuncCalled(_name, args, range));
             break;
           case Status.Returned:
-            var fre = new Event.FuncReturned(_name, new Value(getRKValue(_funcId)), range);
-            visualizerCenter.Notify(fre);
+            var e = new Event.FuncReturned(_name, new Value(getRKValue(_funcId)), range);
+            visualizerCenter.Notify(e);
             break;
         }
       }
@@ -125,9 +122,40 @@ namespace SeedLang.Interpreter {
         return $"Notification.SingleStep";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
+      internal override void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
         visualizerCenter.Notify(new Event.SingleStep(range));
+      }
+    }
+
+    internal class SubscriptAssignment : AbstractNotification {
+      private readonly uint _containerId;
+      private readonly string _name;
+      private readonly VariableType _type;
+      private readonly uint _keyId;
+      private readonly uint _valueId;
+
+      internal SubscriptAssignment(uint containerId, string name, VariableType type, uint keyId,
+                                   uint valueId) {
+        _containerId = containerId;
+        _name = name;
+        _type = type;
+        _keyId = keyId;
+        _valueId = valueId;
+      }
+
+      public override string ToString() {
+        string variableName = !(_name is null) ? $"'{_name}': {_type} " : "";
+        string content = $"{_containerId} {_keyId} {_valueId}";
+        return $"Notification.SubscriptAssignment: {variableName}{content}";
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        var e = new Event.SubscriptAssignment(new Value(getRKValue(_containerId)), _name, _type,
+                                              new Value(getRKValue(_keyId)),
+                                              new Value(getRKValue(_valueId)), range);
+        visualizerCenter.Notify(e);
       }
     }
 
@@ -146,11 +174,11 @@ namespace SeedLang.Interpreter {
         return $"Notification.Unary: {_op} {_valueId} {_resultId}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
-        var ue = new Event.Unary(_op, new Value(getRKValue(_valueId)),
-                                 new Value(getRKValue(_resultId)), range);
-        visualizerCenter.Notify(ue);
+      internal override void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        var e = new Event.Unary(_op, new Value(getRKValue(_valueId)),
+                                new Value(getRKValue(_resultId)), range);
+        visualizerCenter.Notify(e);
       }
     }
 
@@ -166,8 +194,8 @@ namespace SeedLang.Interpreter {
         return $"Notification.VTagEntered: {vTagInfoStr}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
+      internal override void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
         visualizerCenter.Notify(new Event.VTagEntered(_vTagInfos, range));
       }
     }
@@ -196,8 +224,8 @@ namespace SeedLang.Interpreter {
         return $"Notification.VTagExited: {string.Join<VTagInfo>(",", _vTagInfos)}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
+      internal override void Notify(VisualizerCenter visualizerCenter,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
         var vTags = Array.ConvertAll(_vTagInfos, vTag => {
           var values = Array.ConvertAll(vTag.ValueIds, valueId => new Value(getRKValue(valueId)));
           return new Event.VTagExited.VTagInfo(vTag.Name, values);

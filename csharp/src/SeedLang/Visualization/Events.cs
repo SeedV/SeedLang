@@ -18,6 +18,7 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Visualization {
+  // The type of variables.
   public enum VariableType {
     Global,
     Local,
@@ -33,9 +34,11 @@ namespace SeedLang.Visualization {
   }
 
   public static class Event {
-    // An event which is triggered when an assignment statement is executed.
+    // An event which is triggered when a value is assigned to a variable.
     public class Assignment : AbstractEvent {
+      // The name of the assigned variable.
       public string Name { get; }
+      // The type of the assigned variable.
       public VariableType Type { get; }
       public Value Value { get; }
 
@@ -72,8 +75,8 @@ namespace SeedLang.Visualization {
       public IReadOnlyList<Value> Values { get; }
       public Value Result { get; }
 
-      public Boolean(BooleanOperator op, IReadOnlyList<Value> values, Value result,
-                     TextRange range) : base(range) {
+      public Boolean(BooleanOperator op, IReadOnlyList<Value> values, Value result, TextRange range)
+          : base(range) {
         Debug.Assert(values.Count > 1);
         Op = op;
         Values = values;
@@ -126,6 +129,31 @@ namespace SeedLang.Visualization {
     // An event which is triggered when each statement is starting to execute.
     public class SingleStep : AbstractEvent {
       public SingleStep(TextRange range) : base(range) { }
+    }
+
+    // An event which is triggered when a value is assigned to an element of a container.
+    //
+    // The container might be unnamed variables in following cases. The name of the container is
+    // null and the type is undefined in these cases.
+    // 1) Sets the element of a temporary container: [1, 2, 3][1] = 5
+    // 2) Sets the element of a intermediate container: a[1][2] = 5
+    public class SubscriptAssignment : AbstractEvent {
+      public Value Container { get; }
+      // The variable name of the container.
+      public string Name { get; }
+      // The variable type of the container.
+      public VariableType Type { get; }
+      public Value Key { get; }
+      public Value Value { get; }
+
+      public SubscriptAssignment(Value container, string name, VariableType type, Value key,
+                                 Value value, TextRange range) : base(range) {
+        Container = container;
+        Name = name;
+        Type = type;
+        Key = key;
+        Value = value;
+      }
     }
 
     // An event which is triggered when an unary expression is executed.

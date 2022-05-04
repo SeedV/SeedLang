@@ -331,6 +331,7 @@ namespace SeedLang.Interpreter {
           uint listId = VisitExpressionForRegisterId(subscript.Expr);
           uint indexId = VisitExpressionForRKId(subscript.Index);
           _helper.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
+          _helper.EmitSubscriptAssignNotification(subscript, listId, indexId, valueId, range);
           break;
       }
     }

@@ -154,29 +154,56 @@ namespace SeedLang.Interpreter {
     }
 
     internal void EmitAssignNotification(string name, VariableType type, uint valueId,
-                                        TextRange range) {
+                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
-        var notification = new Notification.Assignment(name, type, valueId);
+        var n = new Notification.Assignment(name, type, valueId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
       }
     }
 
     internal void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId,
                                          uint resultId, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
-        var notification = new Notification.Binary(leftId, op, rightId, resultId);
+        var n = new Notification.Binary(leftId, op, rightId, resultId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
+      }
+    }
+
+    internal void EmitSubscriptAssignNotification(SubscriptExpression subscript, uint containerId,
+                                                  uint keyId, uint valueId, TextRange range) {
+      if (_visualizerCenter.HasVisualizer<Event.SubscriptAssignment>()) {
+        string name = null;
+        VariableType type = VariableType.Global;
+        if (subscript.Expr is IdentifierExpression identifier) {
+          name = identifier.Name;
+          if (_variableResolver.FindVariable(name) is VariableResolver.VariableInfo info) {
+            switch (info.Type) {
+              case VariableResolver.VariableType.Global:
+                type = VariableType.Global;
+                break;
+              case VariableResolver.VariableType.Local:
+                type = VariableType.Local;
+                break;
+              case VariableResolver.VariableType.Upvalue:
+                // TODO: handle upvalues.
+                break;
+            }
+          }
+        }
+        var n = new Notification.SubscriptAssignment(containerId, name, type, keyId, valueId);
+        // Doesn't emit single step notifications for the VISNOTIFY instruction.
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
       }
     }
 
     internal void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId,
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
-        var notification = new Notification.Unary(op, valueId, resultId);
+        var n = new Notification.Unary(op, valueId, resultId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
       }
     }
 
@@ -186,9 +213,9 @@ namespace SeedLang.Interpreter {
           var argTexts = Array.ConvertAll(vTagInfo.Args, args => args.Text);
           return new Event.VTagEntered.VTagInfo(vTagInfo.Name, argTexts);
         });
-        var notification = new Notification.VTagEntered(vTagInfos);
+        var n = new Notification.VTagEntered(vTagInfos);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), vTag.Range);
       }
     }
 
@@ -209,9 +236,9 @@ namespace SeedLang.Interpreter {
           return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
         });
         EndBlockScope();
-        var notification = new Notification.VTagExited(vTagInfos);
+        var n = new Notification.VTagExited(vTagInfos);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), vTag.Range);
       }
     }
 

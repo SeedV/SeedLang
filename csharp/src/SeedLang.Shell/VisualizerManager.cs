@@ -123,16 +123,7 @@ namespace SeedLang.Shell {
       Console.ForegroundColor = ConsoleColor.Black;
       switch (e) {
         case Event.Assignment ae:
-          Console.Write("Assign ");
-          switch (ae.Type) {
-            case VariableType.Global:
-              Console.Write("global");
-              break;
-            case VariableType.Local:
-              Console.Write("local");
-              break;
-          }
-          Console.Write($" {ae.Name} = {ae.Value}");
+          Console.Write($"Assign: ({ae.Name}: {ae.Type}) = {ae.Value}");
           break;
         case Event.Binary be: {
             var op = _binaryOperatorStrings[be.Op];
@@ -162,6 +153,10 @@ namespace SeedLang.Shell {
           break;
         case Event.SingleStep sse:
           Console.Write($"SingleStep: {sse.Range.Start.Line}");
+          break;
+        case Event.SubscriptAssignment sae:
+          string container = !(sae.Name is null) ? $"({sae.Name}: {sae.Type})" : $"{sae.Container}";
+          Console.Write($"SubscriptAssign: {container}[{sae.Key}] = {sae.Value}");
           break;
         case Event.Unary ue: {
             var op = _unaryOperatorStrings[ue.Op];

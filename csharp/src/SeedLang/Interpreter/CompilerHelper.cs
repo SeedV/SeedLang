@@ -45,40 +45,32 @@ namespace SeedLang.Interpreter {
       _visualizerCenter = visualizerCenter;
     }
 
-    internal void BeginBlockScope() {
-      _variableResolver.BeginBlockScope();
+    internal void BeginFuncScope(string name) {
+      _variableResolver.BeginFuncScope(name);
     }
 
-    internal void EndBlockScope() {
-      _variableResolver.EndBlockScope();
+    internal void EndFuncScope() {
+      _variableResolver.EndFuncScope();
     }
 
-    internal void BeginFunctionScope() {
-      _variableResolver.BeginFunctionScope();
+    internal void BeginExprScope() {
+      _variableResolver.BeginExprScope();
     }
 
-    internal void EndFunctionScope() {
-      _variableResolver.EndFunctionScope();
-    }
-
-    internal void BeginExpressionScope() {
-      _variableResolver.BeginExpressionScope();
-    }
-
-    internal void EndExpressionScope() {
-      _variableResolver.EndExpressionScope();
+    internal void EndExprScope() {
+      _variableResolver.EndExprScope();
     }
 
     internal VariableResolver.VariableInfo DefineVariable(string name) {
       return _variableResolver.DefineVariable(name);
     }
 
-    internal VariableResolver.VariableInfo? FindVariable(string name) {
+    internal VariableResolver.VariableInfo FindVariable(string name) {
       return _variableResolver.FindVariable(name);
     }
 
-    internal uint AllocateRegister() {
-      return _variableResolver.AllocateRegister();
+    internal uint DefineTempVariable() {
+      return _variableResolver.DefineTempVariable();
     }
 
     internal uint? GetRegisterOrConstantId(Expression expr) {
@@ -221,21 +213,21 @@ namespace SeedLang.Interpreter {
 
     internal void EmitVTagExitedNotification(VTagStatement vTag, ExprCompiler exprCompiler) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        BeginBlockScope();
+        BeginExprScope();
         var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
           var valueIds = new uint[vTagInfo.Args.Length];
           for (int j = 0; j < vTagInfo.Args.Length; j++) {
             if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
               valueIds[j] = id;
             } else {
-              valueIds[j] = AllocateRegister();
+              valueIds[j] = DefineTempVariable();
               exprCompiler.RegisterForSubExpr = valueIds[j];
               exprCompiler.Visit(vTagInfo.Args[j].Expr);
             }
           }
           return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
         });
-        EndBlockScope();
+        EndExprScope();
         var n = new Notification.VTagExited(vTagInfos);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), vTag.Range);

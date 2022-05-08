@@ -172,17 +172,17 @@ print(sum)
         $"  36   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
         $"  37   FORLOOP   1 -16            ; to 22             [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  38   VISNOTIFY 0 0                                  [Ln 12, Col 0 - Ln 12, Col 0]\n" +
-        $"  39   GETGLOB   1 {_firstGlob + 2}" +
+        $"  39   GETGLOB   5 {_firstGlob + 2}" +
         $"                                  [Ln 12, Col 2 - Ln 12, Col 2]\n" +
-        $"  40   ADD       0 1 -5           ; 1                 [Ln 12, Col 2 - Ln 12, Col 7]\n" +
-        $"  41   SETGLOB   0 {_firstGlob + 2}" +
+        $"  40   ADD       4 5 -5           ; 1                 [Ln 12, Col 2 - Ln 12, Col 7]\n" +
+        $"  41   SETGLOB   4 {_firstGlob + 2}" +
         $"                                  [Ln 12, Col 2 - Ln 12, Col 7]\n" +
         $"  42   JMP       0 -33            ; to 10             [Ln 7, Col 0 - Ln 12, Col 7]\n" +
         $"  43   VISNOTIFY 0 0                                  [Ln 14, Col 0 - Ln 14, Col 0]\n" +
-        $"  44   GETGLOB   0 4                                  [Ln 14, Col 0 - Ln 14, Col 4]\n" +
-        $"  45   GETGLOB   1 {_firstGlob + 1}" +
+        $"  44   GETGLOB   4 4                                  [Ln 14, Col 0 - Ln 14, Col 4]\n" +
+        $"  45   GETGLOB   5 {_firstGlob + 1}" +
         $"                                  [Ln 14, Col 6 - Ln 14, Col 8]\n" +
-        $"  46   CALL      0 1 0                                [Ln 14, Col 0 - Ln 14, Col 9]\n" +
+        $"  46   CALL      4 1 0                                [Ln 14, Col 0 - Ln 14, Col 9]\n" +
         $"  47   RETURN    0 0                                  [Ln 14, Col 0 - Ln 14, Col 9]\n" +
         $"Notifications\n" +
         $"  0    Notification.SingleStep\n" +

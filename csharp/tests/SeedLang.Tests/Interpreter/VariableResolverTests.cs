@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using FluentAssertions;
 using SeedLang.Runtime;
 using Xunit;
 
@@ -23,37 +24,55 @@ namespace SeedLang.Interpreter.Tests {
 
   public class VariableResolverTests {
     [Fact]
-    public void TestFunctionScope() {
+    public void TestScopes() {
       var env = new GlobalEnvironment(Array.Empty<NativeFunction>());
       string a = "a";
       string b = "b";
-      Assert.Equal(0u, env.DefineVariable(a));
+      env.DefineVariable(a).Should().Be(0);
+
       var resolver = new VariableResolver(env);
-      Assert.Equal(new VariableInfo(VariableType.Global, 0), resolver.FindVariable(a));
-      Assert.Equal(new VariableInfo(VariableType.Global, 1), resolver.DefineVariable(b));
-      Assert.Equal(new VariableInfo(VariableType.Global, 1), resolver.FindVariable(b));
+      var expectedA = new VariableInfo(VariableType.Global, 0, "global.a");
+      var expectedB = new VariableInfo(VariableType.Global, 1, "global.b");
+      resolver.FindVariable(a).Should().BeEquivalentTo(expectedA);
+      resolver.FindVariable(b).Should().BeNull();
+      resolver.DefineVariable(b).Should().BeEquivalentTo(expectedB);
+      resolver.FindVariable(b).Should().BeEquivalentTo(expectedB);
 
+      resolver.DefineTempVariable().Should().Be(0);
+
+      resolver.BeginFuncScope("foo");
       string local = "local";
-      resolver.BeginFunctionScope();
-      Assert.Equal(new VariableInfo(VariableType.Local, 0), resolver.DefineVariable(local));
-      Assert.Equal(new VariableInfo(VariableType.Local, 0), resolver.FindVariable(local));
-      Assert.Equal(new VariableInfo(VariableType.Global, 0), resolver.FindVariable(a));
-      Assert.Equal(new VariableInfo(VariableType.Global, 1), resolver.FindVariable(b));
+      resolver.FindVariable(local).Should().BeNull();
+      var expectedFooLocal = new VariableInfo(VariableType.Local, 0, "global.foo.local");
+      resolver.DefineVariable(local).Should().BeEquivalentTo(expectedFooLocal);
+      resolver.FindVariable(local).Should().BeEquivalentTo(expectedFooLocal);
 
-      Assert.Equal(new VariableInfo(VariableType.Local, 1), resolver.DefineVariable(a));
-      Assert.Equal(new VariableInfo(VariableType.Local, 1), resolver.FindVariable(a));
+      resolver.FindVariable(a).Should().BeEquivalentTo(expectedA);
+      resolver.FindVariable(b).Should().BeEquivalentTo(expectedB);
+      var expectedFooA = new VariableInfo(VariableType.Local, 1, "global.foo.a");
+      resolver.DefineVariable(a).Should().BeEquivalentTo(expectedFooA);
 
-      resolver.BeginFunctionScope();
-      Assert.Equal(new VariableInfo(VariableType.Local, 0), resolver.DefineVariable(a));
-      Assert.Equal(new VariableInfo(VariableType.Local, 0), resolver.FindVariable(a));
-      Assert.Equal(new VariableInfo(VariableType.Local, 1), resolver.DefineVariable(local));
-      Assert.Equal(new VariableInfo(VariableType.Local, 1), resolver.FindVariable(local));
-      resolver.EndFunctionScope();
+      resolver.DefineTempVariable().Should().Be(2);
 
-      resolver.EndFunctionScope();
-      Assert.Null(resolver.FindVariable(local));
-      Assert.Equal(new VariableInfo(VariableType.Global, 0), resolver.FindVariable(a));
-      Assert.Equal(new VariableInfo(VariableType.Global, 1), resolver.FindVariable(b));
+      resolver.BeginFuncScope("bar");
+      var expectedBarA = new VariableInfo(VariableType.Local, 0, "global.foo.bar.a");
+      resolver.DefineVariable(a).Should().BeEquivalentTo(expectedBarA);
+      resolver.FindVariable(a).Should().BeEquivalentTo(expectedBarA);
+      var expectedBarLocal = new VariableInfo(VariableType.Local, 1, "global.foo.bar.local");
+      resolver.DefineVariable(local).Should().BeEquivalentTo(expectedBarLocal);
+      resolver.FindVariable(local).Should().BeEquivalentTo(expectedBarLocal);
+      resolver.EndFuncScope();
+
+      resolver.BeginExprScope();
+      resolver.DefineTempVariable().Should().Be(3);
+      resolver.EndExprScope();
+
+      resolver.DefineTempVariable().Should().Be(3);
+      resolver.EndFuncScope();
+
+      resolver.FindVariable(local).Should().BeNull();
+      resolver.FindVariable(a).Should().BeEquivalentTo(expectedA);
+      resolver.FindVariable(b).Should().BeEquivalentTo(expectedB);
     }
   }
 }

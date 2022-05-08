@@ -14,146 +14,171 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
-  // The class to resolve global and local variables. It defines and finds global variables in the
-  // global environment, and allocates register slots for local and temporary variables.
   internal class VariableResolver {
     internal enum VariableType {
       Global,
       Local,
+      Temporary,
       Upvalue,
     }
 
-    // The structure to hold and return variable information.
-    internal struct VariableInfo {
-      // TODO: add information for upvalues.
+    internal class VariableInfo {
       public VariableType Type { get; }
       public uint Id { get; }
+      public string Name { get; }
 
-      internal VariableInfo(VariableType type, uint id) {
+      public VariableInfo(VariableType type, uint id, string name) {
         Type = type;
         Id = id;
+        Name = name;
+      }
+    }
+
+    private class Registers {
+      public int Count => _registers.Count;
+      private readonly List<VariableInfo> _registers = new List<VariableInfo>();
+
+      internal VariableInfo AllocateRegister(string name = null) {
+        var type = name is null ? VariableType.Temporary : VariableType.Local;
+        var info = new VariableInfo(type, (uint)_registers.Count, name);
+        _registers.Add(info);
+        return info;
+      }
+
+      internal VariableInfo this[int index] {
+        get {
+          Debug.Assert(index >= 0 && index < _registers.Count);
+          return _registers[index];
+        }
+      }
+
+      internal void RemoveFrom(int start) {
+        _registers.RemoveRange(start, _registers.Count - start);
       }
     }
 
     private interface IScope {
-      uint FreeRegister { get; }
-      int FuncLevel { get; }
-
+      string Path { get; }
+      Registers Registers { get; }
       VariableInfo DefineVariable(string name);
-      uint? FindVariable(string name);
-      uint AllocateRegister();
+      VariableInfo FindVariable(string name);
+      uint DefineTempVariable();
     }
 
     private class GlobalScope : IScope {
-      public uint FreeRegister { get; } = 0;
-      public int FuncLevel { get; } = -1;
+      public string Path => "global";
+      public Registers Registers { get; } = new Registers();
 
       private readonly GlobalEnvironment _env;
 
-      internal GlobalScope(GlobalEnvironment env) {
+      public GlobalScope(GlobalEnvironment env) {
         _env = env;
       }
 
       public VariableInfo DefineVariable(string name) {
-        return new VariableInfo(VariableType.Global, _env.DefineVariable(name));
+        return VariableInfoOf(name, _env.DefineVariable(name));
       }
 
-      public uint? FindVariable(string name) {
-        if (_env.FindVariable(name) is uint id) {
-          return id;
-        }
-        return null;
+      public VariableInfo FindVariable(string name) {
+        return _env.FindVariable(name) is uint id ? VariableInfoOf(name, id) : null;
       }
 
-      public uint AllocateRegister() {
-        throw new NotImplementedException("Cannot allocate registers in the global scope.");
-      }
-    }
-
-    private class ExpressionScope : IScope {
-      public uint FreeRegister { get; private set; }
-      public int FuncLevel { get; }
-
-      internal ExpressionScope(uint freeRegister, int currentFuncLevel) {
-        FreeRegister = freeRegister;
-        FuncLevel = currentFuncLevel;
+      public uint DefineTempVariable() {
+        return Registers.AllocateRegister().Id;
       }
 
-      public virtual VariableInfo DefineVariable(string name) {
-        throw new NotImplementedException("Cannot define variables in the expression scope.");
-      }
-
-      public virtual uint? FindVariable(string name) {
-        return null;
-      }
-
-      public uint AllocateRegister() {
-        if (FreeRegister == Chunk.MaxRegisterCount) {
-          // TODO: throw a compile error exception and handle it in the executor to generate the
-          // corresponding diagnostic information.
-        }
-        return FreeRegister++;
+      private VariableInfo VariableInfoOf(string name, uint id) {
+        return new VariableInfo(VariableType.Global, id, $"{Path}.{name}");
       }
     }
 
-    private class BlockScope : ExpressionScope {
+    private class ExprScope : IScope {
+      public string Path => "";
+      public Registers Registers { get; }
+
+      private readonly int _start;
+
+      internal ExprScope(IScope parent) {
+        Registers = parent.Registers;
+        _start = Registers.Count;
+      }
+
+      public VariableInfo DefineVariable(string name) {
+        throw new NotImplementedException("Cannot define variables in expression scopes.");
+      }
+
+      public VariableInfo FindVariable(string name) {
+        return null;
+      }
+
+      public uint DefineTempVariable() {
+        return Registers.AllocateRegister().Id;
+      }
+
+      internal void ClearTempVariables() {
+        Registers.RemoveFrom(_start);
+      }
+    }
+
+    private class FuncScope : IScope {
+      public string Path { get; }
+      public Registers Registers { get; } = new Registers();
+
       private readonly Dictionary<string, uint> _variables = new Dictionary<string, uint>();
 
-      internal BlockScope(uint freeRegister, int currentFuncLevel) :
-          base(freeRegister, currentFuncLevel) { }
-
-      public override VariableInfo DefineVariable(string name) {
-        _variables[name] = AllocateRegister();
-        return new VariableInfo(VariableType.Local, _variables[name]);
+      internal FuncScope(IScope parent, string name) {
+        Path = $"{parent.Path}.{name}";
       }
 
-      public override uint? FindVariable(string name) {
-        if (_variables.ContainsKey(name)) {
-          return _variables[name];
-        }
-        return null;
+      public VariableInfo DefineVariable(string name) {
+        VariableInfo info = Registers.AllocateRegister($"{Path}.{name}");
+        _variables[name] = info.Id;
+        return info;
+      }
+
+      public VariableInfo FindVariable(string name) {
+        return _variables.ContainsKey(name) ? Registers[(int)_variables[name]] : null;
+      }
+
+      public uint DefineTempVariable() {
+        return Registers.AllocateRegister().Id;
       }
     }
 
-    private class FunctionScope : BlockScope {
-      internal FunctionScope(uint freeRegister, int currentFuncLevel) :
-          base(freeRegister, currentFuncLevel + 1) { }
+    public uint LastRegister {
+      get {
+        Debug.Assert(_currentScope.Registers.Count > 0);
+        return (uint)_currentScope.Registers.Count - 1;
+      }
     }
-
-    // The last allocated register in the current scope.
-    public uint LastRegister => _currentScope.FreeRegister - 1;
 
     private readonly List<IScope> _scopes = new List<IScope>();
-
     private IScope _currentScope => _scopes[_scopes.Count - 1];
 
     internal VariableResolver(GlobalEnvironment env) {
       _scopes.Add(new GlobalScope(env));
     }
 
-    internal void BeginExpressionScope() {
-      _scopes.Add(new ExpressionScope(_currentScope.FreeRegister, _currentScope.FuncLevel));
+    internal void BeginExprScope() {
+      _scopes.Add(new ExprScope(_currentScope));
     }
 
-    internal void EndExpressionScope() {
+    internal void EndExprScope() {
+      Debug.Assert(_scopes.Count > 0 && _currentScope is ExprScope);
+      (_currentScope as ExprScope).ClearTempVariables();
       EndScope();
     }
 
-    internal void BeginBlockScope() {
-      _scopes.Add(new BlockScope(_currentScope.FreeRegister, _currentScope.FuncLevel));
+    internal void BeginFuncScope(string name) {
+      Debug.Assert(!(_currentScope is ExprScope));
+      _scopes.Add(new FuncScope(_currentScope, name));
     }
 
-    internal void EndBlockScope() {
-      EndScope();
-    }
-
-    internal void BeginFunctionScope() {
-      _scopes.Add(new FunctionScope(0, _currentScope.FuncLevel + 1));
-    }
-
-    internal void EndFunctionScope() {
+    internal void EndFuncScope() {
+      Debug.Assert(_scopes.Count > 0 && _currentScope is FuncScope);
       EndScope();
     }
 
@@ -161,23 +186,17 @@ namespace SeedLang.Interpreter {
       return _currentScope.DefineVariable(name);
     }
 
-    internal VariableInfo? FindVariable(string name) {
+    internal VariableInfo FindVariable(string name) {
       for (int i = _scopes.Count - 1; i >= 0; i--) {
-        if (_scopes[i].FindVariable(name) is uint id) {
-          if (_scopes[i] is GlobalScope) {
-            return new VariableInfo(VariableType.Global, id);
-          } else if (_scopes[i].FuncLevel < _currentScope.FuncLevel) {
-            return new VariableInfo(VariableType.Upvalue, id);
-          } else {
-            return new VariableInfo(VariableType.Local, id);
-          }
+        if (_scopes[i].FindVariable(name) is VariableInfo info) {
+          return info;
         }
       }
       return null;
     }
 
-    internal uint AllocateRegister() {
-      return _currentScope.AllocateRegister();
+    internal uint DefineTempVariable() {
+      return _currentScope.DefineTempVariable();
     }
 
     private void EndScope() {

@@ -112,13 +112,13 @@ namespace SeedLang.Interpreter {
           uint targetId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
           _helper.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
-          _helper.EmitAssignNotification(forIn.Id.Name, VariableType.Global, targetId,
+          _helper.EmitAssignNotification(loopVar.Name, VariableType.Global, targetId,
                                          forIn.Id.Range);
           _helper.EndExprScope();
           break;
         case VariableResolver.VariableType.Local:
           _helper.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
-          _helper.EmitAssignNotification(forIn.Id.Name, VariableType.Local, loopVar.Id,
+          _helper.EmitAssignNotification(loopVar.Name, VariableType.Local, loopVar.Id,
                                          forIn.Id.Range);
           break;
         case VariableResolver.VariableType.Upvalue:
@@ -344,7 +344,7 @@ namespace SeedLang.Interpreter {
             _helper.Emit(Opcode.LOADK, tempRegister, valueId, range);
           }
           _helper.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
-          _helper.EmitAssignNotification(id.Name, VariableType.Global, tempRegister, range);
+          _helper.EmitAssignNotification(info.Name, VariableType.Global, tempRegister, range);
           break;
         case VariableResolver.VariableType.Local:
           if (Chunk.IsConstId(valueId)) {
@@ -352,7 +352,7 @@ namespace SeedLang.Interpreter {
           } else {
             _helper.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
           }
-          _helper.EmitAssignNotification(id.Name, VariableType.Local, valueId, range);
+          _helper.EmitAssignNotification(info.Name, VariableType.Local, valueId, range);
           break;
         case VariableResolver.VariableType.Upvalue:
           // TODO: handle upvalues.

@@ -123,7 +123,7 @@ namespace SeedLang.Shell {
       Console.ForegroundColor = ConsoleColor.Black;
       switch (e) {
         case Event.Assignment ae:
-          Console.Write($"Assign: ({ae.Name}: {ae.Type}) = {ae.Value}");
+          Console.Write($"Assign: {ae.Name} = {ae.Value}");
           break;
         case Event.Binary be: {
             var op = _binaryOperatorStrings[be.Op];

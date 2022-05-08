@@ -50,14 +50,14 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitBinary(BinaryExpression binary) {
-      _helper.BeginExpressionScope();
+      _helper.BeginExprScope();
       uint register = RegisterForSubExpr;
       uint left = VisitExpressionForRKId(binary.Left);
       uint right = VisitExpressionForRKId(binary.Right);
       _helper.Emit(CompilerHelper.OpcodeOfBinaryOperator(binary.Op), register, left, right,
                    binary.Range);
       _helper.EmitBinaryNotification(left, binary.Op, right, register, binary.Range);
-      _helper.EndExpressionScope();
+      _helper.EndExprScope();
     }
 
     protected override void VisitBoolean(BooleanExpression boolean) {
@@ -86,26 +86,26 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitCall(CallExpression call) {
-      _helper.BeginExpressionScope();
+      _helper.BeginExprScope();
       // TODO: should call.Func always be IdentifierExpression?
       if (call.Func is IdentifierExpression identifier) {
-        if (_helper.FindVariable(identifier.Name) is VariableResolver.VariableInfo info) {
+        if (_helper.FindVariable(identifier.Name) is RegisterInfo info) {
           uint resultRegister = RegisterForSubExpr;
           bool needRegister = resultRegister != _helper.LastRegister;
-          uint funcRegister = needRegister ? _helper.AllocateRegister() : resultRegister;
+          uint funcRegister = needRegister ? _helper.DefineTempVariable() : resultRegister;
           switch (info.Type) {
-            case VariableResolver.VariableType.Global:
+            case RegisterType.Global:
               _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
               break;
-            case VariableResolver.VariableType.Local:
+            case RegisterType.Local:
               _helper.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
               break;
-            case VariableResolver.VariableType.Upvalue:
+            case RegisterType.Upvalue:
               // TODO: handle upvalues.
               break;
           }
           foreach (Expression expr in call.Arguments) {
-            RegisterForSubExpr = _helper.AllocateRegister();
+            RegisterForSubExpr = _helper.DefineTempVariable();
             Visit(expr);
           }
           _helper.EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
@@ -116,7 +116,7 @@ namespace SeedLang.Interpreter {
           // TODO: throw a variable not defined runtime error.
         }
       }
-      _helper.EndExpressionScope();
+      _helper.EndExprScope();
     }
 
     protected override void VisitComparison(ComparisonExpression comparison) {
@@ -133,34 +133,34 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitDict(DictExpression dict) {
-      _helper.BeginExpressionScope();
+      _helper.BeginExprScope();
       uint target = RegisterForSubExpr;
       uint? first = null;
       foreach (var item in dict.Items) {
-        uint register = _helper.AllocateRegister();
+        uint register = _helper.DefineTempVariable();
         if (!first.HasValue) {
           first = register;
         }
         RegisterForSubExpr = register;
         Visit(item.Key);
-        RegisterForSubExpr = _helper.AllocateRegister();
+        RegisterForSubExpr = _helper.DefineTempVariable();
         Visit(item.Value);
       }
       _helper.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Items.Length * 2,
                    dict.Range);
-      _helper.EndExpressionScope();
+      _helper.EndExprScope();
     }
 
     protected override void VisitIdentifier(IdentifierExpression identifier) {
-      if (_helper.FindVariable(identifier.Name) is VariableResolver.VariableInfo info) {
+      if (_helper.FindVariable(identifier.Name) is RegisterInfo info) {
         switch (info.Type) {
-          case VariableResolver.VariableType.Global:
+          case RegisterType.Global:
             _helper.Emit(Opcode.GETGLOB, RegisterForSubExpr, info.Id, identifier.Range);
             break;
-          case VariableResolver.VariableType.Local:
+          case RegisterType.Local:
             _helper.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
             break;
-          case VariableResolver.VariableType.Upvalue:
+          case RegisterType.Upvalue:
             // TODO: handle upvalues.
             break;
         }
@@ -189,12 +189,12 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitSubscript(SubscriptExpression subscript) {
-      _helper.BeginExpressionScope();
+      _helper.BeginExprScope();
       uint targetId = RegisterForSubExpr;
       uint listId = VisitExpressionForRegisterId(subscript.Expr);
       uint indexId = VisitExpressionForRKId(subscript.Index);
       _helper.Emit(Opcode.GETELEM, targetId, listId, indexId, subscript.Range);
-      _helper.EndExpressionScope();
+      _helper.EndExprScope();
     }
 
     protected override void VisitTuple(TupleExpression tuple) {
@@ -202,12 +202,12 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitUnary(UnaryExpression unary) {
-      _helper.BeginExpressionScope();
+      _helper.BeginExprScope();
       uint register = RegisterForSubExpr;
       uint exprId = VisitExpressionForRKId(unary.Expr);
       _helper.Emit(Opcode.UNM, register, exprId, 0, unary.Range);
       _helper.EmitUnaryNotification(unary.Op, exprId, register, unary.Range);
-      _helper.EndExpressionScope();
+      _helper.EndExprScope();
     }
 
     private void VisitBooleanOrComparisonExpression(Action action, TextRange range) {
@@ -233,7 +233,7 @@ namespace SeedLang.Interpreter {
 
     private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
                                        TextRange range) {
-      _helper.BeginExpressionScope();
+      _helper.BeginExprScope();
       uint leftRegister = VisitExpressionForRKId(left);
       uint rightRegister = VisitExpressionForRKId(right);
       (Opcode opcode, bool checkFlag) = CompilerHelper.OpcodeAndCheckFlagOfComparisonOperator(op);
@@ -250,16 +250,16 @@ namespace SeedLang.Interpreter {
           _helper.ExprJumpStack.AddTrueJump(_helper.Chunk.LatestCodePos);
           break;
       }
-      _helper.EndExpressionScope();
+      _helper.EndExprScope();
     }
 
     private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs,
                                    TextRange range) {
-      _helper.BeginExpressionScope();
+      _helper.BeginExprScope();
       uint target = RegisterForSubExpr;
       uint? first = null;
       foreach (var expr in exprs) {
-        uint register = _helper.AllocateRegister();
+        uint register = _helper.DefineTempVariable();
         if (!first.HasValue) {
           first = register;
         }
@@ -267,12 +267,12 @@ namespace SeedLang.Interpreter {
         Visit(expr);
       }
       _helper.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);
-      _helper.EndExpressionScope();
+      _helper.EndExprScope();
     }
 
     private uint VisitExpressionForRegisterId(Expression expr) {
       if (!(GetRegisterId(expr) is uint exprId)) {
-        exprId = _helper.AllocateRegister();
+        exprId = _helper.DefineTempVariable();
         RegisterForSubExpr = exprId;
         Visit(expr);
       }
@@ -281,7 +281,7 @@ namespace SeedLang.Interpreter {
 
     private uint VisitExpressionForRKId(Expression expr) {
       if (!(GetRegisterOrConstantId(expr) is uint exprId)) {
-        exprId = _helper.AllocateRegister();
+        exprId = _helper.DefineTempVariable();
         RegisterForSubExpr = exprId;
         Visit(expr);
       }
@@ -299,8 +299,8 @@ namespace SeedLang.Interpreter {
 
     private uint? GetRegisterId(Expression expr) {
       if (expr is IdentifierExpression identifier &&
-          _helper.FindVariable(identifier.Name) is VariableResolver.VariableInfo info &&
-          info.Type == VariableResolver.VariableType.Local) {
+          _helper.FindVariable(identifier.Name) is RegisterInfo info &&
+          info.Type == RegisterType.Local) {
         return info.Id;
       }
       return null;

@@ -68,7 +68,7 @@ namespace SeedLang.Tests.Helper {
     private static void EventToString<E>(E e, StringBuilder sb) {
       switch (e) {
         case Event.Assignment ae:
-          sb.AppendLine($"{ae.Range} {ae.Name} = {ae.Value}");
+          sb.AppendLine($"{ae.Range} {ae.Name}: {ae.Type} = {ae.Value}");
           break;
         case Event.Binary be:
           sb.AppendLine($"{be.Range} {be.Left} {be.Op} {be.Right} = {be.Result}");
@@ -95,6 +95,9 @@ namespace SeedLang.Tests.Helper {
           break;
         case Event.SingleStep sse:
           sb.AppendLine($"{sse.Range} SingleStep");
+          break;
+        case Event.SubscriptAssignment sae:
+          sb.AppendLine($"{sae.Range} ({sae.Name}: {sae.Type})[{sae.Key}] = {sae.Value}");
           break;
         case Event.Unary ue:
           sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");

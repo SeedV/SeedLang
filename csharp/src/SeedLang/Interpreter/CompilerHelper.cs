@@ -45,40 +45,32 @@ namespace SeedLang.Interpreter {
       _visualizerCenter = visualizerCenter;
     }
 
-    internal void BeginBlockScope() {
-      _variableResolver.BeginBlockScope();
+    internal void BeginFuncScope(string name) {
+      _variableResolver.BeginFuncScope(name);
     }
 
-    internal void EndBlockScope() {
-      _variableResolver.EndBlockScope();
+    internal void EndFuncScope() {
+      _variableResolver.EndFuncScope();
     }
 
-    internal void BeginFunctionScope() {
-      _variableResolver.BeginFunctionScope();
+    internal void BeginExprScope() {
+      _variableResolver.BeginExprScope();
     }
 
-    internal void EndFunctionScope() {
-      _variableResolver.EndFunctionScope();
+    internal void EndExprScope() {
+      _variableResolver.EndExprScope();
     }
 
-    internal void BeginExpressionScope() {
-      _variableResolver.BeginExpressionScope();
-    }
-
-    internal void EndExpressionScope() {
-      _variableResolver.EndExpressionScope();
-    }
-
-    internal VariableResolver.VariableInfo DefineVariable(string name) {
+    internal RegisterInfo DefineVariable(string name) {
       return _variableResolver.DefineVariable(name);
     }
 
-    internal VariableResolver.VariableInfo? FindVariable(string name) {
+    internal RegisterInfo FindVariable(string name) {
       return _variableResolver.FindVariable(name);
     }
 
-    internal uint AllocateRegister() {
-      return _variableResolver.AllocateRegister();
+    internal uint DefineTempVariable() {
+      return _variableResolver.DefineTempVariable();
     }
 
     internal uint? GetRegisterOrConstantId(Expression expr) {
@@ -92,8 +84,8 @@ namespace SeedLang.Interpreter {
 
     internal uint? GetRegisterId(Expression expr) {
       if (expr is IdentifierExpression identifier &&
-          _variableResolver.FindVariable(identifier.Name) is VariableResolver.VariableInfo info &&
-          info.Type == VariableResolver.VariableType.Local) {
+          _variableResolver.FindVariable(identifier.Name) is RegisterInfo info &&
+          info.Type == RegisterType.Local) {
         return info.Id;
       }
       return null;
@@ -154,29 +146,54 @@ namespace SeedLang.Interpreter {
     }
 
     internal void EmitAssignNotification(string name, VariableType type, uint valueId,
-                                        TextRange range) {
+                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
-        var notification = new Notification.Assignment(name, type, valueId);
+        var n = new Notification.Assignment(name, type, valueId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
       }
     }
 
     internal void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId,
                                          uint resultId, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
-        var notification = new Notification.Binary(leftId, op, rightId, resultId);
+        var n = new Notification.Binary(leftId, op, rightId, resultId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
+      }
+    }
+
+    internal void EmitSubscriptAssignNotification(SubscriptExpression subscript, uint keyId,
+                                                  uint valueId, TextRange range) {
+      if (_visualizerCenter.HasVisualizer<Event.SubscriptAssignment>()) {
+        VariableType type = VariableType.Global;
+        if (subscript.Expr is IdentifierExpression identifier) {
+          if (_variableResolver.FindVariable(identifier.Name) is RegisterInfo info) {
+            switch (info.Type) {
+              case RegisterType.Global:
+                type = VariableType.Global;
+                break;
+              case RegisterType.Local:
+                type = VariableType.Local;
+                break;
+              case RegisterType.Upvalue:
+                // TODO: handle upvalues.
+                break;
+            }
+            var n = new Notification.SubscriptAssignment(info.Name, type, keyId, valueId);
+            // Doesn't emit single step notifications for the VISNOTIFY instruction.
+            Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
+          }
+        }
       }
     }
 
     internal void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId,
                                         TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
-        var notification = new Notification.Unary(op, valueId, resultId);
+        var n = new Notification.Unary(op, valueId, resultId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
       }
     }
 
@@ -186,32 +203,32 @@ namespace SeedLang.Interpreter {
           var argTexts = Array.ConvertAll(vTagInfo.Args, args => args.Text);
           return new Event.VTagEntered.VTagInfo(vTagInfo.Name, argTexts);
         });
-        var notification = new Notification.VTagEntered(vTagInfos);
+        var n = new Notification.VTagEntered(vTagInfos);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), vTag.Range);
       }
     }
 
     internal void EmitVTagExitedNotification(VTagStatement vTag, ExprCompiler exprCompiler) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        BeginBlockScope();
+        BeginExprScope();
         var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
           var valueIds = new uint[vTagInfo.Args.Length];
           for (int j = 0; j < vTagInfo.Args.Length; j++) {
             if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
               valueIds[j] = id;
             } else {
-              valueIds[j] = AllocateRegister();
+              valueIds[j] = DefineTempVariable();
               exprCompiler.RegisterForSubExpr = valueIds[j];
               exprCompiler.Visit(vTagInfo.Args[j].Expr);
             }
           }
           return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
         });
-        EndBlockScope();
-        var notification = new Notification.VTagExited(vTagInfos);
+        EndExprScope();
+        var n = new Notification.VTagExited(vTagInfos);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(notification), vTag.Range);
+        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), vTag.Range);
       }
     }
 

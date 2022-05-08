@@ -91,7 +91,7 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitForIn(ForInStatement forIn) {
       _nestedLoopStack.PushFrame();
-      VariableResolver.VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
+      RegisterInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
 
       if (!(_helper.GetRegisterId(forIn.Expr) is uint sequence)) {
         sequence = _helper.DefineTempVariable();
@@ -107,7 +107,7 @@ namespace SeedLang.Interpreter {
       _helper.Emit(Opcode.FORPREP, index, 0, forIn.Range);
       int bodyStart = _helper.Chunk.Bytecode.Count;
       switch (loopVar.Type) {
-        case VariableResolver.VariableType.Global:
+        case RegisterType.Global:
           _helper.BeginExprScope();
           uint targetId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
@@ -116,12 +116,12 @@ namespace SeedLang.Interpreter {
                                          forIn.Id.Range);
           _helper.EndExprScope();
           break;
-        case VariableResolver.VariableType.Local:
+        case RegisterType.Local:
           _helper.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
           _helper.EmitAssignNotification(loopVar.Name, VariableType.Local, loopVar.Id,
                                          forIn.Id.Range);
           break;
-        case VariableResolver.VariableType.Upvalue:
+        case RegisterType.Upvalue:
           // TODO: handle upvalues.
           break;
       }
@@ -138,7 +138,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitFuncDef(FuncDefStatement funcDef) {
-      VariableResolver.VariableInfo info = DefineVariableIfNeeded(funcDef.Name);
+      RegisterInfo info = DefineVariableIfNeeded(funcDef.Name);
       PushFunc(funcDef.Name);
       foreach (string parameterName in funcDef.Parameters) {
         _helper.DefineVariable(parameterName);
@@ -149,17 +149,17 @@ namespace SeedLang.Interpreter {
       Function func = PopFunc();
       uint funcId = _helper.ConstantCache.IdOfConstant(func);
       switch (info.Type) {
-        case VariableResolver.VariableType.Global:
+        case RegisterType.Global:
           _helper.BeginExprScope();
           uint registerId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
           _helper.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
           _helper.EndExprScope();
           break;
-        case VariableResolver.VariableType.Local:
+        case RegisterType.Local:
           _helper.Emit(Opcode.LOADK, info.Id, funcId, funcDef.Range);
           break;
-        case VariableResolver.VariableType.Upvalue:
+        case RegisterType.Upvalue:
           // TODO: handle upvalues.
           break;
       }
@@ -329,15 +329,15 @@ namespace SeedLang.Interpreter {
           uint listId = VisitExpressionForRegisterId(subscript.Expr);
           uint indexId = VisitExpressionForRKId(subscript.Index);
           _helper.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
-          _helper.EmitSubscriptAssignNotification(subscript, listId, indexId, valueId, range);
+          _helper.EmitSubscriptAssignNotification(subscript, indexId, valueId, range);
           break;
       }
     }
 
     private void Assign(IdentifierExpression id, uint valueId, TextRange range) {
-      VariableResolver.VariableInfo info = _helper.FindVariable(id.Name);
+      RegisterInfo info = _helper.FindVariable(id.Name);
       switch (info.Type) {
-        case VariableResolver.VariableType.Global:
+        case RegisterType.Global:
           uint tempRegister = valueId;
           if (Chunk.IsConstId(valueId)) {
             tempRegister = _helper.DefineTempVariable();
@@ -346,7 +346,7 @@ namespace SeedLang.Interpreter {
           _helper.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
           _helper.EmitAssignNotification(info.Name, VariableType.Global, tempRegister, range);
           break;
-        case VariableResolver.VariableType.Local:
+        case RegisterType.Local:
           if (Chunk.IsConstId(valueId)) {
             _helper.Emit(Opcode.LOADK, info.Id, valueId, range);
           } else {
@@ -354,14 +354,14 @@ namespace SeedLang.Interpreter {
           }
           _helper.EmitAssignNotification(info.Name, VariableType.Local, valueId, range);
           break;
-        case VariableResolver.VariableType.Upvalue:
+        case RegisterType.Upvalue:
           // TODO: handle upvalues.
           break;
       }
     }
 
-    private VariableResolver.VariableInfo DefineVariableIfNeeded(string name) {
-      if (_helper.FindVariable(name) is VariableResolver.VariableInfo info) {
+    private RegisterInfo DefineVariableIfNeeded(string name) {
+      if (_helper.FindVariable(name) is RegisterInfo info) {
         return info;
       }
       return _helper.DefineVariable(name);

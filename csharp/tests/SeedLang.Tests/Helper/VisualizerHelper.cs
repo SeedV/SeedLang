@@ -97,8 +97,7 @@ namespace SeedLang.Tests.Helper {
           sb.AppendLine($"{sse.Range} SingleStep");
           break;
         case Event.SubscriptAssignment sae:
-          string container = !(sae.Name is null) ? $"({sae.Name}: {sae.Type})" : $"{sae.Container}";
-          sb.AppendLine($"{sae.Range} {container}[{sae.Key}] = {sae.Value}");
+          sb.AppendLine($"{sae.Range} ({sae.Name}: {sae.Type})[{sae.Key}] = {sae.Value}");
           break;
         case Event.Unary ue:
           sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");

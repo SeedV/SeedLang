@@ -89,18 +89,18 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       // TODO: should call.Func always be IdentifierExpression?
       if (call.Func is IdentifierExpression identifier) {
-        if (_helper.FindVariable(identifier.Name) is VariableResolver.VariableInfo info) {
+        if (_helper.FindVariable(identifier.Name) is RegisterInfo info) {
           uint resultRegister = RegisterForSubExpr;
           bool needRegister = resultRegister != _helper.LastRegister;
           uint funcRegister = needRegister ? _helper.DefineTempVariable() : resultRegister;
           switch (info.Type) {
-            case VariableResolver.VariableType.Global:
+            case RegisterType.Global:
               _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
               break;
-            case VariableResolver.VariableType.Local:
+            case RegisterType.Local:
               _helper.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
               break;
-            case VariableResolver.VariableType.Upvalue:
+            case RegisterType.Upvalue:
               // TODO: handle upvalues.
               break;
           }
@@ -152,15 +152,15 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitIdentifier(IdentifierExpression identifier) {
-      if (_helper.FindVariable(identifier.Name) is VariableResolver.VariableInfo info) {
+      if (_helper.FindVariable(identifier.Name) is RegisterInfo info) {
         switch (info.Type) {
-          case VariableResolver.VariableType.Global:
+          case RegisterType.Global:
             _helper.Emit(Opcode.GETGLOB, RegisterForSubExpr, info.Id, identifier.Range);
             break;
-          case VariableResolver.VariableType.Local:
+          case RegisterType.Local:
             _helper.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
             break;
-          case VariableResolver.VariableType.Upvalue:
+          case RegisterType.Upvalue:
             // TODO: handle upvalues.
             break;
         }
@@ -299,8 +299,8 @@ namespace SeedLang.Interpreter {
 
     private uint? GetRegisterId(Expression expr) {
       if (expr is IdentifierExpression identifier &&
-          _helper.FindVariable(identifier.Name) is VariableResolver.VariableInfo info &&
-          info.Type == VariableResolver.VariableType.Local) {
+          _helper.FindVariable(identifier.Name) is RegisterInfo info &&
+          info.Type == RegisterType.Local) {
         return info.Id;
       }
       return null;

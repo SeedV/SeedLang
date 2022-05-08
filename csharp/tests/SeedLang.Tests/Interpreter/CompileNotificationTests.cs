@@ -42,7 +42,7 @@ namespace SeedLang.Interpreter.Tests {
         $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"  4    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"Notifications\n" +
-        $"  0    Notification.Assignment: 'name': Global 0\n"
+        $"  0    Notification.Assignment: 'global.name': Global 0\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
@@ -254,10 +254,7 @@ flag = \
         $"  2    LOADK     2 -2             ; 2                 [Ln 1, Col 4 - Ln 1, Col 4]\n" +
         $"  3    NEWLIST   0 1 2                                [Ln 1, Col 0 - Ln 1, Col 5]\n" +
         $"  4    SETELEM   0 -1 -1          ; 1 1               [Ln 1, Col 0 - Ln 1, Col 12]\n" +
-        $"  5    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
-        $"  6    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
-        $"Notifications\n" +
-        $"  0    Notification.SubscriptAssignment: 0 250 250\n"
+        $"  5    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -282,7 +279,7 @@ a[1] = 1
         $"  7    VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"  8    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"Notifications\n" +
-        $"  0    Notification.SubscriptAssignment: 'a': Global 0 250 250\n"
+        $"  0    Notification.SubscriptAssignment: 'global.a': Global 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -311,7 +308,7 @@ def func():
         $"  6    VISNOTIFY 0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"  7    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
-        $"  0    Notification.SubscriptAssignment: 'a': Local 0 250 250\n"
+        $"  0    Notification.SubscriptAssignment: 'global.func.a': Local 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -420,8 +417,8 @@ x, y = 1, 1 + 2
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Assign(x,1,y,1+2)\n" +
         $"  1    Notification.Binary: 250 Add 251 0\n" +
-        $"  2    Notification.Assignment: 'x': Global 1\n" +
-        $"  3    Notification.Assignment: 'y': Global 0\n" +
+        $"  2    Notification.Assignment: 'global.x': Global 1\n" +
+        $"  3    Notification.Assignment: 'global.y': Global 0\n" +
         $"  4    Notification.Binary: 250 Add 251 2\n" +
         $"  5    Notification.VTagExited: Assign(0,250,1,2)\n"
       ).Replace("\n", Environment.NewLine);

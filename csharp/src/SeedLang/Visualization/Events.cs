@@ -138,17 +138,14 @@ namespace SeedLang.Visualization {
     // 1) Sets the element of a temporary container: [1, 2, 3][1] = 5
     // 2) Sets the element of a intermediate container: a[1][2] = 5
     public class SubscriptAssignment : AbstractEvent {
-      public Value Container { get; }
-      // The variable name of the container.
       public string Name { get; }
       // The variable type of the container.
       public VariableType Type { get; }
       public Value Key { get; }
       public Value Value { get; }
 
-      public SubscriptAssignment(Value container, string name, VariableType type, Value key,
-                                 Value value, TextRange range) : base(range) {
-        Container = container;
+      public SubscriptAssignment(string name, VariableType type, Value key, Value value,
+                                 TextRange range) : base(range) {
         Name = name;
         Type = type;
         Key = key;

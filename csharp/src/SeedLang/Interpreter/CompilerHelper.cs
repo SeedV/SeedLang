@@ -61,11 +61,11 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExprScope();
     }
 
-    internal VariableResolver.VariableInfo DefineVariable(string name) {
+    internal RegisterInfo DefineVariable(string name) {
       return _variableResolver.DefineVariable(name);
     }
 
-    internal VariableResolver.VariableInfo FindVariable(string name) {
+    internal RegisterInfo FindVariable(string name) {
       return _variableResolver.FindVariable(name);
     }
 
@@ -84,8 +84,8 @@ namespace SeedLang.Interpreter {
 
     internal uint? GetRegisterId(Expression expr) {
       if (expr is IdentifierExpression identifier &&
-          _variableResolver.FindVariable(identifier.Name) is VariableResolver.VariableInfo info &&
-          info.Type == VariableResolver.VariableType.Local) {
+          _variableResolver.FindVariable(identifier.Name) is RegisterInfo info &&
+          info.Type == RegisterType.Local) {
         return info.Id;
       }
       return null;
@@ -163,30 +163,28 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal void EmitSubscriptAssignNotification(SubscriptExpression subscript, uint containerId,
-                                                  uint keyId, uint valueId, TextRange range) {
+    internal void EmitSubscriptAssignNotification(SubscriptExpression subscript, uint keyId,
+                                                  uint valueId, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.SubscriptAssignment>()) {
-        string name = null;
         VariableType type = VariableType.Global;
         if (subscript.Expr is IdentifierExpression identifier) {
-          name = identifier.Name;
-          if (_variableResolver.FindVariable(name) is VariableResolver.VariableInfo info) {
+          if (_variableResolver.FindVariable(identifier.Name) is RegisterInfo info) {
             switch (info.Type) {
-              case VariableResolver.VariableType.Global:
+              case RegisterType.Global:
                 type = VariableType.Global;
                 break;
-              case VariableResolver.VariableType.Local:
+              case RegisterType.Local:
                 type = VariableType.Local;
                 break;
-              case VariableResolver.VariableType.Upvalue:
+              case RegisterType.Upvalue:
                 // TODO: handle upvalues.
                 break;
             }
+            var n = new Notification.SubscriptAssignment(info.Name, type, keyId, valueId);
+            // Doesn't emit single step notifications for the VISNOTIFY instruction.
+            Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
           }
         }
-        var n = new Notification.SubscriptAssignment(containerId, name, type, keyId, valueId);
-        // Doesn't emit single step notifications for the VISNOTIFY instruction.
-        Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
       }
     }
 

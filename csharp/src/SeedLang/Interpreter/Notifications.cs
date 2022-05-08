@@ -129,15 +129,12 @@ namespace SeedLang.Interpreter {
     }
 
     internal class SubscriptAssignment : AbstractNotification {
-      private readonly uint _containerId;
       private readonly string _name;
       private readonly VariableType _type;
       private readonly uint _keyId;
       private readonly uint _valueId;
 
-      internal SubscriptAssignment(uint containerId, string name, VariableType type, uint keyId,
-                                   uint valueId) {
-        _containerId = containerId;
+      internal SubscriptAssignment(string name, VariableType type, uint keyId, uint valueId) {
         _name = name;
         _type = type;
         _keyId = keyId;
@@ -145,15 +142,12 @@ namespace SeedLang.Interpreter {
       }
 
       public override string ToString() {
-        string variableName = !(_name is null) ? $"'{_name}': {_type} " : "";
-        string content = $"{_containerId} {_keyId} {_valueId}";
-        return $"Notification.SubscriptAssignment: {variableName}{content}";
+        return $"Notification.SubscriptAssignment: '{_name}': {_type} {_keyId} {_valueId}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter,
                                     Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        var e = new Event.SubscriptAssignment(new Value(getRKValue(_containerId)), _name, _type,
-                                              new Value(getRKValue(_keyId)),
+        var e = new Event.SubscriptAssignment(_name, _type, new Value(getRKValue(_keyId)),
                                               new Value(getRKValue(_valueId)), range);
         visualizerCenter.Notify(e);
       }

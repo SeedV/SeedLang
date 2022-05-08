@@ -17,54 +17,56 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace SeedLang.Interpreter {
+  internal enum RegisterType {
+    Global,
+    Local,
+    Temporary,
+    Upvalue,
+  }
+
+  internal class RegisterInfo {
+    public RegisterType Type { get; }
+    public uint Id { get; }
+    public string Name { get; }
+
+    public RegisterInfo(RegisterType type, uint id, string name) {
+      Type = type;
+      Id = id;
+      Name = name;
+    }
+  }
+
+  // The class to resolve global, local and temporary variables. It defines global variables in the
+  // global environment, and allocates register slots for local and temporary variables.
   internal class VariableResolver {
-    internal enum VariableType {
-      Global,
-      Local,
-      Temporary,
-      Upvalue,
-    }
-
-    internal class VariableInfo {
-      public VariableType Type { get; }
-      public uint Id { get; }
-      public string Name { get; }
-
-      public VariableInfo(VariableType type, uint id, string name) {
-        Type = type;
-        Id = id;
-        Name = name;
-      }
-    }
-
     private class Registers {
-      public int Count => _registers.Count;
-      private readonly List<VariableInfo> _registers = new List<VariableInfo>();
+      public int Count => _registerInfos.Count;
+      private readonly List<RegisterInfo> _registerInfos = new List<RegisterInfo>();
 
-      internal VariableInfo AllocateRegister(string name = null) {
-        var type = name is null ? VariableType.Temporary : VariableType.Local;
-        var info = new VariableInfo(type, (uint)_registers.Count, name);
-        _registers.Add(info);
+      internal RegisterInfo AllocateRegister(string name = null) {
+        var type = name is null ? RegisterType.Temporary : RegisterType.Local;
+        var info = new RegisterInfo(type, (uint)_registerInfos.Count, name);
+        _registerInfos.Add(info);
         return info;
       }
 
-      internal VariableInfo this[int index] {
+      internal RegisterInfo this[int index] {
         get {
-          Debug.Assert(index >= 0 && index < _registers.Count);
-          return _registers[index];
+          Debug.Assert(index >= 0 && index < _registerInfos.Count);
+          return _registerInfos[index];
         }
       }
 
       internal void RemoveFrom(int start) {
-        _registers.RemoveRange(start, _registers.Count - start);
+        _registerInfos.RemoveRange(start, _registerInfos.Count - start);
       }
     }
 
     private interface IScope {
       string Path { get; }
       Registers Registers { get; }
-      VariableInfo DefineVariable(string name);
-      VariableInfo FindVariable(string name);
+      RegisterInfo DefineVariable(string name);
+      RegisterInfo FindVariable(string name);
       uint DefineTempVariable();
     }
 
@@ -78,11 +80,11 @@ namespace SeedLang.Interpreter {
         _env = env;
       }
 
-      public VariableInfo DefineVariable(string name) {
+      public RegisterInfo DefineVariable(string name) {
         return VariableInfoOf(name, _env.DefineVariable(name));
       }
 
-      public VariableInfo FindVariable(string name) {
+      public RegisterInfo FindVariable(string name) {
         return _env.FindVariable(name) is uint id ? VariableInfoOf(name, id) : null;
       }
 
@@ -90,8 +92,8 @@ namespace SeedLang.Interpreter {
         return Registers.AllocateRegister().Id;
       }
 
-      private VariableInfo VariableInfoOf(string name, uint id) {
-        return new VariableInfo(VariableType.Global, id, $"{Path}.{name}");
+      private RegisterInfo VariableInfoOf(string name, uint id) {
+        return new RegisterInfo(RegisterType.Global, id, $"{Path}.{name}");
       }
     }
 
@@ -106,11 +108,11 @@ namespace SeedLang.Interpreter {
         _start = Registers.Count;
       }
 
-      public VariableInfo DefineVariable(string name) {
+      public RegisterInfo DefineVariable(string name) {
         throw new NotImplementedException("Cannot define variables in expression scopes.");
       }
 
-      public VariableInfo FindVariable(string name) {
+      public RegisterInfo FindVariable(string name) {
         return null;
       }
 
@@ -133,13 +135,13 @@ namespace SeedLang.Interpreter {
         Path = $"{parent.Path}.{name}";
       }
 
-      public VariableInfo DefineVariable(string name) {
-        VariableInfo info = Registers.AllocateRegister($"{Path}.{name}");
+      public RegisterInfo DefineVariable(string name) {
+        RegisterInfo info = Registers.AllocateRegister($"{Path}.{name}");
         _variables[name] = info.Id;
         return info;
       }
 
-      public VariableInfo FindVariable(string name) {
+      public RegisterInfo FindVariable(string name) {
         return _variables.ContainsKey(name) ? Registers[(int)_variables[name]] : null;
       }
 
@@ -182,13 +184,13 @@ namespace SeedLang.Interpreter {
       EndScope();
     }
 
-    internal VariableInfo DefineVariable(string name) {
+    internal RegisterInfo DefineVariable(string name) {
       return _currentScope.DefineVariable(name);
     }
 
-    internal VariableInfo FindVariable(string name) {
+    internal RegisterInfo FindVariable(string name) {
       for (int i = _scopes.Count - 1; i >= 0; i--) {
-        if (_scopes[i].FindVariable(name) is VariableInfo info) {
+        if (_scopes[i].FindVariable(name) is RegisterInfo info) {
           return info;
         }
       }

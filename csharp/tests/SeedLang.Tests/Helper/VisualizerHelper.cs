@@ -103,10 +103,10 @@ namespace SeedLang.Tests.Helper {
           sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");
           break;
         case Event.VTagEntered vee:
-          sb.AppendLine($"{vee.Range} {string.Join(",", vee.VTags)}");
+          sb.AppendLine($"{vee.Range} VTagEntered: {string.Join(",", vee.VTags)}");
           break;
         case Event.VTagExited vee:
-          sb.AppendLine($"{vee.Range} {string.Join(",", vee.VTags)}");
+          sb.AppendLine($"{vee.Range} VTagExited: {string.Join(",", vee.VTags)}");
           break;
         default:
           throw new NotImplementedException($"Unsupported event: {e.GetType()}");

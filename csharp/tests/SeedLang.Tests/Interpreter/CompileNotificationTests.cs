@@ -246,6 +246,35 @@ flag = \
     }
 
     [Fact]
+    public void TestSingleStepWithParameteredVTag() {
+      var source = @"
+# [[ Assign(x) ]]
+x = 1
+";
+      string expected = (
+        $"Function <main>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  2    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"  3    LOADK     0 -1             ; 1                 [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  4    SETGLOB   0 {_firstGlob}" +
+        $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  5    GETGLOB   0 {_firstGlob}" +
+        $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
+        $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.VTagEntered: Assign(x)\n" +
+        $"  1    Notification.SingleStep\n" +
+        $"  2    Notification.VTagExited: Assign(0)\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(source, expected, new Type[] {
+        typeof(Event.SingleStep),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      }, RunMode.Script);
+    }
+
+    [Fact]
     public void TestSubscriptAssignment() {
       string source = "[1, 2][1] = 1";
       string expected = (

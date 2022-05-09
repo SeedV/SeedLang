@@ -40,6 +40,9 @@ namespace SeedLang.Interpreter {
     // The source code line number (1-based) of the previous bytecode.
     private int _sourceLineOfPrevBytecode = 0;
 
+    // The flag to suspend emitting of the single step notifications.
+    private bool _suspendSingleStepEmitting = false;
+
     internal CompilerHelper(VisualizerCenter visualizerCenter, GlobalEnvironment env) {
       _variableResolver = new VariableResolver(env);
       _visualizerCenter = visualizerCenter;
@@ -211,6 +214,7 @@ namespace SeedLang.Interpreter {
 
     internal void EmitVTagExitedNotification(VTagStatement vTag, ExprCompiler exprCompiler) {
       if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
+        _suspendSingleStepEmitting = true;
         BeginExprScope();
         var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
           var valueIds = new uint[vTagInfo.Args.Length];
@@ -229,6 +233,7 @@ namespace SeedLang.Interpreter {
         var n = new Notification.VTagExited(vTagInfos);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), vTag.Range);
+        _suspendSingleStepEmitting = false;
       }
     }
 
@@ -296,7 +301,7 @@ namespace SeedLang.Interpreter {
     }
 
     private void TryEmitSingleStepNotification(TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.SingleStep>()) {
+      if (_visualizerCenter.HasVisualizer<Event.SingleStep>() && !_suspendSingleStepEmitting) {
         if (range.Start.Line != _sourceLineOfPrevBytecode) {
           // Creates the text range to indicate the start of a single step source line.
           var eventRange = new TextRange(range.Start.Line, 0, range.Start.Line, 0);

@@ -16,9 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using SeedLang.Ast;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
+using SeedLang.X;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
@@ -156,7 +158,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
       (string output, VisualizerHelper vh) = Run(program,
-                                                new Type[] { typeof(Event.SubscriptAssignment) });
+                                                 new Type[] { typeof(Event.SubscriptAssignment) });
       Assert.Equal("5" + Environment.NewLine, output);
       var expected = $"{AstHelper.TextRange} (global.a: Global)[1] = 5" + Environment.NewLine;
       Assert.Equal(expected, vh.EventsToString());
@@ -255,6 +257,27 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(expectedOutput, output);
     }
 
+    [Fact]
+    public void TestSingleStepNotification() {
+      string source = @"
+# [[ Assign(a) ]]
+a = 1
+b = 2
+";
+      (string _, VisualizerHelper vh) = Run(Compile(source), new Type[] {
+        typeof(Event.SingleStep),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      });
+      var expected = (
+        "[Ln 3, Col 0 - Ln 3, Col 0] SingleStep\n" +
+        "[Ln 4, Col 0 - Ln 4, Col 0] SingleStep\n" +
+        "[Ln 2, Col 0 - Ln 3, Col 4] VTagEntered: Assign(a)\n" +
+        "[Ln 2, Col 0 - Ln 3, Col 4] VTagExited: Assign(1)\n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, vh.EventsToString());
+    }
+
     private static (string, VisualizerHelper) Run(Statement program,
                                                   IReadOnlyList<Type> eventTypes) {
       var vm = new VM();
@@ -266,6 +289,12 @@ namespace SeedLang.Interpreter.Tests {
       Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
       vm.Run(func);
       return (stringWriter.ToString(), vh);
+    }
+
+    private static Statement Compile(string source) {
+      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
+                             out IReadOnlyList<TokenInfo> _);
+      return program;
     }
   }
 }

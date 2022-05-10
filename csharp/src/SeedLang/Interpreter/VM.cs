@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -196,7 +197,8 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.VISNOTIFY:
-              chunk.Notifications[(int)instr.Bx].Notify(VisualizerCenter, (uint id) => {
+              var vmProxy = new VMProxy(this);
+              chunk.Notifications[(int)instr.Bx].Notify(VisualizerCenter, vmProxy, (uint id) => {
                 return ValueOfRK(chunk, id, baseRegister);
               }, instr.A, chunk.Ranges[pc]);
               break;
@@ -210,6 +212,10 @@ namespace SeedLang.Interpreter {
         }
         pc++;
       }
+    }
+
+    internal void Stop() {
+      throw new NotImplementedException();
     }
 
     private void GetElement(Chunk chunk, Instruction instr, uint baseRegister) {

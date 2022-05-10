@@ -23,7 +23,7 @@ namespace SeedLang.Tests.Helper {
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
       private readonly List<Event> _events = new List<Event>();
 
-      public void On(Event e) {
+      public void On(Event e, IVM vm) {
         _events.Add(e);
       }
 

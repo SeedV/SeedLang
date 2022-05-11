@@ -263,9 +263,9 @@ x = 1
         $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VTagEntered: Assign(x)\n" +
+        $"  0    Notification.VTagEntered: Assign(x: null)\n" +
         $"  1    Notification.SingleStep\n" +
-        $"  2    Notification.VTagExited: Assign(0)\n"
+        $"  2    Notification.VTagExited: Assign(x: 0)\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.SingleStep),
@@ -405,9 +405,9 @@ def func():
         $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VTagEntered: Add(1,2)\n" +
+        $"  0    Notification.VTagEntered: Add(1: 250, 2: 251)\n" +
         $"  1    Notification.Binary: 250 Add 251 1\n" +
-        $"  2    Notification.VTagExited: Add(250,251)\n"
+        $"  2    Notification.VTagExited: Add(1: 250, 2: 251)\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.Binary),
@@ -425,31 +425,30 @@ x, y = 1, 1 + 2
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
-        $"  2    ADD       0 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
-        $"  3    VISNOTIFY 0 1                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
-        $"  4    LOADK     1 -1             ; 1                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  5    SETGLOB   1 {_firstGlob}" +
+        $"  1    ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
+        $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
+        $"  3    ADD       0 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  5    LOADK     1 -1             ; 1                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  6    SETGLOB   1 {_firstGlob}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  6    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  7    SETGLOB   0 {_firstGlob + 1}" +
+        $"  7    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  8    SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  8    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  9    GETGLOB   0 {_firstGlob}" +
+        $"  9    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  10   GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
-        $"  10   GETGLOB   1 {_firstGlob + 1}" +
+        $"  11   GETGLOB   1 {_firstGlob + 1}" +
         $"                                  [Ln 2, Col 18 - Ln 2, Col 18]\n" +
-        $"  11   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
-        $"  12   VISNOTIFY 0 4                                  [Ln 2, Col 21 - Ln 2, Col 25]\n" +
-        $"  13   VISNOTIFY 0 5                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
+        $"  12   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
+        $"  13   VISNOTIFY 0 4                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
         $"  14   RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VTagEntered: Assign(x,1,y,1+2)\n" +
+        $"  0    Notification.VTagEntered: Assign(x: null, 1: 250, y: null, 1+2: 2)\n" +
         $"  1    Notification.Binary: 250 Add 251 0\n" +
         $"  2    Notification.Assignment: 'global.x': Global 1\n" +
         $"  3    Notification.Assignment: 'global.y': Global 0\n" +
-        $"  4    Notification.Binary: 250 Add 251 2\n" +
-        $"  5    Notification.VTagExited: Assign(0,250,1,2)\n"
+        $"  4    Notification.VTagExited: Assign(x: 0, 1: 250, y: 1, 1+2: 2)\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.Assignment),

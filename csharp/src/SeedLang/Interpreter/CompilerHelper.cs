@@ -40,8 +40,8 @@ namespace SeedLang.Interpreter {
     // The source code line number (1-based) of the previous bytecode.
     private int _sourceLineOfPrevBytecode = 0;
 
-    // The flag to suspend emitting of the single step notifications.
-    private bool _suspendSingleStepEmitting = false;
+    // The flag to suspend emitting of notifications.
+    private bool _suspendNotificationEmitting = false;
 
     internal CompilerHelper(VisualizerCenter visualizerCenter, GlobalEnvironment env) {
       _variableResolver = new VariableResolver(env);
@@ -131,8 +131,10 @@ namespace SeedLang.Interpreter {
     // for the FuncCalled event.
     internal void EmitCall(string name, uint funcRegister, uint argLength, TextRange range) {
       bool isNormalFunc = !NativeFunctions.IsInternalFunction(name);
-      bool notifyCalled = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncCalled>();
-      bool notifyReturned = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncReturned>();
+      bool notifyCalled = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncCalled>() &&
+                          !_suspendNotificationEmitting;
+      bool notifyReturned = isNormalFunc && _visualizerCenter.HasVisualizer<Event.FuncReturned>() &&
+                            !_suspendNotificationEmitting;
       uint nId = 0;
       if (notifyCalled || notifyReturned) {
         var notification = new Notification.Function(name, funcRegister, argLength);
@@ -150,7 +152,7 @@ namespace SeedLang.Interpreter {
 
     internal void EmitAssignNotification(string name, VariableType type, uint valueId,
                                          TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.Assignment>()) {
+      if (_visualizerCenter.HasVisualizer<Event.Assignment>() && !_suspendNotificationEmitting) {
         var n = new Notification.Assignment(name, type, valueId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
@@ -159,7 +161,7 @@ namespace SeedLang.Interpreter {
 
     internal void EmitBinaryNotification(uint leftId, BinaryOperator op, uint rightId,
                                          uint resultId, TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.Binary>()) {
+      if (_visualizerCenter.HasVisualizer<Event.Binary>() && !_suspendNotificationEmitting) {
         var n = new Notification.Binary(leftId, op, rightId, resultId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
@@ -168,7 +170,8 @@ namespace SeedLang.Interpreter {
 
     internal void EmitSubscriptAssignNotification(SubscriptExpression subscript, uint keyId,
                                                   uint valueId, TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.SubscriptAssignment>()) {
+      if (_visualizerCenter.HasVisualizer<Event.SubscriptAssignment>() &&
+          !_suspendNotificationEmitting) {
         VariableType type = VariableType.Global;
         if (subscript.Expr is IdentifierExpression identifier) {
           if (_variableResolver.FindVariable(identifier.Name) is RegisterInfo info) {
@@ -193,19 +196,16 @@ namespace SeedLang.Interpreter {
 
     internal void EmitUnaryNotification(UnaryOperator op, uint valueId, uint resultId,
                                         TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.Unary>()) {
+      if (_visualizerCenter.HasVisualizer<Event.Unary>() && !_suspendNotificationEmitting) {
         var n = new Notification.Unary(op, valueId, resultId);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
       }
     }
 
-    internal void EmitVTagEnteredNotification(VTagStatement vTag) {
-      if (_visualizerCenter.HasVisualizer<Event.VTagEntered>()) {
-        Event.VTagEntered.VTagInfo[] vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
-          var argTexts = Array.ConvertAll(vTagInfo.Args, args => args.Text);
-          return new Event.VTagEntered.VTagInfo(vTagInfo.Name, argTexts);
-        });
+    internal void EmitVTagEnteredNotification(VTagStatement vTag, ExprCompiler exprCompiler) {
+      if (_visualizerCenter.HasVisualizer<Event.VTagEntered>() && !_suspendNotificationEmitting) {
+        Notification.VTagInfo[] vTagInfos = CollectVTagInfo(vTag, exprCompiler);
         var n = new Notification.VTagEntered(vTagInfos);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), vTag.Range);
@@ -213,27 +213,11 @@ namespace SeedLang.Interpreter {
     }
 
     internal void EmitVTagExitedNotification(VTagStatement vTag, ExprCompiler exprCompiler) {
-      if (_visualizerCenter.HasVisualizer<Event.VTagExited>()) {
-        _suspendSingleStepEmitting = true;
-        BeginExprScope();
-        var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
-          var valueIds = new uint[vTagInfo.Args.Length];
-          for (int j = 0; j < vTagInfo.Args.Length; j++) {
-            if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
-              valueIds[j] = id;
-            } else {
-              valueIds[j] = DefineTempVariable();
-              exprCompiler.RegisterForSubExpr = valueIds[j];
-              exprCompiler.Visit(vTagInfo.Args[j].Expr);
-            }
-          }
-          return new Notification.VTagExited.VTagInfo(vTagInfo.Name, valueIds);
-        });
-        EndExprScope();
+      if (_visualizerCenter.HasVisualizer<Event.VTagExited>() && !_suspendNotificationEmitting) {
+        Notification.VTagInfo[] vTagInfos = CollectVTagInfo(vTag, exprCompiler);
         var n = new Notification.VTagExited(vTagInfos);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), vTag.Range);
-        _suspendSingleStepEmitting = false;
       }
     }
 
@@ -301,7 +285,7 @@ namespace SeedLang.Interpreter {
     }
 
     private void TryEmitSingleStepNotification(TextRange range) {
-      if (_visualizerCenter.HasVisualizer<Event.SingleStep>() && !_suspendSingleStepEmitting) {
+      if (_visualizerCenter.HasVisualizer<Event.SingleStep>() && !_suspendNotificationEmitting) {
         if (range.Start.Line != _sourceLineOfPrevBytecode) {
           // Creates the text range to indicate the start of a single step source line.
           var eventRange = new TextRange(range.Start.Line, 0, range.Start.Line, 0);
@@ -309,6 +293,36 @@ namespace SeedLang.Interpreter {
           _sourceLineOfPrevBytecode = range.Start.Line;
         }
       }
+    }
+
+    private Notification.VTagInfo[] CollectVTagInfo(VTagStatement vTag, ExprCompiler exprCompiler) {
+      _suspendNotificationEmitting = true;
+      BeginExprScope();
+      var vTagInfos = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
+        var args = Array.ConvertAll(vTagInfo.Args, arg => arg.Text);
+        var valueIds = new uint?[vTagInfo.Args.Length];
+        for (int j = 0; j < vTagInfo.Args.Length; j++) {
+          try {
+            if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
+              valueIds[j] = id;
+            } else {
+              valueIds[j] = DefineTempVariable();
+              exprCompiler.RegisterForSubExpr = valueIds[j].Value;
+              exprCompiler.Visit(vTagInfo.Args[j].Expr);
+            }
+          } catch (DiagnosticException ex) {
+            if (ex.Diagnostic.MessageId == Message.RuntimeErrorVariableNotDefined) {
+              valueIds[j] = null;
+            } else {
+              throw ex;
+            }
+          }
+        }
+        return new Notification.VTagInfo(vTagInfo.Name, args, valueIds);
+      });
+      EndExprScope();
+      _suspendNotificationEmitting = false;
+      return vTagInfos;
     }
   }
 }

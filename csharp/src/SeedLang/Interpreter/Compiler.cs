@@ -225,7 +225,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitVTag(VTagStatement vTag) {
-      _helper.EmitVTagEnteredNotification(vTag);
+      _helper.EmitVTagEnteredNotification(vTag, _exprCompiler);
       foreach (Statement statement in vTag.Statements) {
         Visit(statement);
       }

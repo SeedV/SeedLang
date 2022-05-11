@@ -13,7 +13,9 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Visualization;
@@ -176,54 +178,72 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal class VTagEntered : AbstractNotification {
-      private readonly Event.VTagEntered.VTagInfo[] _vTagInfos;
+    public class VTagInfo {
+      public string Name { get; }
+      public string[] Args { get; }
+      public uint?[] ValueIds { get; }
 
-      internal VTagEntered(Event.VTagEntered.VTagInfo[] vTagInfos) {
-        _vTagInfos = vTagInfos;
+      public VTagInfo(string name, string[] args, uint?[] valueIds) {
+        Debug.Assert(args.Length == valueIds.Length);
+        Name = name;
+        Args = args;
+        ValueIds = valueIds;
       }
 
       public override string ToString() {
-        var vTagInfoStr = string.Join<Event.VTagEntered.VTagInfo>(",", _vTagInfos);
-        return $"Notification.VTagEntered: {vTagInfoStr}";
-      }
-
-      internal override void Notify(VisualizerCenter visualizerCenter,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        visualizerCenter.Notify(new Event.VTagEntered(_vTagInfos, range));
+        var sb = new StringBuilder();
+        sb.Append(Name);
+        if (Args.Length > 0) {
+          sb.Append('(');
+          for (int i = 0; i < Args.Length; i++) {
+            sb.Append(i > 0 ? ", " : "");
+            sb.Append($"{Args[i]}: {ValueIds[i]?.ToString() ?? "null"}");
+          }
+          sb.Append(')');
+        }
+        return sb.ToString();
       }
     }
 
-    internal class VTagExited : AbstractNotification {
-      public class VTagInfo {
-        public string Name { get; }
-        public uint[] ValueIds { get; }
-
-        public VTagInfo(string name, uint[] valueIds) {
-          Name = name;
-          ValueIds = valueIds;
-        }
-
-        public override string ToString() {
-          return Name + (ValueIds.Length > 0 ? $"({string.Join(",", ValueIds)})" : "");
-        }
-      }
+    internal abstract class VTag : AbstractNotification {
       private readonly VTagInfo[] _vTagInfos;
 
-      internal VTagExited(VTagInfo[] vTagInfos) {
+      internal VTag(VTagInfo[] vTagInfos) {
         _vTagInfos = vTagInfos;
       }
 
       public override string ToString() {
-        return $"Notification.VTagExited: {string.Join<VTagInfo>(",", _vTagInfos)}";
+        return $"Notification.{GetType().Name}: {string.Join<VTagInfo>(", ", _vTagInfos)}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter,
                                     Func<uint, VMValue> getRKValue, uint data, TextRange range) {
         var vTags = Array.ConvertAll(_vTagInfos, vTag => {
-          var values = Array.ConvertAll(vTag.ValueIds, valueId => new Value(getRKValue(valueId)));
-          return new Event.VTagExited.VTagInfo(vTag.Name, values);
+          var values = Array.ConvertAll(vTag.ValueIds, valueId =>
+              valueId.HasValue ? new Value(getRKValue(valueId.Value)) : new Value());
+          return new Visualization.VTagInfo(vTag.Name, vTag.Args, values);
         });
+        Notify(visualizerCenter, vTags, range);
+      }
+
+      protected abstract void Notify(VisualizerCenter visualizerCenter,
+                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range);
+    }
+
+    internal class VTagEntered : VTag {
+      internal VTagEntered(VTagInfo[] vTagInfos) : base(vTagInfos) { }
+
+      protected override void Notify(VisualizerCenter visualizerCenter,
+                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range) {
+        visualizerCenter.Notify(new Event.VTagEntered(vTags, range));
+      }
+    }
+
+    internal class VTagExited : VTag {
+      internal VTagExited(VTagInfo[] vTagInfos) : base(vTagInfos) { }
+
+      protected override void Notify(VisualizerCenter visualizerCenter,
+                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range) {
         visualizerCenter.Notify(new Event.VTagExited(vTags, range));
       }
     }

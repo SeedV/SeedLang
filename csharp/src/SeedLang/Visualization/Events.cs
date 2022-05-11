@@ -14,6 +14,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -22,6 +23,31 @@ namespace SeedLang.Visualization {
   public enum VariableType {
     Global,
     Local,
+  }
+
+  public class VTagInfo {
+    public string Name { get; }
+    public IReadOnlyList<string> Args { get; }
+    public IReadOnlyList<Value> Values { get; }
+
+    public VTagInfo(string name, IReadOnlyList<string> args, IReadOnlyList<Value> values) {
+      Debug.Assert(args.Count == values.Count);
+      Name = name;
+      Args = args;
+      Values = values;
+    }
+
+    public override string ToString() {
+      var sb = new StringBuilder();
+      sb.Append(Name);
+      sb.Append('(');
+      for (int i = 0; i < Args.Count; i++) {
+        sb.Append(i > 0 ? ", " : "");
+        sb.Append($"{Args[i]}: {Values[i]}");
+      }
+      sb.Append(')');
+      return sb.ToString();
+    }
   }
 
   public abstract class AbstractEvent {
@@ -168,20 +194,6 @@ namespace SeedLang.Visualization {
 
     // An event which is triggered when a VTag scope is entered.
     public class VTagEntered : AbstractEvent {
-      public class VTagInfo {
-        public string Name { get; }
-        public IReadOnlyList<string> ArgTexts { get; }
-
-        public VTagInfo(string name, IReadOnlyList<string> argTexts) {
-          Name = name;
-          ArgTexts = argTexts;
-        }
-
-        public override string ToString() {
-          return Name + (ArgTexts.Count > 0 ? $"({string.Join(",", ArgTexts)})" : "");
-        }
-      }
-
       public IReadOnlyList<VTagInfo> VTags { get; }
 
       public VTagEntered(IReadOnlyList<VTagInfo> vTags, TextRange range) : base(range) {
@@ -191,20 +203,6 @@ namespace SeedLang.Visualization {
 
     // An event which is triggered when a VTag scope is exited.
     public class VTagExited : AbstractEvent {
-      public class VTagInfo {
-        public string Name { get; }
-        public IReadOnlyList<Value> Args { get; }
-
-        public VTagInfo(string name, IReadOnlyList<Value> args) {
-          Name = name;
-          Args = args;
-        }
-
-        public override string ToString() {
-          return Name + (Args.Count > 0 ? $"({string.Join(",", Args)})" : "");
-        }
-      }
-
       public IReadOnlyList<VTagInfo> VTags { get; }
 
       public VTagExited(IReadOnlyList<VTagInfo> vTags, TextRange range) : base(range) {

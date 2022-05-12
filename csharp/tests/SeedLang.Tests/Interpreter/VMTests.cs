@@ -272,8 +272,8 @@ b = 2
       var expected = (
         "[Ln 3, Col 0 - Ln 3, Col 0] SingleStep\n" +
         "[Ln 4, Col 0 - Ln 4, Col 0] SingleStep\n" +
-        "[Ln 2, Col 0 - Ln 3, Col 4] VTagEntered: Assign(a)\n" +
-        "[Ln 2, Col 0 - Ln 3, Col 4] VTagExited: Assign(1)\n"
+        "[Ln 2, Col 0 - Ln 3, Col 4] VTagEntered: Assign(a: None)\n" +
+        "[Ln 2, Col 0 - Ln 3, Col 4] VTagExited: Assign(a: 1)\n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, vh.EventsToString());
     }

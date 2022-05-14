@@ -18,14 +18,15 @@ using System.Collections.Immutable;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
-  // The value type used in the SeedLang core components.
+  // The value type used in the SeedVM that can carry primary value types (Nil, Boolean, Number) and
+  // reference value types (String, Function, Dict, List, Tuple, Range, Slice etc.)
   //
-  // Design consideration:
   // 1) It's designed as a value type (struct) to avoid object creating frequently. It's wrapped by
-  //    a ValueWrapper and sent to the visualizer center when visualizers need be notified.
+  //    a Value class defined in SeedLang.Visualization and sent to the visualizer center when
+  //    visualizers need be notified.
   // 2) "in" keyword is used when passing Value as a parameter of functions to avoid copying.
   // 3) "ref readonly" keywords are used when returning Value from a function to avoid copying.
-  internal readonly struct Value : IEquatable<Value> {
+  internal readonly struct VMValue : IEquatable<VMValue> {
     internal enum ValueType {
       Nil,
       Boolean,
@@ -58,33 +59,33 @@ namespace SeedLang.Runtime {
     private readonly double _number;
     private readonly HeapObject _object;
 
-    internal Value(bool value) {
+    internal VMValue(bool value) {
       _type = ValueType.Boolean;
       _number = ValueHelper.BooleanToNumber(value);
       _object = null;
     }
 
-    internal Value(double value) {
+    internal VMValue(double value) {
       _type = ValueType.Number;
       _number = value;
       _object = null;
     }
 
-    internal Value(object obj) {
+    internal VMValue(object obj) {
       _type = ValueType.Object;
       _number = 0;
       _object = new HeapObject(obj);
     }
 
-    public static bool operator ==(in Value lhs, in Value rhs) {
+    public static bool operator ==(in VMValue lhs, in VMValue rhs) {
       return lhs.Equals(rhs);
     }
 
-    public static bool operator !=(in Value lhs, in Value rhs) {
+    public static bool operator !=(in VMValue lhs, in VMValue rhs) {
       return !(lhs == rhs);
     }
 
-    public bool Equals(Value other) {
+    public bool Equals(VMValue other) {
       switch (_type) {
         case ValueType.Nil:
           return other._type == ValueType.Nil;
@@ -100,7 +101,7 @@ namespace SeedLang.Runtime {
     }
 
     public override bool Equals(object obj) {
-      return obj is Value other && Equals(other);
+      return obj is VMValue other && Equals(other);
     }
 
     public override int GetHashCode() {
@@ -130,7 +131,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value this[Value key] {
+    internal VMValue this[VMValue key] {
       get {
         if (_type == ValueType.Object) {
           return _object[key];
@@ -195,7 +196,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal List<Value> AsList() {
+    internal List<VMValue> AsList() {
       if (_type == ValueType.Object) {
         return _object.AsList();
       } else {
@@ -213,7 +214,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal ImmutableArray<Value> AsTuple() {
+    internal ImmutableArray<VMValue> AsTuple() {
       if (_type == ValueType.Object) {
         return _object.AsTuple();
       } else {
@@ -222,7 +223,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Dictionary<Value, Value> AsDict() {
+    internal Dictionary<VMValue, VMValue> AsDict() {
       if (_type == ValueType.Object) {
         return _object.AsDict();
       } else {

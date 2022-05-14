@@ -16,8 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using SeedLang.Ast;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
+using SeedLang.Visualization;
+using SeedLang.X;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
@@ -154,8 +157,11 @@ namespace SeedLang.Interpreter.Tests {
                          AstHelper.NumberConstant(5)),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
-      (string output, VisualizerHelper _) = Run(program, Array.Empty<Type>());
+      (string output, VisualizerHelper vh) = Run(program,
+                                                 new Type[] { typeof(Event.SubscriptAssignment) });
       Assert.Equal("5" + Environment.NewLine, output);
+      var expected = $"{AstHelper.TextRange} (global.a: Global)[1] = 5" + Environment.NewLine;
+      Assert.Equal(expected, vh.EventsToString());
     }
 
     [Fact]
@@ -190,7 +196,7 @@ namespace SeedLang.Interpreter.Tests {
       );
       (string output, VisualizerHelper vh) = Run(program, new Type[] { typeof(Event.Assignment) });
       Assert.Equal("1" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} {name} = 1" + Environment.NewLine;
+      var expected = $"{AstHelper.TextRange} global.{name}: Global = 1" + Environment.NewLine;
       Assert.Equal(expected, vh.EventsToString());
     }
 
@@ -212,8 +218,8 @@ namespace SeedLang.Interpreter.Tests {
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expectedOutput, output);
       var expected = (
-        $"{AstHelper.TextRange} {a} = 1\n" +
-        $"{AstHelper.TextRange} {b} = 2\n"
+        $"{AstHelper.TextRange} global.{a}: Global = 1\n" +
+        $"{AstHelper.TextRange} global.{b}: Global = 2\n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, vh.EventsToString());
     }
@@ -229,7 +235,7 @@ namespace SeedLang.Interpreter.Tests {
       );
       (string output, VisualizerHelper vh) = Run(block, new Type[] { typeof(Event.Assignment) });
       Assert.Equal("(1, 2)" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} {name} = (1, 2)" + Environment.NewLine;
+      var expected = $"{AstHelper.TextRange} global.{name}: Global = (1, 2)" + Environment.NewLine;
       Assert.Equal(expected, vh.EventsToString());
     }
 
@@ -251,6 +257,27 @@ namespace SeedLang.Interpreter.Tests {
       Assert.Equal(expectedOutput, output);
     }
 
+    [Fact]
+    public void TestSingleStepNotification() {
+      string source = @"
+# [[ Assign(a) ]]
+a = 1
+b = 2
+";
+      (string _, VisualizerHelper vh) = Run(Parse(source), new Type[] {
+        typeof(Event.SingleStep),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      });
+      var expected = (
+        "[Ln 3, Col 0 - Ln 3, Col 0] SingleStep\n" +
+        "[Ln 4, Col 0 - Ln 4, Col 0] SingleStep\n" +
+        "[Ln 2, Col 0 - Ln 3, Col 4] VTagEntered: Assign(a: None)\n" +
+        "[Ln 2, Col 0 - Ln 3, Col 4] VTagExited: Assign(a: 1)\n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, vh.EventsToString());
+    }
+
     private static (string, VisualizerHelper) Run(Statement program,
                                                   IReadOnlyList<Type> eventTypes) {
       var vm = new VM();
@@ -262,6 +289,12 @@ namespace SeedLang.Interpreter.Tests {
       Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
       vm.Run(func);
       return (stringWriter.ToString(), vh);
+    }
+
+    private static Statement Parse(string source) {
+      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
+                             out IReadOnlyList<TokenInfo> _);
+      return program;
     }
   }
 }

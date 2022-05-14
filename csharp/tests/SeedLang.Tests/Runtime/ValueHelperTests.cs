@@ -22,51 +22,52 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestContains() {
       string a = "a";
-      var dict = new Value(new Dictionary<Value, Value> {
-        [new Value(1)] = new Value(1),
-        [new Value(a)] = new Value(2),
+      var dict = new VMValue(new Dictionary<VMValue, VMValue> {
+        [new VMValue(1)] = new VMValue(1),
+        [new VMValue(a)] = new VMValue(2),
       });
-      Assert.True(ValueHelper.Contains(dict, new Value(1)));
-      Assert.True(ValueHelper.Contains(dict, new Value(a)));
-      Assert.False(ValueHelper.Contains(dict, new Value()));
+      Assert.True(ValueHelper.Contains(dict, new VMValue(1)));
+      Assert.True(ValueHelper.Contains(dict, new VMValue(a)));
+      Assert.False(ValueHelper.Contains(dict, new VMValue()));
 
-      var list = new Value(new List<Value>() { new Value(1), new Value(a) });
-      Assert.True(ValueHelper.Contains(list, new Value(1)));
-      Assert.True(ValueHelper.Contains(list, new Value(a)));
-      Assert.False(ValueHelper.Contains(list, new Value()));
+      var list = new VMValue(new List<VMValue>() { new VMValue(1), new VMValue(a) });
+      Assert.True(ValueHelper.Contains(list, new VMValue(1)));
+      Assert.True(ValueHelper.Contains(list, new VMValue(a)));
+      Assert.False(ValueHelper.Contains(list, new VMValue()));
 
-      var tuple = new Value(ImmutableArray.Create(new Value(1), new Value(a)));
-      Assert.True(ValueHelper.Contains(tuple, new Value(1)));
-      Assert.True(ValueHelper.Contains(tuple, new Value(a)));
-      Assert.False(ValueHelper.Contains(tuple, new Value()));
+      var tuple = new VMValue(ImmutableArray.Create(new VMValue(1), new VMValue(a)));
+      Assert.True(ValueHelper.Contains(tuple, new VMValue(1)));
+      Assert.True(ValueHelper.Contains(tuple, new VMValue(a)));
+      Assert.False(ValueHelper.Contains(tuple, new VMValue()));
 
-      var str = new Value("Hello World");
-      Assert.True(ValueHelper.Contains(str, new Value("o")));
-      Assert.True(ValueHelper.Contains(str, new Value(" ")));
-      Assert.True(ValueHelper.Contains(str, new Value("Hello")));
-      Assert.False(ValueHelper.Contains(str, new Value("HW")));
+      var str = new VMValue("Hello World");
+      Assert.True(ValueHelper.Contains(str, new VMValue("o")));
+      Assert.True(ValueHelper.Contains(str, new VMValue(" ")));
+      Assert.True(ValueHelper.Contains(str, new VMValue("Hello")));
+      Assert.False(ValueHelper.Contains(str, new VMValue("HW")));
       var exception = Assert.Throws<DiagnosticException>(() => {
-        ValueHelper.Contains(str, new Value());
+        ValueHelper.Contains(str, new VMValue());
       });
       Assert.Equal(Message.RuntimeErrorUnsupportedOperads, exception.Diagnostic.MessageId);
     }
 
     [Fact]
     public void TestDivide() {
-      Assert.Equal(2.5, ValueHelper.Divide(new Value(5), new Value(2)).AsNumber());
-      Assert.Throws<DiagnosticException>(() => ValueHelper.Divide(new Value(5), new Value(0)));
+      Assert.Equal(2.5, ValueHelper.Divide(new VMValue(5), new VMValue(2)).AsNumber());
+      Assert.Throws<DiagnosticException>(() => ValueHelper.Divide(new VMValue(5), new VMValue(0)));
     }
 
     [Fact]
     public void TestFloorDivide() {
-      Assert.Equal(2, ValueHelper.FloorDivide(new Value(5), new Value(2)).AsNumber());
-      Assert.Throws<DiagnosticException>(() => ValueHelper.FloorDivide(new Value(5), new Value(0)));
+      Assert.Equal(2, ValueHelper.FloorDivide(new VMValue(5), new VMValue(2)).AsNumber());
+      Assert.Throws<DiagnosticException>(() => ValueHelper.FloorDivide(new VMValue(5),
+                                                                       new VMValue(0)));
     }
 
     [Fact]
     public void TestModulo() {
-      Assert.Equal(1, ValueHelper.Modulo(new Value(5), new Value(2)).AsNumber());
-      Assert.Throws<DiagnosticException>(() => ValueHelper.Modulo(new Value(5), new Value(0)));
+      Assert.Equal(1, ValueHelper.Modulo(new VMValue(5), new VMValue(2)).AsNumber());
+      Assert.Throws<DiagnosticException>(() => ValueHelper.Modulo(new VMValue(5), new VMValue(0)));
     }
 
     [Fact]

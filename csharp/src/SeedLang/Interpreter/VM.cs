@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
+    public VMState State { get; private set; } = VMState.Ready;
     public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs);
     public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
 
@@ -30,76 +34,97 @@ namespace SeedLang.Interpreter {
     // can hold maximun 100 recursive function calls.
     private const int _stackSize = 25 * 1024;
 
-    private readonly Value[] _stack = new Value[_stackSize];
+    private readonly VMValue[] _stack = new VMValue[_stackSize];
     private CallStack _callStack;
+    private Chunk _chunk;
+    private uint _baseRegister;
+    private int _pc;
 
     internal void RedirectStdout(TextWriter stdout) {
       _sys.Stdout = stdout;
     }
 
     internal void Run(Function func) {
-      uint baseRegister = 0;
+      Debug.Assert(State != VMState.Running);
+      _baseRegister = 0;
       _callStack = new CallStack();
-      _callStack.PushFunc(func, baseRegister, 0);
-      Chunk chunk = func.Chunk;
-      int pc = 0;
-      while (pc < chunk.Bytecode.Count) {
-        Instruction instr = chunk.Bytecode[pc];
+      _callStack.PushFunc(func, _baseRegister, 0);
+      _chunk = func.Chunk;
+      _pc = 0;
+      RunLoop();
+    }
+
+    internal void Stop() {
+      Debug.Assert(State == VMState.Running);
+      Debug.Assert(_pc + 1 < _chunk.Bytecode.Count);
+      _chunk.SetBreakPointAt(_pc + 1);
+    }
+
+    internal void Continue() {
+      Debug.Assert(State == VMState.Stopped);
+      _chunk.RestoreBreakPoint();
+      RunLoop();
+    }
+
+    private void RunLoop() {
+      State = VMState.Running;
+      while (_pc < _chunk.Bytecode.Count) {
+        Instruction instr = _chunk.Bytecode[_pc];
         try {
           switch (instr.Opcode) {
             case Opcode.MOVE:
-              _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B];
+              _stack[_baseRegister + instr.A] = _stack[_baseRegister + instr.B];
               break;
             case Opcode.LOADNIL:
               for (int i = 0; i < instr.B; i++) {
-                _stack[baseRegister + instr.A + i] = new Value();
+                _stack[_baseRegister + instr.A + i] = new VMValue();
               }
               break;
             case Opcode.LOADBOOL:
-              _stack[baseRegister + instr.A] = new Value(instr.B == 1);
+              _stack[_baseRegister + instr.A] = new VMValue(instr.B == 1);
               if (instr.C == 1) {
-                pc++;
+                _pc++;
               }
               break;
             case Opcode.LOADK:
-              _stack[baseRegister + instr.A] = chunk.ValueOfConstId(instr.Bx);
+              _stack[_baseRegister + instr.A] = _chunk.ValueOfConstId(instr.Bx);
               break;
             case Opcode.NEWTUPLE:
-              var builder = ImmutableArray.CreateBuilder<Value>((int)instr.C);
+              var builder = ImmutableArray.CreateBuilder<VMValue>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
-                builder.Add(_stack[baseRegister + instr.B + i]);
+                builder.Add(_stack[_baseRegister + instr.B + i]);
               }
-              _stack[baseRegister + instr.A] = new Value(builder.MoveToImmutable());
+              _stack[_baseRegister + instr.A] = new VMValue(builder.MoveToImmutable());
               break;
             case Opcode.NEWLIST:
-              var list = new List<Value>((int)instr.C);
+              var list = new List<VMValue>((int)instr.C);
               for (int i = 0; i < instr.C; i++) {
-                list.Add(_stack[baseRegister + instr.B + i]);
+                list.Add(_stack[_baseRegister + instr.B + i]);
               }
-              _stack[baseRegister + instr.A] = new Value(list);
+              _stack[_baseRegister + instr.A] = new VMValue(list);
               break;
             case Opcode.NEWDICT:
               int count = (int)instr.C / 2;
-              var dict = new Dictionary<Value, Value>(count);
-              uint dictRegister = baseRegister + instr.A;
-              uint kvStart = baseRegister + instr.B;
+              var dict = new Dictionary<VMValue, VMValue>(count);
+              uint dictRegister = _baseRegister + instr.A;
+              uint kvStart = _baseRegister + instr.B;
               for (uint i = 0; i < count; i++) {
                 uint keyRegister = kvStart + i * 2;
                 dict[_stack[keyRegister]] = _stack[keyRegister + 1];
               }
-              _stack[dictRegister] = new Value(dict);
+              _stack[dictRegister] = new VMValue(dict);
               break;
             case Opcode.GETGLOB:
-              _stack[baseRegister + instr.A] = Env.GetVariable(instr.Bx);
+              _stack[_baseRegister + instr.A] = Env.GetVariable(instr.Bx);
               break;
             case Opcode.SETGLOB:
-              Env.SetVariable(instr.Bx, _stack[baseRegister + instr.A]);
+              Env.SetVariable(instr.Bx, _stack[_baseRegister + instr.A]);
               break;
             case Opcode.GETELEM:
-              GetElement(chunk, instr, baseRegister);
+              GetElement(instr);
               break;
             case Opcode.SETELEM:
-              SetElement(chunk, instr, baseRegister);
+              SetElement(instr);
               break;
             case Opcode.ADD:
             case Opcode.SUB:
@@ -108,122 +133,121 @@ namespace SeedLang.Interpreter {
             case Opcode.FLOORDIV:
             case Opcode.POW:
             case Opcode.MOD:
-              HandleBinary(chunk, instr, baseRegister);
+              HandleBinary(instr);
               break;
             case Opcode.UNM:
-              _stack[baseRegister + instr.A] =
-                  new Value(-ValueOfRK(chunk, instr.B, baseRegister).AsNumber());
+              _stack[_baseRegister + instr.A] = new VMValue(-ValueOfRK(instr.B).AsNumber());
               break;
             case Opcode.LEN:
-              _stack[baseRegister + instr.A] = new Value(_stack[baseRegister + instr.B].Length);
+              _stack[_baseRegister + instr.A] = new VMValue(_stack[_baseRegister + instr.B].Length);
               break;
             case Opcode.JMP:
-              pc += instr.SBx;
+              _pc += instr.SBx;
               break;
             case Opcode.EQ: {
-                bool result = ValueOfRK(chunk, instr.B, baseRegister).Equals(
-                    ValueOfRK(chunk, instr.C, baseRegister));
+                bool result = ValueOfRK(instr.B).Equals(ValueOfRK(instr.C));
                 if (result == (instr.A == 1)) {
-                  pc++;
+                  _pc++;
                 }
               }
               break;
             case Opcode.LT: {
-                bool result = ValueHelper.Less(ValueOfRK(chunk, instr.B, baseRegister),
-                                               ValueOfRK(chunk, instr.C, baseRegister));
+                bool result = ValueHelper.Less(ValueOfRK(instr.B), ValueOfRK(instr.C));
                 if (result == (instr.A == 1)) {
-                  pc++;
+                  _pc++;
                 }
               }
               break;
             case Opcode.LE: {
-                bool result = ValueHelper.LessEqual(ValueOfRK(chunk, instr.B, baseRegister),
-                                                    ValueOfRK(chunk, instr.C, baseRegister));
+                bool result = ValueHelper.LessEqual(ValueOfRK(instr.B), ValueOfRK(instr.C));
                 if (result == (instr.A == 1)) {
-                  pc++;
+                  _pc++;
                 }
               }
               break;
             case Opcode.IN: {
-                bool result = ValueHelper.Contains(ValueOfRK(chunk, instr.C, baseRegister),
-                                                   ValueOfRK(chunk, instr.B, baseRegister));
+                bool result = ValueHelper.Contains(ValueOfRK(instr.C), ValueOfRK(instr.B));
                 if (result == (instr.A == 1)) {
-                  pc++;
+                  _pc++;
                 }
               }
               break;
             case Opcode.TEST:
-              if (_stack[baseRegister + instr.A].AsBoolean() == (instr.C == 1)) {
-                pc++;
+              if (_stack[_baseRegister + instr.A].AsBoolean() == (instr.C == 1)) {
+                _pc++;
               }
               break;
             case Opcode.TESTSET:
               // TODO: implement the TESTSET opcode.
               break;
             case Opcode.FORPREP: {
-                uint loopReg = baseRegister + instr.A;
+                uint loopReg = _baseRegister + instr.A;
                 const uint stepOff = 2;
                 _stack[loopReg] = ValueHelper.Subtract(_stack[loopReg], _stack[loopReg + stepOff]);
-                pc += instr.SBx;
+                _pc += instr.SBx;
                 break;
               }
             case Opcode.FORLOOP: {
-                uint loopReg = baseRegister + instr.A;
+                uint loopReg = _baseRegister + instr.A;
                 const uint limitOff = 1;
                 const uint stepOff = 2;
                 _stack[loopReg] = ValueHelper.Add(_stack[loopReg], _stack[loopReg + stepOff]);
                 if (_stack[loopReg].AsNumber() < _stack[loopReg + limitOff].AsNumber()) {
-                  pc += instr.SBx;
+                  _pc += instr.SBx;
                 }
                 break;
               }
             case Opcode.CALL:
-              CallFunction(ref chunk, ref pc, ref baseRegister, instr);
+              CallFunction(instr);
               break;
             case Opcode.RETURN:
               // TODO: only support one return value now.
-              if (baseRegister > 0) {
-                uint returnRegister = baseRegister - 1;
-                _stack[returnRegister] = instr.B > 0 ? _stack[baseRegister + instr.A] : new Value();
+              if (_baseRegister > 0) {
+                uint returnRegister = _baseRegister - 1;
+                _stack[returnRegister] = instr.B > 0 ? _stack[_baseRegister + instr.A] :
+                                                       new VMValue();
               }
               _callStack.PopFunc();
-              if (!_callStack.IsEmpty) {
-                chunk = _callStack.CurrentChunk();
-                baseRegister = _callStack.CurrentBase();
-                pc = _callStack.CurrentPC();
-              }
+              Debug.Assert(!_callStack.IsEmpty);
+              _chunk = _callStack.CurrentChunk();
+              _baseRegister = _callStack.CurrentBase();
+              _pc = _callStack.CurrentPC();
               break;
             case Opcode.VISNOTIFY:
-              chunk.Notifications[(int)instr.Bx].Notify(VisualizerCenter, (uint id) => {
-                return ValueOfRK(chunk, id, baseRegister);
-              }, instr.A, chunk.Ranges[pc]);
+              var vmProxy = new VMProxy(this);
+              _chunk.Notifications[(int)instr.Bx].Notify(VisualizerCenter, vmProxy, (uint id) => {
+                return ValueOfRK(id);
+              }, instr.A, _chunk.Ranges[_pc]);
               break;
+            case Opcode.HALT:
+              State = instr.A == 0 ? VMState.Stopped : VMState.Terminated;
+              return;
             default:
-              throw new System.NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
+              throw new NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
         } catch (DiagnosticException ex) {
           throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
-                                        ex.Diagnostic.Module, chunk.Ranges[pc],
+                                        ex.Diagnostic.Module, _chunk.Ranges[_pc],
                                         ex.Diagnostic.MessageId);
         }
-        pc++;
+        _pc++;
       }
     }
 
-    private void GetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      Value index = ValueOfRK(chunk, instr.C, baseRegister);
-      _stack[baseRegister + instr.A] = _stack[baseRegister + instr.B][index];
+    private void GetElement(Instruction instr) {
+      VMValue index = ValueOfRK(instr.C);
+      _stack[_baseRegister + instr.A] = _stack[_baseRegister + instr.B][index];
     }
 
-    private void SetElement(Chunk chunk, Instruction instr, uint baseRegister) {
-      Value index = ValueOfRK(chunk, instr.B, baseRegister);
-      _stack[baseRegister + instr.A][index] = ValueOfRK(chunk, instr.C, baseRegister);
+    private void SetElement(Instruction instr) {
+      VMValue index = ValueOfRK(instr.B);
+      _stack[_baseRegister + instr.A][index] = ValueOfRK(instr.C);
     }
 
-    private void HandleBinary(Chunk chunk, Instruction instr, uint baseRegister) {
-      Value left = ValueOfRK(chunk, instr.B, baseRegister);
-      Value right = ValueOfRK(chunk, instr.C, baseRegister);
-      uint register = baseRegister + instr.A;
+    private void HandleBinary(Instruction instr) {
+      VMValue left = ValueOfRK(instr.B);
+      VMValue right = ValueOfRK(instr.C);
+      uint register = _baseRegister + instr.A;
       switch (instr.Opcode) {
         case Opcode.ADD:
           _stack[register] = ValueHelper.Add(left, right);
@@ -249,30 +273,29 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void CallFunction(ref Chunk chunk, ref int pc, ref uint baseRegister,
-                              Instruction instr) {
-      int calleeRegister = (int)(baseRegister + instr.A);
+    private void CallFunction(Instruction instr) {
+      int calleeRegister = (int)(_baseRegister + instr.A);
       var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
         case HeapObject.NativeFunction nativeFunc:
           _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B, _sys);
           break;
         case Function func:
-          baseRegister += instr.A + 1;
-          _callStack.PushFunc(func, baseRegister, pc);
-          chunk = func.Chunk;
-          pc = -1;
+          _baseRegister += instr.A + 1;
+          _callStack.PushFunc(func, _baseRegister, _pc);
+          _chunk = func.Chunk;
+          _pc = -1;
           break;
       }
     }
 
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to
     // avoid copying.
-    private ref readonly Value ValueOfRK(Chunk chunk, uint rkPos, uint baseRegister) {
+    private ref readonly VMValue ValueOfRK(uint rkPos) {
       if (rkPos < Chunk.MaxRegisterCount) {
-        return ref _stack[baseRegister + rkPos];
+        return ref _stack[_baseRegister + rkPos];
       }
-      return ref chunk.ValueOfConstId(rkPos);
+      return ref _chunk.ValueOfConstId(rkPos);
     }
   }
 }

@@ -14,12 +14,40 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using SeedLang.Common;
+using SeedLang.Runtime;
 
-namespace SeedLang.Runtime {
+namespace SeedLang.Visualization {
+  // The type of variables.
   public enum VariableType {
     Global,
     Local,
+  }
+
+  public class VTagInfo {
+    public string Name { get; }
+    public IReadOnlyList<string> Args { get; }
+    public IReadOnlyList<Value> Values { get; }
+
+    public VTagInfo(string name, IReadOnlyList<string> args, IReadOnlyList<Value> values) {
+      Debug.Assert(args.Count == values.Count);
+      Name = name;
+      Args = args;
+      Values = values;
+    }
+
+    public override string ToString() {
+      var sb = new StringBuilder();
+      sb.Append(Name);
+      sb.Append('(');
+      for (int i = 0; i < Args.Count; i++) {
+        sb.Append(i > 0 ? ", " : "");
+        sb.Append($"{Args[i]}: {Values[i]}");
+      }
+      sb.Append(')');
+      return sb.ToString();
+    }
   }
 
   public abstract class AbstractEvent {
@@ -32,13 +60,15 @@ namespace SeedLang.Runtime {
   }
 
   public static class Event {
-    // An event which is triggered when an assignment statement is executed.
+    // An event which is triggered when a value is assigned to a variable.
     public class Assignment : AbstractEvent {
+      // The name of the assigned variable.
       public string Name { get; }
+      // The type of the assigned variable.
       public VariableType Type { get; }
-      public IValue Value { get; }
+      public Value Value { get; }
 
-      public Assignment(string name, VariableType type, IValue value, TextRange range) :
+      public Assignment(string name, VariableType type, Value value, TextRange range) :
           base(range) {
         Name = name;
         Type = type;
@@ -48,12 +78,12 @@ namespace SeedLang.Runtime {
 
     // An event which is triggered when a binary expression is evaluated.
     public class Binary : AbstractEvent {
-      public IValue Left { get; }
+      public Value Left { get; }
       public BinaryOperator Op { get; }
-      public IValue Right { get; }
-      public IValue Result { get; }
+      public Value Right { get; }
+      public Value Result { get; }
 
-      public Binary(IValue left, BinaryOperator op, IValue right, IValue result, TextRange range) :
+      public Binary(Value left, BinaryOperator op, Value right, Value result, TextRange range) :
           base(range) {
         Left = left;
         Op = op;
@@ -68,11 +98,11 @@ namespace SeedLang.Runtime {
     // filled as null.
     public class Boolean : AbstractEvent {
       public BooleanOperator Op { get; }
-      public IReadOnlyList<IValue> Values { get; }
-      public IValue Result { get; }
+      public IReadOnlyList<Value> Values { get; }
+      public Value Result { get; }
 
-      public Boolean(BooleanOperator op, IReadOnlyList<IValue> values, IValue result,
-                     TextRange range) : base(range) {
+      public Boolean(BooleanOperator op, IReadOnlyList<Value> values, Value result, TextRange range)
+          : base(range) {
         Debug.Assert(values.Count > 1);
         Op = op;
         Values = values;
@@ -85,14 +115,13 @@ namespace SeedLang.Runtime {
     // The count of values is as same as Ops. But not all the expressions are evaluated due to short
     // circuit. The values without evaluated are filled as null.
     public class Comparison : AbstractEvent {
-      public IValue First { get; }
+      public Value First { get; }
       public IReadOnlyList<ComparisonOperator> Ops { get; }
-      public IReadOnlyList<IValue> Values { get; }
-      public IValue Result { get; }
+      public IReadOnlyList<Value> Values { get; }
+      public Value Result { get; }
 
-      public Comparison(
-          IValue first, IReadOnlyList<ComparisonOperator> ops, IReadOnlyList<IValue> values,
-          IValue result, TextRange range) : base(range) {
+      public Comparison(Value first, IReadOnlyList<ComparisonOperator> ops,
+                        IReadOnlyList<Value> values, Value result, TextRange range) : base(range) {
         Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
         First = first;
         Values = values;
@@ -104,9 +133,9 @@ namespace SeedLang.Runtime {
     // An event which is triggered when a function is called.
     public class FuncCalled : AbstractEvent {
       public string Name { get; }
-      public IReadOnlyList<IValue> Args { get; }
+      public IReadOnlyList<Value> Args { get; }
 
-      public FuncCalled(string name, IReadOnlyList<IValue> args, TextRange range) : base(range) {
+      public FuncCalled(string name, IReadOnlyList<Value> args, TextRange range) : base(range) {
         Name = name;
         Args = args;
       }
@@ -115,9 +144,9 @@ namespace SeedLang.Runtime {
     // An event which is triggered when a function is returned.
     public class FuncReturned : AbstractEvent {
       public string Name { get; }
-      public IValue Result { get; }
+      public Value Result { get; }
 
-      public FuncReturned(string name, IValue result, TextRange range) : base(range) {
+      public FuncReturned(string name, Value result, TextRange range) : base(range) {
         Name = name;
         Result = result;
       }
@@ -128,13 +157,35 @@ namespace SeedLang.Runtime {
       public SingleStep(TextRange range) : base(range) { }
     }
 
+    // An event which is triggered when a value is assigned to an element of a container.
+    //
+    // The container might be unnamed variables in following cases. The name of the container is
+    // null and the type is undefined in these cases.
+    // 1) Sets the element of a temporary container: [1, 2, 3][1] = 5
+    // 2) Sets the element of a intermediate container: a[1][2] = 5
+    public class SubscriptAssignment : AbstractEvent {
+      public string Name { get; }
+      // The variable type of the container.
+      public VariableType Type { get; }
+      public Value Key { get; }
+      public Value Value { get; }
+
+      public SubscriptAssignment(string name, VariableType type, Value key, Value value,
+                                 TextRange range) : base(range) {
+        Name = name;
+        Type = type;
+        Key = key;
+        Value = value;
+      }
+    }
+
     // An event which is triggered when an unary expression is executed.
     public class Unary : AbstractEvent {
       public UnaryOperator Op { get; }
-      public IValue Value { get; }
-      public IValue Result { get; }
+      public Value Value { get; }
+      public Value Result { get; }
 
-      public Unary(UnaryOperator op, IValue value, IValue result, TextRange range) : base(range) {
+      public Unary(UnaryOperator op, Value value, Value result, TextRange range) : base(range) {
         Op = op;
         Value = value;
         Result = result;
@@ -143,20 +194,6 @@ namespace SeedLang.Runtime {
 
     // An event which is triggered when a VTag scope is entered.
     public class VTagEntered : AbstractEvent {
-      public class VTagInfo {
-        public string Name { get; }
-        public IReadOnlyList<string> ArgTexts { get; }
-
-        public VTagInfo(string name, IReadOnlyList<string> argTexts) {
-          Name = name;
-          ArgTexts = argTexts;
-        }
-
-        public override string ToString() {
-          return Name + (ArgTexts.Count > 0 ? $"({string.Join(",", ArgTexts)})" : "");
-        }
-      }
-
       public IReadOnlyList<VTagInfo> VTags { get; }
 
       public VTagEntered(IReadOnlyList<VTagInfo> vTags, TextRange range) : base(range) {
@@ -166,20 +203,6 @@ namespace SeedLang.Runtime {
 
     // An event which is triggered when a VTag scope is exited.
     public class VTagExited : AbstractEvent {
-      public class VTagInfo {
-        public string Name { get; }
-        public IReadOnlyList<IValue> Args { get; }
-
-        public VTagInfo(string name, IReadOnlyList<IValue> args) {
-          Name = name;
-          Args = args;
-        }
-
-        public override string ToString() {
-          return Name + (Args.Count > 0 ? $"({string.Join(",", Args)})" : "");
-        }
-      }
-
       public IReadOnlyList<VTagInfo> VTags { get; }
 
       public VTagExited(IReadOnlyList<VTagInfo> vTags, TextRange range) : base(range) {

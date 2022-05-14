@@ -130,6 +130,7 @@ All the SeedLang instructions are listed as follows:
 |   30   | `CALL`      | Call a function                                     |
 |   31   | `RETURN`    | Return from a function call                         |
 |   32   | `VISNOTIFY` | Notify the visualizers                              |
+|   33   | `HALT`      | Halts the execution.                                |
 
 ### Move and Load Constant
 
@@ -229,5 +230,8 @@ RETURN A B              # returns R(A), R(A+1), ..., R(A+B-1)
 
 ```shell
 VISNOTIFY A Bx          # creates a notification event from NotifyInfo[Bx], and
-                        # sends to visualizers
+                        # sends to visualizers. A is the customized data of
+                        # notifications
+HALT A                  # Halts the execution. A == 1 indicates termination of
+                        # the program
 ```

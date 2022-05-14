@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
+namespace SeedLang.Visualization {
   // The interface of visualizers to visualize the given event.
   public interface IVisualizer<Event> {
-    void On(Event e);
+    void On(Event e, IVM vm);
   }
 }

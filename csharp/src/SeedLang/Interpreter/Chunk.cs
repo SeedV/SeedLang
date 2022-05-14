@@ -41,6 +41,12 @@ namespace SeedLang.Interpreter {
 
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
+    // The position of the breakpoint. Only support one breakpoint now.
+    private int _breakPointPos;
+    // The original instruction at the position of the breakpoint. It is replaced with a HALT
+    // instruction when the breakpoint is set.
+    private Instruction _instructionAtBreakPoint;
+
     private readonly List<TextRange> _ranges = new List<TextRange>();
 
     private readonly List<AbstractNotification> _notifications = new List<AbstractNotification>();
@@ -49,7 +55,7 @@ namespace SeedLang.Interpreter {
     private uint? _indexOfSingleStepNotification = null;
 
     // The constant list to hold all the constants used in this chunk.
-    private Value[] _constants;
+    private VMValue[] _constants;
 
     internal static bool IsConstId(uint id) {
       return id >= MaxRegisterCount;
@@ -82,12 +88,27 @@ namespace SeedLang.Interpreter {
       _ranges.Add(range);
     }
 
+    // Patches the SBx field of an instruction.
     internal void PatchSBXAt(int pos, int sbx) {
       _bytecode[pos] = new Instruction(_bytecode[pos].Opcode, _bytecode[pos].A, sbx);
     }
 
+    // Sets the breakpoint at the given position. The original instruction will be stored, and
+    // replaced with a HALT instruction.
+    internal void SetBreakPointAt(int pos) {
+      Debug.Assert(pos >= 0 && pos < _bytecode.Count);
+      _breakPointPos = pos;
+      _instructionAtBreakPoint = _bytecode[pos];
+      _bytecode[pos] = new Instruction(Opcode.HALT, 0, 0, 0);
+    }
+
+    // Restores the breakpoint with the stored instruction.
+    internal void RestoreBreakPoint() {
+      _bytecode[_breakPointPos] = _instructionAtBreakPoint;
+    }
+
     // Sets the constant list. It must be called by the compiler after compilation.
-    internal void SetConstants(Value[] constants) {
+    internal void SetConstants(VMValue[] constants) {
       _constants = constants;
     }
 
@@ -96,7 +117,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.
-    internal ref readonly Value ValueOfConstId(uint constId) {
+    internal ref readonly VMValue ValueOfConstId(uint constId) {
       return ref _constants[IndexOfConstId(constId)];
     }
 

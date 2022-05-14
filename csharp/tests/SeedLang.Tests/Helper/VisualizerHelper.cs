@@ -15,7 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Tests.Helper {
   // A helper class to manage visualizers.
@@ -23,7 +23,7 @@ namespace SeedLang.Tests.Helper {
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
       private readonly List<Event> _events = new List<Event>();
 
-      public void On(Event e) {
+      public void On(Event e, IVM vm) {
         _events.Add(e);
       }
 
@@ -68,7 +68,7 @@ namespace SeedLang.Tests.Helper {
     private static void EventToString<E>(E e, StringBuilder sb) {
       switch (e) {
         case Event.Assignment ae:
-          sb.AppendLine($"{ae.Range} {ae.Name} = {ae.Value}");
+          sb.AppendLine($"{ae.Range} {ae.Name}: {ae.Type} = {ae.Value}");
           break;
         case Event.Binary be:
           sb.AppendLine($"{be.Range} {be.Left} {be.Op} {be.Right} = {be.Result}");
@@ -96,14 +96,17 @@ namespace SeedLang.Tests.Helper {
         case Event.SingleStep sse:
           sb.AppendLine($"{sse.Range} SingleStep");
           break;
+        case Event.SubscriptAssignment sae:
+          sb.AppendLine($"{sae.Range} ({sae.Name}: {sae.Type})[{sae.Key}] = {sae.Value}");
+          break;
         case Event.Unary ue:
           sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");
           break;
         case Event.VTagEntered vee:
-          sb.AppendLine($"{vee.Range} {string.Join(",", vee.VTags)}");
+          sb.AppendLine($"{vee.Range} VTagEntered: {string.Join(", ", vee.VTags)}");
           break;
         case Event.VTagExited vee:
-          sb.AppendLine($"{vee.Range} {string.Join(",", vee.VTags)}");
+          sb.AppendLine($"{vee.Range} VTagExited: {string.Join(", ", vee.VTags)}");
           break;
         default:
           throw new NotImplementedException($"Unsupported event: {e.GetType()}");

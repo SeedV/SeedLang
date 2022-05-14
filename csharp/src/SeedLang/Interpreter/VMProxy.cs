@@ -12,10 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  // Supported SeedX languages.
-  public enum SeedXLanguage {
-    SeedCalc,
-    SeedPython,
+using SeedLang.Visualization;
+
+namespace SeedLang.Interpreter {
+  internal class VMProxy : IVM {
+    private VM _vm;
+
+    internal VMProxy(VM vm) {
+      _vm = vm;
+    }
+
+    public void Stop() {
+      _vm?.Stop();
+    }
+
+    internal void Invalid() {
+      _vm = null;
+    }
   }
 }

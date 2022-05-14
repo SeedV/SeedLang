@@ -12,19 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Runtime {
-  // TODO: check if subscription of IValue is needed? And how to implement it?
-  public interface IValue {
-    bool IsNil { get; }
-    bool IsBoolean { get; }
-    bool IsNumber { get; }
-    bool IsString { get; }
-    bool IsList { get; }
-    bool IsFunction { get; }
-
-    bool Boolean { get; }
-    double Number { get; }
-    string String { get; }
-    int Length { get; }
+namespace SeedLang.Visualization {
+  // The interface of SeedLang VM. The methods of it can only be called during visualization
+  // notification.
+  public interface IVM {
+    // Stops execution.
+    void Stop();
   }
 }

@@ -17,13 +17,14 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Shell {
   // A class to manage all the visualizers.
   internal static class VisualizerManager {
     // The visualizer for a specified event.
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
-      public void On(Event e) {
+      public void On(Event e, IVM vm) {
         if (e.Range is TextRange range) {
           Source.WriteSourceWithHighlight(range);
         }
@@ -122,16 +123,7 @@ namespace SeedLang.Shell {
       Console.ForegroundColor = ConsoleColor.Black;
       switch (e) {
         case Event.Assignment ae:
-          Console.Write("Assign ");
-          switch (ae.Type) {
-            case VariableType.Global:
-              Console.Write("global");
-              break;
-            case VariableType.Local:
-              Console.Write("local");
-              break;
-          }
-          Console.Write($" {ae.Name} = {ae.Value}");
+          Console.Write($"Assign: {ae.Name} = {ae.Value}");
           break;
         case Event.Binary be: {
             var op = _binaryOperatorStrings[be.Op];
@@ -140,9 +132,8 @@ namespace SeedLang.Shell {
           }
         case Event.Boolean be: {
             var op = _booleanOperatorStrings[be.Op];
-            foreach (IValue value in be.Values) {
-              string valueString = value.IsBoolean ? value.String : "?";
-              Console.Write($"{op} {valueString} ");
+            foreach (Value value in be.Values) {
+              Console.Write($"{op} {value} ");
             }
             Console.Write($"= {be.Result}");
             break;
@@ -150,8 +141,7 @@ namespace SeedLang.Shell {
         case Event.Comparison ce:
           Console.Write($"Comparison: {ce.First} ");
           for (int i = 0; i < ce.Ops.Count; i++) {
-            string valueString = ce.Values[i].IsNumber ? ce.Values[i].String : "?";
-            Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {valueString} ");
+            Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {ce.Values[i]} ");
           }
           Console.Write($"= {ce.Result}");
           break;
@@ -163,6 +153,9 @@ namespace SeedLang.Shell {
           break;
         case Event.SingleStep sse:
           Console.Write($"SingleStep: {sse.Range.Start.Line}");
+          break;
+        case Event.SubscriptAssignment sae:
+          Console.Write($"SubscriptAssign: {sae.Name}[{sae.Key}] = {sae.Value}");
           break;
         case Event.Unary ue: {
             var op = _unaryOperatorStrings[ue.Op];

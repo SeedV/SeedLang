@@ -14,33 +14,18 @@
 
 using System;
 using SeedLang.Common;
+using SeedLang.Runtime;
 using Xunit;
 
-namespace SeedLang.Runtime.Tests {
+namespace SeedLang.Visualization.Tests {
   using BinaryVisualizerCenter = Tuple<VisualizerCenter, MockupBinaryVisualizer>;
   using MultipleVisualizerCenter = Tuple<VisualizerCenter,
                                          MockupBinaryVisualizer,
                                          MockupMultipleVisualizer>;
-
-  internal class MockupValue : IValue {
-    public bool IsNil => false;
-    public bool IsBoolean => false;
-    public bool IsNumber => true;
-    public bool IsString => false;
-    public bool IsList => false;
-    public bool IsFunction => false;
-
-    public bool Boolean => false;
-    public double Number => 0;
-    public string String => "false";
-    public int Length => 0;
-    public IValue this[int index] => new ValueWrapper(new Value());
-  }
-
   internal class MockupBinaryVisualizer : IVisualizer<Event.Binary> {
     public Event.Binary BinaryEvent { get; private set; }
 
-    public void On(Event.Binary be) {
+    public void On(Event.Binary be, IVM vm) {
       BinaryEvent = be;
     }
   }
@@ -48,18 +33,23 @@ namespace SeedLang.Runtime.Tests {
   internal class MockupMultipleVisualizer : IVisualizer<Event.Binary> {
     public Event.Binary BinaryEvent { get; private set; }
 
-    public void On(Event.Binary be) {
+    public void On(Event.Binary be, IVM vm) {
       BinaryEvent = be;
     }
   }
 
+  internal class MockupVM : IVM {
+    public void Stop() {
+      throw new NotImplementedException();
+    }
+  }
 
   public class VisualizerCenterTests {
     [Fact]
     public void TestRegisterVisualizer() {
       (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
       Assert.Null(binaryVisualizer.BinaryEvent);
-      visualizerCenter.Notify(NewBinaryEvent());
+      visualizerCenter.Notify(NewBinaryEvent(), new MockupVM());
       Assert.NotNull(binaryVisualizer.BinaryEvent);
     }
 
@@ -69,7 +59,7 @@ namespace SeedLang.Runtime.Tests {
           NewMultipleVisualizerCenter();
       Assert.Null(binaryVisualizer.BinaryEvent);
       Assert.Null(multipleVisualizer.BinaryEvent);
-      visualizerCenter.Notify(NewBinaryEvent());
+      visualizerCenter.Notify(NewBinaryEvent(), new MockupVM());
       Assert.NotNull(binaryVisualizer.BinaryEvent);
       Assert.NotNull(multipleVisualizer.BinaryEvent);
     }
@@ -78,7 +68,7 @@ namespace SeedLang.Runtime.Tests {
     public void TestUnregisterVisualizer() {
       (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
       visualizerCenter.Unregister(binaryVisualizer);
-      visualizerCenter.Notify(NewBinaryEvent());
+      visualizerCenter.Notify(NewBinaryEvent(), new MockupVM());
       Assert.Null(binaryVisualizer.BinaryEvent);
     }
 
@@ -99,8 +89,8 @@ namespace SeedLang.Runtime.Tests {
     }
 
     private static Event.Binary NewBinaryEvent() {
-      return new Event.Binary(new MockupValue(), BinaryOperator.Add, new MockupValue(),
-                              new MockupValue(), new TextRange(0, 1, 2, 3));
+      return new Event.Binary(new Value(1), BinaryOperator.Add, new Value(2), new Value(3),
+                              new TextRange(0, 1, 2, 3));
     }
   }
 }

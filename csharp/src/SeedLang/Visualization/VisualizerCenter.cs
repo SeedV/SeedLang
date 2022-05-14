@@ -15,7 +15,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SeedLang.Runtime {
+namespace SeedLang.Visualization {
   // The visualizer center to observe execution events and dispatch them to the subscribed
   // visualizers.
   internal class VisualizerCenter {
@@ -46,9 +46,9 @@ namespace SeedLang.Runtime {
         return _visualizers.Count == 0;
       }
 
-      internal void Notify(Event e) {
+      internal void Notify(Event e, IVM vm) {
         foreach (var visualizer in _visualizers) {
-          visualizer.On(e);
+          visualizer.On(e, vm);
         }
       }
     }
@@ -67,8 +67,8 @@ namespace SeedLang.Runtime {
       return !(_publishers[typeof(Event)] as Publisher<Event>).IsEmpty();
     }
 
-    internal void Notify<Event>(Event e) {
-      (_publishers[typeof(Event)] as Publisher<Event>).Notify(e);
+    internal void Notify<Event>(Event e, IVM vm) {
+      (_publishers[typeof(Event)] as Publisher<Event>).Notify(e, vm);
     }
 
     // Registers a visualizer into this visualizer center.

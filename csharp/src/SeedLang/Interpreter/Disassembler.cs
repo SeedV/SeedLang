@@ -50,7 +50,7 @@ namespace SeedLang.Interpreter {
           sb.AppendLine();
 
           if (instr.Opcode == Opcode.LOADK) {
-            Value value = _chunk.ValueOfConstId(instr.Bx);
+            VMValue value = _chunk.ValueOfConstId(instr.Bx);
             if (value.IsFunction && value.AsFunction() is Function func) {
               _functions.Enqueue(func);
             }
@@ -73,7 +73,7 @@ namespace SeedLang.Interpreter {
 
     private string OperandsToString(Instruction instr) {
       bool ignoreC = instr.Opcode == Opcode.MOVE || instr.Opcode == Opcode.UNM ||
-                     instr.Opcode == Opcode.RETURN;
+                     instr.Opcode == Opcode.RETURN || instr.Opcode == Opcode.HALT;
       OpcodeType type = instr.Opcode.Type();
       switch (type) {
         case OpcodeType.ABC:

@@ -42,7 +42,7 @@ namespace SeedLang.Runtime {
 
     // Prints a value when it's not nil. It's used in interactive mode to print the result of an
     // expression statement.
-    private static Value PrintValFunc(Value[] args, int offset, int length, Sys sys) {
+    private static VMValue PrintValFunc(VMValue[] args, int offset, int length, Sys sys) {
       if (length != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -50,53 +50,53 @@ namespace SeedLang.Runtime {
       if (!args[offset].IsNil) {
         sys.Stdout.WriteLine(args[offset]);
       }
-      return new Value();
+      return new VMValue();
     }
 
     // Appends a value to a list. The first argument is the list, the second argument is the
     // value to be appended to the list.
-    private static Value AppendFunc(Value[] args, int offset, int length, Sys _) {
+    private static VMValue AppendFunc(VMValue[] args, int offset, int length, Sys _) {
       if (length != 2) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      Value value = args[offset];
+      VMValue value = args[offset];
       if (value.IsList) {
-        List<Value> list = value.AsList();
+        List<VMValue> list = value.AsList();
         list.Add(args[offset + 1]);
       }
-      return new Value();
+      return new VMValue();
     }
 
-    private static Value LenFunc(Value[] args, int offset, int length, Sys _) {
+    private static VMValue LenFunc(VMValue[] args, int offset, int length, Sys _) {
       if (length != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      return new Value(args[offset].Length);
+      return new VMValue(args[offset].Length);
     }
 
     // Creates an empty list if the length of arguments is empty, and a list if the argument is a
     // subscriptable value.
-    private static Value ListFunc(Value[] args, int offset, int length, Sys _) {
+    private static VMValue ListFunc(VMValue[] args, int offset, int length, Sys _) {
       if (length < 0 || length > 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
       if (length == 0) {
-        return new Value(new List<Value>());
+        return new VMValue(new List<VMValue>());
       }
       if (args[offset].IsList) {
         return args[offset];
       }
-      var list = new List<Value>();
+      var list = new List<VMValue>();
       for (int i = 0; i < args[offset].Length; i++) {
-        list.Add(args[offset][new Value(i)]);
+        list.Add(args[offset][new VMValue(i)]);
       }
-      return new Value(list);
+      return new VMValue(list);
     }
 
-    private static Value PrintFunc(Value[] args, int offset, int length, Sys sys) {
+    private static VMValue PrintFunc(VMValue[] args, int offset, int length, Sys sys) {
       for (int i = 0; i < length; i++) {
         if (i > 0) {
           sys.Stdout.Write(" ");
@@ -104,20 +104,20 @@ namespace SeedLang.Runtime {
         sys.Stdout.Write(args[offset + i].AsString());
       }
       sys.Stdout.WriteLine();
-      return new Value();
+      return new VMValue();
     }
 
-    private static Value RangeFunc(Value[] args, int offset, int length, Sys _) {
+    private static VMValue RangeFunc(VMValue[] args, int offset, int length, Sys _) {
       if (length == 1) {
-        return new Value(new HeapObject.Range((int)args[offset].AsNumber()));
+        return new VMValue(new HeapObject.Range((int)args[offset].AsNumber()));
       } else if (length == 2) {
         var range = new HeapObject.Range((int)args[offset].AsNumber(),
                                          (int)args[offset + 1].AsNumber());
-        return new Value(range);
+        return new VMValue(range);
       } else if (length == 3) {
-        return new Value(new HeapObject.Range((int)args[offset].AsNumber(),
-                                              (int)args[offset + 1].AsNumber(),
-                                              (int)args[offset + 2].AsNumber()));
+        return new VMValue(new HeapObject.Range((int)args[offset].AsNumber(),
+                                                (int)args[offset + 1].AsNumber(),
+                                                (int)args[offset + 2].AsNumber()));
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                     Message.RuntimeErrorIncorrectArgsCount);

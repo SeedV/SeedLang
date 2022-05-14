@@ -38,28 +38,31 @@ for i in range(10):
         $"  4    LOADK     1 -2             ; 0                 [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  5    LEN       2 0 0                                [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  6    LOADK     3 -3             ; 1                 [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  7    FORPREP   1 19             ; to 27             [Ln 2, Col 0 - Ln 10, Col 7]\n" +
+        $"  7    FORPREP   1 22             ; to 30             [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  8    GETELEM   4 0 1                                [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  9    SETGLOB   4 6                                  [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  10   GETGLOB   4 6                                  [Ln 3, Col 5 - Ln 3, Col 5]\n" +
         $"  11   EQ        1 4 -4           ; 5                 [Ln 3, Col 5 - Ln 3, Col 10]\n" +
         $"  12   JMP       0 1              ; to 14             [Ln 3, Col 5 - Ln 3, Col 10]\n" +
-        $"  13   JMP       0 14             ; to 28             [Ln 4, Col 4 - Ln 4, Col 8]\n" +
-        $"  14   GETGLOB   5 6                                  [Ln 5, Col 6 - Ln 5, Col 6]\n" +
-        $"  15   MOVE      4 5                                  [Ln 5, Col 2 - Ln 5, Col 6]\n" +
-        $"  16   LT        1 4 -1           ; 10                [Ln 6, Col 8 - Ln 6, Col 13]\n" +
-        $"  17   JMP       0 6              ; to 24             [Ln 6, Col 8 - Ln 6, Col 13]\n" +
-        $"  18   EQ        1 4 -5           ; 8                 [Ln 7, Col 7 - Ln 7, Col 12]\n" +
-        $"  19   JMP       0 1              ; to 21             [Ln 7, Col 7 - Ln 7, Col 12]\n" +
-        $"  20   JMP       0 3              ; to 24             [Ln 8, Col 6 - Ln 8, Col 10]\n" +
-        $"  21   ADD       5 4 -3           ; 1                 [Ln 9, Col 4 - Ln 9, Col 9]\n" +
-        $"  22   MOVE      4 5                                  [Ln 9, Col 4 - Ln 9, Col 9]\n" +
-        $"  23   JMP       0 -8             ; to 16             [Ln 6, Col 2 - Ln 9, Col 9]\n" +
-        $"  24   GETGLOB   6 6                                  [Ln 10, Col 2 - Ln 10, Col 2]\n" +
-        $"  25   ADD       5 6 -3           ; 1                 [Ln 10, Col 2 - Ln 10, Col 7]\n" +
-        $"  26   SETGLOB   5 6                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
-        $"  27   FORLOOP   1 -20            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  28   RETURN    0 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
+        $"  13   JMP       0 17             ; to 31             [Ln 4, Col 4 - Ln 4, Col 8]\n" +
+        $"  14   GETGLOB   4 6                                  [Ln 5, Col 6 - Ln 5, Col 6]\n" +
+        $"  15   SETGLOB   4 7                                  [Ln 5, Col 2 - Ln 5, Col 6]\n" +
+        $"  16   GETGLOB   4 7                                  [Ln 6, Col 8 - Ln 6, Col 8]\n" +
+        $"  17   LT        1 4 -1           ; 10                [Ln 6, Col 8 - Ln 6, Col 13]\n" +
+        $"  18   JMP       0 8              ; to 27             [Ln 6, Col 8 - Ln 6, Col 13]\n" +
+        $"  19   GETGLOB   4 7                                  [Ln 7, Col 7 - Ln 7, Col 7]\n" +
+        $"  20   EQ        1 4 -5           ; 8                 [Ln 7, Col 7 - Ln 7, Col 12]\n" +
+        $"  21   JMP       0 1              ; to 23             [Ln 7, Col 7 - Ln 7, Col 12]\n" +
+        $"  22   JMP       0 4              ; to 27             [Ln 8, Col 6 - Ln 8, Col 10]\n" +
+        $"  23   GETGLOB   5 7                                  [Ln 9, Col 4 - Ln 9, Col 4]\n" +
+        $"  24   ADD       4 5 -3           ; 1                 [Ln 9, Col 4 - Ln 9, Col 9]\n" +
+        $"  25   SETGLOB   4 7                                  [Ln 9, Col 4 - Ln 9, Col 9]\n" +
+        $"  26   JMP       0 -11            ; to 16             [Ln 6, Col 2 - Ln 9, Col 9]\n" +
+        $"  27   GETGLOB   5 6                                  [Ln 10, Col 2 - Ln 10, Col 2]\n" +
+        $"  28   ADD       4 5 -3           ; 1                 [Ln 10, Col 2 - Ln 10, Col 7]\n" +
+        $"  29   SETGLOB   4 6                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
+        $"  30   FORLOOP   1 -23            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
+        $"  31   HALT      1 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
       ).Replace("\n", Environment.NewLine);
       TestEngineCompile(source, result);
     }
@@ -85,28 +88,31 @@ for i in range(10):
         $"  4    LOADK     1 -2             ; 0                 [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  5    LEN       2 0 0                                [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  6    LOADK     3 -3             ; 1                 [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  7    FORPREP   1 19             ; to 27             [Ln 2, Col 0 - Ln 10, Col 7]\n" +
+        $"  7    FORPREP   1 22             ; to 30             [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  8    GETELEM   4 0 1                                [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  9    SETGLOB   4 6                                  [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  10   GETGLOB   4 6                                  [Ln 3, Col 5 - Ln 3, Col 5]\n" +
         $"  11   EQ        1 4 -4           ; 5                 [Ln 3, Col 5 - Ln 3, Col 10]\n" +
         $"  12   JMP       0 1              ; to 14             [Ln 3, Col 5 - Ln 3, Col 10]\n" +
-        $"  13   JMP       0 13             ; to 27             [Ln 4, Col 4 - Ln 4, Col 11]\n" +
-        $"  14   GETGLOB   5 6                                  [Ln 5, Col 6 - Ln 5, Col 6]\n" +
-        $"  15   MOVE      4 5                                  [Ln 5, Col 2 - Ln 5, Col 6]\n" +
-        $"  16   LT        1 4 -1           ; 10                [Ln 6, Col 8 - Ln 6, Col 13]\n" +
-        $"  17   JMP       0 6              ; to 24             [Ln 6, Col 8 - Ln 6, Col 13]\n" +
-        $"  18   EQ        1 4 -5           ; 8                 [Ln 7, Col 7 - Ln 7, Col 12]\n" +
-        $"  19   JMP       0 1              ; to 21             [Ln 7, Col 7 - Ln 7, Col 12]\n" +
-        $"  20   JMP       0 -5             ; to 16             [Ln 8, Col 6 - Ln 8, Col 13]\n" +
-        $"  21   ADD       5 4 -3           ; 1                 [Ln 9, Col 4 - Ln 9, Col 9]\n" +
-        $"  22   MOVE      4 5                                  [Ln 9, Col 4 - Ln 9, Col 9]\n" +
-        $"  23   JMP       0 -8             ; to 16             [Ln 6, Col 2 - Ln 9, Col 9]\n" +
-        $"  24   GETGLOB   6 6                                  [Ln 10, Col 2 - Ln 10, Col 2]\n" +
-        $"  25   ADD       5 6 -3           ; 1                 [Ln 10, Col 2 - Ln 10, Col 7]\n" +
-        $"  26   SETGLOB   5 6                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
-        $"  27   FORLOOP   1 -20            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  28   RETURN    0 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
+        $"  13   JMP       0 16             ; to 30             [Ln 4, Col 4 - Ln 4, Col 11]\n" +
+        $"  14   GETGLOB   4 6                                  [Ln 5, Col 6 - Ln 5, Col 6]\n" +
+        $"  15   SETGLOB   4 7                                  [Ln 5, Col 2 - Ln 5, Col 6]\n" +
+        $"  16   GETGLOB   4 7                                  [Ln 6, Col 8 - Ln 6, Col 8]\n" +
+        $"  17   LT        1 4 -1           ; 10                [Ln 6, Col 8 - Ln 6, Col 13]\n" +
+        $"  18   JMP       0 8              ; to 27             [Ln 6, Col 8 - Ln 6, Col 13]\n" +
+        $"  19   GETGLOB   4 7                                  [Ln 7, Col 7 - Ln 7, Col 7]\n" +
+        $"  20   EQ        1 4 -5           ; 8                 [Ln 7, Col 7 - Ln 7, Col 12]\n" +
+        $"  21   JMP       0 1              ; to 23             [Ln 7, Col 7 - Ln 7, Col 12]\n" +
+        $"  22   JMP       0 -7             ; to 16             [Ln 8, Col 6 - Ln 8, Col 13]\n" +
+        $"  23   GETGLOB   5 7                                  [Ln 9, Col 4 - Ln 9, Col 4]\n" +
+        $"  24   ADD       4 5 -3           ; 1                 [Ln 9, Col 4 - Ln 9, Col 9]\n" +
+        $"  25   SETGLOB   4 7                                  [Ln 9, Col 4 - Ln 9, Col 9]\n" +
+        $"  26   JMP       0 -11            ; to 16             [Ln 6, Col 2 - Ln 9, Col 9]\n" +
+        $"  27   GETGLOB   5 6                                  [Ln 10, Col 2 - Ln 10, Col 2]\n" +
+        $"  28   ADD       4 5 -3           ; 1                 [Ln 10, Col 2 - Ln 10, Col 7]\n" +
+        $"  29   SETGLOB   4 6                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
+        $"  30   FORLOOP   1 -23            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
+        $"  31   HALT      1 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
       ).Replace("\n", Environment.NewLine);
       TestEngineCompile(source, result);
     }

@@ -13,20 +13,27 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using SeedLang.Runtime;
+using System.Text;
 using SeedLang.Common;
+using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
-  using Func = Func<uint, Value>;
-
   internal static class Notification {
     // The base class of all notification classes, which are used to store information for VISNOTIFY
     // instructions. The VM will create the correspding event object based on the information and
     // then send to visualizers.
     internal abstract class AbstractNotification {
-      internal abstract void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range);
+      internal abstract void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range);
+
+      // Notifies visualizers and then invalidate the VM proxy.
+      protected static void Notify<Event>(Event e, VisualizerCenter visualizerCenter, VMProxy vm) {
+        visualizerCenter.Notify(e, vm);
+        vm.Invalid();
+      }
     }
 
     internal class Assignment : AbstractNotification {
@@ -45,10 +52,10 @@ namespace SeedLang.Interpreter {
         return $"Notification.Assignment: '{_name}': {_type} {_valueId}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
-        var ae = new Event.Assignment(_name, _type, new ValueWrapper(getRKValue(_valueId)), range);
-        visualizerCenter.Notify(ae);
+      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        var e = new Event.Assignment(_name, _type, new Value(getRKValue(_valueId)), range);
+        Notify(e, visualizerCenter, vm);
       }
     }
 
@@ -69,12 +76,12 @@ namespace SeedLang.Interpreter {
         return $"Notification.Binary: {_leftId} {_op} {_rightId} {_resultId}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
-        var be = new Event.Binary(new ValueWrapper(getRKValue(_leftId)), _op,
-                                  new ValueWrapper(getRKValue(_rightId)),
-                                  new ValueWrapper(getRKValue(_resultId)), range);
-        visualizerCenter.Notify(be);
+      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        var e = new Event.Binary(new Value(getRKValue(_leftId)), _op,
+                                 new Value(getRKValue(_rightId)), new Value(getRKValue(_resultId)),
+                                 range);
+        Notify(e, visualizerCenter, vm);
       }
     }
 
@@ -98,22 +105,21 @@ namespace SeedLang.Interpreter {
         return $"Notification.Function: {_name} {_funcId} {_argLength}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
+      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
         Debug.Assert(Enum.IsDefined(typeof(Status), data));
         switch ((Status)data) {
           case Status.Called:
-            var args = new ValueWrapper[_argLength];
+            var args = new Value[_argLength];
             uint argStartId = _funcId + 1;
             for (uint i = 0; i < _argLength; i++) {
-              args[i] = new ValueWrapper(getRKValue(argStartId + i));
+              args[i] = new Value(getRKValue(argStartId + i));
             }
-            var fce = new Event.FuncCalled(_name, args, range);
-            visualizerCenter.Notify(fce);
+            Notify(new Event.FuncCalled(_name, args, range), visualizerCenter, vm);
             break;
           case Status.Returned:
-            var fre = new Event.FuncReturned(_name, new ValueWrapper(getRKValue(_funcId)), range);
-            visualizerCenter.Notify(fre);
+            var e = new Event.FuncReturned(_name, new Value(getRKValue(_funcId)), range);
+            Notify(e, visualizerCenter, vm);
             break;
         }
       }
@@ -124,9 +130,34 @@ namespace SeedLang.Interpreter {
         return $"Notification.SingleStep";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
-        visualizerCenter.Notify(new Event.SingleStep(range));
+      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        Notify(new Event.SingleStep(range), visualizerCenter, vm);
+      }
+    }
+
+    internal class SubscriptAssignment : AbstractNotification {
+      private readonly string _name;
+      private readonly VariableType _type;
+      private readonly uint _keyId;
+      private readonly uint _valueId;
+
+      internal SubscriptAssignment(string name, VariableType type, uint keyId, uint valueId) {
+        _name = name;
+        _type = type;
+        _keyId = keyId;
+        _valueId = valueId;
+      }
+
+      public override string ToString() {
+        return $"Notification.SubscriptAssignment: '{_name}': {_type} {_keyId} {_valueId}";
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        var e = new Event.SubscriptAssignment(_name, _type, new Value(getRKValue(_keyId)),
+                                              new Value(getRKValue(_valueId)), range);
+        Notify(e, visualizerCenter, vm);
       }
     }
 
@@ -145,64 +176,81 @@ namespace SeedLang.Interpreter {
         return $"Notification.Unary: {_op} {_valueId} {_resultId}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
-        var ue = new Event.Unary(_op, new ValueWrapper(getRKValue(_valueId)),
-                                 new ValueWrapper(getRKValue(_resultId)), range);
-        visualizerCenter.Notify(ue);
+      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        var e = new Event.Unary(_op, new Value(getRKValue(_valueId)),
+                                new Value(getRKValue(_resultId)), range);
+        Notify(e, visualizerCenter, vm);
       }
     }
 
-    internal class VTagEntered : AbstractNotification {
-      private readonly Event.VTagEntered.VTagInfo[] _vTagInfos;
+    public class VTagInfo {
+      public string Name { get; }
+      public string[] Args { get; }
+      public uint?[] ValueIds { get; }
 
-      internal VTagEntered(Event.VTagEntered.VTagInfo[] vTagInfos) {
-        _vTagInfos = vTagInfos;
+      public VTagInfo(string name, string[] args, uint?[] valueIds) {
+        Debug.Assert(args.Length == valueIds.Length);
+        Name = name;
+        Args = args;
+        ValueIds = valueIds;
       }
 
       public override string ToString() {
-        var vTagInfoStr = string.Join<Event.VTagEntered.VTagInfo>(",", _vTagInfos);
-        return $"Notification.VTagEntered: {vTagInfoStr}";
-      }
-
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
-        visualizerCenter.Notify(new Event.VTagEntered(_vTagInfos, range));
+        var sb = new StringBuilder();
+        sb.Append(Name);
+        if (Args.Length > 0) {
+          sb.Append('(');
+          for (int i = 0; i < Args.Length; i++) {
+            sb.Append(i > 0 ? ", " : "");
+            sb.Append($"{Args[i]}: {ValueIds[i]?.ToString() ?? "null"}");
+          }
+          sb.Append(')');
+        }
+        return sb.ToString();
       }
     }
 
-    internal class VTagExited : AbstractNotification {
-      public class VTagInfo {
-        public string Name { get; }
-        public uint[] ValueIds { get; }
-
-        public VTagInfo(string name, uint[] valueIds) {
-          Name = name;
-          ValueIds = valueIds;
-        }
-
-        public override string ToString() {
-          return Name + (ValueIds.Length > 0 ? $"({string.Join(",", ValueIds)})" : "");
-        }
-      }
+    internal abstract class VTag : AbstractNotification {
       private readonly VTagInfo[] _vTagInfos;
 
-      internal VTagExited(VTagInfo[] vTagInfos) {
+      internal VTag(VTagInfo[] vTagInfos) {
         _vTagInfos = vTagInfos;
       }
 
       public override string ToString() {
-        return $"Notification.VTagExited: {string.Join<VTagInfo>(",", _vTagInfos)}";
+        return $"Notification.{GetType().Name}: {string.Join<VTagInfo>(", ", _vTagInfos)}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, Func getRKValue, uint data,
-                                    TextRange range) {
+      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
         var vTags = Array.ConvertAll(_vTagInfos, vTag => {
-          var values = Array.ConvertAll(vTag.ValueIds,
-                                        valueId => new ValueWrapper(getRKValue(valueId)));
-          return new Event.VTagExited.VTagInfo(vTag.Name, values);
+          var values = Array.ConvertAll(vTag.ValueIds, valueId =>
+              valueId.HasValue ? new Value(getRKValue(valueId.Value)) : new Value());
+          return new Visualization.VTagInfo(vTag.Name, vTag.Args, values);
         });
-        visualizerCenter.Notify(new Event.VTagExited(vTags, range));
+        Notify(visualizerCenter, vm, vTags, range);
+      }
+
+      protected abstract void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range);
+    }
+
+    internal class VTagEntered : VTag {
+      internal VTagEntered(VTagInfo[] vTagInfos) : base(vTagInfos) { }
+
+      protected override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range) {
+        visualizerCenter.Notify(new Event.VTagEntered(vTags, range), vm);
+      }
+    }
+
+    internal class VTagExited : VTag {
+      internal VTagExited(VTagInfo[] vTagInfos) : base(vTagInfos) { }
+
+      protected override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range) {
+        visualizerCenter.Notify(new Event.VTagExited(vTags, range), vm);
       }
     }
   }

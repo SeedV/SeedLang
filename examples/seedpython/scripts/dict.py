@@ -10,7 +10,7 @@ dict['Age'] = 8
 dict['School'] = "DPS School"
 
 print('Age' in dict)  # True
-print('School' in dict)  # False
+print('School' in dict)  # True
 
 print("dict['Age']:", dict['Age'])  # dict['Age']: 8
 print("dict['School']:", dict['School'])  # dict['School']: DPS School

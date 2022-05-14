@@ -22,9 +22,9 @@ using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
-  using List = List<Value>;
-  using Tuple = ImmutableArray<Value>;
-  using Dict = Dictionary<Value, Value>;
+  using List = List<VMValue>;
+  using Tuple = ImmutableArray<VMValue>;
+  using Dict = Dictionary<VMValue, VMValue>;
 
   // A class to hold heap allocated objects.
   internal partial class HeapObject : IEquatable<HeapObject> {
@@ -222,11 +222,11 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Value this[Value key] {
+    internal VMValue this[VMValue key] {
       get {
         switch (_object) {
           case string str:
-            return new Value(str[ToIntIndex(key.AsNumber(), str.Length)].ToString());
+            return new VMValue(str[ToIntIndex(key.AsNumber(), str.Length)].ToString());
           case List list:
             return list[ToIntIndex(key.AsNumber(), list.Count)];
           case Range range:
@@ -279,7 +279,7 @@ namespace SeedLang.Runtime {
       return intIndex < 0 ? length + intIndex : intIndex;
     }
 
-    private static void CheckKey(Value key) {
+    private static void CheckKey(VMValue key) {
       if (!key.IsNil && !key.IsBoolean && !key.IsNumber && !key.IsString && !key.IsRange &&
           !key.IsTuple) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -287,7 +287,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    private static string TupleToString(ImmutableArray<Value> tuple) {
+    private static string TupleToString(ImmutableArray<VMValue> tuple) {
       var sb = new StringBuilder();
       sb.Append('(');
       sb.Append(string.Join(", ", tuple));
@@ -295,7 +295,7 @@ namespace SeedLang.Runtime {
       return sb.ToString();
     }
 
-    private string ListToString(IReadOnlyList<Value> list) {
+    private string ListToString(IReadOnlyList<VMValue> list) {
       var sb = new StringBuilder();
       sb.Append('[');
       if (_visitedObjects.Contains(this)) {
@@ -309,7 +309,7 @@ namespace SeedLang.Runtime {
       return sb.ToString();
     }
 
-    private string DictToString(IReadOnlyDictionary<Value, Value> dict) {
+    private string DictToString(IReadOnlyDictionary<VMValue, VMValue> dict) {
       var sb = new StringBuilder();
       sb.Append('{');
       if (_visitedObjects.Contains(this)) {

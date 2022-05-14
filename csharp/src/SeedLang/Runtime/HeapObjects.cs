@@ -15,7 +15,7 @@
 using System;
 
 namespace SeedLang.Runtime {
-  using BuildinFunctionType = Func<Value[], int, int, Sys, Value>;
+  using BuildinFunctionType = Func<VMValue[], int, int, Sys, VMValue>;
 
   internal partial class HeapObject {
     // An empty interface for all function value types. It's only used to identify function types.
@@ -35,7 +35,7 @@ namespace SeedLang.Runtime {
 
       // Calls the build-in function with given arguments that locate in the "args" array starting
       // from "offset". The number of arguments is "length".
-      internal Value Call(Value[] args, int offset, int length, Sys sys) {
+      internal VMValue Call(VMValue[] args, int offset, int length, Sys sys) {
         return _func(args, offset, length, sys);
       }
 
@@ -69,9 +69,9 @@ namespace SeedLang.Runtime {
         return $"range({_start}, {_stop}, {_step})";
       }
 
-      internal Value this[double index] {
+      internal VMValue this[double index] {
         get {
-          return new Value(_start + (int)index * _step);
+          return new VMValue(_start + (int)index * _step);
         }
       }
     }

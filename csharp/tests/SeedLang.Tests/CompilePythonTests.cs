@@ -62,7 +62,7 @@ for i in range(10):
         $"  28   ADD       4 5 -3           ; 1                 [Ln 10, Col 2 - Ln 10, Col 7]\n" +
         $"  29   SETGLOB   4 6                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
         $"  30   FORLOOP   1 -23            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  31   RETURN    0 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
+        $"  31   HALT      1 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
       ).Replace("\n", Environment.NewLine);
       TestEngineCompile(source, result);
     }
@@ -112,7 +112,7 @@ for i in range(10):
         $"  28   ADD       4 5 -3           ; 1                 [Ln 10, Col 2 - Ln 10, Col 7]\n" +
         $"  29   SETGLOB   4 6                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
         $"  30   FORLOOP   1 -23            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  31   RETURN    0 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
+        $"  31   HALT      1 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
       ).Replace("\n", Environment.NewLine);
       TestEngineCompile(source, result);
     }

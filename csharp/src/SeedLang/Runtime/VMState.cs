@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Visualization {
-  // The interface of SeedLang VM. The methods of it can only be called during visualization
-  // notification.
-  public interface IVM {
-    // Stops execution.
-    void Stop();
+namespace SeedLang.Runtime {
+  // The state of SeedLang VM.
+  public enum VMState {
+    // The SeedLang VM is ready to execute a program.
+    Ready,
+    // The script is running.
+    Running,
+    // The execution is stopped temporarily.
+    Stopped,
+    // The execution is finished.
+    Terminated,
   }
 }

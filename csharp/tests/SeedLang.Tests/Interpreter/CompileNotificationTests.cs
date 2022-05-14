@@ -40,7 +40,7 @@ namespace SeedLang.Interpreter.Tests {
         $"  2    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
-        $"  4    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
+        $"  4    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"Notifications\n" +
         $"  0    Notification.Assignment: 'global.name': Global 0\n"
       ).Replace("\n", Environment.NewLine);
@@ -57,7 +57,7 @@ namespace SeedLang.Interpreter.Tests {
         $"  2    ADD       1 -1 -2          ; 1 2               [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"  4    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 4]\n" +
-        $"  5    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  5    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"Notifications\n" +
         $"  0    Notification.Binary: 250 Add 251 1\n"
       ).Replace("\n", Environment.NewLine);
@@ -86,7 +86,7 @@ add(1, 2)
         $"  8    CALL      1 2 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  9    VISNOTIFY 1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  10   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  11   RETURN    0 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  11   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"Notifications\n" +
         $"  0    Notification.Function: add 1 2\n" +
         $"\n" +
@@ -183,7 +183,7 @@ print(sum)
         $"  45   GETGLOB   5 {_firstGlob + 1}" +
         $"                                  [Ln 14, Col 6 - Ln 14, Col 8]\n" +
         $"  46   CALL      4 1 0                                [Ln 14, Col 0 - Ln 14, Col 9]\n" +
-        $"  47   RETURN    0 0                                  [Ln 14, Col 0 - Ln 14, Col 9]\n" +
+        $"  47   HALT      1 0                                  [Ln 14, Col 0 - Ln 14, Col 9]\n" +
         $"Notifications\n" +
         $"  0    Notification.SingleStep\n" +
         $"\n" +
@@ -232,7 +232,7 @@ flag = \
         $"  16   SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
         $"  17   VISNOTIFY 0 2                                  [Ln 6, Col 0 - Ln 8, Col 5]\n" +
-        $"  18   RETURN    0 0                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
+        $"  18   HALT      1 0                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
         $"Notifications\n" +
         $"  0    Notification.SingleStep\n" +
         $"  1    Notification.VTagEntered: Reset\n" +
@@ -261,7 +261,7 @@ x = 1
         $"  5    GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
         $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
-        $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  7    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Assign(x: null)\n" +
         $"  1    Notification.SingleStep\n" +
@@ -283,7 +283,7 @@ x = 1
         $"  2    LOADK     2 -2             ; 2                 [Ln 1, Col 4 - Ln 1, Col 4]\n" +
         $"  3    NEWLIST   0 1 2                                [Ln 1, Col 0 - Ln 1, Col 5]\n" +
         $"  4    SETELEM   0 -1 -1          ; 1 1               [Ln 1, Col 0 - Ln 1, Col 12]\n" +
-        $"  5    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n"
+        $"  5    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -306,7 +306,7 @@ a[1] = 1
         $"                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  6    SETELEM   0 -1 -1          ; 1 1               [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"  7    VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
-        $"  8    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
+        $"  8    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"Notifications\n" +
         $"  0    Notification.SubscriptAssignment: 'global.a': Global 250 250\n"
       ).Replace("\n", Environment.NewLine);
@@ -326,7 +326,7 @@ def func():
         $"  1    LOADK     0 -1             ; Func <func>       [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  2    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  3    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  3    HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"\n" +
         $"Function <func>\n" +
         $"  1    LOADK     2 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
@@ -353,7 +353,7 @@ def func():
         $"  2    UNM       1 -1             ; 1                 [Ln 1, Col 0 - Ln 1, Col 1]\n" +
         $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
         $"  4    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 1]\n" +
-        $"  5    RETURN    0 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
+        $"  5    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
         $"Notifications\n" +
         $"  0    Notification.Unary: Negative 250 1\n"
       ).Replace("\n", Environment.NewLine);
@@ -375,7 +375,7 @@ def func():
         $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  5    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
-        $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  7    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Add\n" +
         $"  1    Notification.Binary: 250 Add 251 1\n" +
@@ -403,7 +403,7 @@ def func():
         $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  5    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  6    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
-        $"  7    RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  7    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Add(1: 250, 2: 251)\n" +
         $"  1    Notification.Binary: 250 Add 251 1\n" +
@@ -442,7 +442,7 @@ x, y = 1, 1 + 2
         $"                                  [Ln 2, Col 18 - Ln 2, Col 18]\n" +
         $"  12   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
         $"  13   VISNOTIFY 0 4                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
-        $"  14   RETURN    0 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  14   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Assign(x: null, 1: 250, y: null, 1+2: 2)\n" +
         $"  1    Notification.Binary: 250 Add 251 0\n" +

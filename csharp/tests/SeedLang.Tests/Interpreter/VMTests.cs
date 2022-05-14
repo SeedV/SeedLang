@@ -264,7 +264,7 @@ namespace SeedLang.Interpreter.Tests {
 a = 1
 b = 2
 ";
-      (string _, VisualizerHelper vh) = Run(Compile(source), new Type[] {
+      (string _, VisualizerHelper vh) = Run(Parse(source), new Type[] {
         typeof(Event.SingleStep),
         typeof(Event.VTagEntered),
         typeof(Event.VTagExited),
@@ -291,7 +291,7 @@ b = 2
       return (stringWriter.ToString(), vh);
     }
 
-    private static Statement Compile(string source) {
+    private static Statement Parse(string source) {
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
                              out IReadOnlyList<TokenInfo> _);
       return program;

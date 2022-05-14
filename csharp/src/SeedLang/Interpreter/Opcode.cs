@@ -50,7 +50,9 @@ namespace SeedLang.Interpreter {
     CALL,         // calls function R(A), parameters are R(A+1), ..., R(A+B), B is the count of
                   // parameters
     RETURN,       // returns R(A), R(A+1), ..., R(A+B-1), B is the count of return values
-    VISNOTIFY,    // creates a notification event from NotifyInfo[Bx], and sends to visualizers
+    VISNOTIFY,    // creates a notification event from NotifyInfo[Bx], and sends to visualizers. A
+                  // is the customized data of notifications
+    HALT,         // Halts the execution. A == 1 indicates termination of the program
   }
 
   // The types of opcodes.
@@ -89,6 +91,7 @@ namespace SeedLang.Interpreter {
         case Opcode.TESTSET:
         case Opcode.CALL:
         case Opcode.RETURN:
+        case Opcode.HALT:
           return OpcodeType.ABC;
         case Opcode.LOADK:
         case Opcode.GETGLOB:

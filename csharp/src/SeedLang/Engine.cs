@@ -19,6 +19,7 @@ using System.IO;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Interpreter;
+using SeedLang.Runtime;
 using SeedLang.X;
 
 namespace SeedLang {
@@ -29,6 +30,9 @@ namespace SeedLang {
     // The semantic tokens of the source code. It falls back to syntax tokens when there are parsing
     // or compiling errors.
     public IReadOnlyList<TokenInfo> SemanticTokens => _semanticTokens;
+
+    // The state of SeedLang VM.
+    public VMState State => _vm.State;
 
     private readonly SeedXLanguage _language;
     private readonly RunMode _runMode;
@@ -97,21 +101,34 @@ namespace SeedLang {
 
     // Dumps the AST tree of the source code.
     public string DumpAst() {
-      Debug.Assert(!(_astTree is null));
+      Debug.Assert(!(_astTree is null), "Parse and compile source code before dumping AST tree.");
       return _astTree.ToString();
     }
 
     // Disassembles the compiled bytecode of the source code.
     public string Disassemble() {
-      Debug.Assert(!(_func is null));
+      Debug.Assert(!(_func is null),
+                   "Parse and compile source code before Disassembling bytecode.");
       return new Disassembler(_func).ToString();
     }
 
     // Runs the compiled bytecode of the source code.
     public bool Run(DiagnosticCollection collection = null) {
-      Debug.Assert(!(_func is null));
+      Debug.Assert(!(_func is null), "Parse and compile source code before running.");
       try {
         _vm.Run(_func);
+        return true;
+      } catch (DiagnosticException exception) {
+        collection?.Report(exception.Diagnostic);
+        return false;
+      }
+    }
+
+    // Continues execution of current program. The execution can be stopped from the callback
+    // function of visualization events.
+    public bool Continue(DiagnosticCollection collection = null) {
+      try {
+        _vm.Continue();
         return true;
       } catch (DiagnosticException exception) {
         collection?.Report(exception.Diagnostic);

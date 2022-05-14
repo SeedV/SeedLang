@@ -29,6 +29,7 @@ namespace SeedLang.Interpreter {
       internal abstract void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
                                     Func<uint, VMValue> getRKValue, uint data, TextRange range);
 
+      // Notifies visualizers and then invalidate the VM proxy.
       protected static void Notify<Event>(Event e, VisualizerCenter visualizerCenter, VMProxy vm) {
         visualizerCenter.Notify(e, vm);
         vm.Invalid();

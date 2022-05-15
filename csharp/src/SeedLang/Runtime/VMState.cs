@@ -19,9 +19,9 @@ namespace SeedLang.Runtime {
     Ready,
     // The script is running.
     Running,
-    // The execution is stopped temporarily.
+    // The execution is paused.
+    Paused,
+    // The execution is stopped.
     Stopped,
-    // The execution is finished.
-    Terminated,
   }
 }

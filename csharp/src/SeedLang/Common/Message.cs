@@ -61,6 +61,8 @@ namespace SeedLang.Common {
     EmptyBlockId,                       // Empty block ID.
     EmptyModuleName,                    // Module name is empty.
     EmptyInlineText,                    // Inline text is empty.
+    EngineNotPaused,                    // Program execution is not paused.
+    EngineProgramNotCompiled,           // Program is not compiled to AST and bytecode.
     FailedToReadFile2,                  // Failed to read a file.
     InvalidBlockId1,                    // Invalid block ID.
     InvalidBlockType1,                  // Invalid block type.

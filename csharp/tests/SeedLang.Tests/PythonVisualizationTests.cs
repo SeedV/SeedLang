@@ -27,7 +27,7 @@ namespace SeedLang.Tests {
 
       public void On(Event.SingleStep e, IVM vm) {
         Event = e;
-        vm.Stop();
+        vm.Pause();
       }
     }
 
@@ -46,23 +46,31 @@ print(a + b)
       engine.Compile(source, "");
       engine.State.Should().Be(VMState.Ready);
       engine.Run().Should().Be(true);
-      engine.State.Should().Be(VMState.Stopped);
+      engine.State.Should().Be(VMState.Paused);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
       engine.Continue().Should().Be(true);
-      engine.State.Should().Be(VMState.Stopped);
+      engine.State.Should().Be(VMState.Paused);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(3, 0, 3, 0)));
       engine.Continue().Should().Be(true);
-      engine.State.Should().Be(VMState.Stopped);
+      engine.State.Should().Be(VMState.Paused);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(4, 0, 4, 0)));
       engine.Continue().Should().Be(true);
-      engine.State.Should().Be(VMState.Terminated);
+      engine.State.Should().Be(VMState.Stopped);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
+
+      stringWriter = new StringWriter();
+      engine.RedirectStdout(stringWriter);
+      engine.Run().Should().Be(true);
+      engine.State.Should().Be(VMState.Paused);
+      visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
+      engine.Stop().Should().Be(true);
+      engine.State.Should().Be(VMState.Stopped);
 
       stringWriter = new StringWriter();
       engine.RedirectStdout(stringWriter);
       engine.Unregister(visualizer);
       engine.Run().Should().Be(true);
-      engine.State.Should().Be(VMState.Terminated);
+      engine.State.Should().Be(VMState.Stopped);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
     }
   }

@@ -22,6 +22,10 @@ namespace SeedLang.Interpreter {
       _vm = vm;
     }
 
+    public void Pause() {
+      _vm?.Pause();
+    }
+
     public void Stop() {
       _vm?.Stop();
     }

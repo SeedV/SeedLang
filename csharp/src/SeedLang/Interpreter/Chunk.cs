@@ -41,6 +41,12 @@ namespace SeedLang.Interpreter {
 
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
+    // The position of the breakpoint. Only support one breakpoint now.
+    private int _breakPointPos;
+    // The original instruction at the position of the breakpoint. It is replaced with a HALT
+    // instruction when the breakpoint is set.
+    private Instruction _instructionAtBreakPoint;
+
     private readonly List<TextRange> _ranges = new List<TextRange>();
 
     private readonly List<AbstractNotification> _notifications = new List<AbstractNotification>();
@@ -82,8 +88,23 @@ namespace SeedLang.Interpreter {
       _ranges.Add(range);
     }
 
+    // Patches the SBx field of an instruction.
     internal void PatchSBXAt(int pos, int sbx) {
       _bytecode[pos] = new Instruction(_bytecode[pos].Opcode, _bytecode[pos].A, sbx);
+    }
+
+    // Sets the breakpoint at the given position. The original instruction will be stored, and
+    // replaced with a HALT instruction.
+    internal void SetBreakPointAt(int pos) {
+      Debug.Assert(pos >= 0 && pos < _bytecode.Count);
+      _breakPointPos = pos;
+      _instructionAtBreakPoint = _bytecode[pos];
+      _bytecode[pos] = new Instruction(Opcode.HALT, 0, 0, 0);
+    }
+
+    // Restores the breakpoint with the stored instruction.
+    internal void RestoreBreakPoint() {
+      _bytecode[_breakPointPos] = _instructionAtBreakPoint;
     }
 
     // Sets the constant list. It must be called by the compiler after compilation.

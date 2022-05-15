@@ -24,7 +24,7 @@ namespace SeedLang.Shell {
   internal static class VisualizerManager {
     // The visualizer for a specified event.
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
-      public void On(Event e) {
+      public void On(Event e, IVM vm) {
         if (e.Range is TextRange range) {
           Source.WriteSourceWithHighlight(range);
         }

@@ -12,9 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Visualization {
-  // The interface of visualizers to visualize the given event.
-  public interface IVisualizer<Event> {
-    void On(Event e, IVM vm);
+using SeedLang.Visualization;
+
+namespace SeedLang.Interpreter {
+  internal class VMProxy : IVM {
+    private VM _vm;
+
+    internal VMProxy(VM vm) {
+      _vm = vm;
+    }
+
+    public void Pause() {
+      _vm?.Pause();
+    }
+
+    public void Stop() {
+      _vm?.Stop();
+    }
+
+    internal void Invalid() {
+      _vm = null;
+    }
   }
 }

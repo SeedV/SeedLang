@@ -14,11 +14,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Interpreter;
+using SeedLang.Runtime;
 using SeedLang.X;
 
 namespace SeedLang {
@@ -29,6 +29,9 @@ namespace SeedLang {
     // The semantic tokens of the source code. It falls back to syntax tokens when there are parsing
     // or compiling errors.
     public IReadOnlyList<TokenInfo> SemanticTokens => _semanticTokens;
+
+    // The state of SeedLang VM.
+    public VMState State => _vm.State;
 
     private readonly SeedXLanguage _language;
     private readonly RunMode _runMode;
@@ -96,20 +99,36 @@ namespace SeedLang {
     }
 
     // Dumps the AST tree of the source code.
-    public string DumpAst() {
-      Debug.Assert(!(_astTree is null));
-      return _astTree.ToString();
+    public bool DumpAst(out string result, DiagnosticCollection collection) {
+      if (_astTree is null) {
+        result = null;
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineProgramNotCompiled);
+        return false;
+      }
+      result = _astTree.ToString();
+      return true;
     }
 
     // Disassembles the compiled bytecode of the source code.
-    public string Disassemble() {
-      Debug.Assert(!(_func is null));
-      return new Disassembler(_func).ToString();
+    public bool Disassemble(out string result, DiagnosticCollection collection) {
+      if (_func is null) {
+        result = null;
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineProgramNotCompiled);
+        return false;
+      }
+      result = new Disassembler(_func).ToString();
+      return true;
     }
 
     // Runs the compiled bytecode of the source code.
     public bool Run(DiagnosticCollection collection = null) {
-      Debug.Assert(!(_func is null));
+      if (_func is null) {
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineProgramNotCompiled);
+        return false;
+      }
       try {
         _vm.Run(_func);
         return true;
@@ -117,6 +136,40 @@ namespace SeedLang {
         collection?.Report(exception.Diagnostic);
         return false;
       }
+    }
+
+    // Continues execution of current program.
+    //
+    // The execution must be paused from the callback function of visualization events before
+    // calling this function.
+    public bool Continue(DiagnosticCollection collection = null) {
+      if (State != VMState.Paused) {
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineNotPaused);
+        return false;
+      }
+      try {
+        _vm.Continue();
+        return true;
+      } catch (DiagnosticException exception) {
+        collection?.Report(exception.Diagnostic);
+        return false;
+      }
+    }
+
+    // Stops execution of current program.
+    //
+    // Multiple-thread is not support now. This function can only be called from the same thread
+    // when execution is paused.
+    // TODO: Add multiple-thread support.
+    public bool Stop(DiagnosticCollection collection = null) {
+      if (State != VMState.Paused) {
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineNotPaused);
+        return false;
+      }
+      _vm.Stop();
+      return true;
     }
 
     private static BaseParser MakeParser(SeedXLanguage language) {

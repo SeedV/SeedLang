@@ -41,7 +41,8 @@ namespace SeedLang.Interpreter {
       _nestedFuncStack.PushFunc("main");
       CacheTopFunction();
       Visit(program);
-      EmitDefaultReturn();
+      // Emits the HALT instruction to indicate the ending of the program.
+      _helper.Chunk.Emit(Opcode.HALT, 1, 0, 0, _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
       return _nestedFuncStack.PopFunc();
     }
 
@@ -144,7 +145,7 @@ namespace SeedLang.Interpreter {
         _helper.DefineVariable(parameterName);
       }
       Visit(funcDef.Body);
-      EmitDefaultReturn();
+      _helper.Emit(Opcode.RETURN, 0, 0, 0, _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
 
       Function func = PopFunc();
       uint funcId = _helper.ConstantCache.IdOfConstant(func);
@@ -401,11 +402,6 @@ namespace SeedLang.Interpreter {
         _exprCompiler.Visit(expr);
       }
       return exprId;
-    }
-
-    private void EmitDefaultReturn() {
-      var range = _rangeOfPrevStatement is null ? new TextRange(1, 0, 1, 0) : _rangeOfPrevStatement;
-      _helper.Emit(Opcode.RETURN, 0, 0, 0, range);
     }
   }
 }

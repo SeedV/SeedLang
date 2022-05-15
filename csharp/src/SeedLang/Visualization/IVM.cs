@@ -13,8 +13,12 @@
 // limitations under the License.
 
 namespace SeedLang.Visualization {
-  // The interface of visualizers to visualize the given event.
-  public interface IVisualizer<Event> {
-    void On(Event e, IVM vm);
+  // The interface of SeedLang VM. The methods of it can only be called during visualization
+  // notification.
+  public interface IVM {
+    // Pauses execution.
+    void Pause();
+    // Stops execution.
+    void Stop();
   }
 }

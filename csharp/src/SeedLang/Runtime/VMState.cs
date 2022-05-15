@@ -12,9 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace SeedLang.Visualization {
-  // The interface of visualizers to visualize the given event.
-  public interface IVisualizer<Event> {
-    void On(Event e, IVM vm);
+namespace SeedLang.Runtime {
+  // The state of SeedLang VM.
+  public enum VMState {
+    // The SeedLang VM is ready to execute a program.
+    Ready,
+    // The script is running.
+    Running,
+    // The execution is paused.
+    Paused,
+    // The execution is stopped.
+    Stopped,
   }
 }

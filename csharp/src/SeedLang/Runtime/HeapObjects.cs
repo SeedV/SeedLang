@@ -75,6 +75,25 @@ namespace SeedLang.Runtime {
         }
       }
     }
+
+    internal class Slice {
+      public readonly int? Start;
+      public readonly int? Stop;
+      public readonly int? Step;
+
+      internal Slice(int? stop = null) : this(null, stop) { }
+
+      internal Slice(int? start, int? stop, int? step = null) {
+        Start = start;
+        Stop = stop;
+        Step = step;
+      }
+
+      public override string ToString() {
+        return $"slice({Start?.ToString() ?? "None"}, {Stop?.ToString() ?? "None"}, " +
+               $"{Step?.ToString() ?? "None"})";
+      }
+    }
   }
 }
 

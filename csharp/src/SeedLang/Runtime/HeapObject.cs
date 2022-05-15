@@ -29,25 +29,26 @@ namespace SeedLang.Runtime {
   // A class to hold heap allocated objects.
   internal partial class HeapObject : IEquatable<HeapObject> {
     public bool IsString => _object is string;
-    public bool IsList => _object is List;
     public bool IsFunction => _object is IFunction;
-    public bool IsRange => _object is Range;
-    public bool IsTuple => _object is Tuple;
     public bool IsDict => _object is Dict;
+    public bool IsList => _object is List;
+    public bool IsTuple => _object is Tuple;
+    public bool IsRange => _object is Range;
+    public bool IsSlice => _object is Slice;
 
     public int Length {
       get {
         switch (_object) {
           case string str:
             return str.Length;
-          case List list:
-            return list.Count;
-          case Range range:
-            return range.Length;
-          case Tuple tuple:
-            return tuple.Length;
           case Dict dict:
             return dict.Count;
+          case List list:
+            return list.Count;
+          case Tuple tuple:
+            return tuple.Length;
+          case Range range:
+            return range.Length;
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotCountable);
@@ -70,7 +71,7 @@ namespace SeedLang.Runtime {
           break;
       }
       _object = obj;
-      Debug.Assert(IsString || IsList || IsFunction || IsRange || IsTuple || IsDict,
+      Debug.Assert(IsString || IsFunction || IsDict || IsList || IsTuple || IsRange || IsSlice,
                    $"Unsupported object type: {_object.GetType()}");
     }
 
@@ -106,12 +107,12 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return str == other._object as string;
-        case Tuple tuple:
-          return tuple.SequenceEqual((Tuple)other._object);
-        case List list:
-          return list.SequenceEqual(other._object as List);
         case Dict dict:
           return dict.SequenceEqual(other._object as Dict);
+        case List list:
+          return list.SequenceEqual(other._object as List);
+        case Tuple tuple:
+          return tuple.SequenceEqual((Tuple)other._object);
         default:
           return _object == other._object;
       }
@@ -138,14 +139,14 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return ValueHelper.StringToBoolean(str);
-        case List list:
-          return list.Count != 0;
-        case Range range:
-          return range.Length != 0;
-        case Tuple tuple:
-          return tuple.Length != 0;
         case Dict dict:
           return dict.Count != 0;
+        case List list:
+          return list.Count != 0;
+        case Tuple tuple:
+          return tuple.Length != 0;
+        case Range range:
+          return range.Length != 0;
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);

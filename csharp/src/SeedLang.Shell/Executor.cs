@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using SeedLang.Common;
 
@@ -60,14 +59,16 @@ namespace SeedLang.Shell {
         switch (runType) {
           case RunType.DumpAst: {
               Console.WriteLine("---------- Ast ----------");
-              Debug.Assert(engine.DumpAst(out string result, collection));
-              Console.WriteLine(result);
+              if (engine.DumpAst(out string result, collection)) {
+                Console.WriteLine(result);
+              }
             }
             break;
           case RunType.Disassemble: {
               Console.WriteLine("---------- Disassemble ----------");
-              Debug.Assert(engine.Disassemble(out string result, collection));
-              Console.WriteLine(result);
+              if (engine.Disassemble(out string result, collection)) {
+                Console.WriteLine(result);
+              }
             }
             break;
           case RunType.Execute:

@@ -54,16 +54,23 @@ namespace SeedLang.Interpreter {
       RunLoop();
     }
 
-    internal void Stop() {
+    internal void Pause() {
       Debug.Assert(State == VMState.Running);
       Debug.Assert(_pc + 1 < _chunk.Bytecode.Count);
       _chunk.SetBreakPointAt(_pc + 1);
     }
 
     internal void Continue() {
-      Debug.Assert(State == VMState.Stopped);
+      Debug.Assert(State == VMState.Paused);
       _chunk.RestoreBreakPoint();
       RunLoop();
+    }
+
+    internal void Stop() {
+      if (State == VMState.Paused) {
+        _chunk.RestoreBreakPoint();
+      }
+      State = VMState.Stopped;
     }
 
     private void RunLoop() {
@@ -220,7 +227,7 @@ namespace SeedLang.Interpreter {
               }, instr.A, _chunk.Ranges[_pc]);
               break;
             case Opcode.HALT:
-              State = instr.A == 0 ? VMState.Stopped : VMState.Terminated;
+              State = instr.A == 0 ? VMState.Paused : VMState.Stopped;
               return;
             default:
               throw new NotImplementedException($"Unimplemented opcode: {instr.Opcode}");

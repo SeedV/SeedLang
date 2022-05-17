@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -100,21 +99,36 @@ namespace SeedLang {
     }
 
     // Dumps the AST tree of the source code.
-    public string DumpAst() {
-      Debug.Assert(!(_astTree is null), "Parse and compile source code before dumping AST tree.");
-      return _astTree.ToString();
+    public bool DumpAst(out string result, DiagnosticCollection collection) {
+      if (_astTree is null) {
+        result = null;
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineProgramNotCompiled);
+        return false;
+      }
+      result = _astTree.ToString();
+      return true;
     }
 
     // Disassembles the compiled bytecode of the source code.
-    public string Disassemble() {
-      Debug.Assert(!(_func is null),
-                   "Parse and compile source code before Disassembling bytecode.");
-      return new Disassembler(_func).ToString();
+    public bool Disassemble(out string result, DiagnosticCollection collection) {
+      if (_func is null) {
+        result = null;
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineProgramNotCompiled);
+        return false;
+      }
+      result = new Disassembler(_func).ToString();
+      return true;
     }
 
     // Runs the compiled bytecode of the source code.
     public bool Run(DiagnosticCollection collection = null) {
-      Debug.Assert(!(_func is null), "Parse and compile source code before running.");
+      if (_func is null) {
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineProgramNotCompiled);
+        return false;
+      }
       try {
         _vm.Run(_func);
         return true;
@@ -124,9 +138,16 @@ namespace SeedLang {
       }
     }
 
-    // Continues execution of current program. The execution can be stopped from the callback
-    // function of visualization events.
+    // Continues execution of current program.
+    //
+    // The execution must be paused from the callback function of visualization events before
+    // calling this function.
     public bool Continue(DiagnosticCollection collection = null) {
+      if (State != VMState.Paused) {
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineNotPaused);
+        return false;
+      }
       try {
         _vm.Continue();
         return true;
@@ -134,6 +155,21 @@ namespace SeedLang {
         collection?.Report(exception.Diagnostic);
         return false;
       }
+    }
+
+    // Stops execution of current program.
+    //
+    // Multiple-thread is not support now. This function can only be called from the same thread
+    // when execution is paused.
+    // TODO: Add multiple-thread support.
+    public bool Stop(DiagnosticCollection collection = null) {
+      if (State != VMState.Paused) {
+        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
+                           Message.EngineNotPaused);
+        return false;
+      }
+      _vm.Stop();
+      return true;
     }
 
     private static BaseParser MakeParser(SeedXLanguage language) {

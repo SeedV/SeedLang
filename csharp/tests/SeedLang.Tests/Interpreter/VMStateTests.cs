@@ -30,7 +30,7 @@ namespace SeedLang.Interpreter.Tests {
 
       public void On(Event.SingleStep e, IVM vm) {
         Event = e;
-        vm.Stop();
+        vm.Pause();
       }
     }
 
@@ -53,28 +53,36 @@ print(a + b)
 
       vm.State.Should().Be(VMState.Ready);
       vm.Run(func);
-      vm.State.Should().Be(VMState.Stopped);
+      vm.State.Should().Be(VMState.Paused);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
       vm.Continue();
-      vm.State.Should().Be(VMState.Stopped);
+      vm.State.Should().Be(VMState.Paused);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(3, 0, 3, 0)));
       vm.Continue();
-      vm.State.Should().Be(VMState.Stopped);
+      vm.State.Should().Be(VMState.Paused);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(4, 0, 4, 0)));
       vm.Continue();
-      vm.State.Should().Be(VMState.Terminated);
+      vm.State.Should().Be(VMState.Stopped);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
 
-      Action action = () => vm.Continue();
-      action.Should().Throw<Exception>();
-      action = () => vm.Stop();
-      action.Should().Throw<Exception>();
+      // Action action = () => vm.Continue();
+      // action.Should().Throw<Exception>();
+      // action = () => vm.Pause();
+      // action.Should().Throw<Exception>();
+
+      stringWriter = new StringWriter();
+      vm.RedirectStdout(stringWriter);
+      vm.Run(func);
+      vm.State.Should().Be(VMState.Paused);
+      visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
+      vm.Stop();
+      vm.State.Should().Be(VMState.Stopped);
 
       stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       vm.VisualizerCenter.Unregister(visualizer);
       vm.Run(func);
-      vm.State.Should().Be(VMState.Terminated);
+      vm.State.Should().Be(VMState.Stopped);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
     }
   }

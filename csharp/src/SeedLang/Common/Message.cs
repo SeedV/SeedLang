@@ -56,19 +56,8 @@ namespace SeedLang.Common {
     //
     // Please keep the following message IDs in alphabetical order.
 
-    BlockHasNoPosition,                 // Block has no position.
-    DuplicateBlockId1,                  // Duplicate block ID.
-    EmptyBlockId,                       // Empty block ID.
-    EmptyModuleName,                    // Module name is empty.
-    EmptyInlineText,                    // Inline text is empty.
-    FailedToReadFile2,                  // Failed to read a file.
-    InvalidBlockId1,                    // Invalid block ID.
-    InvalidBlockType1,                  // Invalid block type.
-    InvalidBxfSchema1,                  // Invalid BXF schema tag.
-    InvalidBxfVersion1,                 // Invalid BXF version.
-    InvalidJson1,                       // Not a valid JSON string/file.
-    InvalidOperatorName1,               // Invalid operator name.
-    InvalidPrimitiveValue1,             // Invalid primitive value.
+    EngineNotPaused,                    // Program execution is not paused.
+    EngineProgramNotCompiled,           // Program is not compiled to AST and bytecode.
     RuntimeErrorBreakOutsideLoop,       // The Break statement is outside of loop statements.
     RuntimeErrorContinueOutsideLoop,    // The Continue statement is outside of loop statements.
     RuntimeErrorDivideByZero,           // Divide by zero runtime error.
@@ -91,8 +80,6 @@ namespace SeedLang.Common {
     SyntaxErrorMissingToken2,           // Missing token syntax error.
     SyntaxErrorNoViableAlternative1,    // No viable alternative path syntax error.
     SyntaxErrorUnwantedToken2,          // Unwanted token syntax error.
-    TargetBlockIdNotExist1,             // Target block ID does not exist.
-    TargetBlockNotDockable4,            // Target block is not dockable.
   }
 
   public static class MessageHelper {

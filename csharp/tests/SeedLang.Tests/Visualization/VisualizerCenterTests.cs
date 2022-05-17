@@ -39,6 +39,10 @@ namespace SeedLang.Visualization.Tests {
   }
 
   internal class MockupVM : IVM {
+    public void Pause() {
+      throw new NotImplementedException();
+    }
+
     public void Stop() {
       throw new NotImplementedException();
     }

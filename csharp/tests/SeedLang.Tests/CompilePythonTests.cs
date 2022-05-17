@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System;
+using FluentAssertions;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using Xunit;
 
@@ -145,10 +147,11 @@ for i in range(10):
       ).Replace("\n", Environment.NewLine);
       TestEngineCompile(source, result);
     }
-    private static void TestEngineCompile(string source, string result) {
+    private static void TestEngineCompile(string source, string expectedResult) {
       var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
       engine.Compile(source, "");
-      Assert.Equal(result, engine.Disassemble());
+      engine.Disassemble(out string result, new DiagnosticCollection());
+      result.Should().Be(expectedResult);
     }
   }
 }

@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -151,14 +152,14 @@ print(sum)
         $"  21   FORPREP   1 15             ; to 37             [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  22   GETELEM   4 0 1                                [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  23   SETGLOB   4 {_firstGlob + 3}" +
-        $"                                  [Ln 8, Col 2 - Ln 11, Col 19]\n" +
+        $"                                 [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  24   VISNOTIFY 0 0                                  [Ln 9, Col 0 - Ln 9, Col 0]\n" +
         $"  25   GETGLOB   4 {_firstGlob + 2}" +
         $"                                  [Ln 9, Col 7 - Ln 9, Col 7]\n" +
         $"  26   LT        1 4 -6           ; 8                 [Ln 9, Col 7 - Ln 9, Col 11]\n" +
         $"  27   JMP       0 8              ; to 36             [Ln 9, Col 7 - Ln 9, Col 11]\n" +
         $"  28   GETGLOB   4 {_firstGlob + 3}" +
-        $"                                  [Ln 9, Col 17 - Ln 9, Col 17]\n" +
+        $"                                 [Ln 9, Col 17 - Ln 9, Col 17]\n" +
         $"  29   LT        1 4 -7           ; 3                 [Ln 9, Col 17 - Ln 9, Col 21]\n" +
         $"  30   JMP       0 5              ; to 36             [Ln 9, Col 17 - Ln 9, Col 21]\n" +
         $"  31   VISNOTIFY 0 0                                  [Ln 11, Col 0 - Ln 11, Col 0]\n" +
@@ -460,15 +461,15 @@ x, y = 1, 1 + 2
 
     private static void TestCompiler(string source, string expected, IReadOnlyList<Type> eventTypes,
                                      RunMode mode) {
-      Assert.True(new SeedPython().Parse(source, "", new DiagnosticCollection(),
-                                         out Statement program, out IReadOnlyList<TokenInfo> _));
+      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
+                             out IReadOnlyList<TokenInfo> _).Should().Be(true);
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var visualizerCenter = new VisualizerCenter();
       var visualizerHelper = new VisualizerHelper(eventTypes);
       visualizerHelper.RegisterToVisualizerCenter(visualizerCenter);
       var compiler = new Compiler();
       var func = compiler.Compile(program, env, visualizerCenter, mode);
-      Assert.Equal(expected, new Disassembler(func).ToString());
+      new Disassembler(func).ToString().Should().BeEquivalentTo(expected);
     }
   }
 }

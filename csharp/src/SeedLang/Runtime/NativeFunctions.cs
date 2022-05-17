@@ -26,6 +26,7 @@ namespace SeedLang.Runtime {
     public const string List = "list";
     public const string Print = "print";
     public const string Range = "range";
+    public const string Slice = "slice";
 
     public static NativeFunction[] Funcs = new NativeFunction[] {
         new NativeFunction(PrintVal, PrintValFunc),
@@ -34,6 +35,7 @@ namespace SeedLang.Runtime {
         new NativeFunction(List, ListFunc),
         new NativeFunction(Print, PrintFunc),
         new NativeFunction(Range, RangeFunc),
+        new NativeFunction(Slice, SliceFunc),
     };
 
     internal static bool IsInternalFunction(string name) {
@@ -121,6 +123,12 @@ namespace SeedLang.Runtime {
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                     Message.RuntimeErrorIncorrectArgsCount);
+    }
+
+    private static VMValue SliceFunc(VMValue[] args, int offset, int length, Sys _) {
+      return new VMValue(new HeapObject.Slice((int)args[offset].AsNumber(),
+                                                (int)args[offset + 1].AsNumber(),
+                                                (int)args[offset + 2].AsNumber()));
     }
   }
 }

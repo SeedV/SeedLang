@@ -13,10 +13,17 @@
 // limitations under the License.
 
 using System;
+using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Tests {
   public class CompilePythonTests {
+    private static int _rangeFunc =>
+        Array.FindIndex(NativeFunctions.Funcs, (HeapObject.NativeFunction func) => {
+          return func.Name == NativeFunctions.Range;
+        });
+    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
+
     [Fact]
     public void TestCompileBreak() {
       string source = @"
@@ -32,7 +39,8 @@ for i in range(10):
 ";
       string result = (
         $"Function <main>\n" +
-        $"  1    GETGLOB   0 5                                  [Ln 2, Col 9 - Ln 2, Col 13]\n" +
+        $"  1    GETGLOB   0 {_rangeFunc}" +
+        $"                                  [Ln 2, Col 9 - Ln 2, Col 13]\n" +
         $"  2    LOADK     1 -1             ; 10                [Ln 2, Col 15 - Ln 2, Col 16]\n" +
         $"  3    CALL      0 1 0                                [Ln 2, Col 9 - Ln 2, Col 17]\n" +
         $"  4    LOADK     1 -2             ; 0                 [Ln 2, Col 0 - Ln 10, Col 7]\n" +
@@ -40,27 +48,37 @@ for i in range(10):
         $"  6    LOADK     3 -3             ; 1                 [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  7    FORPREP   1 22             ; to 30             [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  8    GETELEM   4 0 1                                [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  9    SETGLOB   4 6                                  [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  10   GETGLOB   4 6                                  [Ln 3, Col 5 - Ln 3, Col 5]\n" +
+        $"  9    SETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 2, Col 0 - Ln 10, Col 7]\n" +
+        $"  10   GETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 3, Col 5 - Ln 3, Col 5]\n" +
         $"  11   EQ        1 4 -4           ; 5                 [Ln 3, Col 5 - Ln 3, Col 10]\n" +
         $"  12   JMP       0 1              ; to 14             [Ln 3, Col 5 - Ln 3, Col 10]\n" +
         $"  13   JMP       0 17             ; to 31             [Ln 4, Col 4 - Ln 4, Col 8]\n" +
-        $"  14   GETGLOB   4 6                                  [Ln 5, Col 6 - Ln 5, Col 6]\n" +
-        $"  15   SETGLOB   4 7                                  [Ln 5, Col 2 - Ln 5, Col 6]\n" +
-        $"  16   GETGLOB   4 7                                  [Ln 6, Col 8 - Ln 6, Col 8]\n" +
+        $"  14   GETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 5, Col 6 - Ln 5, Col 6]\n" +
+        $"  15   SETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 5, Col 2 - Ln 5, Col 6]\n" +
+        $"  16   GETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 6, Col 8 - Ln 6, Col 8]\n" +
         $"  17   LT        1 4 -1           ; 10                [Ln 6, Col 8 - Ln 6, Col 13]\n" +
         $"  18   JMP       0 8              ; to 27             [Ln 6, Col 8 - Ln 6, Col 13]\n" +
-        $"  19   GETGLOB   4 7                                  [Ln 7, Col 7 - Ln 7, Col 7]\n" +
+        $"  19   GETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 7, Col 7 - Ln 7, Col 7]\n" +
         $"  20   EQ        1 4 -5           ; 8                 [Ln 7, Col 7 - Ln 7, Col 12]\n" +
         $"  21   JMP       0 1              ; to 23             [Ln 7, Col 7 - Ln 7, Col 12]\n" +
         $"  22   JMP       0 4              ; to 27             [Ln 8, Col 6 - Ln 8, Col 10]\n" +
-        $"  23   GETGLOB   5 7                                  [Ln 9, Col 4 - Ln 9, Col 4]\n" +
+        $"  23   GETGLOB   5 {_firstGlob + 1}" +
+        $"                                  [Ln 9, Col 4 - Ln 9, Col 4]\n" +
         $"  24   ADD       4 5 -3           ; 1                 [Ln 9, Col 4 - Ln 9, Col 9]\n" +
-        $"  25   SETGLOB   4 7                                  [Ln 9, Col 4 - Ln 9, Col 9]\n" +
+        $"  25   SETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 9, Col 4 - Ln 9, Col 9]\n" +
         $"  26   JMP       0 -11            ; to 16             [Ln 6, Col 2 - Ln 9, Col 9]\n" +
-        $"  27   GETGLOB   5 6                                  [Ln 10, Col 2 - Ln 10, Col 2]\n" +
+        $"  27   GETGLOB   5 {_firstGlob}" +
+        $"                                  [Ln 10, Col 2 - Ln 10, Col 2]\n" +
         $"  28   ADD       4 5 -3           ; 1                 [Ln 10, Col 2 - Ln 10, Col 7]\n" +
-        $"  29   SETGLOB   4 6                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
+        $"  29   SETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
         $"  30   FORLOOP   1 -23            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  31   HALT      1 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
       ).Replace("\n", Environment.NewLine);
@@ -82,7 +100,8 @@ for i in range(10):
 ";
       string result = (
         $"Function <main>\n" +
-        $"  1    GETGLOB   0 5                                  [Ln 2, Col 9 - Ln 2, Col 13]\n" +
+        $"  1    GETGLOB   0 {_rangeFunc}" +
+        $"                                  [Ln 2, Col 9 - Ln 2, Col 13]\n" +
         $"  2    LOADK     1 -1             ; 10                [Ln 2, Col 15 - Ln 2, Col 16]\n" +
         $"  3    CALL      0 1 0                                [Ln 2, Col 9 - Ln 2, Col 17]\n" +
         $"  4    LOADK     1 -2             ; 0                 [Ln 2, Col 0 - Ln 10, Col 7]\n" +
@@ -90,27 +109,37 @@ for i in range(10):
         $"  6    LOADK     3 -3             ; 1                 [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  7    FORPREP   1 22             ; to 30             [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  8    GETELEM   4 0 1                                [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  9    SETGLOB   4 6                                  [Ln 2, Col 0 - Ln 10, Col 7]\n" +
-        $"  10   GETGLOB   4 6                                  [Ln 3, Col 5 - Ln 3, Col 5]\n" +
+        $"  9    SETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 2, Col 0 - Ln 10, Col 7]\n" +
+        $"  10   GETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 3, Col 5 - Ln 3, Col 5]\n" +
         $"  11   EQ        1 4 -4           ; 5                 [Ln 3, Col 5 - Ln 3, Col 10]\n" +
         $"  12   JMP       0 1              ; to 14             [Ln 3, Col 5 - Ln 3, Col 10]\n" +
         $"  13   JMP       0 16             ; to 30             [Ln 4, Col 4 - Ln 4, Col 11]\n" +
-        $"  14   GETGLOB   4 6                                  [Ln 5, Col 6 - Ln 5, Col 6]\n" +
-        $"  15   SETGLOB   4 7                                  [Ln 5, Col 2 - Ln 5, Col 6]\n" +
-        $"  16   GETGLOB   4 7                                  [Ln 6, Col 8 - Ln 6, Col 8]\n" +
+        $"  14   GETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 5, Col 6 - Ln 5, Col 6]\n" +
+        $"  15   SETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 5, Col 2 - Ln 5, Col 6]\n" +
+        $"  16   GETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 6, Col 8 - Ln 6, Col 8]\n" +
         $"  17   LT        1 4 -1           ; 10                [Ln 6, Col 8 - Ln 6, Col 13]\n" +
         $"  18   JMP       0 8              ; to 27             [Ln 6, Col 8 - Ln 6, Col 13]\n" +
-        $"  19   GETGLOB   4 7                                  [Ln 7, Col 7 - Ln 7, Col 7]\n" +
+        $"  19   GETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 7, Col 7 - Ln 7, Col 7]\n" +
         $"  20   EQ        1 4 -5           ; 8                 [Ln 7, Col 7 - Ln 7, Col 12]\n" +
         $"  21   JMP       0 1              ; to 23             [Ln 7, Col 7 - Ln 7, Col 12]\n" +
         $"  22   JMP       0 -7             ; to 16             [Ln 8, Col 6 - Ln 8, Col 13]\n" +
-        $"  23   GETGLOB   5 7                                  [Ln 9, Col 4 - Ln 9, Col 4]\n" +
+        $"  23   GETGLOB   5 {_firstGlob + 1}" +
+        $"                                  [Ln 9, Col 4 - Ln 9, Col 4]\n" +
         $"  24   ADD       4 5 -3           ; 1                 [Ln 9, Col 4 - Ln 9, Col 9]\n" +
-        $"  25   SETGLOB   4 7                                  [Ln 9, Col 4 - Ln 9, Col 9]\n" +
+        $"  25   SETGLOB   4 {_firstGlob + 1}" +
+        $"                                  [Ln 9, Col 4 - Ln 9, Col 9]\n" +
         $"  26   JMP       0 -11            ; to 16             [Ln 6, Col 2 - Ln 9, Col 9]\n" +
-        $"  27   GETGLOB   5 6                                  [Ln 10, Col 2 - Ln 10, Col 2]\n" +
+        $"  27   GETGLOB   5 {_firstGlob}" +
+        $"                                  [Ln 10, Col 2 - Ln 10, Col 2]\n" +
         $"  28   ADD       4 5 -3           ; 1                 [Ln 10, Col 2 - Ln 10, Col 7]\n" +
-        $"  29   SETGLOB   4 6                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
+        $"  29   SETGLOB   4 {_firstGlob}" +
+        $"                                  [Ln 10, Col 2 - Ln 10, Col 7]\n" +
         $"  30   FORLOOP   1 -23            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  31   HALT      1 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
       ).Replace("\n", Environment.NewLine);

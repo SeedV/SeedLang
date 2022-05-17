@@ -113,7 +113,8 @@ namespace SeedLang.Interpreter {
             _helper.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
           }
         } else {
-          // TODO: throw a variable not defined runtime error.
+          throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Error, "",
+                                        call.Range, Message.RuntimeErrorVariableNotDefined);
         }
       }
       _helper.EndExprScope();
@@ -184,7 +185,12 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitSlice(SliceExpression slice) {
-      throw new NotImplementedException();
+      Expression sliceFunc = Expression.Identifier(NativeFunctions.Slice, slice.Range);
+      Visit(Expression.Call(sliceFunc, new Expression[] {
+        slice.Start ?? Expression.NilConstant(slice.Range),
+        slice.Stop ?? Expression.NilConstant(slice.Range),
+        slice.Step ?? Expression.NilConstant(slice.Range),
+      }, slice.Range));
     }
 
     protected override void VisitStringConstant(StringConstantExpression stringConstant) {
@@ -195,9 +201,9 @@ namespace SeedLang.Interpreter {
     protected override void VisitSubscript(SubscriptExpression subscript) {
       _helper.BeginExprScope();
       uint targetId = RegisterForSubExpr;
-      uint listId = VisitExpressionForRegisterId(subscript.Expr);
-      uint indexId = VisitExpressionForRKId(subscript.SliceExpr);
-      _helper.Emit(Opcode.GETELEM, targetId, listId, indexId, subscript.Range);
+      uint containerId = VisitExpressionForRegisterId(subscript.Expr);
+      uint sliceId = VisitExpressionForRKId(subscript.SliceExpr);
+      _helper.Emit(Opcode.GETELEM, targetId, containerId, sliceId, subscript.Range);
       _helper.EndExprScope();
     }
 

@@ -84,7 +84,7 @@ for i in range(10):
         $"  30   FORLOOP   1 -23            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  31   HALT      1 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
       ).Replace("\n", Environment.NewLine);
-      TestEngineCompile(source, result);
+      TestCompile(source, result);
     }
 
     [Fact]
@@ -145,13 +145,14 @@ for i in range(10):
         $"  30   FORLOOP   1 -23            ; to 8              [Ln 2, Col 0 - Ln 10, Col 7]\n" +
         $"  31   HALT      1 0                                  [Ln 10, Col 2 - Ln 10, Col 7]\n"
       ).Replace("\n", Environment.NewLine);
-      TestEngineCompile(source, result);
+      TestCompile(source, result);
     }
-    private static void TestEngineCompile(string source, string expectedResult) {
+
+    private static void TestCompile(string source, string expectedResult) {
       var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
       engine.Compile(source, "");
       engine.Disassemble(out string result, new DiagnosticCollection());
-      result.Should().Be(expectedResult);
+      Assert.Equal(expectedResult, result);
     }
   }
 }

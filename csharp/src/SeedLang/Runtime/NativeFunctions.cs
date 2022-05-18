@@ -88,9 +88,6 @@ namespace SeedLang.Runtime {
       if (length == 0) {
         return new VMValue(new List<VMValue>());
       }
-      if (args[offset].IsList) {
-        return args[offset];
-      }
       var list = new List<VMValue>();
       for (int i = 0; i < args[offset].Length; i++) {
         list.Add(args[offset][new VMValue(i)]);
@@ -126,9 +123,14 @@ namespace SeedLang.Runtime {
     }
 
     private static VMValue SliceFunc(VMValue[] args, int offset, int length, Sys _) {
-      return new VMValue(new HeapObject.Slice((int)args[offset].AsNumber(),
-                                                (int)args[offset + 1].AsNumber(),
-                                                (int)args[offset + 2].AsNumber()));
+      if (length != 3) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorIncorrectArgsCount);
+      }
+      int? start = args[offset].IsNumber ? (int)args[offset].AsNumber() : null;
+      int? stop = args[offset + 1].IsNumber ? (int)args[offset + 1].AsNumber() : null;
+      int? step = args[offset + 2].IsNumber ? (int)args[offset + 2].AsNumber() : null;
+      return new VMValue(new HeapObject.Slice(start, stop, step));
     }
   }
 }

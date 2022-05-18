@@ -167,26 +167,18 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return str;
-        case List list:
-          return ListToString(list);
         case IFunction func:
           return func.ToString();
-        case Range range:
-          return range.ToString();
-        case Tuple tuple:
-          return TupleToString(tuple);
         case Dict dict:
           return DictToString(dict);
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
-    }
-
-    internal List AsList() {
-      switch (_object) {
         case List list:
-          return list;
+          return ListToString(list);
+        case Tuple tuple:
+          return TupleToString(tuple);
+        case Range range:
+          return range.ToString();
+        case Slice slice:
+          return slice.ToString();
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -203,6 +195,26 @@ namespace SeedLang.Runtime {
       }
     }
 
+    internal Dict AsDict() {
+      switch (_object) {
+        case Dict dict:
+          return dict;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal List AsList() {
+      switch (_object) {
+        case List list:
+          return list;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
     internal Tuple AsTuple() {
       switch (_object) {
         case Tuple tuple:
@@ -213,10 +225,10 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Dict AsDict() {
+    internal Slice AsSlice() {
       switch (_object) {
-        case Dict dict:
-          return dict;
+        case Slice slice:
+          return slice;
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -228,12 +240,6 @@ namespace SeedLang.Runtime {
         switch (_object) {
           case string str:
             return new VMValue(str[ToIntIndex(key.AsNumber(), str.Length)].ToString());
-          case List list:
-            return list[ToIntIndex(key.AsNumber(), list.Count)];
-          case Range range:
-            return range[ToIntIndex(key.AsNumber(), range.Length)];
-          case Tuple tuple:
-            return tuple[ToIntIndex(key.AsNumber(), tuple.Length)];
           case Dict dict:
             CheckKey(key);
             if (dict.ContainsKey(key)) {
@@ -241,6 +247,15 @@ namespace SeedLang.Runtime {
             }
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNoKey);
+          case List list:
+            if (key.IsNumber) {
+              return list[ToIntIndex(key.AsNumber(), list.Count)];
+            }
+            return SliceList(list, key.AsSlice());
+          case Tuple tuple:
+            return tuple[ToIntIndex(key.AsNumber(), tuple.Length)];
+          case Range range:
+            return range[ToIntIndex(key.AsNumber(), range.Length)];
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
@@ -250,15 +265,15 @@ namespace SeedLang.Runtime {
         switch (_object) {
           case string _:
             throw new NotImplementedException();
-          case List list:
-            list[ToIntIndex(key.AsNumber(), list.Count)] = value;
-            break;
           case Dict dict:
             CheckKey(key);
             dict[key] = value;
             break;
-          case Range _:
+          case List list:
+            list[ToIntIndex(key.AsNumber(), list.Count)] = value;
+            break;
           case Tuple _:
+          case Range _:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSupportAssignment);
           default:
@@ -266,6 +281,17 @@ namespace SeedLang.Runtime {
                                           Message.RuntimeErrorNotSubscriptable);
         }
       }
+    }
+
+    private static VMValue SliceList(List list, Slice slice) {
+      int start = slice.Start ?? 0;
+      int stop = slice.Stop ?? list.Count;
+      int step = slice.Step ?? 1;
+      var newList = new List<VMValue>();
+      for (int i = start; i < stop; i += step) {
+        newList.Add(list[i]);
+      }
+      return new VMValue(newList);
     }
 
     private static int ToIntIndex(double index, int length) {

@@ -14,85 +14,83 @@
 
 using System;
 
-namespace SeedLang.Runtime {
+namespace SeedLang.Runtime.HeapObjects {
   using BuildinFunctionType = Func<VMValue[], int, int, Sys, VMValue>;
 
-  internal partial class HeapObject {
-    // An empty interface for all function value types. It's only used to identify function types.
-    internal interface IFunction {
+  // An empty interface for all function value types. It's only used to identify function types.
+  internal interface IFunction {
+  }
+
+  // The native function class to encapsulate build-in functions written by the host language.
+  internal class NativeFunction : IFunction {
+    public readonly string Name;
+
+    private readonly BuildinFunctionType _func;
+
+    internal NativeFunction(string name, BuildinFunctionType func) {
+      Name = name;
+      _func = func;
     }
 
-    // The native function class to encapsulate build-in functions written by the host language.
-    internal class NativeFunction : IFunction {
-      public readonly string Name;
-
-      private readonly BuildinFunctionType _func;
-
-      internal NativeFunction(string name, BuildinFunctionType func) {
-        Name = name;
-        _func = func;
-      }
-
-      // Calls the build-in function with given arguments that locate in the "args" array starting
-      // from "offset". The number of arguments is "length".
-      internal VMValue Call(VMValue[] args, int offset, int length, Sys sys) {
-        return _func(args, offset, length, sys);
-      }
-
-      public override string ToString() {
-        return $"NativeFunction <{Name}>";
-      }
+    // Calls the build-in function with given arguments that locate in the "args" array starting
+    // from "offset". The number of arguments is "length".
+    internal VMValue Call(VMValue[] args, int offset, int length, Sys sys) {
+      return _func(args, offset, length, sys);
     }
 
-    internal class Range {
-      public int Length {
-        get {
-          int distance = _stop - _start;
-          int length = distance / _step + (distance % _step == 0 ? 0 : 1);
-          return Math.Max(length, 0);
-        }
-      }
+    public override string ToString() {
+      return $"NativeFunction <{Name}>";
+    }
+  }
 
-      private readonly int _start;
-      private readonly int _stop;
-      private readonly int _step;
-
-      internal Range(int stop) : this(0, stop) { }
-
-      internal Range(int start, int stop, int step = 1) {
-        _start = start;
-        _stop = stop;
-        _step = step;
-      }
-
-      public override string ToString() {
-        return $"range({_start}, {_stop}, {_step})";
-      }
-
-      internal VMValue this[double index] {
-        get {
-          return new VMValue(_start + (int)index * _step);
-        }
+  internal class Range {
+    public int Length {
+      get {
+        int distance = _stop - _start;
+        int length = distance / _step + (distance % _step == 0 ? 0 : 1);
+        return Math.Max(length, 0);
       }
     }
 
-    internal class Slice {
-      public readonly int? Start;
-      public readonly int? Stop;
-      public readonly int? Step;
+    private readonly int _start;
+    private readonly int _stop;
+    private readonly int _step;
 
-      internal Slice(int? stop = null) : this(null, stop) { }
+    internal Range(int stop) : this(0, stop) { }
 
-      internal Slice(int? start, int? stop, int? step = null) {
-        Start = start;
-        Stop = stop;
-        Step = step;
+    internal Range(int start, int stop, int step = 1) {
+      _start = start;
+      _stop = stop;
+      _step = step;
+    }
+
+    public override string ToString() {
+      return $"range({_start}, {_stop}, {_step})";
+    }
+
+    internal VMValue this[double index] {
+      get {
+        return new VMValue(_start + (int)index * _step);
       }
+    }
+  }
 
-      public override string ToString() {
-        return $"slice({Start?.ToString() ?? "None"}, {Stop?.ToString() ?? "None"}, " +
-               $"{Step?.ToString() ?? "None"})";
-      }
+  internal class Slice {
+    public readonly int? Start;
+    public readonly int? Stop;
+    public readonly int? Step;
+
+    internal Slice(int? stop = null) : this(null, stop) { }
+
+    internal Slice(int? start, int? stop, int? step = null) {
+      Start = start;
+      Stop = stop;
+      Step = step;
+    }
+
+    public override string ToString() {
+      return $"slice({Start?.ToString() ?? "None"}, {Stop?.ToString() ?? "None"}, " +
+             $"{Step?.ToString() ?? "None"})";
     }
   }
 }

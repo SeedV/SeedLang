@@ -14,12 +14,10 @@
 
 using System;
 using FluentAssertions;
-using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
-  using NativeFunction = HeapObject.NativeFunction;
-
   public class VariableResolverTests {
     [Fact]
     public void TestScopes() {

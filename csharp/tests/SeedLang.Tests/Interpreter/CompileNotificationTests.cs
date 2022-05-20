@@ -14,10 +14,10 @@
 
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using SeedLang.X;
@@ -26,7 +26,7 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class CompileNotificationTests {
     private static int _printValFunc =>
-        Array.FindIndex(NativeFunctions.Funcs, (HeapObject.NativeFunction func) => {
+        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
           return func.Name == NativeFunctions.PrintVal;
         });
     private readonly int _firstGlob = NativeFunctions.Funcs.Length;
@@ -461,15 +461,15 @@ x, y = 1, 1 + 2
 
     private static void TestCompiler(string source, string expected, IReadOnlyList<Type> eventTypes,
                                      RunMode mode) {
-      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
-                             out IReadOnlyList<TokenInfo> _).Should().Be(true);
+      Assert.True(new SeedPython().Parse(source, "", new DiagnosticCollection(),
+                                         out Statement program, out IReadOnlyList<TokenInfo> _));
       var env = new GlobalEnvironment(NativeFunctions.Funcs);
       var visualizerCenter = new VisualizerCenter();
       var visualizerHelper = new VisualizerHelper(eventTypes);
       visualizerHelper.RegisterToVisualizerCenter(visualizerCenter);
       var compiler = new Compiler();
       var func = compiler.Compile(program, env, visualizerCenter, mode);
-      new Disassembler(func).ToString().Should().BeEquivalentTo(expected);
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }
 }

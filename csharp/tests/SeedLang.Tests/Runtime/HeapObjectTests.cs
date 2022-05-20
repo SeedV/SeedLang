@@ -13,14 +13,15 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using FluentAssertions;
 using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
-  using Range = HeapObject.Range;
-  using Slice = HeapObject.Slice;
+  using Range = HeapObjects.Range;
+  using Slice = HeapObjects.Slice;
 
   public class HeapObjectTests {
     [Fact]
@@ -60,10 +61,10 @@ namespace SeedLang.Runtime.Tests {
 
     [Fact]
     public void TestSlice() {
-      new Slice().ToString().Should().Be("slice(None, None, None)");
-      new Slice(3).ToString().Should().Be("slice(None, 3, None)");
-      new Slice(1, 3).ToString().Should().Be("slice(1, 3, None)");
-      new Slice(1, 3, 2).ToString().Should().Be("slice(1, 3, 2)");
+      new VMValue(new Slice()).ToString().Should().Be("slice(None, None, None)");
+      new VMValue(new Slice(3)).ToString().Should().Be("slice(None, 3, None)");
+      new VMValue(new Slice(1, 3)).ToString().Should().Be("slice(1, 3, None)");
+      new VMValue(new Slice(1, 3, 2)).ToString().Should().Be("slice(1, 3, 2)");
     }
 
     [Fact]

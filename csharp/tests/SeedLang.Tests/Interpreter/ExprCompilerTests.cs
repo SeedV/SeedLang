@@ -17,6 +17,7 @@ using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using Xunit;
@@ -356,11 +357,11 @@ namespace SeedLang.Interpreter.Tests {
       var vc = new VisualizerCenter();
       var compiler = new Compiler();
       var func = compiler.Compile(statement, env, vc, mode);
-      new Disassembler(func).ToString().Should().Be(expected);
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
 
     private static int NativeFunctionIdOf(string name) {
-      return Array.FindIndex(NativeFunctions.Funcs, (HeapObject.NativeFunction func) => {
+      return Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
         return func.Name == name;
       });
     }

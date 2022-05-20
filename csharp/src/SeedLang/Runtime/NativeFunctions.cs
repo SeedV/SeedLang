@@ -16,7 +16,9 @@ using System.Collections.Generic;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
-  using NativeFunction = HeapObject.NativeFunction;
+  using NativeFunction = HeapObjects.NativeFunction;
+  using Range = HeapObjects.Range;
+  using Slice = HeapObjects.Slice;
 
   // The static class to define all the build-in native functions.
   internal static class NativeFunctions {
@@ -108,15 +110,14 @@ namespace SeedLang.Runtime {
 
     private static VMValue RangeFunc(VMValue[] args, int offset, int length, Sys _) {
       if (length == 1) {
-        return new VMValue(new HeapObject.Range((int)args[offset].AsNumber()));
+        return new VMValue(new Range((int)args[offset].AsNumber()));
       } else if (length == 2) {
-        var range = new HeapObject.Range((int)args[offset].AsNumber(),
-                                         (int)args[offset + 1].AsNumber());
+        var range = new Range((int)args[offset].AsNumber(), (int)args[offset + 1].AsNumber());
         return new VMValue(range);
       } else if (length == 3) {
-        return new VMValue(new HeapObject.Range((int)args[offset].AsNumber(),
-                                                (int)args[offset + 1].AsNumber(),
-                                                (int)args[offset + 2].AsNumber()));
+        return new VMValue(new Range((int)args[offset].AsNumber(),
+                                     (int)args[offset + 1].AsNumber(),
+                                     (int)args[offset + 2].AsNumber()));
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                     Message.RuntimeErrorIncorrectArgsCount);
@@ -127,10 +128,10 @@ namespace SeedLang.Runtime {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      int? start = args[offset].IsNumber ? (int)args[offset].AsNumber() : null;
-      int? stop = args[offset + 1].IsNumber ? (int)args[offset + 1].AsNumber() : null;
-      int? step = args[offset + 2].IsNumber ? (int)args[offset + 2].AsNumber() : null;
-      return new VMValue(new HeapObject.Slice(start, stop, step));
+      int? start = args[offset].IsNumber ? (int)args[offset].AsNumber() : default(int?);
+      int? stop = args[offset + 1].IsNumber ? (int)args[offset + 1].AsNumber() : default(int?);
+      int? step = args[offset + 2].IsNumber ? (int)args[offset + 2].AsNumber() : default(int?);
+      return new VMValue(new Slice(start, stop, step));
     }
   }
 }

@@ -20,8 +20,8 @@ using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
-  using NativeFunction = HeapObject.NativeFunction;
-  using Range = HeapObject.Range;
+  using NativeFunction = HeapObjects.NativeFunction;
+  using Range = HeapObjects.Range;
 
   public class NativeFunctionsTests {
     [Fact]
@@ -112,6 +112,21 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
+    public void TestRangFunc() {
+      var rangeFunc = FindFunc(NativeFunctions.Range);
+      var args = new VMValue[] { new VMValue(10) };
+      rangeFunc.Call(args, 0, args.Length, null).ToString().Should().Be("range(0, 10, 1)");
+      args = new VMValue[] { new VMValue(1), new VMValue(10) };
+      rangeFunc.Call(args, 0, args.Length, null).ToString().Should().Be("range(1, 10, 1)");
+      args = new VMValue[] { new VMValue(1), new VMValue(10), new VMValue(2) };
+      rangeFunc.Call(args, 0, args.Length, null).ToString().Should().Be("range(1, 10, 2)");
+
+      Action action = () => rangeFunc.Call(Array.Empty<VMValue>(), 0, 0, null);
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
+    }
+
+    [Fact]
     public void TestSlice() {
       var sliceFunc = FindFunc(NativeFunctions.Slice);
       var args = new VMValue[] { new VMValue(1), new VMValue(2), new VMValue(3) };
@@ -120,6 +135,10 @@ namespace SeedLang.Runtime.Tests {
       sliceFunc.Call(args, 0, args.Length, null).ToString().Should().Be("slice(None, 2, None)");
       args = new VMValue[] { new VMValue(), new VMValue(), new VMValue() };
       sliceFunc.Call(args, 0, args.Length, null).ToString().Should().Be("slice(None, None, None)");
+
+      Action action = () => sliceFunc.Call(Array.Empty<VMValue>(), 0, 0, null);
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     private static NativeFunction FindFunc(string name) {

@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using SeedLang.Common;
+using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Runtime {
   // The value type used in the SeedVM that can carry primary value types (Nil, Boolean, Number) and
@@ -197,7 +198,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal HeapObject.IFunction AsFunction() {
+    internal IFunction AsFunction() {
       if (_type == ValueType.Object) {
         return _object.AsFunction();
       } else {
@@ -233,7 +234,7 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal HeapObject.Slice AsSlice() {
+    internal Slice AsSlice() {
       if (_type == ValueType.Object) {
         return _object.AsSlice();
       } else {

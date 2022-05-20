@@ -15,6 +15,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Interpreter {
   // The environment to store names and values of build-in and global variables.
@@ -22,7 +23,7 @@ namespace SeedLang.Interpreter {
     private readonly Dictionary<string, uint> _globals = new Dictionary<string, uint>();
     private readonly List<VMValue> _values = new List<VMValue>();
 
-    internal GlobalEnvironment(HeapObject.NativeFunction[] nativeFunctions) {
+    internal GlobalEnvironment(NativeFunction[] nativeFunctions) {
       foreach (var func in nativeFunctions) {
         _values.Add(new VMValue(func));
         _globals[func.Name] = (uint)_values.Count - 1;

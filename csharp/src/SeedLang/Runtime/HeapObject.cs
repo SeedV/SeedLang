@@ -22,9 +22,12 @@ using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
+  using IFunction = HeapObjects.IFunction;
+  using Dict = Dictionary<VMValue, VMValue>;
   using List = List<VMValue>;
   using Tuple = ImmutableArray<VMValue>;
-  using Dict = Dictionary<VMValue, VMValue>;
+  using Range = HeapObjects.Range;
+  using Slice = HeapObjects.Slice;
 
   // A class to hold heap allocated objects.
   internal partial class HeapObject : IEquatable<HeapObject> {
@@ -239,7 +242,10 @@ namespace SeedLang.Runtime {
       get {
         switch (_object) {
           case string str:
-            return new VMValue(str[ToIntIndex(key.AsNumber(), str.Length)].ToString());
+            if (key.IsNumber) {
+              return new VMValue(str[ToIntIndex(key.AsNumber(), str.Length)].ToString());
+            }
+            return SliceString(str, key.AsSlice());
           case Dict dict:
             CheckKey(key);
             if (dict.ContainsKey(key)) {
@@ -284,14 +290,42 @@ namespace SeedLang.Runtime {
     }
 
     private static VMValue SliceList(List list, Slice slice) {
-      int start = slice.Start ?? 0;
-      int stop = slice.Stop ?? list.Count;
-      int step = slice.Step ?? 1;
+      (int start, int stop, int step) = NormalizeSlice(slice, list.Count);
       var newList = new List<VMValue>();
-      for (int i = start; i < stop; i += step) {
-        newList.Add(list[i]);
+      if ((stop - start) * step > 0) {
+        for (int i = start; step > 0 ? i < stop : i > stop; i += step) {
+          newList.Add(list[i]);
+        }
       }
       return new VMValue(newList);
+    }
+
+    private static VMValue SliceString(string str, Slice slice) {
+      (int start, int stop, int step) = NormalizeSlice(slice, str.Length);
+      var sb = new StringBuilder();
+      if ((stop - start) * step > 0) {
+        Func<int, bool> pred = step > 0 ? (int i) => i < stop : (int i) => i > stop;
+        for (int i = start; pred(i); i += step) {
+          sb.Append(str[i]);
+        }
+      }
+      return new VMValue(sb.ToString());
+    }
+
+    private static (int, int, int) NormalizeSlice(Slice slice, int count) {
+      int step = slice.Step ?? 1;
+      int start = slice.Start is null ? (step > 0 ? 0 : count - 1) :
+                                        NormalizeSliceItem(slice.Start.Value, count);
+      int stop = slice.Stop is null ? (step > 0 ? count : -1) :
+                                      NormalizeSliceItem(slice.Stop.Value, count);
+      return (start, stop, step);
+    }
+
+    private static int NormalizeSliceItem(int item, int count) {
+      if (item < 0) {
+        item += count;
+      }
+      return Math.Min(Math.Max(item, 0), count);
     }
 
     private static int ToIntIndex(double index, int length) {

@@ -17,6 +17,7 @@ using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using Xunit;
@@ -24,7 +25,7 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
     private static int _printValFunc =>
-        Array.FindIndex(NativeFunctions.Funcs, (HeapObject.NativeFunction func) => {
+        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
           return func.Name == NativeFunctions.PrintVal;
         });
     private readonly int _firstGlob = NativeFunctions.Funcs.Length;
@@ -667,7 +668,7 @@ namespace SeedLang.Interpreter.Tests {
       var vc = new VisualizerCenter();
       var compiler = new Compiler();
       var func = compiler.Compile(statement, env, vc, mode);
-      new Disassembler(func).ToString().Should().Be(expected);
+      Assert.Equal(expected, new Disassembler(func).ToString());
     }
   }
 }

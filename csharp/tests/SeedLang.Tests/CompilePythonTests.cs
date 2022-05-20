@@ -13,15 +13,15 @@
 // limitations under the License.
 
 using System;
-using FluentAssertions;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
 namespace SeedLang.Tests {
   public class CompilePythonTests {
     private static int _rangeFunc =>
-        Array.FindIndex(NativeFunctions.Funcs, (HeapObject.NativeFunction func) => {
+        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
           return func.Name == NativeFunctions.Range;
         });
     private readonly int _firstGlob = NativeFunctions.Funcs.Length;

@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.IO;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
@@ -284,7 +285,7 @@ namespace SeedLang.Interpreter {
       int calleeRegister = (int)(_baseRegister + instr.A);
       var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
-        case HeapObject.NativeFunction nativeFunc:
+        case NativeFunction nativeFunc:
           _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B, _sys);
           break;
         case Function func:

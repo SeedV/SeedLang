@@ -318,8 +318,8 @@ namespace SeedLang.Runtime {
 
     private static void SliceContainer(int start, int stop, int step, Action<int> copyItemAt) {
       if ((stop - start) * step > 0) {
-        Func<int, bool> pred = step > 0 ? i => i < stop : i => i > stop;
-        for (int i = start; pred(i); i += step) {
+        var stopCondition = StopCondition(stop, step);
+        for (int i = start; stopCondition(i); i += step) {
           copyItemAt(i);
         }
       }
@@ -335,9 +335,9 @@ namespace SeedLang.Runtime {
           list.Insert(start, value[new VMValue(i)]);
         }
       } else if ((stop - start) * step > 0) {
-        Func<int, bool> pred = step > 0 ? i => i < stop : i => i > stop;
+        var stopCondition = StopCondition(stop, step);
         int index = 0;
-        for (int i = start; pred(i); i += step, index++) {
+        for (int i = start; stopCondition(i); i += step, index++) {
           list[i] = value[new VMValue(index)];
         }
         if (index != value.Length) {
@@ -345,6 +345,13 @@ namespace SeedLang.Runtime {
                                         Message.RuntimeErrorSliceAssignmentCount);
         }
       }
+    }
+
+    private static Func<int, bool> StopCondition(int stop, int step) {
+      if (step > 0) {
+        return i => i < stop;
+      }
+      return i => i > stop;
     }
 
     private static (int, int, int) AdjustSliceInLength(Slice slice, int length) {

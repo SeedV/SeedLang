@@ -201,8 +201,8 @@ namespace SeedLang.Interpreter {
     protected override void VisitSubscript(SubscriptExpression subscript) {
       _helper.BeginExprScope();
       uint targetId = RegisterForSubExpr;
-      uint containerId = VisitExpressionForRegisterId(subscript.Expr);
-      uint sliceId = VisitExpressionForRKId(subscript.SliceExpr);
+      uint containerId = VisitExpressionForRegisterId(subscript.Container);
+      uint sliceId = VisitExpressionForRKId(subscript.Key);
       _helper.Emit(Opcode.GETELEM, targetId, containerId, sliceId, subscript.Range);
       _helper.EndExprScope();
     }

@@ -249,7 +249,26 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestSubscriptList() {
+    public void TestStringSubscript() {
+      var strValue = "string";
+      var str = new VMValue(strValue);
+      str[new VMValue(3)].AsString().Should().Be("i");
+      str[new VMValue(-3)].AsString().Should().Be("i");
+
+      str[new VMValue(new Slice(3))].AsString().Should().Be("str");
+      str[new VMValue(new Slice(2, 5))].AsString().Should().Be("rin");
+      str[new VMValue(new Slice(2, null))].AsString().Should().Be("ring");
+      str[new VMValue(new Slice(-4, -1))].AsString().Should().Be("rin");
+      str[new VMValue(new Slice(2, 5, 2))].AsString().Should().Be("rn");
+      str[new VMValue(new Slice(null, null, 3))].AsString().Should().Be("si");
+      str[new VMValue(new Slice(null, null, -1))].AsString().Should().Be("gnirts");
+      str[new VMValue(new Slice(2, 8))].AsString().Should().Be("ring");
+      str[new VMValue(new Slice(1, 5, -1))].AsString().Should().Be("");
+      str[new VMValue(new Slice(10, 1, 1))].AsString().Should().Be("");
+    }
+
+    [Fact]
+    public void TestListSubscript() {
       var list = new VMValue(new List<VMValue>{
         new VMValue(1),
         new VMValue(2),
@@ -285,26 +304,121 @@ namespace SeedLang.Runtime.Tests {
         new VMValue(3),
         new VMValue(5),
       }));
+      list[new VMValue(new Slice(8, -3, -2))].Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(5),
+      }));
       list[new VMValue(new Slice(8, -1, 2))].Should().Be(new VMValue(new List<VMValue>()));
     }
 
     [Fact]
-    public void TestSubscriptString() {
-      var strValue = "string";
-      var str = new VMValue(strValue);
-      str[new VMValue(3)].AsString().Should().Be("i");
-      str[new VMValue(-3)].AsString().Should().Be("i");
+    public void TestListSubscriptAssign() {
+      var list = new VMValue(new List<VMValue>{
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5),
+      });
 
-      str[new VMValue(new Slice(3))].AsString().Should().Be("str");
-      str[new VMValue(new Slice(2, 5))].AsString().Should().Be("rin");
-      str[new VMValue(new Slice(2, null))].AsString().Should().Be("ring");
-      str[new VMValue(new Slice(-4, -1))].AsString().Should().Be("rin");
-      str[new VMValue(new Slice(2, 5, 2))].AsString().Should().Be("rn");
-      str[new VMValue(new Slice(null, null, 3))].AsString().Should().Be("si");
-      str[new VMValue(new Slice(null, null, -1))].AsString().Should().Be("gnirts");
-      str[new VMValue(new Slice(2, 8))].AsString().Should().Be("ring");
-      str[new VMValue(new Slice(1, 5, -1))].AsString().Should().Be("");
-      str[new VMValue(new Slice(10, 1, 1))].AsString().Should().Be("");
+      list[new VMValue(new Slice(1, 4))] = new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(5),
+      }));
+
+      list[new VMValue(new Slice(-3, -1))] = new VMValue(new List<VMValue> {
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5),
+      }));
+
+      list[new VMValue(new Slice(4, 2))] = new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(5),
+      }));
+
+      list[new VMValue(new Slice(-2, 3, -1))] = new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(3),
+        new VMValue(2),
+        new VMValue(1),
+        new VMValue(5),
+      }));
+
+      list[new VMValue(new Slice(2, 10, 3))] = new VMValue(new List<VMValue> {
+        new VMValue(5),
+        new VMValue(4),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(5),
+        new VMValue(4),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(1),
+        new VMValue(5),
+      }));
+    }
+
+    [Fact]
+    public void TestTupleSubscript() {
+      var tuple = new VMValue(ImmutableArray.Create(
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5)
+      ));
+      tuple[new VMValue(0)].AsNumber().Should().Be(1);
+      tuple[new VMValue(-5)].AsNumber().Should().Be(1);
+      tuple[new VMValue(new Slice())].Should().Be(tuple);
+      tuple[new VMValue(new Slice(3))].Should().Be(new VMValue(ImmutableArray.Create(
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3)
+      )));
+      tuple[new VMValue(new Slice(1, 3))].Should().Be(new VMValue(ImmutableArray.Create(
+        new VMValue(2),
+        new VMValue(3)
+      )));
+      tuple[new VMValue(new Slice(0, 4, 2))].Should().Be(new VMValue(ImmutableArray.Create(
+        new VMValue(1),
+        new VMValue(3)
+      )));
+      tuple[new VMValue(new Slice(5, null, null))].Should().Be(
+          new VMValue(ImmutableArray.Create<VMValue>()));
     }
 
     [Fact]

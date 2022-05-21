@@ -250,18 +250,18 @@ namespace SeedLang.X {
     }
 
     // Builds subscript expressions.
-    internal SubscriptExpression BuildSubscript(ParserRuleContext primaryContext,
+    internal SubscriptExpression BuildSubscript(ParserRuleContext containerContext,
                                                 IToken openBrackToken,
-                                                ParserRuleContext sliceContext,
+                                                ParserRuleContext keyContext,
                                                 IToken closeBrackToken,
                                                 AbstractParseTreeVisitor<AstNode> visitor) {
-      if (visitor.Visit(primaryContext) is Expression primary) {
+      if (visitor.Visit(containerContext) is Expression primary) {
         AddSemanticToken(TokenType.OpenBracket, CodeReferenceUtils.RangeOfToken(openBrackToken));
-        if (visitor.Visit(sliceContext) is Expression slice) {
+        if (visitor.Visit(keyContext) is Expression key) {
           TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
           AddSemanticToken(TokenType.CloseBracket, closeBrackRange);
           TextRange range = CodeReferenceUtils.CombineRanges(primary.Range, closeBrackRange);
-          return Expression.Subscript(primary, slice, range);
+          return Expression.Subscript(primary, key, range);
         }
       }
       return null;

@@ -62,6 +62,7 @@ namespace SeedLang.Common {
     RuntimeErrorContinueOutsideLoop,    // The Continue statement is outside of loop statements.
     RuntimeErrorDivideByZero,           // Divide by zero runtime error.
     RuntimeErrorIncorrectArgsCount,     // Incorrect arguments count runtime error.
+    RuntimeErrorSliceAssignmentCount,   // Incorrect count of the sequence for slice assignment.
     RuntimeErrorIncorrectUnpackCount,   // Incorrect number of values to be unpack runtime error.
     RuntimeErrorInvalidCast,            // Invalid cast of value types runtime error.
     RuntimeErrorInvalidIndex,           // Not a valid integer index runtime error.

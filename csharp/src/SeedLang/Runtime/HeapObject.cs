@@ -259,7 +259,10 @@ namespace SeedLang.Runtime {
             }
             return SliceList(list, key.AsSlice());
           case Tuple tuple:
-            return tuple[ToIntIndex(key.AsNumber(), tuple.Length)];
+            if (key.IsNumber) {
+              return tuple[ToIntIndex(key.AsNumber(), tuple.Length)];
+            }
+            return SliceTuple(tuple, key.AsSlice());
           case Range range:
             return range[ToIntIndex(key.AsNumber(), range.Length)];
           default:
@@ -269,15 +272,18 @@ namespace SeedLang.Runtime {
       }
       set {
         switch (_object) {
-          case string _:
-            throw new NotImplementedException();
           case Dict dict:
             CheckKey(key);
             dict[key] = value;
             break;
           case List list:
-            list[ToIntIndex(key.AsNumber(), list.Count)] = value;
+            if (key.IsNumber) {
+              list[ToIntIndex(key.AsNumber(), list.Count)] = value;
+            } else {
+              AssignListSlice(list, key.AsSlice(), value);
+            }
             break;
+          case string _:
           case Tuple _:
           case Range _:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
@@ -289,43 +295,82 @@ namespace SeedLang.Runtime {
       }
     }
 
-    private static VMValue SliceList(List list, Slice slice) {
-      (int start, int stop, int step) = NormalizeSlice(slice, list.Count);
-      var newList = new List<VMValue>();
-      if ((stop - start) * step > 0) {
-        for (int i = start; step > 0 ? i < stop : i > stop; i += step) {
-          newList.Add(list[i]);
-        }
-      }
-      return new VMValue(newList);
-    }
-
     private static VMValue SliceString(string str, Slice slice) {
-      (int start, int stop, int step) = NormalizeSlice(slice, str.Length);
+      (int start, int stop, int step) = AdjustSliceInLength(slice, str.Length);
       var sb = new StringBuilder();
-      if ((stop - start) * step > 0) {
-        Func<int, bool> pred = step > 0 ? (int i) => i < stop : (int i) => i > stop;
-        for (int i = start; pred(i); i += step) {
-          sb.Append(str[i]);
-        }
-      }
+      SliceContainer(start, stop, step, i => sb.Append(str[i]));
       return new VMValue(sb.ToString());
     }
 
-    private static (int, int, int) NormalizeSlice(Slice slice, int count) {
-      int step = slice.Step ?? 1;
-      int start = slice.Start is null ? (step > 0 ? 0 : count - 1) :
-                                        NormalizeSliceItem(slice.Start.Value, count);
-      int stop = slice.Stop is null ? (step > 0 ? count : -1) :
-                                      NormalizeSliceItem(slice.Stop.Value, count);
-      return (start, stop, step);
+    private static VMValue SliceList(List list, Slice slice) {
+      (int start, int stop, int step) = AdjustSliceInLength(slice, list.Count);
+      var newList = new List<VMValue>();
+      SliceContainer(start, stop, step, i => newList.Add(list[i]));
+      return new VMValue(newList);
     }
 
-    private static int NormalizeSliceItem(int item, int count) {
-      if (item < 0) {
-        item += count;
+    private static VMValue SliceTuple(Tuple tuple, Slice slice) {
+      (int start, int stop, int step) = AdjustSliceInLength(slice, tuple.Length);
+      var list = new List<VMValue>();
+      SliceContainer(start, stop, step, i => list.Add(tuple[i]));
+      return new VMValue(list.ToImmutableArray());
+    }
+
+    private static void SliceContainer(int start, int stop, int step, Action<int> copyItemAt) {
+      if ((stop - start) * step > 0) {
+        Func<int, bool> pred = step > 0 ? i => i < stop : i => i > stop;
+        for (int i = start; pred(i); i += step) {
+          copyItemAt(i);
+        }
       }
-      return Math.Min(Math.Max(item, 0), count);
+    }
+
+    private static void AssignListSlice(List list, Slice slice, VMValue value) {
+      (int start, int stop, int step) = AdjustSliceInLength(slice, list.Count);
+      if (step == 1) {
+        if (stop > start) {
+          list.RemoveRange(start, stop - start);
+        }
+        for (int i = value.Length - 1; i >= 0; i--) {
+          list.Insert(start, value[new VMValue(i)]);
+        }
+      } else if ((stop - start) * step > 0) {
+        Func<int, bool> pred = step > 0 ? i => i < stop : i => i > stop;
+        int index = 0;
+        for (int i = start; pred(i); i += step, index++) {
+          list[i] = value[new VMValue(index)];
+        }
+        if (index != value.Length) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorSliceAssignmentCount);
+        }
+      }
+    }
+
+    private static (int, int, int) AdjustSliceInLength(Slice slice, int length) {
+      int start, stop;
+      int step = slice.Step ?? 1;
+      if (!(slice.Start is null)) {
+        start = slice.Start.Value < 0 ? slice.Start.Value + length : slice.Start.Value;
+      } else {
+        start = step > 0 ? 0 : length - 1;
+      }
+      if (!(slice.Stop is null)) {
+        stop = slice.Stop.Value < 0 ? slice.Stop.Value + length : slice.Stop.Value;
+      } else {
+        stop = step > 0 ? length : -1;
+      }
+      if (start < 0 && stop < 0 || start >= length && stop >= length) {
+        stop = start;
+      }
+      if (start < stop) {
+        start = Math.Max(start, 0);
+        stop = Math.Min(stop, length);
+      } else if (start > stop) {
+        start = Math.Min(start, length - 1);
+        stop = Math.Max(stop, -1);
+      }
+      return (start, stop, step);
     }
 
     private static int ToIntIndex(double index, int length) {

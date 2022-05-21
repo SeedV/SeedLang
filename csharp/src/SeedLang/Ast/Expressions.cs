@@ -86,9 +86,9 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a subscript expression.
-    internal static SubscriptExpression Subscript(Expression expr, Expression slice,
+    internal static SubscriptExpression Subscript(Expression container, Expression key,
                                                   TextRange range) {
-      return new SubscriptExpression(expr, slice, range);
+      return new SubscriptExpression(container, key, range);
     }
 
     // The factory method to create a slice expression.
@@ -222,22 +222,22 @@ namespace SeedLang.Ast {
   }
 
   internal class SubscriptExpression : Expression {
-    public Expression Expr { get; }
-    public Expression SliceExpr { get; }
+    public Expression Container { get; }
+    public Expression Key { get; }
 
-    internal SubscriptExpression(Expression expr, Expression slice, TextRange range) :
+    internal SubscriptExpression(Expression container, Expression key, TextRange range) :
         base(range) {
-      Expr = expr;
-      SliceExpr = slice;
+      Container = container;
+      Key = key;
     }
   }
 
   internal class SliceExpression : Expression {
-    // The start index of the slice. It will be set to zero if it's null.
+    // The start index of the slice. It can be null to indicate the beginner of the container.
     public Expression Start { get; }
-    // The excluded stop index of the slice. It will be set to length of the sequence if it's null.
+    // The excluded stop index of the slice. It can be null to indicate the ending of the container.
     public Expression Stop { get; }
-    // The step of the slice. It cannot be zero.
+    // The step of the slice. It can be null to indicate the default 1-step.
     public Expression Step { get; }
 
     internal SliceExpression(Expression start, Expression stop, Expression step, TextRange range)

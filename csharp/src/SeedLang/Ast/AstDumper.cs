@@ -205,8 +205,8 @@ namespace SeedLang.Ast {
       }
 
       protected override void VisitSubscript(SubscriptExpression subscript) {
-        Visit(subscript.Expr);
-        Visit(subscript.SliceExpr);
+        Visit(subscript.Container);
+        Visit(subscript.Key);
       }
 
       protected override void VisitTuple(TupleExpression tuple) {

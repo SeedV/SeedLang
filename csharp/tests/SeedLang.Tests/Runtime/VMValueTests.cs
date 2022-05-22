@@ -422,6 +422,30 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
+    public void TestFloatSubscript() {
+      var list = new VMValue(new List<VMValue>{
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5),
+      });
+      Action action = () => _ = list[new VMValue(0.5)];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+
+      action = () => _ = list[new VMValue(new Slice(0.5))];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+      action = () => _ = list[new VMValue(new Slice(null, 0.5))];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+      action = () => _ = list[new VMValue(new Slice(null, null, 0.5))];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+    }
+
+    [Fact]
     public void TestValueWithReferenceCycle() {
       var a = new VMValue(new List<VMValue>() {
         new VMValue(1),

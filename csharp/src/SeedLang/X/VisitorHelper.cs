@@ -267,7 +267,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    // Build slice expressions.
+    // Builds slice expressions.
     internal SliceExpression BuildSlice(ParserRuleContext[] exprContexts,
                                         ITerminalNode[] colonNodes,
                                         AbstractParseTreeVisitor<AstNode> visitor) {

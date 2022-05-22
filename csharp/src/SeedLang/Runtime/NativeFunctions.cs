@@ -128,9 +128,9 @@ namespace SeedLang.Runtime {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      int? start = args[offset].IsNumber ? (int)args[offset].AsNumber() : default(int?);
-      int? stop = args[offset + 1].IsNumber ? (int)args[offset + 1].AsNumber() : default(int?);
-      int? step = args[offset + 2].IsNumber ? (int)args[offset + 2].AsNumber() : default(int?);
+      double? start = args[offset].IsNumber ? args[offset].AsNumber() : default(double?);
+      double? stop = args[offset + 1].IsNumber ? args[offset + 1].AsNumber() : default(double?);
+      double? step = args[offset + 2].IsNumber ? args[offset + 2].AsNumber() : default(double?);
       return new VMValue(new Slice(start, stop, step));
     }
   }

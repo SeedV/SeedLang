@@ -384,7 +384,7 @@ namespace SeedLang.Runtime {
       var intIndex = (int)index;
       if (intIndex != index) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidIndex);
+                                      Message.RuntimeErrorInvalidIntIndex);
       } else if (intIndex < -length || intIndex >= length) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorOutOfRange);

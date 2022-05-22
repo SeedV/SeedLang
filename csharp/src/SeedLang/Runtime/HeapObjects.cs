@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using SeedLang.Common;
 
 namespace SeedLang.Runtime.HeapObjects {
   using BuildinFunctionType = Func<VMValue[], int, int, Sys, VMValue>;
@@ -80,17 +81,29 @@ namespace SeedLang.Runtime.HeapObjects {
     public readonly int? Stop;
     public readonly int? Step;
 
-    internal Slice(int? stop = null) : this(null, stop) { }
+    internal Slice(double? stop = null) : this(null, stop) { }
 
-    internal Slice(int? start, int? stop, int? step = null) {
-      Start = start;
-      Stop = stop;
-      Step = step;
+    internal Slice(double? start, double? stop, double? step = null) {
+      Start = ToInt(start);
+      Stop = ToInt(stop);
+      Step = ToInt(step);
     }
 
     public override string ToString() {
       return $"slice({Start?.ToString() ?? "None"}, {Stop?.ToString() ?? "None"}, " +
              $"{Step?.ToString() ?? "None"})";
+    }
+
+    private static int? ToInt(double? value) {
+      if (value == null) {
+        return null;
+      }
+      int intValue = (int)value;
+      if (intValue != value) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidIntIndex);
+      }
+      return intValue;
     }
   }
 }

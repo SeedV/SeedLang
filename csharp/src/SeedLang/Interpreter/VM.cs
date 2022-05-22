@@ -46,7 +46,6 @@ namespace SeedLang.Interpreter {
     }
 
     internal void Run(Function func) {
-      Debug.Assert(State != VMState.Running);
       _baseRegister = 0;
       _callStack = new CallStack();
       _callStack.PushFunc(func, _baseRegister, 0);

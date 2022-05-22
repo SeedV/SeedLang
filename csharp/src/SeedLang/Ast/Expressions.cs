@@ -86,9 +86,15 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a subscript expression.
-    internal static SubscriptExpression Subscript(Expression expr, Expression index,
+    internal static SubscriptExpression Subscript(Expression container, Expression key,
                                                   TextRange range) {
-      return new SubscriptExpression(expr, index, range);
+      return new SubscriptExpression(container, key, range);
+    }
+
+    // The factory method to create a slice expression.
+    internal static SliceExpression Slice(Expression start, Expression stop, Expression step,
+                                          TextRange range) {
+      return new SliceExpression(start, stop, step, range);
     }
 
     // The factory method to create a call expression.
@@ -216,12 +222,30 @@ namespace SeedLang.Ast {
   }
 
   internal class SubscriptExpression : Expression {
-    public Expression Expr { get; }
-    public Expression Index { get; }
+    public Expression Container { get; }
+    public Expression Key { get; }
 
-    internal SubscriptExpression(Expression expr, Expression index, TextRange range) : base(range) {
-      Expr = expr;
-      Index = index;
+    internal SubscriptExpression(Expression container, Expression key, TextRange range) :
+        base(range) {
+      Container = container;
+      Key = key;
+    }
+  }
+
+  internal class SliceExpression : Expression {
+    // The start index of the slice. It can be null to indicate the beginning of the container.
+    public Expression Start { get; }
+    // The exclusive stop index of the slice. It can be null to indicate the ending of the
+    // container.
+    public Expression Stop { get; }
+    // The step of the slice. It can be null to indicate the default 1-step.
+    public Expression Step { get; }
+
+    internal SliceExpression(Expression start, Expression stop, Expression step, TextRange range)
+        : base(range) {
+      Start = start;
+      Stop = stop;
+      Step = step;
     }
   }
 

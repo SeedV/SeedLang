@@ -72,8 +72,8 @@ assignment:
 
 targets: target (COMMA target)*;
 target:
-  identifier                                  # identifier_target
-  | primary OPEN_BRACK expression CLOSE_BRACK # subscript_target;
+  identifier                                   # identifier_target
+  | primary OPEN_BRACK slice_index CLOSE_BRACK # subscript_target;
 
 if_stmt:
   IF expression COLON block elif_stmt       # if_elif

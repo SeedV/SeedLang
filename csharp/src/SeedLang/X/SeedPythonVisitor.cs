@@ -122,7 +122,7 @@ namespace SeedLang.X {
     public override AstNode VisitSubscript_target(
       [NotNull] SeedPythonParser.Subscript_targetContext context) {
       return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
-                                    context.expression(), context.CLOSE_BRACK().Symbol, this);
+                                    context.slice_index(), context.CLOSE_BRACK().Symbol, this);
     }
 
     public override AstNode VisitIf_elif([NotNull] SeedPythonParser.If_elifContext context) {
@@ -289,7 +289,24 @@ namespace SeedLang.X {
 
     public override AstNode VisitSubscript([NotNull] SeedPythonParser.SubscriptContext context) {
       return _helper.BuildSubscript(context.primary(), context.OPEN_BRACK().Symbol,
-                                    context.expression(), context.CLOSE_BRACK().Symbol, this);
+                                    context.slice_index(), context.CLOSE_BRACK().Symbol, this);
+    }
+
+    public override AstNode VisitSlice([NotNull] SeedPythonParser.SliceContext context) {
+      int length = 3;
+      var exprs = new ParserRuleContext[length];
+      int index = 0;
+      for (int i = 0; i < length; i++) {
+        if (index < context.children.Count && context.children[index] is ParserRuleContext expr) {
+          exprs[i] = expr;
+          // Adds 2 to index to skip this expression and next colon.
+          index += 2;
+        } else {
+          exprs[i] = null;
+          index++;
+        }
+      }
+      return _helper.BuildSlice(exprs, context.COLON(), this);
     }
 
     public override AstNode VisitAttribute([NotNull] SeedPythonParser.AttributeContext context) {

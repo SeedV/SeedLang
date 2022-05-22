@@ -123,6 +123,10 @@ namespace SeedLang.Tests.Helper {
       return Expression.StringConstant(value, TextRange);
     }
 
+    internal static SliceExpression Slice(Expression start, Expression stop, Expression step) {
+      return Expression.Slice(start, stop, step, TextRange);
+    }
+
     internal static SubscriptExpression Subscript(Expression expr, Expression index) {
       return Expression.Subscript(expr, index, TextRange);
     }

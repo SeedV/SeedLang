@@ -327,10 +327,10 @@ namespace SeedLang.Interpreter {
           Assign(id, valueId, range);
           break;
         case SubscriptExpression subscript:
-          uint listId = VisitExpressionForRegisterId(subscript.Expr);
-          uint indexId = VisitExpressionForRKId(subscript.Index);
-          _helper.Emit(Opcode.SETELEM, listId, indexId, valueId, range);
-          _helper.EmitSubscriptAssignNotification(subscript, indexId, valueId, range);
+          uint containerId = VisitExpressionForRegisterId(subscript.Container);
+          uint keyId = VisitExpressionForRKId(subscript.Key);
+          _helper.Emit(Opcode.SETELEM, containerId, keyId, valueId, range);
+          _helper.EmitSubscriptAssignNotification(subscript, keyId, valueId, range);
           break;
       }
     }

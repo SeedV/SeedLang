@@ -66,10 +66,14 @@ factor:
   | primary              # primary_as_factor;
 
 primary:
-  primary DOT identifier                      # attribute
-  | primary OPEN_BRACK expression CLOSE_BRACK # subscript
-  | primary OPEN_PAREN arguments? CLOSE_PAREN # call
-  | atom                                      # atom_as_primary;
+  primary DOT identifier                       # attribute
+  | primary OPEN_BRACK slice_index CLOSE_BRACK # subscript
+  | primary OPEN_PAREN arguments? CLOSE_PAREN  # call
+  | atom                                       # atom_as_primary;
+
+slice_index:
+  expression? COLON expression? (COLON expression?)? # slice
+  | expression                                       # index;
 
 atom:
   identifier # identifier_as_atom

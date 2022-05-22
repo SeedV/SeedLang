@@ -10,7 +10,9 @@ def merge_sort(a):
         merge_sort(left)
         merge_sort(right)
 
-        i = j = k = 0
+        # TODO: Implement assigning the same value to multiple variables.
+        # i = j = k = 0
+        i, j, k = 0, 0, 0
         while i < len(left) and j < len(right):
             if left[i] < right[j]:
                 a[k] = left[i]

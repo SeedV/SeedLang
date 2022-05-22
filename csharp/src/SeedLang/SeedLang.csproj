@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <Folder Include="Properties\" />
-    <None Include="..\..\..\README.nuget.md" Pack="true" PackagePath="\"/>
+    <None Include="..\..\..\README.nuget.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

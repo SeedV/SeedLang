@@ -12,20 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using FluentAssertions;
 using SeedLang.Common;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
-  using Range = HeapObject.Range;
+  using Range = HeapObjects.Range;
+  using Slice = HeapObjects.Slice;
 
   public class HeapObjectTests {
     [Fact]
     public void TestRange() {
       var range = new HeapObject(new Range(10));
-      Assert.Equal(10, range.Length);
+      range.Length.Should().Be(10);
       for (int i = 0; i < 10; i++) {
-        Assert.Equal(i, range[new VMValue(i)].AsNumber());
+        range[new VMValue(i)].AsNumber().Should().Be(i);
       }
 
       int start = 3;
@@ -33,9 +37,9 @@ namespace SeedLang.Runtime.Tests {
       int step = 2;
       int length = 4;
       range = new HeapObject(new Range(start, stop, step));
-      Assert.Equal(length, range.Length);
+      range.Length.Should().Be(length);
       for (int i = 0; i < length; i++) {
-        Assert.Equal(start + i * step, range[new VMValue(i)].AsNumber());
+        range[new VMValue(i)].AsNumber().Should().Be(start + i * step);
       }
 
       start = 10;
@@ -43,37 +47,46 @@ namespace SeedLang.Runtime.Tests {
       step = -3;
       length = 3;
       range = new HeapObject(new Range(start, stop, step));
-      Assert.Equal(length, range.Length);
+      range.Length.Should().Be(length);
       for (int i = 0; i < length; i++) {
-        Assert.Equal(start + i * step, range[new VMValue(i)].AsNumber());
+        range[new VMValue(i)].AsNumber().Should().Be(start + i * step);
       }
 
       start = 1;
       stop = 10;
       step = -1;
-      length = 0;
       range = new HeapObject(new Range(start, stop, step));
-      Assert.Equal(length, range.Length);
+      range.Length.Should().Be(0);
+    }
+
+    [Fact]
+    public void TestSlice() {
+      new VMValue(new Slice()).ToString().Should().Be("slice(None, None, None)");
+      new VMValue(new Slice(3)).ToString().Should().Be("slice(None, 3, None)");
+      new VMValue(new Slice(1, 3)).ToString().Should().Be("slice(1, 3, None)");
+      new VMValue(new Slice(1, 3, 2)).ToString().Should().Be("slice(1, 3, 2)");
     }
 
     [Fact]
     public void TestTuple() {
       var tuple = new HeapObject(ImmutableArray.Create<VMValue>());
-      Assert.Equal(0, tuple.Length);
-      Assert.Equal("()", tuple.AsString());
+      tuple.Length.Should().Be(0);
+      tuple.AsString().Should().Be("()");
 
       tuple = new HeapObject(ImmutableArray.Create(new VMValue(1), new VMValue(2)));
-      Assert.Equal(2, tuple.Length);
-      Assert.Equal(1, tuple[new VMValue(0)].AsNumber());
-      Assert.Equal(2, tuple[new VMValue(1)].AsNumber());
-      Assert.Equal("(1, 2)", tuple.AsString());
+      tuple.Length.Should().Be(2);
+      tuple[new VMValue(0)].AsNumber().Should().Be(1);
+      tuple[new VMValue(1)].AsNumber().Should().Be(2);
+      tuple.AsString().Should().Be("(1, 2)");
 
       var anotherTuple = new HeapObject(ImmutableArray.Create(new VMValue(1), new VMValue(2)));
-      Assert.Equal(anotherTuple, tuple);
-      Assert.Equal(anotherTuple.GetHashCode(), tuple.GetHashCode());
+      tuple.Should().Be(anotherTuple);
+      tuple.GetHashCode().Should().Be(anotherTuple.GetHashCode());
 
-      var ex = Assert.Throws<DiagnosticException>(() => tuple[new VMValue(1)] = new VMValue());
-      Assert.Equal(Message.RuntimeErrorNotSupportAssignment, ex.Diagnostic.MessageId);
+      Action action = () => tuple[new VMValue(1)] = new VMValue();
+      action.Should().Throw<DiagnosticException>().Where(
+          e => e.Diagnostic.MessageId == Message.RuntimeErrorNotSupportAssignment
+      );
     }
   }
 }

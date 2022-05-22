@@ -22,32 +22,36 @@ using System.Text;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
+  using IFunction = HeapObjects.IFunction;
+  using Dict = Dictionary<VMValue, VMValue>;
   using List = List<VMValue>;
   using Tuple = ImmutableArray<VMValue>;
-  using Dict = Dictionary<VMValue, VMValue>;
+  using Range = HeapObjects.Range;
+  using Slice = HeapObjects.Slice;
 
   // A class to hold heap allocated objects.
   internal partial class HeapObject : IEquatable<HeapObject> {
     public bool IsString => _object is string;
-    public bool IsList => _object is List;
     public bool IsFunction => _object is IFunction;
-    public bool IsRange => _object is Range;
-    public bool IsTuple => _object is Tuple;
     public bool IsDict => _object is Dict;
+    public bool IsList => _object is List;
+    public bool IsTuple => _object is Tuple;
+    public bool IsRange => _object is Range;
+    public bool IsSlice => _object is Slice;
 
     public int Length {
       get {
         switch (_object) {
           case string str:
             return str.Length;
-          case List list:
-            return list.Count;
-          case Range range:
-            return range.Length;
-          case Tuple tuple:
-            return tuple.Length;
           case Dict dict:
             return dict.Count;
+          case List list:
+            return list.Count;
+          case Tuple tuple:
+            return tuple.Length;
+          case Range range:
+            return range.Length;
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotCountable);
@@ -70,7 +74,7 @@ namespace SeedLang.Runtime {
           break;
       }
       _object = obj;
-      Debug.Assert(IsString || IsList || IsFunction || IsRange || IsTuple || IsDict,
+      Debug.Assert(IsString || IsFunction || IsDict || IsList || IsTuple || IsRange || IsSlice,
                    $"Unsupported object type: {_object.GetType()}");
     }
 
@@ -106,12 +110,12 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return str == other._object as string;
-        case Tuple tuple:
-          return tuple.SequenceEqual((Tuple)other._object);
-        case List list:
-          return list.SequenceEqual(other._object as List);
         case Dict dict:
           return dict.SequenceEqual(other._object as Dict);
+        case List list:
+          return list.SequenceEqual(other._object as List);
+        case Tuple tuple:
+          return tuple.SequenceEqual((Tuple)other._object);
         default:
           return _object == other._object;
       }
@@ -138,14 +142,14 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return ValueHelper.StringToBoolean(str);
-        case List list:
-          return list.Count != 0;
-        case Range range:
-          return range.Length != 0;
-        case Tuple tuple:
-          return tuple.Length != 0;
         case Dict dict:
           return dict.Count != 0;
+        case List list:
+          return list.Count != 0;
+        case Tuple tuple:
+          return tuple.Length != 0;
+        case Range range:
+          return range.Length != 0;
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -166,26 +170,18 @@ namespace SeedLang.Runtime {
       switch (_object) {
         case string str:
           return str;
-        case List list:
-          return ListToString(list);
         case IFunction func:
           return func.ToString();
-        case Range range:
-          return range.ToString();
-        case Tuple tuple:
-          return TupleToString(tuple);
         case Dict dict:
           return DictToString(dict);
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
-    }
-
-    internal List AsList() {
-      switch (_object) {
         case List list:
-          return list;
+          return ListToString(list);
+        case Tuple tuple:
+          return TupleToString(tuple);
+        case Range range:
+          return range.ToString();
+        case Slice slice:
+          return slice.ToString();
         default:
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                         Message.RuntimeErrorInvalidCast);
@@ -202,16 +198,6 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Tuple AsTuple() {
-      switch (_object) {
-        case Tuple tuple:
-          return tuple;
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
-    }
-
     internal Dict AsDict() {
       switch (_object) {
         case Dict dict:
@@ -222,17 +208,44 @@ namespace SeedLang.Runtime {
       }
     }
 
+    internal List AsList() {
+      switch (_object) {
+        case List list:
+          return list;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal Tuple AsTuple() {
+      switch (_object) {
+        case Tuple tuple:
+          return tuple;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal Slice AsSlice() {
+      switch (_object) {
+        case Slice slice:
+          return slice;
+        default:
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidCast);
+      }
+    }
+
     internal VMValue this[VMValue key] {
       get {
         switch (_object) {
           case string str:
-            return new VMValue(str[ToIntIndex(key.AsNumber(), str.Length)].ToString());
-          case List list:
-            return list[ToIntIndex(key.AsNumber(), list.Count)];
-          case Range range:
-            return range[ToIntIndex(key.AsNumber(), range.Length)];
-          case Tuple tuple:
-            return tuple[ToIntIndex(key.AsNumber(), tuple.Length)];
+            if (key.IsNumber) {
+              return new VMValue(str[ToIntIndex(key.AsNumber(), str.Length)].ToString());
+            }
+            return SliceString(str, key.AsSlice());
           case Dict dict:
             CheckKey(key);
             if (dict.ContainsKey(key)) {
@@ -240,6 +253,18 @@ namespace SeedLang.Runtime {
             }
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNoKey);
+          case List list:
+            if (key.IsNumber) {
+              return list[ToIntIndex(key.AsNumber(), list.Count)];
+            }
+            return SliceList(list, key.AsSlice());
+          case Tuple tuple:
+            if (key.IsNumber) {
+              return tuple[ToIntIndex(key.AsNumber(), tuple.Length)];
+            }
+            return SliceTuple(tuple, key.AsSlice());
+          case Range range:
+            return range[ToIntIndex(key.AsNumber(), range.Length)];
           default:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSubscriptable);
@@ -247,17 +272,20 @@ namespace SeedLang.Runtime {
       }
       set {
         switch (_object) {
-          case string _:
-            throw new NotImplementedException();
-          case List list:
-            list[ToIntIndex(key.AsNumber(), list.Count)] = value;
-            break;
           case Dict dict:
             CheckKey(key);
             dict[key] = value;
             break;
-          case Range _:
+          case List list:
+            if (key.IsNumber) {
+              list[ToIntIndex(key.AsNumber(), list.Count)] = value;
+            } else {
+              AssignListSlice(list, key.AsSlice(), value);
+            }
+            break;
+          case string _:
           case Tuple _:
+          case Range _:
             throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                           Message.RuntimeErrorNotSupportAssignment);
           default:
@@ -267,11 +295,96 @@ namespace SeedLang.Runtime {
       }
     }
 
+    private static VMValue SliceString(string str, Slice slice) {
+      (int start, int stop, int step) = AdjustSliceInLength(slice, str.Length);
+      var sb = new StringBuilder();
+      SliceContainer(start, stop, step, i => sb.Append(str[i]));
+      return new VMValue(sb.ToString());
+    }
+
+    private static VMValue SliceList(List list, Slice slice) {
+      (int start, int stop, int step) = AdjustSliceInLength(slice, list.Count);
+      var newList = new List<VMValue>();
+      SliceContainer(start, stop, step, i => newList.Add(list[i]));
+      return new VMValue(newList);
+    }
+
+    private static VMValue SliceTuple(Tuple tuple, Slice slice) {
+      (int start, int stop, int step) = AdjustSliceInLength(slice, tuple.Length);
+      var list = new List<VMValue>();
+      SliceContainer(start, stop, step, i => list.Add(tuple[i]));
+      return new VMValue(list.ToImmutableArray());
+    }
+
+    private static void SliceContainer(int start, int stop, int step, Action<int> copyItemAt) {
+      if ((stop - start) * step > 0) {
+        var stopCondition = StopCondition(stop, step);
+        for (int i = start; stopCondition(i); i += step) {
+          copyItemAt(i);
+        }
+      }
+    }
+
+    private static void AssignListSlice(List list, Slice slice, VMValue value) {
+      (int start, int stop, int step) = AdjustSliceInLength(slice, list.Count);
+      if (step == 1) {
+        if (stop > start) {
+          list.RemoveRange(start, stop - start);
+        }
+        for (int i = value.Length - 1; i >= 0; i--) {
+          list.Insert(start, value[new VMValue(i)]);
+        }
+      } else if ((stop - start) * step > 0) {
+        var stopCondition = StopCondition(stop, step);
+        int index = 0;
+        for (int i = start; stopCondition(i); i += step, index++) {
+          list[i] = value[new VMValue(index)];
+        }
+        if (index != value.Length) {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorSliceAssignmentCount);
+        }
+      }
+    }
+
+    private static Func<int, bool> StopCondition(int stop, int step) {
+      if (step > 0) {
+        return i => i < stop;
+      }
+      return i => i > stop;
+    }
+
+    private static (int, int, int) AdjustSliceInLength(Slice slice, int length) {
+      int start, stop;
+      int step = slice.Step ?? 1;
+      if (!(slice.Start is null)) {
+        start = slice.Start.Value < 0 ? slice.Start.Value + length : slice.Start.Value;
+      } else {
+        start = step > 0 ? 0 : length - 1;
+      }
+      if (!(slice.Stop is null)) {
+        stop = slice.Stop.Value < 0 ? slice.Stop.Value + length : slice.Stop.Value;
+      } else {
+        stop = step > 0 ? length : -1;
+      }
+      if (start < 0 && stop < 0 || start >= length && stop >= length) {
+        stop = start;
+      }
+      if (start < stop) {
+        start = Math.Max(start, 0);
+        stop = Math.Min(stop, length);
+      } else if (start > stop) {
+        start = Math.Min(start, length - 1);
+        stop = Math.Max(stop, -1);
+      }
+      return (start, stop, step);
+    }
+
     private static int ToIntIndex(double index, int length) {
       var intIndex = (int)index;
       if (intIndex != index) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidIndex);
+                                      Message.RuntimeErrorInvalidIntIndex);
       } else if (intIndex < -length || intIndex >= length) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorOutOfRange);

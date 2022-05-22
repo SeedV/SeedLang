@@ -54,6 +54,9 @@ namespace SeedLang.Ast {
         case NumberConstantExpression numberConstant:
           VisitNumberConstant(numberConstant);
           break;
+        case SliceExpression slice:
+          VisitSlice(slice);
+          break;
         case StringConstantExpression stringConstant:
           VisitStringConstant(stringConstant);
           break;
@@ -86,6 +89,7 @@ namespace SeedLang.Ast {
     protected abstract void VisitList(ListExpression list);
     protected abstract void VisitNilConstant(NilConstantExpression nilConstant);
     protected abstract void VisitNumberConstant(NumberConstantExpression numberConstant);
+    protected abstract void VisitSlice(SliceExpression slice);
     protected abstract void VisitStringConstant(StringConstantExpression stringConstant);
     protected abstract void VisitSubscript(SubscriptExpression subscript);
     protected abstract void VisitTuple(TupleExpression tuple);

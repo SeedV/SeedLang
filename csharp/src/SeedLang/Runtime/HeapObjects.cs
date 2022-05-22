@@ -13,67 +13,97 @@
 // limitations under the License.
 
 using System;
+using SeedLang.Common;
 
-namespace SeedLang.Runtime {
+namespace SeedLang.Runtime.HeapObjects {
   using BuildinFunctionType = Func<VMValue[], int, int, Sys, VMValue>;
 
-  internal partial class HeapObject {
-    // An empty interface for all function value types. It's only used to identify function types.
-    internal interface IFunction {
+  // An empty interface for all function value types. It's only used to identify function types.
+  internal interface IFunction {
+  }
+
+  // The native function class to encapsulate build-in functions written by the host language.
+  internal class NativeFunction : IFunction {
+    public readonly string Name;
+
+    private readonly BuildinFunctionType _func;
+
+    internal NativeFunction(string name, BuildinFunctionType func) {
+      Name = name;
+      _func = func;
     }
 
-    // The native function class to encapsulate build-in functions written by the host language.
-    internal class NativeFunction : IFunction {
-      public readonly string Name;
+    // Calls the build-in function with given arguments that locate in the "args" array starting
+    // from "offset". The number of arguments is "length".
+    internal VMValue Call(VMValue[] args, int offset, int length, Sys sys) {
+      return _func(args, offset, length, sys);
+    }
 
-      private readonly BuildinFunctionType _func;
+    public override string ToString() {
+      return $"NativeFunction <{Name}>";
+    }
+  }
 
-      internal NativeFunction(string name, BuildinFunctionType func) {
-        Name = name;
-        _func = func;
-      }
-
-      // Calls the build-in function with given arguments that locate in the "args" array starting
-      // from "offset". The number of arguments is "length".
-      internal VMValue Call(VMValue[] args, int offset, int length, Sys sys) {
-        return _func(args, offset, length, sys);
-      }
-
-      public override string ToString() {
-        return $"NativeFunction <{Name}>";
+  internal class Range {
+    public int Length {
+      get {
+        int distance = _stop - _start;
+        int length = distance / _step + (distance % _step == 0 ? 0 : 1);
+        return Math.Max(length, 0);
       }
     }
 
-    internal class Range {
-      public int Length {
-        get {
-          int distance = _stop - _start;
-          int length = distance / _step + (distance % _step == 0 ? 0 : 1);
-          return Math.Max(length, 0);
-        }
+    private readonly int _start;
+    private readonly int _stop;
+    private readonly int _step;
+
+    internal Range(int stop) : this(0, stop) { }
+
+    internal Range(int start, int stop, int step = 1) {
+      _start = start;
+      _stop = stop;
+      _step = step;
+    }
+
+    public override string ToString() {
+      return $"range({_start}, {_stop}, {_step})";
+    }
+
+    internal VMValue this[double index] {
+      get {
+        return new VMValue(_start + (int)index * _step);
       }
+    }
+  }
 
-      private readonly int _start;
-      private readonly int _stop;
-      private readonly int _step;
+  internal class Slice {
+    public readonly int? Start;
+    public readonly int? Stop;
+    public readonly int? Step;
 
-      internal Range(int stop) : this(0, stop) { }
+    internal Slice(double? stop = null) : this(null, stop) { }
 
-      internal Range(int start, int stop, int step = 1) {
-        _start = start;
-        _stop = stop;
-        _step = step;
+    internal Slice(double? start, double? stop, double? step = null) {
+      Start = ToInt(start);
+      Stop = ToInt(stop);
+      Step = ToInt(step);
+    }
+
+    public override string ToString() {
+      return $"slice({Start?.ToString() ?? "None"}, {Stop?.ToString() ?? "None"}, " +
+             $"{Step?.ToString() ?? "None"})";
+    }
+
+    private static int? ToInt(double? value) {
+      if (value == null) {
+        return null;
       }
-
-      public override string ToString() {
-        return $"range({_start}, {_stop}, {_step})";
+      int intValue = (int)value;
+      if (intValue != value) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidIntIndex);
       }
-
-      internal VMValue this[double index] {
-        get {
-          return new VMValue(_start + (int)index * _step);
-        }
-      }
+      return intValue;
     }
   }
 }

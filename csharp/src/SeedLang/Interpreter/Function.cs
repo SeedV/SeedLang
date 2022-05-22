@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Interpreter {
   // A function value type that is only used in SeedVM component to encapsulate a compiled bytecode
   // chunk.
-  internal class Function : HeapObject.IFunction {
+  internal class Function : IFunction {
     public string Name { get; }
     public Chunk Chunk { get; } = new Chunk();
 

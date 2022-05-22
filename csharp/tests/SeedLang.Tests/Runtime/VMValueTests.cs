@@ -15,12 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using FluentAssertions;
 using SeedLang.Common;
+using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
-  using NativeFunction = HeapObject.NativeFunction;
-
   public class VMValueTests {
     private readonly string _expectedNilString = "None";
     private readonly string _expectedFalseString = "False";
@@ -29,89 +29,126 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestNil() {
       var nil = new VMValue();
-      Assert.True(nil.IsNil);
-      Assert.False(nil.AsBoolean());
-      Assert.Equal(0, nil.AsNumber());
-      Assert.Equal(_expectedNilString, nil.AsString());
-      Assert.Equal(_expectedNilString, nil.ToString());
+      nil.IsNil.Should().Be(true);
+      nil.AsBoolean().Should().Be(false);
+      nil.AsNumber().Should().Be(0);
+      nil.AsString().Should().Be(_expectedNilString);
+      nil.ToString().Should().Be(_expectedNilString);
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => nil.Length);
-      Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => nil[new VMValue(0)]);
-      Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
+      nil.Should().NotBe(new VMValue(false));
+      nil.Should().NotBe(new VMValue(0));
+      nil.Should().NotBe(new VMValue(""));
+      nil.Should().Be(new VMValue());
+
+      Action action = () => _ = nil.Length;
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorNotCountable);
+      action = () => _ = nil[new VMValue(0)];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorNotSubscriptable);
     }
 
     [Fact]
     public void TestBoolean() {
-      var boolean = new VMValue(false);
-      Assert.True(boolean.IsBoolean);
-      Assert.False(boolean.AsBoolean());
-      Assert.Equal(0, boolean.AsNumber());
-      Assert.Equal(_expectedFalseString, boolean.AsString());
-      Assert.Equal(_expectedFalseString, boolean.ToString());
+      var falseBool = new VMValue(false);
+      falseBool.IsBoolean.Should().Be(true);
+      falseBool.AsBoolean().Should().Be(false);
+      falseBool.AsNumber().Should().Be(0);
+      falseBool.AsString().Should().Be(_expectedFalseString);
+      falseBool.ToString().Should().Be(_expectedFalseString);
 
-      boolean = new VMValue(true);
-      Assert.True(boolean.IsBoolean);
-      Assert.True(boolean.AsBoolean());
-      Assert.Equal(1, boolean.AsNumber());
-      Assert.Equal(_expectedTrueString, boolean.AsString());
-      Assert.Equal(_expectedTrueString, boolean.ToString());
+      falseBool.Should().NotBe(new VMValue());
+      falseBool.Should().NotBe(new VMValue(""));
+      falseBool.Should().Be(new VMValue(false));
+      falseBool.Should().NotBe(new VMValue(true));
+      falseBool.Should().Be(new VMValue(0));
+      falseBool.Should().NotBe(new VMValue(1));
+      falseBool.Should().NotBe(new VMValue(2));
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => boolean.Length);
-      Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => boolean[new VMValue(0)]);
-      Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
+      var trueBool = new VMValue(true);
+      trueBool.IsBoolean.Should().Be(true);
+      trueBool.AsBoolean().Should().Be(true);
+      trueBool.AsNumber().Should().Be(1);
+      trueBool.AsString().Should().Be(_expectedTrueString);
+      trueBool.ToString().Should().Be(_expectedTrueString);
+
+      trueBool.Should().Be(new VMValue(true));
+      trueBool.Should().Be(new VMValue(1));
+      trueBool.Should().NotBe(new VMValue(0));
+      trueBool.Should().NotBe(new VMValue(2));
+
+      Action action = () => _ = falseBool.Length;
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorNotCountable);
+      action = () => _ = falseBool[new VMValue(0)];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorNotSubscriptable);
     }
 
     [Fact]
     public void TestNumber() {
-      var number = new VMValue(1);
-      Assert.True(number.IsNumber);
-      Assert.True(number.AsBoolean());
-      Assert.Equal(1, number.AsNumber());
-      Assert.Equal("1", number.AsString());
-      Assert.Equal("1", number.ToString());
+      var zero = new VMValue(0);
+      zero.IsNumber.Should().Be(true);
+      zero.AsBoolean().Should().Be(false);
+      zero.AsNumber().Should().Be(0);
+      zero.AsString().Should().Be("0");
+      zero.ToString().Should().Be("0");
 
-      number = new VMValue(2.5);
-      Assert.True(number.IsNumber);
-      Assert.True(number.AsBoolean());
-      Assert.Equal(2.5, number.AsNumber());
-      Assert.Equal("2.5", number.AsString());
-      Assert.Equal("2.5", number.ToString());
+      zero.Should().NotBe(new VMValue());
+      zero.Should().NotBe(new VMValue(""));
+      zero.Should().NotBe(new VMValue(true));
+      zero.Should().Be(new VMValue(false));
 
-      var exception1 = Assert.Throws<DiagnosticException>(() => number.Length);
-      Assert.Equal(Message.RuntimeErrorNotCountable, exception1.Diagnostic.MessageId);
-      var exception2 = Assert.Throws<DiagnosticException>(() => number[new VMValue(0)]);
-      Assert.Equal(Message.RuntimeErrorNotSubscriptable, exception2.Diagnostic.MessageId);
+      var one = new VMValue(1);
+      one.IsNumber.Should().Be(true);
+      one.AsBoolean().Should().Be(true);
+      one.AsNumber().Should().Be(1);
+      one.AsString().Should().Be("1");
+      one.ToString().Should().Be("1");
+
+      var number = new VMValue(2.5);
+      number.IsNumber.Should().Be(true);
+      number.AsBoolean().Should().Be(true);
+      number.AsNumber().Should().Be(2.5);
+      number.AsString().Should().Be("2.5");
+      number.ToString().Should().Be("2.5");
+
+      Action action = () => _ = one.Length;
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorNotCountable);
+      action = () => _ = one[new VMValue(0)];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorNotSubscriptable);
     }
 
     [Fact]
     public void TestString() {
-      var str = new VMValue("");
-      Assert.True(str.IsString);
-      Assert.False(str.AsBoolean());
-      Assert.Equal(0, str.AsNumber());
-      Assert.Equal("", str.AsString());
-      Assert.Equal("''", str.ToString());
+      var emptyStr = new VMValue("");
+      emptyStr.IsString.Should().Be(true);
+      emptyStr.AsBoolean().Should().Be(false);
+      emptyStr.AsNumber().Should().Be(0);
+      emptyStr.AsString().Should().Be("");
+      emptyStr.ToString().Should().Be("''");
 
-      str = new VMValue(_expectedFalseString);
-      Assert.True(str.IsString);
-      Assert.True(str.AsBoolean());
-      Assert.Equal(0, str.AsNumber());
-      Assert.Equal(_expectedFalseString, str.AsString());
-      Assert.Equal($"'{_expectedFalseString}'", str.ToString());
+      emptyStr.Should().Be(new VMValue(""));
+      emptyStr.Should().NotBe(new VMValue(false));
+      emptyStr.Should().NotBe(new VMValue(0));
 
-      str = new VMValue(_expectedTrueString);
-      Assert.True(str.IsString);
-      Assert.True(str.AsBoolean());
-      Assert.Equal(0, str.AsNumber());
-      Assert.Equal(_expectedTrueString, str.AsString());
-      Assert.Equal($"'{_expectedTrueString}'", str.ToString());
+      string expectedStr = "string";
+      var str = new VMValue(expectedStr);
+      str.IsString.Should().Be(true);
+      str.AsBoolean().Should().Be(true);
+      str.AsNumber().Should().Be(0);
+      str.AsString().Should().Be($"{expectedStr}");
+      str.ToString().Should().Be($"'{expectedStr}'");
 
-      Assert.Equal(_expectedTrueString.Length, str.Length);
-      for (int i = 0; i < _expectedTrueString.Length; i++) {
-        Assert.Equal(_expectedTrueString[i].ToString(), str[new VMValue(i)].AsString());
+      str.Length.Should().Be(expectedStr.Length);
+      for (int i = 0; i < expectedStr.Length; i++) {
+        str[new VMValue(i)].Should().Be(new VMValue(expectedStr[i].ToString()));
       }
+
+      str.Should().Be(new VMValue(expectedStr));
+      str.Should().NotBe(new VMValue("another string"));
     }
 
     [Fact]
@@ -124,37 +161,39 @@ namespace SeedLang.Runtime.Tests {
         [tuple] = new VMValue(3),
       };
       var dict = new VMValue(value);
-      Assert.True(dict.IsDict);
-      Assert.Equal(3, dict.Length);
-      Assert.True(dict[new VMValue(1)].IsNumber);
-      Assert.Equal(1, dict[new VMValue(1)].AsNumber());
-      Assert.True(dict[new VMValue(str)].IsNumber);
-      Assert.Equal(2, dict[new VMValue(str)].AsNumber());
-      Assert.True(dict[tuple].IsNumber);
-      Assert.Equal(3, dict[tuple].AsNumber());
-      Assert.Equal("{1: 1, '2': 2, (1, 2): 3}", dict.AsString());
+      dict.IsDict.Should().Be(true);
+      dict.Length.Should().Be(3);
+      dict[new VMValue(1)].IsNumber.Should().Be(true);
+      dict[new VMValue(1)].AsNumber().Should().Be(1);
+      dict[new VMValue(str)].IsNumber.Should().Be(true);
+      dict[new VMValue(str)].AsNumber().Should().Be(2);
+      dict[tuple].IsNumber.Should().Be(true);
+      dict[tuple].AsNumber().Should().Be(3);
+      dict.AsString().Should().Be("{1: 1, '2': 2, (1, 2): 3}");
 
       string testString = "test";
       dict[new VMValue(1)] = new VMValue(testString);
-      Assert.True(dict[new VMValue(1)].IsString);
-      Assert.Equal(testString, dict[new VMValue(1)].AsString());
-      Assert.Equal("{1: 'test', '2': 2, (1, 2): 3}", dict.AsString());
+      dict[new VMValue(1)].IsString.Should().Be(true);
+      dict[new VMValue(1)].AsString().Should().Be(testString);
+      dict.AsString().Should().Be("{1: 'test', '2': 2, (1, 2): 3}");
 
       dict[new VMValue()] = new VMValue(100);
-      Assert.Equal("{1: 'test', '2': 2, (1, 2): 3, None: 100}", dict.AsString());
+      dict.AsString().Should().Be("{1: 'test', '2': 2, (1, 2): 3, None: 100}");
 
-      var exception = Assert.Throws<DiagnosticException>(() => {
+      Action action = () => {
         dict[new VMValue(new List<VMValue>() { new VMValue(1) })] = new VMValue(2);
-      });
-      Assert.Equal(Message.RuntimeErrorUnhashableType, exception.Diagnostic.MessageId);
+      };
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorUnhashableType);
 
-      exception = Assert.Throws<DiagnosticException>(() => {
+      action = () => {
         var list = new VMValue(new List<VMValue>() { });
-        new VMValue(new Dictionary<VMValue, VMValue> {
+        _ = new VMValue(new Dictionary<VMValue, VMValue> {
           [list] = new VMValue(),
         });
-      });
-      Assert.Equal(Message.RuntimeErrorUnhashableType, exception.Diagnostic.MessageId);
+      };
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorUnhashableType);
     }
 
     [Fact]
@@ -165,19 +204,31 @@ namespace SeedLang.Runtime.Tests {
         new VMValue(3),
       };
       var list = new VMValue(values);
-      Assert.True(list.IsList);
-      Assert.Equal(3, list.Length);
-      Assert.True(list[new VMValue(0)].IsNumber);
-      Assert.Equal(1, list[new VMValue(0)].AsNumber());
-      Assert.True(list[new VMValue(1)].IsNumber);
-      Assert.Equal(2, list[new VMValue(1)].AsNumber());
-      Assert.True(list[new VMValue(2)].IsNumber);
-      Assert.Equal(3, list[new VMValue(2)].AsNumber());
+      list.IsList.Should().Be(true);
+      list.Length.Should().Be(values.Count);
+      list[new VMValue(0)].IsNumber.Should().Be(true);
+      list[new VMValue(0)].AsNumber().Should().Be(1);
+      list[new VMValue(1)].IsNumber.Should().Be(true);
+      list[new VMValue(1)].AsNumber().Should().Be(2);
+      list[new VMValue(2)].IsNumber.Should().Be(true);
+      list[new VMValue(2)].AsNumber().Should().Be(3);
 
       string testString = "test";
       list[new VMValue(1)] = new VMValue(testString);
-      Assert.True(list[new VMValue(1)].IsString);
-      Assert.Equal(testString, list[new VMValue(1)].AsString());
+      list[new VMValue(1)].IsString.Should().Be(true);
+      list[new VMValue(1)].AsString().Should().Be(testString);
+
+      list.Should().NotBe(new VMValue());
+      list.Should().NotBe(new VMValue(false));
+      list.Should().NotBe(new VMValue(0));
+      list.Should().NotBe(new VMValue("1"));
+
+      list = new VMValue(new List<VMValue>() { new VMValue(1) });
+      list.Should().NotBe(new VMValue(new List<VMValue>() { new VMValue(2) }));
+      list.Should().NotBe(new VMValue(new List<VMValue>() { new VMValue(1), new VMValue(2) }));
+      list.Should().Be(new VMValue(new List<VMValue>() { new VMValue(1) }));
+      values = new List<VMValue>() { new VMValue(1) };
+      new VMValue(values).Should().Be(new VMValue(values));
     }
 
     [Fact]
@@ -190,61 +241,208 @@ namespace SeedLang.Runtime.Tests {
         throw new NotImplementedException();
       });
       var func = new VMValue(nativeFunc);
-      Assert.Equal($"NativeFunction <{add}>", func.AsString());
-      Assert.Equal($"NativeFunction <{add}>", func.ToString());
-      Assert.True(func.IsFunction);
+      func.IsFunction.Should().Be(true);
+      func.AsString().Should().Be($"NativeFunction <{add}>");
+      func.ToString().Should().Be($"NativeFunction <{add}>");
       var result = nativeFunc.Call(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2, null);
-      Assert.Equal(3, result.AsNumber());
+      result.AsNumber().Should().Be(3);
     }
 
     [Fact]
-    public void TestValueEquality() {
-      Assert.NotEqual(new VMValue(), new VMValue(false));
-      Assert.NotEqual(new VMValue(), new VMValue(0));
-      Assert.NotEqual(new VMValue(), new VMValue(""));
-      Assert.Equal(new VMValue(), new VMValue());
+    public void TestStringSubscript() {
+      var strValue = "string";
+      var str = new VMValue(strValue);
+      str[new VMValue(3)].AsString().Should().Be("i");
+      str[new VMValue(-3)].AsString().Should().Be("i");
 
-      Assert.NotEqual(new VMValue(false), new VMValue());
-      Assert.NotEqual(new VMValue(false), new VMValue(""));
-      Assert.Equal(new VMValue(false), new VMValue(false));
-      Assert.Equal(new VMValue(true), new VMValue(true));
-      Assert.NotEqual(new VMValue(false), new VMValue(true));
+      str[new VMValue(new Slice(3))].AsString().Should().Be("str");
+      str[new VMValue(new Slice(2, 5))].AsString().Should().Be("rin");
+      str[new VMValue(new Slice(2, null))].AsString().Should().Be("ring");
+      str[new VMValue(new Slice(-4, -1))].AsString().Should().Be("rin");
+      str[new VMValue(new Slice(2, 5, 2))].AsString().Should().Be("rn");
+      str[new VMValue(new Slice(null, null, 3))].AsString().Should().Be("si");
+      str[new VMValue(new Slice(null, null, -1))].AsString().Should().Be("gnirts");
+      str[new VMValue(new Slice(2, 8))].AsString().Should().Be("ring");
+      str[new VMValue(new Slice(1, 5, -1))].AsString().Should().Be("");
+      str[new VMValue(new Slice(10, 1, 1))].AsString().Should().Be("");
+    }
 
-      Assert.NotEqual(new VMValue(false), new VMValue(1));
-      Assert.NotEqual(new VMValue(false), new VMValue(2));
-      Assert.NotEqual(new VMValue(true), new VMValue(0));
-      Assert.NotEqual(new VMValue(true), new VMValue(2));
-      Assert.Equal(new VMValue(false), new VMValue(0));
-      Assert.Equal(new VMValue(true), new VMValue(1));
+    [Fact]
+    public void TestListSubscript() {
+      var list = new VMValue(new List<VMValue>{
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5),
+      });
+      list[new VMValue(0)].AsNumber().Should().Be(1);
+      list[new VMValue(-5)].AsNumber().Should().Be(1);
+      list[new VMValue(new Slice())].Should().Be(list);
+      list[new VMValue(new Slice(3))].Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+      }));
+      list[new VMValue(new Slice(1, 3))].Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(2),
+        new VMValue(3),
+      }));
+      list[new VMValue(new Slice(0, 4, 2))].Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(3),
+      }));
+      list[new VMValue(new Slice(-3))].Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+      }));
+      list[new VMValue(new Slice(-3, 4))].Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(3),
+        new VMValue(4),
+      }));
+      list[new VMValue(new Slice(-3, 8, 2))].Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(3),
+        new VMValue(5),
+      }));
+      list[new VMValue(new Slice(8, -3, -2))].Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(5),
+      }));
+      list[new VMValue(new Slice(8, -1, 2))].Should().Be(new VMValue(new List<VMValue>()));
+    }
 
-      Assert.NotEqual(new VMValue(0), new VMValue());
-      Assert.NotEqual(new VMValue(0), new VMValue(""));
+    [Fact]
+    public void TestListSubscriptAssign() {
+      var list = new VMValue(new List<VMValue>{
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5),
+      });
 
-      Assert.NotEqual(new VMValue(1), new VMValue(false));
-      Assert.NotEqual(new VMValue(2), new VMValue(false));
-      Assert.NotEqual(new VMValue(0), new VMValue(true));
-      Assert.NotEqual(new VMValue(2), new VMValue(true));
-      Assert.Equal(new VMValue(0), new VMValue(false));
-      Assert.Equal(new VMValue(1), new VMValue(true));
+      list[new VMValue(new Slice(1, 4))] = new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(5),
+      }));
 
-      Assert.NotEqual(new VMValue(""), new VMValue());
-      Assert.NotEqual(new VMValue(""), new VMValue(false));
-      Assert.NotEqual(new VMValue(""), new VMValue(0));
-      Assert.NotEqual(new VMValue("0"), new VMValue("1"));
-      Assert.Equal(new VMValue("1"), new VMValue("1"));
+      list[new VMValue(new Slice(-3, -1))] = new VMValue(new List<VMValue> {
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5),
+      }));
 
-      Assert.NotEqual(new VMValue(new List<VMValue>() { new VMValue(1) }), new VMValue());
-      Assert.NotEqual(new VMValue(new List<VMValue>() { new VMValue(1) }), new VMValue(false));
-      Assert.NotEqual(new VMValue(new List<VMValue>() { new VMValue(1) }), new VMValue(0));
-      Assert.NotEqual(new VMValue(new List<VMValue>() { new VMValue(1) }), new VMValue("1"));
-      Assert.NotEqual(new VMValue(new List<VMValue>() { new VMValue(1) }),
-                      new VMValue(new List<VMValue>() { new VMValue(2) }));
-      Assert.NotEqual(new VMValue(new List<VMValue>() { new VMValue(1) }),
-                      new VMValue(new List<VMValue>() { new VMValue(1), new VMValue(2) }));
-      Assert.Equal(new VMValue(new List<VMValue>() { new VMValue(1) }),
-                   new VMValue(new List<VMValue>() { new VMValue(1) }));
-      var list = new List<VMValue>() { new VMValue(1) };
-      Assert.Equal(new VMValue(list), new VMValue(list));
+      list[new VMValue(new Slice(4, 2))] = new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(5),
+      }));
+
+      list[new VMValue(new Slice(-2, 3, -1))] = new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(3),
+        new VMValue(2),
+        new VMValue(1),
+        new VMValue(5),
+      }));
+
+      list[new VMValue(new Slice(2, 10, 3))] = new VMValue(new List<VMValue> {
+        new VMValue(5),
+        new VMValue(4),
+      });
+      list.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(5),
+        new VMValue(4),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(1),
+        new VMValue(5),
+      }));
+    }
+
+    [Fact]
+    public void TestTupleSubscript() {
+      var tuple = new VMValue(ImmutableArray.Create(
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5)
+      ));
+      tuple[new VMValue(0)].AsNumber().Should().Be(1);
+      tuple[new VMValue(-5)].AsNumber().Should().Be(1);
+      tuple[new VMValue(new Slice())].Should().Be(tuple);
+      tuple[new VMValue(new Slice(3))].Should().Be(new VMValue(ImmutableArray.Create(
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3)
+      )));
+      tuple[new VMValue(new Slice(1, 3))].Should().Be(new VMValue(ImmutableArray.Create(
+        new VMValue(2),
+        new VMValue(3)
+      )));
+      tuple[new VMValue(new Slice(0, 4, 2))].Should().Be(new VMValue(ImmutableArray.Create(
+        new VMValue(1),
+        new VMValue(3)
+      )));
+      tuple[new VMValue(new Slice(5, null, null))].Should().Be(
+          new VMValue(ImmutableArray.Create<VMValue>()));
+    }
+
+    [Fact]
+    public void TestFloatSubscript() {
+      var list = new VMValue(new List<VMValue>{
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5),
+      });
+      Action action = () => _ = list[new VMValue(0.5)];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+
+      action = () => _ = list[new VMValue(new Slice(0.5))];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+      action = () => _ = list[new VMValue(new Slice(null, 0.5))];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+      action = () => _ = list[new VMValue(new Slice(null, null, 0.5))];
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
     }
 
     [Fact]
@@ -255,16 +453,16 @@ namespace SeedLang.Runtime.Tests {
       });
       var b = new VMValue(new List<VMValue>() { a });
       a[new VMValue(1)] = b;
-      Assert.Equal("[1, [[...]]]", a.ToString());
-      Assert.Equal("[[1, [...]]]", b.ToString());
+      a.ToString().Should().Be("[1, [[...]]]");
+      b.ToString().Should().Be("[[1, [...]]]");
 
       a = new VMValue(new Dictionary<VMValue, VMValue>());
       b = new VMValue(new Dictionary<VMValue, VMValue>() {
         [new VMValue("a")] = a,
       });
       a[new VMValue("b")] = b;
-      Assert.Equal("{'b': {'a': {...}}}", a.ToString());
-      Assert.Equal("{'a': {'b': {...}}}", b.ToString());
+      a.ToString().Should().Be("{'b': {'a': {...}}}");
+      b.ToString().Should().Be("{'a': {'b': {...}}}");
 
       a = new VMValue(new List<VMValue>() {
         new VMValue(1),
@@ -274,8 +472,8 @@ namespace SeedLang.Runtime.Tests {
         [new VMValue("a")] = a,
       });
       a[new VMValue(1)] = b;
-      Assert.Equal("[1, {'a': [...]}]", a.ToString());
-      Assert.Equal("{'a': [1, {...}]}", b.ToString());
+      a.ToString().Should().Be("[1, {'a': [...]}]");
+      b.ToString().Should().Be("{'a': [1, {...}]}");
     }
   }
 }

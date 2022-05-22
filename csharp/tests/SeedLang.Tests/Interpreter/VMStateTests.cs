@@ -65,10 +65,10 @@ print(a + b)
       vm.State.Should().Be(VMState.Stopped);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
 
-      // Action action = () => vm.Continue();
-      // action.Should().Throw<Exception>();
-      // action = () => vm.Pause();
-      // action.Should().Throw<Exception>();
+      Action action = () => vm.Continue();
+      action.Should().Throw<Exception>();
+      action = () => vm.Pause();
+      action.Should().Throw<Exception>();
 
       stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);

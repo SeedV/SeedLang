@@ -185,13 +185,28 @@ namespace SeedLang.Ast {
         _builder.Append($" ({numberConstant.Value})");
       }
 
+      protected override void VisitSlice(SliceExpression slice) {
+        _builder.Append($" ({(slice.Start is null ? "" : "start")}:");
+        _builder.Append($"{(slice.Stop is null ? "" : "stop")}:");
+        _builder.Append($"{(slice.Step is null ? "" : "step")})");
+        if (!(slice.Start is null)) {
+          Visit(slice.Start);
+        }
+        if (!(slice.Stop is null)) {
+          Visit(slice.Stop);
+        }
+        if (!(slice.Step is null)) {
+          Visit(slice.Step);
+        }
+      }
+
       protected override void VisitStringConstant(StringConstantExpression stringConstant) {
         _builder.Append($" ({stringConstant.Value})");
       }
 
       protected override void VisitSubscript(SubscriptExpression subscript) {
-        Visit(subscript.Expr);
-        Visit(subscript.Index);
+        Visit(subscript.Container);
+        Visit(subscript.Key);
       }
 
       protected override void VisitTuple(TupleExpression tuple) {

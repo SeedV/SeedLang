@@ -173,7 +173,7 @@ namespace SeedLang.Interpreter {
       if (_visualizerCenter.HasVisualizer<Event.SubscriptAssignment>() &&
           !_suspendNotificationEmitting) {
         VariableType type = VariableType.Global;
-        if (subscript.Expr is IdentifierExpression identifier) {
+        if (subscript.Container is IdentifierExpression identifier) {
           if (_variableResolver.FindVariable(identifier.Name) is RegisterInfo info) {
             switch (info.Type) {
               case RegisterType.Global:

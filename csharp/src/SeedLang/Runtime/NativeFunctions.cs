@@ -16,7 +16,9 @@ using System.Collections.Generic;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime {
-  using NativeFunction = HeapObject.NativeFunction;
+  using NativeFunction = HeapObjects.NativeFunction;
+  using Range = HeapObjects.Range;
+  using Slice = HeapObjects.Slice;
 
   // The static class to define all the build-in native functions.
   internal static class NativeFunctions {
@@ -26,6 +28,7 @@ namespace SeedLang.Runtime {
     public const string List = "list";
     public const string Print = "print";
     public const string Range = "range";
+    public const string Slice = "slice";
 
     public static NativeFunction[] Funcs = new NativeFunction[] {
         new NativeFunction(PrintVal, PrintValFunc),
@@ -34,6 +37,7 @@ namespace SeedLang.Runtime {
         new NativeFunction(List, ListFunc),
         new NativeFunction(Print, PrintFunc),
         new NativeFunction(Range, RangeFunc),
+        new NativeFunction(Slice, SliceFunc),
     };
 
     internal static bool IsInternalFunction(string name) {
@@ -86,9 +90,6 @@ namespace SeedLang.Runtime {
       if (length == 0) {
         return new VMValue(new List<VMValue>());
       }
-      if (args[offset].IsList) {
-        return args[offset];
-      }
       var list = new List<VMValue>();
       for (int i = 0; i < args[offset].Length; i++) {
         list.Add(args[offset][new VMValue(i)]);
@@ -109,18 +110,28 @@ namespace SeedLang.Runtime {
 
     private static VMValue RangeFunc(VMValue[] args, int offset, int length, Sys _) {
       if (length == 1) {
-        return new VMValue(new HeapObject.Range((int)args[offset].AsNumber()));
+        return new VMValue(new Range((int)args[offset].AsNumber()));
       } else if (length == 2) {
-        var range = new HeapObject.Range((int)args[offset].AsNumber(),
-                                         (int)args[offset + 1].AsNumber());
+        var range = new Range((int)args[offset].AsNumber(), (int)args[offset + 1].AsNumber());
         return new VMValue(range);
       } else if (length == 3) {
-        return new VMValue(new HeapObject.Range((int)args[offset].AsNumber(),
-                                                (int)args[offset + 1].AsNumber(),
-                                                (int)args[offset + 2].AsNumber()));
+        return new VMValue(new Range((int)args[offset].AsNumber(),
+                                     (int)args[offset + 1].AsNumber(),
+                                     (int)args[offset + 2].AsNumber()));
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                     Message.RuntimeErrorIncorrectArgsCount);
+    }
+
+    private static VMValue SliceFunc(VMValue[] args, int offset, int length, Sys _) {
+      if (length != 3) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorIncorrectArgsCount);
+      }
+      double? start = args[offset].IsNumber ? args[offset].AsNumber() : default(double?);
+      double? stop = args[offset + 1].IsNumber ? args[offset + 1].AsNumber() : default(double?);
+      double? step = args[offset + 2].IsNumber ? args[offset + 2].AsNumber() : default(double?);
+      return new VMValue(new Slice(start, stop, step));
     }
   }
 }

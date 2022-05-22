@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using SeedLang.Common;
+using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Runtime {
   // The value type used in the SeedVM that can carry primary value types (Nil, Boolean, Number) and
@@ -38,11 +39,12 @@ namespace SeedLang.Runtime {
     public bool IsBoolean => _type == ValueType.Boolean;
     public bool IsNumber => _type == ValueType.Number;
     public bool IsString => _type == ValueType.Object && _object.IsString;
-    public bool IsList => _type == ValueType.Object && _object.IsList;
     public bool IsFunction => _type == ValueType.Object && _object.IsFunction;
-    public bool IsRange => _type == ValueType.Object && _object.IsRange;
-    public bool IsTuple => _type == ValueType.Object && _object.IsTuple;
     public bool IsDict => _type == ValueType.Object && _object.IsDict;
+    public bool IsList => _type == ValueType.Object && _object.IsList;
+    public bool IsTuple => _type == ValueType.Object && _object.IsTuple;
+    public bool IsRange => _type == ValueType.Object && _object.IsRange;
+    public bool IsSlice => _type == ValueType.Object && _object.IsSlice;
 
     public int Length {
       get {
@@ -196,21 +198,30 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal List<VMValue> AsList() {
+    internal IFunction AsFunction() {
       if (_type == ValueType.Object) {
-        return _object.AsList();
+        return _object.AsFunction();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorNotCallable);
+      }
+    }
+
+    internal Dictionary<VMValue, VMValue> AsDict() {
+      if (_type == ValueType.Object) {
+        return _object.AsDict();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorInvalidCast);
       }
     }
 
-    internal HeapObject.IFunction AsFunction() {
+    internal List<VMValue> AsList() {
       if (_type == ValueType.Object) {
-        return _object.AsFunction();
+        return _object.AsList();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorNotCallable);
+                                      Message.RuntimeErrorInvalidCast);
       }
     }
 
@@ -223,9 +234,9 @@ namespace SeedLang.Runtime {
       }
     }
 
-    internal Dictionary<VMValue, VMValue> AsDict() {
+    internal Slice AsSlice() {
       if (_type == ValueType.Object) {
-        return _object.AsDict();
+        return _object.AsSlice();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorInvalidCast);

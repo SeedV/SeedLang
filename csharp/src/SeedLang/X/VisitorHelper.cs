@@ -250,21 +250,52 @@ namespace SeedLang.X {
     }
 
     // Builds subscript expressions.
-    internal SubscriptExpression BuildSubscript(ParserRuleContext primaryContext,
+    internal SubscriptExpression BuildSubscript(ParserRuleContext containerContext,
                                                 IToken openBrackToken,
-                                                ParserRuleContext exprContext,
+                                                ParserRuleContext keyContext,
                                                 IToken closeBrackToken,
                                                 AbstractParseTreeVisitor<AstNode> visitor) {
-      if (visitor.Visit(primaryContext) is Expression primary) {
+      if (visitor.Visit(containerContext) is Expression primary) {
         AddSemanticToken(TokenType.OpenBracket, CodeReferenceUtils.RangeOfToken(openBrackToken));
-        if (visitor.Visit(exprContext) is Expression expr) {
+        if (visitor.Visit(keyContext) is Expression key) {
           TextRange closeBrackRange = CodeReferenceUtils.RangeOfToken(closeBrackToken);
           AddSemanticToken(TokenType.CloseBracket, closeBrackRange);
           TextRange range = CodeReferenceUtils.CombineRanges(primary.Range, closeBrackRange);
-          return Expression.Subscript(primary, expr, range);
+          return Expression.Subscript(primary, key, range);
         }
       }
       return null;
+    }
+
+    // Builds slice expressions.
+    internal SliceExpression BuildSlice(ParserRuleContext[] exprContexts,
+                                        ITerminalNode[] colonNodes,
+                                        AbstractParseTreeVisitor<AstNode> visitor) {
+      Debug.Assert(exprContexts.Length == 3);
+      var start = !(exprContexts[0] is null) ? visitor.Visit(exprContexts[0]) as Expression : null;
+      TextRange firstRange = start?.Range;
+      Debug.Assert(colonNodes.Length >= 1 && colonNodes.Length <= 2);
+      TextRange colonRange = CodeReferenceUtils.RangeOfToken(colonNodes[0].Symbol);
+      AddSemanticToken(TokenType.Symbol, colonRange);
+      if (firstRange is null) {
+        firstRange = colonRange;
+      }
+      TextRange lastRange = colonRange;
+      var stop = !(exprContexts[1] is null) ? visitor.Visit(exprContexts[1]) as Expression : null;
+      if (!(stop is null)) {
+        lastRange = stop.Range;
+      }
+      if (colonNodes.Length == 2) {
+        colonRange = CodeReferenceUtils.RangeOfToken(colonNodes[1].Symbol);
+        AddSemanticToken(TokenType.Symbol, colonRange);
+        lastRange = colonRange;
+      }
+      var step = !(exprContexts[2] is null) ? visitor.Visit(exprContexts[2]) as Expression : null;
+      if (!(step is null)) {
+        lastRange = step.Range;
+      }
+      return Expression.Slice(start, stop, step,
+                              CodeReferenceUtils.CombineRanges(firstRange, lastRange));
     }
 
     // Builds attribute expressions.

@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -278,6 +279,16 @@ b = 2
       Assert.Equal(expected, vh.EventsToString());
     }
 
+    [Fact]
+    public void TestSlice() {
+      string source = @"
+a = [1, 2, 3, 4, 5]
+print(a[1:3])
+";
+      (string output, VisualizerHelper _) = Run(Parse(source), Array.Empty<Type>());
+      output.Should().Be("[2, 3]" + Environment.NewLine);
+    }
+
     private static (string, VisualizerHelper) Run(Statement program,
                                                   IReadOnlyList<Type> eventTypes) {
       var vm = new VM();
@@ -293,7 +304,7 @@ b = 2
 
     private static Statement Parse(string source) {
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
-                             out IReadOnlyList<TokenInfo> _);
+                             out IReadOnlyList<TokenInfo> _).Should().Be(true);
       return program;
     }
   }

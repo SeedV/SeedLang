@@ -63,7 +63,7 @@ vtag_start: VTAG_START vtag (COMMA vtag)*;
 vtag: NAME (OPEN_PAREN arguments CLOSE_PAREN)?;
 
 assignment:
-  targets EQUAL expressions            # assign
+  (targets EQUAL)+ expressions         # assign
   | target ADD_ASSIGN expression       # add_assign
   | target SUBSTRACT_ASSIGN expression # substract_assign
   | target MULTIPLY_ASSIGN expression  # multiply_assign

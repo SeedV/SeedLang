@@ -242,8 +242,11 @@ namespace SeedLang.Ast {
       }
 
       protected override void VisitAssignment(AssignmentStatement assignment) {
-        foreach (Expression expr in assignment.Targets) {
-          _exprDumper.Visit(expr);
+        foreach (Expression[] targets in assignment.Targets) {
+          foreach (Expression target in targets) {
+            _exprDumper.Visit(target);
+          }
+          _builder.Append(" =");
         }
         foreach (Expression expr in assignment.Exprs) {
           _exprDumper.Visit(expr);

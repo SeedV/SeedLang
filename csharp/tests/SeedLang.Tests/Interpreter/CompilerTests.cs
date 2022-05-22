@@ -33,8 +33,10 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileAssignment() {
-      var program = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("name")),
-                                                       AstHelper.NumberConstant(1));
+      var program = AstHelper.Assign(
+        AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id("name"))),
+        AstHelper.NumberConstant(1)
+      );
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
@@ -46,8 +48,11 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileMultipleAssignment() {
-      var program = AstHelper.Assign(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y")),
-                                     AstHelper.NumberConstant(1), AstHelper.NumberConstant(2));
+      var program = AstHelper.Assign(
+        AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id("x"), AstHelper.Id("y"))),
+        AstHelper.NumberConstant(1),
+        AstHelper.NumberConstant(2)
+      );
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
@@ -62,7 +67,7 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestCompileAssignBinary() {
       var program = AstHelper.Assign(
-        AstHelper.Targets(AstHelper.Id("name")),
+        AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id("name"))),
         AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
       );
@@ -79,7 +84,7 @@ namespace SeedLang.Interpreter.Tests {
     public void TestCompilePackAssignment() {
       string name = "id";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
+        AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(name))),
                          AstHelper.NumberConstant(1),
                          AstHelper.NumberConstant(2)),
         AstHelper.ExpressionStmt(AstHelper.Id(name))
@@ -103,8 +108,10 @@ namespace SeedLang.Interpreter.Tests {
       string a = "a";
       string b = "b";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b)),
-                         AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2))),
+        AstHelper.Assign(
+          AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b))),
+          AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2))
+        ),
         AstHelper.ExpressionStmt(AstHelper.Id(a)),
         AstHelper.ExpressionStmt(AstHelper.Id(b))
       );
@@ -391,16 +398,18 @@ namespace SeedLang.Interpreter.Tests {
       string sum = "sum";
       string i = "i";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)), AstHelper.NumberConstant(0)),
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)), AstHelper.NumberConstant(0)),
+        AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(sum))),
+                         AstHelper.NumberConstant(0)),
+        AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(i))),
+                         AstHelper.NumberConstant(0)),
         AstHelper.While(
           AstHelper.Comparison(AstHelper.Id(i), AstHelper.CompOps(ComparisonOperator.LessEqual),
                                AstHelper.NumberConstant(10)),
           AstHelper.Block(
-            AstHelper.Assign(AstHelper.Targets(AstHelper.Id(sum)),
+            AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(sum))),
                              AstHelper.Binary(AstHelper.Id(sum), BinaryOperator.Add,
                                               AstHelper.Id(i))),
-            AstHelper.Assign(AstHelper.Targets(AstHelper.Id(i)),
+            AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(i))),
                              AstHelper.Binary(AstHelper.Id(i), BinaryOperator.Add,
                                               AstHelper.NumberConstant(1)))
           )
@@ -516,13 +525,15 @@ namespace SeedLang.Interpreter.Tests {
     public void TestCompileSubscriptAssignment() {
       string a = "a";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+        AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(a))),
                          AstHelper.List(AstHelper.NumberConstant(1),
                                         AstHelper.NumberConstant(2),
                                         AstHelper.NumberConstant(3))),
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Subscript(AstHelper.Id(a),
-                                                               AstHelper.NumberConstant(1))),
-                         AstHelper.NumberConstant(5)),
+        AstHelper.Assign(
+          AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Subscript(AstHelper.Id(a),
+                                                     AstHelper.NumberConstant(1)))),
+          AstHelper.NumberConstant(5)
+        ),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
       string expected = (
@@ -547,14 +558,15 @@ namespace SeedLang.Interpreter.Tests {
     public void TestCompileMultipleSubscriptAssignment() {
       string a = "a";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+        AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(a))),
                          AstHelper.List(AstHelper.NumberConstant(1),
                                         AstHelper.NumberConstant(2),
                                         AstHelper.NumberConstant(3))),
-        AstHelper.Assign(AstHelper.Targets(
+        AstHelper.Assign(
+          AstHelper.ChainedTargets(AstHelper.Targets(
             AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(0)),
             AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1))
-          ),
+          )),
           AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)),
           AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(0))
         )

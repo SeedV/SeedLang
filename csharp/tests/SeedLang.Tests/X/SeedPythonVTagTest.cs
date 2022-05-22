@@ -48,7 +48,7 @@ namespace SeedLang.X.Tests {
                         "Initialize(x):\n" +
                         "[Ln 1, Col 34 - Ln 1, Col 34] IdentifierExpression (x))\n" +
                         "  [Ln 2, Col 0 - Ln 2, Col 8] AssignmentStatement\n" +
-                        "    [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
+                        "    [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x) =\n" +
                         "    [Ln 2, Col 4 - Ln 2, Col 8] BinaryExpression (+)\n" +
                         "      [Ln 2, Col 4 - Ln 2, Col 4] IdentifierExpression (y)\n" +
                         "      [Ln 2, Col 8 - Ln 2, Col 8] NumberConstantExpression (1)";
@@ -68,10 +68,10 @@ namespace SeedLang.X.Tests {
       string expected = "[Ln 1, Col 0 - Ln 3, Col 4] BlockStatement\n" +
                         "  [Ln 1, Col 0 - Ln 2, Col 4] VTagStatement (Assign,Initialize)\n" +
                         "    [Ln 2, Col 0 - Ln 2, Col 4] AssignmentStatement\n" +
-                        "      [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
+                        "      [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x) =\n" +
                         "      [Ln 2, Col 4 - Ln 2, Col 4] NumberConstantExpression (1)\n" +
                         "  [Ln 3, Col 0 - Ln 3, Col 4] AssignmentStatement\n" +
-                        "    [Ln 3, Col 0 - Ln 3, Col 0] IdentifierExpression (y)\n" +
+                        "    [Ln 3, Col 0 - Ln 3, Col 0] IdentifierExpression (y) =\n" +
                         "    [Ln 3, Col 4 - Ln 3, Col 4] NumberConstantExpression (2)";
       string expectedTokens = "Variable [Ln 2, Col 0 - Ln 2, Col 0]," +
                               "Operator [Ln 2, Col 2 - Ln 2, Col 2]," +
@@ -90,10 +90,10 @@ namespace SeedLang.X.Tests {
                       "# ]]";
       string expected = "[Ln 1, Col 0 - Ln 4, Col 3] VTagStatement (Assign,Initialize)\n" +
                         "  [Ln 2, Col 0 - Ln 2, Col 4] AssignmentStatement\n" +
-                        "    [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x)\n" +
+                        "    [Ln 2, Col 0 - Ln 2, Col 0] IdentifierExpression (x) =\n" +
                         "    [Ln 2, Col 4 - Ln 2, Col 4] NumberConstantExpression (1)\n" +
                         "  [Ln 3, Col 0 - Ln 3, Col 4] AssignmentStatement\n" +
-                        "    [Ln 3, Col 0 - Ln 3, Col 0] IdentifierExpression (y)\n" +
+                        "    [Ln 3, Col 0 - Ln 3, Col 0] IdentifierExpression (y) =\n" +
                         "    [Ln 3, Col 4 - Ln 3, Col 4] NumberConstantExpression (2)";
       string expectedTokens = "Variable [Ln 2, Col 0 - Ln 2, Col 0]," +
                               "Operator [Ln 2, Col 2 - Ln 2, Col 2]," +
@@ -113,7 +113,7 @@ namespace SeedLang.X.Tests {
                         "  [Ln 1, Col 3 - Ln 1, Col 6] BooleanConstantExpression (True)\n" +
                         "  [Ln 2, Col 2 - Ln 3, Col 6] VTagStatement (Assign,Initialize)\n" +
                         "    [Ln 3, Col 2 - Ln 3, Col 6] AssignmentStatement\n" +
-                        "      [Ln 3, Col 2 - Ln 3, Col 2] IdentifierExpression (x)\n" +
+                        "      [Ln 3, Col 2 - Ln 3, Col 2] IdentifierExpression (x) =\n" +
                         "      [Ln 3, Col 6 - Ln 3, Col 6] NumberConstantExpression (1)";
       string expectedTokens = "Keyword [Ln 1, Col 0 - Ln 1, Col 1]," +
                               "Boolean [Ln 1, Col 3 - Ln 1, Col 6]," +
@@ -133,7 +133,7 @@ namespace SeedLang.X.Tests {
                         "  [Ln 2, Col 0 - Ln 3, Col 6] IfStatement\n" +
                         "    [Ln 2, Col 3 - Ln 2, Col 6] BooleanConstantExpression (True)\n" +
                         "    [Ln 3, Col 2 - Ln 3, Col 6] AssignmentStatement\n" +
-                        "      [Ln 3, Col 2 - Ln 3, Col 2] IdentifierExpression (x)\n" +
+                        "      [Ln 3, Col 2 - Ln 3, Col 2] IdentifierExpression (x) =\n" +
                         "      [Ln 3, Col 6 - Ln 3, Col 6] NumberConstantExpression (1)";
       string expectedTokens = "Keyword [Ln 2, Col 0 - Ln 2, Col 1]," +
                               "Boolean [Ln 2, Col 3 - Ln 2, Col 6]," +

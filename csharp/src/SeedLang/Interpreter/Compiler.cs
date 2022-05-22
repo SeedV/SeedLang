@@ -52,9 +52,10 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitAssignment(AssignmentStatement assignment) {
       if (assignment.Exprs.Length == 1) {
-        Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
+        // TODO: implement chained assignment.
+        Unpack(assignment.Targets[0], assignment.Exprs[0], assignment.Range);
       } else {
-        Pack(assignment.Targets, assignment.Exprs, assignment.Range);
+        Pack(assignment.Targets[0], assignment.Exprs, assignment.Range);
       }
     }
 

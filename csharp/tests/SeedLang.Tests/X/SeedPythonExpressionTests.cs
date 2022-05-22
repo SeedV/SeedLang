@@ -62,7 +62,7 @@ namespace SeedLang.X.Tests {
     [InlineData("id = 1",
 
                 "[Ln 1, Col 0 - Ln 1, Col 5] AssignmentStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 1] IdentifierExpression (id)\n" +
+                "  [Ln 1, Col 0 - Ln 1, Col 1] IdentifierExpression (id) =\n" +
                 "  [Ln 1, Col 5 - Ln 1, Col 5] NumberConstantExpression (1)",
 
                 "Variable [Ln 1, Col 0 - Ln 1, Col 1]," +

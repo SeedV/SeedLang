@@ -235,7 +235,8 @@ namespace SeedLang.Ast {
   internal class SliceExpression : Expression {
     // The start index of the slice. It can be null to indicate the beginning of the container.
     public Expression Start { get; }
-    // The exclusive stop index of the slice. It can be null to indicate the ending of the container.
+    // The exclusive stop index of the slice. It can be null to indicate the ending of the
+    // container.
     public Expression Stop { get; }
     // The step of the slice. It can be null to indicate the default 1-step.
     public Expression Step { get; }

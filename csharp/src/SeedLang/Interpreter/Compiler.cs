@@ -51,11 +51,20 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitAssignment(AssignmentStatement assignment) {
-      if (assignment.Exprs.Length == 1) {
-        Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
-      } else {
-        Pack(assignment.Targets, assignment.Exprs, assignment.Range);
+      foreach (Expression[] targets in assignment.Targets) {
+        foreach (Expression target in targets) {
+          if (target is IdentifierExpression id) {
+            DefineVariableIfNeeded(id.Name);
+          }
+        }
       }
+      _helper.BeginExprScope();
+      if (assignment.Values.Length == 1) {
+        Unpack(assignment.Targets, assignment.Values[0], assignment.Range);
+      } else {
+        Pack(assignment.Targets, assignment.Values, assignment.Range);
+      }
+      _helper.EndExprScope();
     }
 
     protected override void VisitBlock(BlockStatement block) {
@@ -252,111 +261,94 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void Pack(Expression[] targets, Expression[] exprs, TextRange range) {
-      if (targets.Length == 1) {
-        Assign(targets[0], Expression.Tuple(exprs, range), range);
-      } else if (targets.Length == exprs.Length) {
-        AssignMultipleTargets(targets, exprs, range);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
-                                      Message.RuntimeErrorIncorrectUnpackCount);
+    private void Pack(Expression[][] chainedTargets, Expression[] values, TextRange range) {
+      uint tupleId = VisitExpressionForRegisterId(Expression.Tuple(values, range));
+      foreach (Expression[] targets in chainedTargets) {
+        if (targets.Length == 1) {
+          Assign(targets[0], null, tupleId, range);
+        } else if (targets.Length == values.Length) {
+          UnpackTuple(targets, tupleId, range);
+        } else {
+          throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
+                                        Message.RuntimeErrorIncorrectUnpackCount);
+        }
       }
     }
 
-    private void Unpack(Expression[] targets, Expression expr, TextRange range) {
-      if (targets.Length == 1) {
-        Assign(targets[0], expr, range);
+    private void Unpack(Expression[][] chainedTargets, Expression value, TextRange range) {
+      if (chainedTargets.Length == 1 && chainedTargets[0].Length == 1) {
+        Assign(chainedTargets[0][0], value, 0, range);
       } else {
-        // If the length of targets is less than the one of the unpacked value, SeedPython will
-        // unpack part of the value. And if the length of the targets is greater than the one of the
-        // unpacked value, an index out of range exception will be thrown.
-        // The behavior is different from the original Python. Python will throw an incorrect unpack
-        // count exception for both situations.
-        // TODO: Add a build-in function to check the length of the unpacked values.
-        foreach (Expression target in targets) {
-          if (target is IdentifierExpression id) {
-            DefineVariableIfNeeded(id.Name);
+        uint registerId = VisitExpressionForRegisterId(value);
+        foreach (Expression[] targets in chainedTargets) {
+          if (targets.Length == 1) {
+            Assign(targets[0], null, registerId, range);
+          } else {
+            UnpackTuple(targets, registerId, range);
           }
         }
+      }
+    }
+
+    // Unpacks a tuple and assigns to multiple targets.
+    //
+    // If the length of targets is less than the one of the unpacked value, SeedPython will unpack
+    // part of the value. And if the length of the targets is greater than the one of the unpacked
+    // value, an index out of range exception will be thrown.
+    // The behavior is different from the original Python. Python will throw an incorrect unpack
+    // count exception for both situations.
+    // TODO: Add a build-in function to check the length of the unpacked values.
+    private void UnpackTuple(Expression[] targets, uint tupleId, TextRange range) {
+      uint elemId = _helper.DefineTempVariable();
+      for (int i = 0; i < targets.Length; i++) {
         _helper.BeginExprScope();
-        uint listId = VisitExpressionForRegisterId(expr);
-        uint valueId = _helper.DefineTempVariable();
-        for (int i = 0; i < targets.Length; i++) {
-          _helper.BeginExprScope();
-          uint constId = _helper.ConstantCache.IdOfConstant(i);
-          uint indexId = _helper.DefineTempVariable();
-          _helper.Emit(Opcode.LOADK, indexId, constId, range);
-          _helper.Emit(Opcode.GETELEM, valueId, listId, indexId, range);
-          Assign(targets[i], valueId, range);
-          _helper.EndExprScope();
-        }
+        uint constId = _helper.ConstantCache.IdOfConstant(i);
+        uint indexId = _helper.DefineTempVariable();
+        _helper.Emit(Opcode.LOADK, indexId, constId, range);
+        _helper.Emit(Opcode.GETELEM, elemId, tupleId, indexId, range);
+        Assign(targets[i], null, elemId, range);
         _helper.EndExprScope();
       }
     }
 
-    private void Assign(Expression target, Expression expr, TextRange range) {
-      if (target is IdentifierExpression id) {
-        DefineVariableIfNeeded(id.Name);
-      }
-      _helper.BeginExprScope();
-      uint valueId = VisitExpressionForRKId(expr);
-      Assign(target, valueId, range);
-      _helper.EndExprScope();
-    }
-
-    private void AssignMultipleTargets(Expression[] targets, Expression[] exprs, TextRange range) {
-      for (int i = 0; i < targets.Length; i++) {
-        if (targets[i] is IdentifierExpression id) {
-          DefineVariableIfNeeded(id.Name);
-        }
-      }
-      _helper.BeginExprScope();
-      var exprIds = new uint[targets.Length];
-      for (int i = 0; i < targets.Length; i++) {
-        exprIds[i] = VisitExpressionForRKId(exprs[i]);
-      }
-      for (int i = 0; i < targets.Length; i++) {
-        Assign(targets[i], exprIds[i], range);
-      }
-      _helper.EndExprScope();
-    }
-
-    private void Assign(Expression expr, uint valueId, TextRange range) {
-      switch (expr) {
+    // Assigns the value of an expression or a register (when the expression is null) to the target.
+    // The implementation can be optimized to reduce a MOVE instruction if the expression is
+    // provided.
+    private void Assign(Expression target, Expression value, uint registerId, TextRange range) {
+      switch (target) {
         case IdentifierExpression id:
-          Assign(id, valueId, range);
+          RegisterInfo info = _helper.FindVariable(id.Name);
+          switch (info.Type) {
+            case RegisterType.Global:
+              if (!(value is null)) {
+                registerId = VisitExpressionForRegisterId(value);
+              }
+              _helper.Emit(Opcode.SETGLOB, registerId, info.Id, range);
+              _helper.EmitAssignNotification(info.Name, VariableType.Global, registerId, range);
+              break;
+            case RegisterType.Local:
+              if (!(value is null)) {
+                _exprCompiler.RegisterForSubExpr = info.Id;
+                _exprCompiler.Visit(value);
+                registerId = info.Id;
+              } else {
+                _helper.Emit(Opcode.MOVE, info.Id, registerId, 0, range);
+              }
+              _helper.EmitAssignNotification(info.Name, VariableType.Local, registerId, range);
+              break;
+            case RegisterType.Upvalue:
+              // TODO: handle upvalues.
+              break;
+          }
           break;
         case SubscriptExpression subscript:
+          if (!(value is null)) {
+            registerId = VisitExpressionForRKId(value);
+          }
           uint containerId = VisitExpressionForRegisterId(subscript.Container);
           uint keyId = VisitExpressionForRKId(subscript.Key);
-          _helper.Emit(Opcode.SETELEM, containerId, keyId, valueId, range);
-          _helper.EmitSubscriptAssignNotification(subscript, keyId, valueId, range);
-          break;
-      }
-    }
-
-    private void Assign(IdentifierExpression id, uint valueId, TextRange range) {
-      RegisterInfo info = _helper.FindVariable(id.Name);
-      switch (info.Type) {
-        case RegisterType.Global:
-          uint tempRegister = valueId;
-          if (Chunk.IsConstId(valueId)) {
-            tempRegister = _helper.DefineTempVariable();
-            _helper.Emit(Opcode.LOADK, tempRegister, valueId, range);
-          }
-          _helper.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
-          _helper.EmitAssignNotification(info.Name, VariableType.Global, tempRegister, range);
-          break;
-        case RegisterType.Local:
-          if (Chunk.IsConstId(valueId)) {
-            _helper.Emit(Opcode.LOADK, info.Id, valueId, range);
-          } else {
-            _helper.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
-          }
-          _helper.EmitAssignNotification(info.Name, VariableType.Local, valueId, range);
-          break;
-        case RegisterType.Upvalue:
-          // TODO: handle upvalues.
+          _helper.Emit(Opcode.SETELEM, containerId, keyId, registerId, range);
+          _helper.EmitSubscriptAssignNotification(subscript, keyId, registerId, range);
           break;
       }
     }

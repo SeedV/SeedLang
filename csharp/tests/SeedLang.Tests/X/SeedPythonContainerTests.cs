@@ -266,7 +266,7 @@ namespace SeedLang.X.Tests {
       string expected = "[Ln 1, Col 0 - Ln 1, Col 7] AssignmentStatement\n" +
                         "  [Ln 1, Col 0 - Ln 1, Col 3] SubscriptExpression\n" +
                         "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
-                        "    [Ln 1, Col 2 - Ln 1, Col 2] NumberConstantExpression (0)\n" +
+                        "    [Ln 1, Col 2 - Ln 1, Col 2] NumberConstantExpression (0) =\n" +
                         "  [Ln 1, Col 7 - Ln 1, Col 7] NumberConstantExpression (1)";
       string expectedTokens = "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
                               "OpenBracket [Ln 1, Col 1 - Ln 1, Col 1]," +

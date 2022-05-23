@@ -354,19 +354,20 @@ namespace SeedLang.X {
     }
 
     // Builds assignment statements.
-    internal AssignmentStatement BuildAssignment(ParserRuleContext[] targetContexts,
-                                                 ITerminalNode[] targetCommaNodes,
-                                                 IToken equalToken,
-                                                 ParserRuleContext[] exprContexts,
-                                                 ITerminalNode[] exprCommaNodes,
-                                                 AbstractParseTreeVisitor<AstNode> visitor) {
-      Debug.Assert(targetContexts.Length > 0 && exprContexts.Length > 0);
-      var targets = BuildExpressions(targetContexts, targetCommaNodes, visitor);
-      AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(equalToken));
+    internal AssignmentStatement BuildAssignment(
+        (ParserRuleContext[], ITerminalNode[], IToken)[] targetsInfo,
+        ParserRuleContext[] exprContexts, ITerminalNode[] exprCommaNodes,
+        AbstractParseTreeVisitor<AstNode> visitor) {
+      var targets = new Expression[targetsInfo.Length][];
+      int index = 0;
+      foreach ((var targetContexts, var commaNodes, var equalToken) in targetsInfo) {
+        targets[index++] = BuildExpressions(targetContexts, commaNodes, visitor);
+        AddSemanticToken(TokenType.Operator, CodeReferenceUtils.RangeOfToken(equalToken));
+      }
       var exprs = BuildExpressions(exprContexts, exprCommaNodes, visitor);
       if (!(targets is null) && !(exprs is null)) {
-        Debug.Assert(targets.Length > 0 && exprs.Length > 0);
-        TextRange range = CodeReferenceUtils.CombineRanges(targets[0].Range,
+        Debug.Assert(targets.Length > 0 && targets[0].Length > 0 && exprs.Length > 0);
+        TextRange range = CodeReferenceUtils.CombineRanges(targets[0][0].Range,
                                                            exprs[exprs.Length - 1].Range);
         return Statement.Assignment(targets, exprs, range);
       }
@@ -383,8 +384,8 @@ namespace SeedLang.X {
         if (visitor.Visit(exprContext) is Expression expr) {
           TextRange range = CodeReferenceUtils.CombineRanges(target.Range, expr.Range);
           Expression binary = Expression.Binary(target, op, expr, range);
-          return Statement.Assignment(new Expression[] { target }, new Expression[] { binary },
-                                      range);
+          var targets = new Expression[][] { new Expression[] { target } };
+          return Statement.Assignment(targets, new Expression[] { binary }, range);
         }
       }
       return null;

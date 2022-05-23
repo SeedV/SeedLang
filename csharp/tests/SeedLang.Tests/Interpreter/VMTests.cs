@@ -149,13 +149,15 @@ namespace SeedLang.Interpreter.Tests {
     public void TestSubscriptAssignment() {
       string a = "a";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a)),
+        AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(a))),
                          AstHelper.List(AstHelper.NumberConstant(1),
                                         AstHelper.NumberConstant(2),
                                         AstHelper.NumberConstant(3))),
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Subscript(AstHelper.Id(a),
-                                                               AstHelper.NumberConstant(1))),
-                         AstHelper.NumberConstant(5)),
+        AstHelper.Assign(
+          AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Subscript(AstHelper.Id(a),
+                                                     AstHelper.NumberConstant(1)))),
+          AstHelper.NumberConstant(5)
+        ),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
       (string output, VisualizerHelper vh) = Run(program,
@@ -192,7 +194,8 @@ namespace SeedLang.Interpreter.Tests {
     public void TestAssignment() {
       string name = "name";
       var program = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)), AstHelper.NumberConstant(1)),
+        AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(name))),
+                         AstHelper.NumberConstant(1)),
         AstHelper.ExpressionStmt(AstHelper.Id(name))
       );
       (string output, VisualizerHelper vh) = Run(program, new Type[] { typeof(Event.Assignment) });
@@ -206,9 +209,11 @@ namespace SeedLang.Interpreter.Tests {
       string a = "a";
       string b = "b";
       var block = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b)),
-                         AstHelper.NumberConstant(1),
-                         AstHelper.NumberConstant(2)),
+        AstHelper.Assign(
+          AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b))),
+          AstHelper.NumberConstant(1),
+          AstHelper.NumberConstant(2)
+        ),
         AstHelper.ExpressionStmt(AstHelper.Id(a)),
         AstHelper.ExpressionStmt(AstHelper.Id(b))
       );
@@ -229,7 +234,7 @@ namespace SeedLang.Interpreter.Tests {
     public void TestPackAssignment() {
       string name = "id";
       var block = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
+        AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(name))),
                          AstHelper.NumberConstant(1),
                          AstHelper.NumberConstant(2)),
         AstHelper.ExpressionStmt(AstHelper.Id(name))
@@ -245,8 +250,10 @@ namespace SeedLang.Interpreter.Tests {
       string a = "a";
       string b = "b";
       var block = AstHelper.Block(
-        AstHelper.Assign(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b)),
-                         AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2))),
+        AstHelper.Assign(
+          AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(a), AstHelper.Id(b))),
+          AstHelper.List(AstHelper.NumberConstant(1), AstHelper.NumberConstant(2))
+        ),
         AstHelper.ExpressionStmt(AstHelper.Id(a)),
         AstHelper.ExpressionStmt(AstHelper.Id(b))
       );
@@ -255,6 +262,18 @@ namespace SeedLang.Interpreter.Tests {
         $"1\n" +
         $"2\n"
       ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expectedOutput, output);
+    }
+
+    [Fact]
+    public void TestChainedAssignment() {
+      string source = @"
+a = a[1] = [1, 2, 3]
+x, y = z = 1, 2
+print(a, x, y, z)
+";
+      (string output, VisualizerHelper _) = Run(Parse(source), Array.Empty<Type>());
+      var expectedOutput = $"[1, [...], 3] 1 2 (1, 2)" + Environment.NewLine;
       Assert.Equal(expectedOutput, output);
     }
 

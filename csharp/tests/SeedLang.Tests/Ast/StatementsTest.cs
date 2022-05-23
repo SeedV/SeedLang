@@ -34,11 +34,13 @@ namespace SeedLang.Ast.Tests {
 
       private void AddAssignment() {
         string name = "id";
-        var assignment = AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
-                                          AstHelper.NumberConstant(1));
+        var assignment = AstHelper.Assign(
+          AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(name))),
+          AstHelper.NumberConstant(1)
+        );
         var expectedOutput = (
             $"{AstHelper.TextRange} AssignmentStatement\n" +
-            $"  {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"  {AstHelper.TextRange} IdentifierExpression ({name}) =\n" +
             $"  {AstHelper.TextRange} NumberConstantExpression (1)"
         ).Replace("\n", Environment.NewLine);
         Add(assignment, expectedOutput);
@@ -97,19 +99,21 @@ namespace SeedLang.Ast.Tests {
 
       private void AddIf() {
         string name = "id";
-        var @if = AstHelper.If(AstHelper.BooleanConstant(false),
-                               AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
-                                                AstHelper.NumberConstant(1)),
-                               AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
-                                                AstHelper.NumberConstant(2)));
+        var @if = AstHelper.If(
+          AstHelper.BooleanConstant(false),
+          AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(name))),
+                           AstHelper.NumberConstant(1)),
+          AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(name))),
+                           AstHelper.NumberConstant(2))
+        );
         var expectedOutput = (
             $"{AstHelper.TextRange} IfStatement\n" +
             $"  {AstHelper.TextRange} BooleanConstantExpression (False)\n" +
             $"  {AstHelper.TextRange} AssignmentStatement\n" +
-            $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"    {AstHelper.TextRange} IdentifierExpression ({name}) =\n" +
             $"    {AstHelper.TextRange} NumberConstantExpression (1)\n" +
             $"  {AstHelper.TextRange} AssignmentStatement\n" +
-            $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"    {AstHelper.TextRange} IdentifierExpression ({name}) =\n" +
             $"    {AstHelper.TextRange} NumberConstantExpression (2)"
         ).Replace("\n", Environment.NewLine);
         Add(@if, expectedOutput);
@@ -132,14 +136,16 @@ namespace SeedLang.Ast.Tests {
 
       private void AddWhile() {
         string name = "id";
-        var @while = AstHelper.While(AstHelper.BooleanConstant(true),
-                                     AstHelper.Assign(AstHelper.Targets(AstHelper.Id(name)),
-                                                      AstHelper.NumberConstant(1)));
+        var @while = AstHelper.While(
+          AstHelper.BooleanConstant(true),
+          AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(name))),
+                           AstHelper.NumberConstant(1))
+        );
         var expectedOutput = (
             $"{AstHelper.TextRange} WhileStatement\n" +
             $"  {AstHelper.TextRange} BooleanConstantExpression (True)\n" +
             $"  {AstHelper.TextRange} AssignmentStatement\n" +
-            $"    {AstHelper.TextRange} IdentifierExpression ({name})\n" +
+            $"    {AstHelper.TextRange} IdentifierExpression ({name}) =\n" +
             $"    {AstHelper.TextRange} NumberConstantExpression (1)"
         ).Replace("\n", Environment.NewLine);
         Add(@while, expectedOutput);

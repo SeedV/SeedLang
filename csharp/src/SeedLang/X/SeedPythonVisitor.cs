@@ -84,10 +84,15 @@ namespace SeedLang.X {
     }
 
     public override AstNode VisitAssign([NotNull] SeedPythonParser.AssignContext context) {
-      SeedPythonParser.TargetsContext targets = context.targets();
+      Debug.Assert(context.targets().Length == context.EQUAL().Length);
+      int length = context.targets().Length;
+      var targetsInfo = new (ParserRuleContext[], ITerminalNode[], IToken)[length];
+      for (int i = 0; i < length; i++) {
+        SeedPythonParser.TargetsContext targets = context.targets()[i];
+        targetsInfo[i] = (targets.target(), targets.COMMA(), context.EQUAL()[i].Symbol);
+      }
       SeedPythonParser.ExpressionsContext exprs = context.expressions();
-      return _helper.BuildAssignment(targets.target(), targets.COMMA(), context.EQUAL().Symbol,
-                                     exprs.expression(), exprs.COMMA(), this);
+      return _helper.BuildAssignment(targetsInfo, exprs.expression(), exprs.COMMA(), this);
     }
 
     public override AstNode VisitAdd_assign([NotNull] SeedPythonParser.Add_assignContext context) {

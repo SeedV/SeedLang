@@ -21,8 +21,12 @@ namespace SeedLang.Tests.Helper {
   internal class AstHelper {
     public static readonly TextRange TextRange = new TextRange(0, 1, 2, 3);
 
-    internal static AssignmentStatement Assign(Expression[] targets, params Expression[] exprs) {
+    internal static AssignmentStatement Assign(Expression[][] targets, params Expression[] exprs) {
       return Statement.Assignment(targets, exprs, TextRange);
+    }
+
+    internal static Expression[][] ChainedTargets(params Expression[][] targets) {
+      return targets;
     }
 
     internal static Expression[] Targets(params Expression[] targets) {

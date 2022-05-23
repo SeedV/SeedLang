@@ -37,7 +37,7 @@ namespace SeedLang.Interpreter.Tests {
       string source = "name = 1";
       string expected = (
         $"Function <main>\n" +
-        $"  1    LOADK     0 -1             ; 1                 [Ln 1, Col 0 - Ln 1, Col 7]\n" +
+        $"  1    LOADK     0 -1             ; 1                 [Ln 1, Col 7 - Ln 1, Col 7]\n" +
         $"  2    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
@@ -130,11 +130,11 @@ print(sum)
         $"  3    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
         $"  4    VISNOTIFY 0 0                                  [Ln 5, Col 0 - Ln 5, Col 0]\n" +
-        $"  5    LOADK     0 -2             ; 0                 [Ln 5, Col 0 - Ln 5, Col 6]\n" +
+        $"  5    LOADK     0 -2             ; 0                 [Ln 5, Col 6 - Ln 5, Col 6]\n" +
         $"  6    SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 5, Col 0 - Ln 5, Col 6]\n" +
         $"  7    VISNOTIFY 0 0                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
-        $"  8    LOADK     0 -2             ; 0                 [Ln 6, Col 0 - Ln 6, Col 4]\n" +
+        $"  8    LOADK     0 -2             ; 0                 [Ln 6, Col 4 - Ln 6, Col 4]\n" +
         $"  9    SETGLOB   0 {_firstGlob + 2}" +
         $"                                  [Ln 6, Col 0 - Ln 6, Col 4]\n" +
         $"  10   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
@@ -213,7 +213,7 @@ flag = \
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
-        $"  2    LOADK     0 -1             ; 0                 [Ln 2, Col 0 - Ln 2, Col 4]\n" +
+        $"  2    LOADK     0 -1             ; 0                 [Ln 2, Col 4 - Ln 2, Col 4]\n" +
         $"  3    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 2, Col 4]\n" +
         $"  4    VISNOTIFY 0 0                                  [Ln 4, Col 0 - Ln 4, Col 0]\n" +
@@ -256,7 +256,7 @@ x = 1
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  2    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  3    LOADK     0 -1             ; 1                 [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  3    LOADK     0 -1             ; 1                 [Ln 3, Col 4 - Ln 3, Col 4]\n" +
         $"  4    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  5    GETGLOB   0 {_firstGlob}" +
@@ -330,13 +330,12 @@ def func():
         $"  3    HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"\n" +
         $"Function <func>\n" +
-        $"  1    LOADK     2 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
-        $"  2    LOADK     3 -2             ; 2                 [Ln 3, Col 10 - Ln 3, Col 10]\n" +
-        $"  3    NEWLIST   1 2 2                                [Ln 3, Col 6 - Ln 3, Col 11]\n" +
-        $"  4    MOVE      0 1                                  [Ln 3, Col 2 - Ln 3, Col 11]\n" +
-        $"  5    SETELEM   0 -1 -1          ; 1 1               [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  6    VISNOTIFY 0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  7    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  1    LOADK     1 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
+        $"  2    LOADK     2 -2             ; 2                 [Ln 3, Col 10 - Ln 3, Col 10]\n" +
+        $"  3    NEWLIST   0 1 2                                [Ln 3, Col 6 - Ln 3, Col 11]\n" +
+        $"  4    SETELEM   0 -1 -1          ; 1 1               [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  5    VISNOTIFY 0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  6    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
         $"  0    Notification.SubscriptAssignment: 'global.func.a': Local 250 250\n"
       ).Replace("\n", Environment.NewLine);
@@ -428,27 +427,32 @@ x, y = 1, 1 + 2
         $"Function <main>\n" +
         $"  1    ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
         $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
-        $"  3    ADD       0 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
-        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
-        $"  5    LOADK     1 -1             ; 1                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  6    SETGLOB   1 {_firstGlob}" +
+        $"  3    LOADK     1 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
+        $"  4    ADD       2 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  6    NEWTUPLE  0 1 2                                [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  7    LOADK     2 -3             ; 0                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  8    GETELEM   1 0 2                                [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  9    SETGLOB   1 {_firstGlob}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  7    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  8    SETGLOB   0 {_firstGlob + 1}" +
+        $"  10   VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  11   LOADK     2 -1             ; 1                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  12   GETELEM   1 0 2                                [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  13   SETGLOB   1 {_firstGlob + 1}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  9    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  10   GETGLOB   0 {_firstGlob}" +
+        $"  14   VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  15   GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
-        $"  11   GETGLOB   1 {_firstGlob + 1}" +
+        $"  16   GETGLOB   1 {_firstGlob + 1}" +
         $"                                  [Ln 2, Col 18 - Ln 2, Col 18]\n" +
-        $"  12   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
-        $"  13   VISNOTIFY 0 4                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
-        $"  14   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  17   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
+        $"  18   VISNOTIFY 0 4                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
+        $"  19   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTagEntered: Assign(x: null, 1: 250, y: null, 1+2: 2)\n" +
-        $"  1    Notification.Binary: 250 Add 251 0\n" +
+        $"  1    Notification.Binary: 250 Add 251 2\n" +
         $"  2    Notification.Assignment: 'global.x': Global 1\n" +
-        $"  3    Notification.Assignment: 'global.y': Global 0\n" +
+        $"  3    Notification.Assignment: 'global.y': Global 1\n" +
         $"  4    Notification.VTagExited: Assign(x: 0, 1: 250, y: 1, 1+2: 2)\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {

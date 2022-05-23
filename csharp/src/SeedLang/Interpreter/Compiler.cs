@@ -51,12 +51,20 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitAssignment(AssignmentStatement assignment) {
-      if (assignment.Exprs.Length == 1) {
-        // TODO: implement chained assignment.
-        Unpack(assignment.Targets[0], assignment.Exprs[0], assignment.Range);
-      } else {
-        Pack(assignment.Targets[0], assignment.Exprs, assignment.Range);
+      foreach (Expression[] targets in assignment.Targets) {
+        foreach (Expression target in targets) {
+          if (target is IdentifierExpression id) {
+            DefineVariableIfNeeded(id.Name);
+          }
+        }
       }
+      _helper.BeginExprScope();
+      if (assignment.Exprs.Length == 1) {
+        Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
+      } else {
+        Pack(assignment.Targets, assignment.Exprs, assignment.Range);
+      }
+      _helper.EndExprScope();
     }
 
     protected override void VisitBlock(BlockStatement block) {
@@ -253,111 +261,113 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void Pack(Expression[] targets, Expression[] exprs, TextRange range) {
-      if (targets.Length == 1) {
-        Assign(targets[0], Expression.Tuple(exprs, range), range);
-      } else if (targets.Length == exprs.Length) {
-        AssignMultipleTargets(targets, exprs, range);
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
-                                      Message.RuntimeErrorIncorrectUnpackCount);
+    private void Pack(Expression[][] chainedTargets, Expression[] exprs, TextRange range) {
+      uint tupleId = VisitExpressionForRegisterId(Expression.Tuple(exprs, range));
+      foreach (Expression[] targets in chainedTargets) {
+        if (targets.Length == 1) {
+          Assign(targets[0], tupleId, range);
+        } else if (targets.Length == exprs.Length) {
+          UnpackTuple(targets, tupleId, range);
+        } else {
+          throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
+                                        Message.RuntimeErrorIncorrectUnpackCount);
+        }
       }
     }
 
-    private void Unpack(Expression[] targets, Expression expr, TextRange range) {
-      if (targets.Length == 1) {
-        Assign(targets[0], expr, range);
+    private void Unpack(Expression[][] chainedTargets, Expression expr, TextRange range) {
+      if (chainedTargets.Length == 1 && chainedTargets[0].Length == 1) {
+        SimpleAssign(chainedTargets[0][0], expr, range);
       } else {
-        // If the length of targets is less than the one of the unpacked value, SeedPython will
-        // unpack part of the value. And if the length of the targets is greater than the one of the
-        // unpacked value, an index out of range exception will be thrown.
-        // The behavior is different from the original Python. Python will throw an incorrect unpack
-        // count exception for both situations.
-        // TODO: Add a build-in function to check the length of the unpacked values.
-        foreach (Expression target in targets) {
-          if (target is IdentifierExpression id) {
-            DefineVariableIfNeeded(id.Name);
+        uint registerId = VisitExpressionForRegisterId(expr);
+        foreach (Expression[] targets in chainedTargets) {
+          if (targets.Length == 1) {
+            Assign(targets[0], registerId, range);
+          } else {
+            UnpackTuple(targets, registerId, range);
           }
         }
+      }
+    }
+
+    // Assigns one value to one target.
+    private void SimpleAssign(Expression target, Expression expr, TextRange range) {
+      switch (target) {
+        case IdentifierExpression id:
+          RegisterInfo info = _helper.FindVariable(id.Name);
+          switch (info.Type) {
+            case RegisterType.Global:
+              uint valueId = VisitExpressionForRegisterId(expr);
+              _helper.Emit(Opcode.SETGLOB, valueId, info.Id, range);
+              _helper.EmitAssignNotification(info.Name, VariableType.Global, valueId, range);
+              break;
+            case RegisterType.Local:
+              _exprCompiler.RegisterForSubExpr = info.Id;
+              _exprCompiler.Visit(expr);
+              _helper.EmitAssignNotification(info.Name, VariableType.Local, info.Id, range);
+              break;
+            case RegisterType.Upvalue:
+              // TODO: handle upvalues.
+              break;
+          }
+          break;
+        case SubscriptExpression subscript: {
+            uint valueId = VisitExpressionForRKId(expr);
+            uint containerId = VisitExpressionForRegisterId(subscript.Container);
+            uint keyId = VisitExpressionForRKId(subscript.Key);
+            _helper.Emit(Opcode.SETELEM, containerId, keyId, valueId, range);
+            _helper.EmitSubscriptAssignNotification(subscript, keyId, valueId, range);
+            break;
+          }
+      }
+    }
+
+    // Unpacks a tuple to multiple targets.
+    //
+    // If the length of targets is less than the one of the unpacked value, SeedPython will unpack
+    // part of the value. And if the length of the targets is greater than the one of the unpacked
+    // value, an index out of range exception will be thrown.
+    // The behavior is different from the original Python. Python will throw an incorrect unpack
+    // count exception for both situations.
+    // TODO: Add a build-in function to check the length of the unpacked values.
+    private void UnpackTuple(Expression[] targets, uint tupleId, TextRange range) {
+      _helper.BeginExprScope();
+      uint elemId = _helper.DefineTempVariable();
+      for (int i = 0; i < targets.Length; i++) {
         _helper.BeginExprScope();
-        uint listId = VisitExpressionForRegisterId(expr);
-        uint valueId = _helper.DefineTempVariable();
-        for (int i = 0; i < targets.Length; i++) {
-          _helper.BeginExprScope();
-          uint constId = _helper.ConstantCache.IdOfConstant(i);
-          uint indexId = _helper.DefineTempVariable();
-          _helper.Emit(Opcode.LOADK, indexId, constId, range);
-          _helper.Emit(Opcode.GETELEM, valueId, listId, indexId, range);
-          Assign(targets[i], valueId, range);
-          _helper.EndExprScope();
-        }
+        uint constId = _helper.ConstantCache.IdOfConstant(i);
+        uint indexId = _helper.DefineTempVariable();
+        _helper.Emit(Opcode.LOADK, indexId, constId, range);
+        _helper.Emit(Opcode.GETELEM, elemId, tupleId, indexId, range);
+        Assign(targets[i], elemId, range);
         _helper.EndExprScope();
       }
-    }
-
-    private void Assign(Expression target, Expression expr, TextRange range) {
-      if (target is IdentifierExpression id) {
-        DefineVariableIfNeeded(id.Name);
-      }
-      _helper.BeginExprScope();
-      uint valueId = VisitExpressionForRKId(expr);
-      Assign(target, valueId, range);
       _helper.EndExprScope();
     }
 
-    private void AssignMultipleTargets(Expression[] targets, Expression[] exprs, TextRange range) {
-      for (int i = 0; i < targets.Length; i++) {
-        if (targets[i] is IdentifierExpression id) {
-          DefineVariableIfNeeded(id.Name);
-        }
-      }
-      _helper.BeginExprScope();
-      var exprIds = new uint[targets.Length];
-      for (int i = 0; i < targets.Length; i++) {
-        exprIds[i] = VisitExpressionForRKId(exprs[i]);
-      }
-      for (int i = 0; i < targets.Length; i++) {
-        Assign(targets[i], exprIds[i], range);
-      }
-      _helper.EndExprScope();
-    }
-
-    private void Assign(Expression expr, uint valueId, TextRange range) {
-      switch (expr) {
+    private void Assign(Expression target, uint registerId, TextRange range) {
+      switch (target) {
         case IdentifierExpression id:
-          Assign(id, valueId, range);
+          RegisterInfo info = _helper.FindVariable(id.Name);
+          switch (info.Type) {
+            case RegisterType.Global:
+              _helper.Emit(Opcode.SETGLOB, registerId, info.Id, range);
+              _helper.EmitAssignNotification(info.Name, VariableType.Global, registerId, range);
+              break;
+            case RegisterType.Local:
+              _helper.Emit(Opcode.MOVE, info.Id, registerId, 0, range);
+              _helper.EmitAssignNotification(info.Name, VariableType.Local, registerId, range);
+              break;
+            case RegisterType.Upvalue:
+              // TODO: handle upvalues.
+              break;
+          }
           break;
         case SubscriptExpression subscript:
           uint containerId = VisitExpressionForRegisterId(subscript.Container);
           uint keyId = VisitExpressionForRKId(subscript.Key);
-          _helper.Emit(Opcode.SETELEM, containerId, keyId, valueId, range);
-          _helper.EmitSubscriptAssignNotification(subscript, keyId, valueId, range);
-          break;
-      }
-    }
-
-    private void Assign(IdentifierExpression id, uint valueId, TextRange range) {
-      RegisterInfo info = _helper.FindVariable(id.Name);
-      switch (info.Type) {
-        case RegisterType.Global:
-          uint tempRegister = valueId;
-          if (Chunk.IsConstId(valueId)) {
-            tempRegister = _helper.DefineTempVariable();
-            _helper.Emit(Opcode.LOADK, tempRegister, valueId, range);
-          }
-          _helper.Emit(Opcode.SETGLOB, tempRegister, info.Id, range);
-          _helper.EmitAssignNotification(info.Name, VariableType.Global, tempRegister, range);
-          break;
-        case RegisterType.Local:
-          if (Chunk.IsConstId(valueId)) {
-            _helper.Emit(Opcode.LOADK, info.Id, valueId, range);
-          } else {
-            _helper.Emit(Opcode.MOVE, info.Id, valueId, 0, range);
-          }
-          _helper.EmitAssignNotification(info.Name, VariableType.Local, valueId, range);
-          break;
-        case RegisterType.Upvalue:
-          // TODO: handle upvalues.
+          _helper.Emit(Opcode.SETELEM, containerId, keyId, registerId, range);
+          _helper.EmitSubscriptAssignNotification(subscript, keyId, registerId, range);
           break;
       }
     }

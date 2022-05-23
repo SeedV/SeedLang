@@ -59,10 +59,10 @@ namespace SeedLang.Interpreter {
         }
       }
       _helper.BeginExprScope();
-      if (assignment.Exprs.Length == 1) {
-        Unpack(assignment.Targets, assignment.Exprs[0], assignment.Range);
+      if (assignment.Values.Length == 1) {
+        Unpack(assignment.Targets, assignment.Values[0], assignment.Range);
       } else {
-        Pack(assignment.Targets, assignment.Exprs, assignment.Range);
+        Pack(assignment.Targets, assignment.Values, assignment.Range);
       }
       _helper.EndExprScope();
     }
@@ -261,12 +261,12 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void Pack(Expression[][] chainedTargets, Expression[] exprs, TextRange range) {
-      uint tupleId = VisitExpressionForRegisterId(Expression.Tuple(exprs, range));
+    private void Pack(Expression[][] chainedTargets, Expression[] values, TextRange range) {
+      uint tupleId = VisitExpressionForRegisterId(Expression.Tuple(values, range));
       foreach (Expression[] targets in chainedTargets) {
         if (targets.Length == 1) {
           Assign(targets[0], null, tupleId, range);
-        } else if (targets.Length == exprs.Length) {
+        } else if (targets.Length == values.Length) {
           UnpackTuple(targets, tupleId, range);
         } else {
           throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
@@ -275,11 +275,11 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void Unpack(Expression[][] chainedTargets, Expression expr, TextRange range) {
+    private void Unpack(Expression[][] chainedTargets, Expression value, TextRange range) {
       if (chainedTargets.Length == 1 && chainedTargets[0].Length == 1) {
-        Assign(chainedTargets[0][0], expr, 0, range);
+        Assign(chainedTargets[0][0], value, 0, range);
       } else {
-        uint registerId = VisitExpressionForRegisterId(expr);
+        uint registerId = VisitExpressionForRegisterId(value);
         foreach (Expression[] targets in chainedTargets) {
           if (targets.Length == 1) {
             Assign(targets[0], null, registerId, range);
@@ -314,22 +314,22 @@ namespace SeedLang.Interpreter {
     // Assigns the value of an expression or a register (when the expression is null) to the target.
     // The implementation can be optimized to reduce a MOVE instruction if the expression is
     // provided.
-    private void Assign(Expression target, Expression expr, uint registerId, TextRange range) {
+    private void Assign(Expression target, Expression value, uint registerId, TextRange range) {
       switch (target) {
         case IdentifierExpression id:
           RegisterInfo info = _helper.FindVariable(id.Name);
           switch (info.Type) {
             case RegisterType.Global:
-              if (!(expr is null)) {
-                registerId = VisitExpressionForRegisterId(expr);
+              if (!(value is null)) {
+                registerId = VisitExpressionForRegisterId(value);
               }
               _helper.Emit(Opcode.SETGLOB, registerId, info.Id, range);
               _helper.EmitAssignNotification(info.Name, VariableType.Global, registerId, range);
               break;
             case RegisterType.Local:
-              if (!(expr is null)) {
+              if (!(value is null)) {
                 _exprCompiler.RegisterForSubExpr = info.Id;
-                _exprCompiler.Visit(expr);
+                _exprCompiler.Visit(value);
                 registerId = info.Id;
               } else {
                 _helper.Emit(Opcode.MOVE, info.Id, registerId, 0, range);
@@ -342,8 +342,8 @@ namespace SeedLang.Interpreter {
           }
           break;
         case SubscriptExpression subscript:
-          if (!(expr is null)) {
-            registerId = VisitExpressionForRKId(expr);
+          if (!(value is null)) {
+            registerId = VisitExpressionForRKId(value);
           }
           uint containerId = VisitExpressionForRegisterId(subscript.Container);
           uint keyId = VisitExpressionForRKId(subscript.Key);

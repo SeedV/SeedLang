@@ -248,7 +248,7 @@ namespace SeedLang.Ast {
           }
           _builder.Append(" =");
         }
-        foreach (Expression expr in assignment.Exprs) {
+        foreach (Expression expr in assignment.Values) {
           _exprDumper.Visit(expr);
         }
       }

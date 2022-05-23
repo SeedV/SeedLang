@@ -88,17 +88,20 @@ namespace SeedLang.Ast {
   }
 
   internal class AssignmentStatement : Statement {
-    // The targets of assignment statements. The class of each target could be IdentifierExpression
-    // or SubscriptExpression.
+    // The targets of assignment statements.
+    //
+    // It's a 2-dimension array. The first dimension is for chained assignments and the second one
+    // is for multiple targets assignment. e.g. "a, b = x, y = 1, 2". The class of each target could
+    // be IdentifierExpression or SubscriptExpression.
     public Expression[][] Targets { get; }
-    // The right values of assignment statements. The lengths of targets and exprs are not necessary
-    // to be the same.
-    public Expression[] Exprs { get; }
 
-    internal AssignmentStatement(Expression[][] targets, Expression[] exprs, TextRange range) :
+    // The right values of assignment statements.
+    public Expression[] Values { get; }
+
+    internal AssignmentStatement(Expression[][] targets, Expression[] values, TextRange range) :
         base(range) {
       Targets = targets;
-      Exprs = exprs;
+      Values = values;
     }
   }
 

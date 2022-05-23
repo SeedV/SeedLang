@@ -266,6 +266,18 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestChainedAssignment() {
+      string source = @"
+a = a[1] = [1, 2, 3]
+x, y = z = 1, 2
+print(a, x, y, z)
+";
+      (string output, VisualizerHelper _) = Run(Parse(source), Array.Empty<Type>());
+      var expectedOutput = $"[1, [...], 3] 1 2 (1, 2)" + Environment.NewLine;
+      Assert.Equal(expectedOutput, output);
+    }
+
+    [Fact]
     public void TestSingleStepNotification() {
       string source = @"
 # [[ Assign(a) ]]

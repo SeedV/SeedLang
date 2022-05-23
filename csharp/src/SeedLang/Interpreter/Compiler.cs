@@ -265,7 +265,7 @@ namespace SeedLang.Interpreter {
       uint tupleId = VisitExpressionForRegisterId(Expression.Tuple(exprs, range));
       foreach (Expression[] targets in chainedTargets) {
         if (targets.Length == 1) {
-          Assign(targets[0], tupleId, range);
+          Assign(targets[0], null, tupleId, range);
         } else if (targets.Length == exprs.Length) {
           UnpackTuple(targets, tupleId, range);
         } else {
@@ -277,12 +277,12 @@ namespace SeedLang.Interpreter {
 
     private void Unpack(Expression[][] chainedTargets, Expression expr, TextRange range) {
       if (chainedTargets.Length == 1 && chainedTargets[0].Length == 1) {
-        SimpleAssign(chainedTargets[0][0], expr, range);
+        Assign(chainedTargets[0][0], expr, 0, range);
       } else {
         uint registerId = VisitExpressionForRegisterId(expr);
         foreach (Expression[] targets in chainedTargets) {
           if (targets.Length == 1) {
-            Assign(targets[0], registerId, range);
+            Assign(targets[0], null, registerId, range);
           } else {
             UnpackTuple(targets, registerId, range);
           }
@@ -290,39 +290,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    // Assigns one value to one target.
-    private void SimpleAssign(Expression target, Expression expr, TextRange range) {
-      switch (target) {
-        case IdentifierExpression id:
-          RegisterInfo info = _helper.FindVariable(id.Name);
-          switch (info.Type) {
-            case RegisterType.Global:
-              uint valueId = VisitExpressionForRegisterId(expr);
-              _helper.Emit(Opcode.SETGLOB, valueId, info.Id, range);
-              _helper.EmitAssignNotification(info.Name, VariableType.Global, valueId, range);
-              break;
-            case RegisterType.Local:
-              _exprCompiler.RegisterForSubExpr = info.Id;
-              _exprCompiler.Visit(expr);
-              _helper.EmitAssignNotification(info.Name, VariableType.Local, info.Id, range);
-              break;
-            case RegisterType.Upvalue:
-              // TODO: handle upvalues.
-              break;
-          }
-          break;
-        case SubscriptExpression subscript: {
-            uint valueId = VisitExpressionForRKId(expr);
-            uint containerId = VisitExpressionForRegisterId(subscript.Container);
-            uint keyId = VisitExpressionForRKId(subscript.Key);
-            _helper.Emit(Opcode.SETELEM, containerId, keyId, valueId, range);
-            _helper.EmitSubscriptAssignNotification(subscript, keyId, valueId, range);
-            break;
-          }
-      }
-    }
-
-    // Unpacks a tuple to multiple targets.
+    // Unpacks a tuple and assigns to multiple targets.
     //
     // If the length of targets is less than the one of the unpacked value, SeedPython will unpack
     // part of the value. And if the length of the targets is greater than the one of the unpacked
@@ -331,7 +299,6 @@ namespace SeedLang.Interpreter {
     // count exception for both situations.
     // TODO: Add a build-in function to check the length of the unpacked values.
     private void UnpackTuple(Expression[] targets, uint tupleId, TextRange range) {
-      _helper.BeginExprScope();
       uint elemId = _helper.DefineTempVariable();
       for (int i = 0; i < targets.Length; i++) {
         _helper.BeginExprScope();
@@ -339,23 +306,34 @@ namespace SeedLang.Interpreter {
         uint indexId = _helper.DefineTempVariable();
         _helper.Emit(Opcode.LOADK, indexId, constId, range);
         _helper.Emit(Opcode.GETELEM, elemId, tupleId, indexId, range);
-        Assign(targets[i], elemId, range);
+        Assign(targets[i], null, elemId, range);
         _helper.EndExprScope();
       }
-      _helper.EndExprScope();
     }
 
-    private void Assign(Expression target, uint registerId, TextRange range) {
+    // Assigns the value of an expression or a register (when the expression is null) to the target.
+    // The implementation can be optimized to reduce a MOVE instruction if the expression is
+    // provided.
+    private void Assign(Expression target, Expression expr, uint registerId, TextRange range) {
       switch (target) {
         case IdentifierExpression id:
           RegisterInfo info = _helper.FindVariable(id.Name);
           switch (info.Type) {
             case RegisterType.Global:
+              if (!(expr is null)) {
+                registerId = VisitExpressionForRegisterId(expr);
+              }
               _helper.Emit(Opcode.SETGLOB, registerId, info.Id, range);
               _helper.EmitAssignNotification(info.Name, VariableType.Global, registerId, range);
               break;
             case RegisterType.Local:
-              _helper.Emit(Opcode.MOVE, info.Id, registerId, 0, range);
+              if (!(expr is null)) {
+                _exprCompiler.RegisterForSubExpr = info.Id;
+                _exprCompiler.Visit(expr);
+                registerId = info.Id;
+              } else {
+                _helper.Emit(Opcode.MOVE, info.Id, registerId, 0, range);
+              }
               _helper.EmitAssignNotification(info.Name, VariableType.Local, registerId, range);
               break;
             case RegisterType.Upvalue:
@@ -364,6 +342,9 @@ namespace SeedLang.Interpreter {
           }
           break;
         case SubscriptExpression subscript:
+          if (!(expr is null)) {
+            registerId = VisitExpressionForRKId(expr);
+          }
           uint containerId = VisitExpressionForRegisterId(subscript.Container);
           uint keyId = VisitExpressionForRKId(subscript.Key);
           _helper.Emit(Opcode.SETELEM, containerId, keyId, registerId, range);

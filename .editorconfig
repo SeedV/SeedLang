@@ -210,19 +210,11 @@ csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
-# Disable IDE0056, to be compatible with C# 7.3 (netstandard2.0)
-csharp_style_prefer_index_operator = false
-
-# Disable IDE0057, to be compatible with C# 7.3 (netstandard2.0)
-csharp_style_prefer_range_operator = false
-
-# Disable IDE0066, to be compatible with C# 7.3 (netstandard2.0)
-csharp_style_prefer_switch_expression = false
-
-# Disable IDE0083, to be compatible with C# 7.3 (netstandard2.0)
+# Disable IDE0083, to be compatible with C#8 (netstandard2.1)
 csharp_style_prefer_not_pattern = false
 
-# Disable IDE0090, to be compatible with C# 7.3 (netstandard2.0)
+
+# Disable IDE0090, to be compatible with C#8 (netstandard2.1)
 csharp_style_implicit_object_creation_when_type_is_apparent = false
 
 # Currently only enabled for C# due to crash in VB analyzer.  VB can be enabled once

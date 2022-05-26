@@ -64,15 +64,15 @@ namespace SeedLang.Interpreter {
       _variableResolver.EndExprScope();
     }
 
-    internal RegisterInfo DefineVariable(string name, TextRange range) {
-      RegisterInfo info = _variableResolver.DefineVariable(name);
-      VariableType type = info.Type == RegisterType.Global ? VariableType.Global :
-                                                             VariableType.Local;
+    internal VariableInfo DefineVariable(string name, TextRange range) {
+      VariableInfo info = _variableResolver.DefineVariable(name);
+      VariableType type = info.Type == VariableInfo.VarType.Global ? VariableType.Global :
+                                                                     VariableType.Local;
       EmitVariableDefinedNotification(info.Name, type, range);
       return info;
     }
 
-    internal RegisterInfo FindVariable(string name) {
+    internal VariableInfo FindVariable(string name) {
       return _variableResolver.FindVariable(name);
     }
 
@@ -91,8 +91,8 @@ namespace SeedLang.Interpreter {
 
     internal uint? GetRegisterId(Expression expr) {
       if (expr is IdentifierExpression identifier &&
-          _variableResolver.FindVariable(identifier.Name) is RegisterInfo info &&
-          info.Type == RegisterType.Local) {
+          _variableResolver.FindVariable(identifier.Name) is VariableInfo info &&
+          info.Type == VariableInfo.VarType.Local) {
         return info.Id;
       }
       return null;
@@ -178,15 +178,15 @@ namespace SeedLang.Interpreter {
           !_suspendNotificationEmitting) {
         VariableType type = VariableType.Global;
         if (subscript.Container is IdentifierExpression identifier) {
-          if (_variableResolver.FindVariable(identifier.Name) is RegisterInfo info) {
+          if (_variableResolver.FindVariable(identifier.Name) is VariableInfo info) {
             switch (info.Type) {
-              case RegisterType.Global:
+              case VariableInfo.VarType.Global:
                 type = VariableType.Global;
                 break;
-              case RegisterType.Local:
+              case VariableInfo.VarType.Local:
                 type = VariableType.Local;
                 break;
-              case RegisterType.Upvalue:
+              case VariableInfo.VarType.Upvalue:
                 // TODO: handle upvalues.
                 break;
             }
@@ -215,15 +215,6 @@ namespace SeedLang.Interpreter {
         Chunk.Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }
     }
-
-    // internal void EmitVariableDeletedNotification(string name, VariableType type, TextRange range) {
-    //   if (_visualizerCenter.HasVisualizer<Event.VariableDeleted>() &&
-    //       !_suspendNotificationEmitting) {
-    //     var n = new Notification.VariableDeleted(name, type);
-    //     // Doesn't emit single step notifications for the VISNOTIFY instruction.
-    //     Chunk.Emit(Opcode.VISNOTIFY, 0, Chunk.AddNotification(n), range);
-    //   }
-    // }
 
     internal void EmitVTagEnteredNotification(VTagStatement vTag, ExprCompiler exprCompiler) {
       if (_visualizerCenter.HasVisualizer<Event.VTagEntered>() && !_suspendNotificationEmitting) {

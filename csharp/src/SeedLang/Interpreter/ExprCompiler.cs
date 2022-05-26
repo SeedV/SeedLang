@@ -89,18 +89,18 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       // TODO: should call.Func always be IdentifierExpression?
       if (call.Func is IdentifierExpression identifier) {
-        if (_helper.FindVariable(identifier.Name) is RegisterInfo info) {
+        if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
           uint resultRegister = RegisterForSubExpr;
           bool needRegister = resultRegister != _helper.LastRegister;
           uint funcRegister = needRegister ? _helper.DefineTempVariable() : resultRegister;
           switch (info.Type) {
-            case RegisterType.Global:
+            case VariableInfo.VarType.Global:
               _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
               break;
-            case RegisterType.Local:
+            case VariableInfo.VarType.Local:
               _helper.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
               break;
-            case RegisterType.Upvalue:
+            case VariableInfo.VarType.Upvalue:
               // TODO: handle upvalues.
               break;
           }
@@ -153,15 +153,15 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitIdentifier(IdentifierExpression identifier) {
-      if (_helper.FindVariable(identifier.Name) is RegisterInfo info) {
+      if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
         switch (info.Type) {
-          case RegisterType.Global:
+          case VariableInfo.VarType.Global:
             _helper.Emit(Opcode.GETGLOB, RegisterForSubExpr, info.Id, identifier.Range);
             break;
-          case RegisterType.Local:
+          case VariableInfo.VarType.Local:
             _helper.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
             break;
-          case RegisterType.Upvalue:
+          case VariableInfo.VarType.Upvalue:
             // TODO: handle upvalues.
             break;
         }
@@ -309,22 +309,19 @@ namespace SeedLang.Interpreter {
 
     private uint? GetRegisterId(Expression expr) {
       if (expr is IdentifierExpression identifier &&
-          _helper.FindVariable(identifier.Name) is RegisterInfo info &&
-          info.Type == RegisterType.Local) {
+          _helper.FindVariable(identifier.Name) is VariableInfo info &&
+          info.Type == VariableInfo.VarType.Local) {
         return info.Id;
       }
       return null;
     }
 
     private uint? GetConstantId(Expression expr) {
-      switch (expr) {
-        case NumberConstantExpression number:
-          return _helper.Cache.IdOfConstant(number.Value);
-        case StringConstantExpression str:
-          return _helper.Cache.IdOfConstant(str.Value);
-        default:
-          return null;
-      }
+      return expr switch {
+        NumberConstantExpression number => _helper.Cache.IdOfConstant(number.Value),
+        StringConstantExpression str => _helper.Cache.IdOfConstant(str.Value),
+        _ => null,
+      };
     }
   }
 }

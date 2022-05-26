@@ -117,11 +117,11 @@ namespace SeedLang.Common {
       if (name.Length <= 0) {
         return ("", 0);
       }
-      var lastChar = name[name.Length - 1];
+      var lastChar = name[^1];
       if (!char.IsDigit(lastChar)) {
         return (name, 0);
       } else {
-        return (name.Substring(0, name.Length - 1), (int)char.GetNumericValue(lastChar));
+        return (name[..^1], (int)char.GetNumericValue(lastChar));
       }
     }
   }

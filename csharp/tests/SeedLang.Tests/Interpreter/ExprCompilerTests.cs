@@ -26,8 +26,6 @@ namespace SeedLang.Interpreter.Tests {
   public class ExprCompilerTests {
     private static int _printValFunc => NativeFunctionIdOf(NativeFunctions.PrintVal);
     private static int _sliceFunc => NativeFunctionIdOf(NativeFunctions.Slice);
-
-    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
     private readonly TextRange _range = AstHelper.TextRange;
 
     [Fact]

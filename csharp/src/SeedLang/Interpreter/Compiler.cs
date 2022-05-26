@@ -101,7 +101,7 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitForIn(ForInStatement forIn) {
       _nestedLoopStack.PushFrame();
-      RegisterInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name, forIn.Id.Range);
+      VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name, forIn.Id.Range);
 
       if (!(_helper.GetRegisterId(forIn.Expr) is uint sequence)) {
         sequence = _helper.DefineTempVariable();
@@ -117,7 +117,7 @@ namespace SeedLang.Interpreter {
       _helper.Emit(Opcode.FORPREP, index, 0, forIn.Range);
       int bodyStart = _helper.Chunk.Bytecode.Count;
       switch (loopVar.Type) {
-        case RegisterType.Global:
+        case VariableInfo.VarType.Global:
           _helper.BeginExprScope();
           uint targetId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
@@ -126,12 +126,12 @@ namespace SeedLang.Interpreter {
                                          forIn.Id.Range);
           _helper.EndExprScope();
           break;
-        case RegisterType.Local:
+        case VariableInfo.VarType.Local:
           _helper.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
           _helper.EmitAssignNotification(loopVar.Name, VariableType.Local, loopVar.Id,
                                          forIn.Id.Range);
           break;
-        case RegisterType.Upvalue:
+        case VariableInfo.VarType.Upvalue:
           // TODO: handle upvalues.
           break;
       }
@@ -148,7 +148,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitFuncDef(FuncDefStatement funcDef) {
-      RegisterInfo info = DefineVariableIfNeeded(funcDef.Name, funcDef.Range);
+      VariableInfo info = DefineVariableIfNeeded(funcDef.Name, funcDef.Range);
       PushFunc(funcDef.Name);
       foreach (IdentifierExpression parameter in funcDef.Parameters) {
         _helper.DefineVariable(parameter.Name, parameter.Range);
@@ -159,17 +159,17 @@ namespace SeedLang.Interpreter {
       Function func = PopFunc();
       uint funcId = _helper.Cache.IdOfConstant(func);
       switch (info.Type) {
-        case RegisterType.Global:
+        case VariableInfo.VarType.Global:
           _helper.BeginExprScope();
           uint registerId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
           _helper.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
           _helper.EndExprScope();
           break;
-        case RegisterType.Local:
+        case VariableInfo.VarType.Local:
           _helper.Emit(Opcode.LOADK, info.Id, funcId, funcDef.Range);
           break;
-        case RegisterType.Upvalue:
+        case VariableInfo.VarType.Upvalue:
           // TODO: handle upvalues.
           break;
       }
@@ -317,16 +317,16 @@ namespace SeedLang.Interpreter {
     private void Assign(Expression target, Expression value, uint registerId, TextRange range) {
       switch (target) {
         case IdentifierExpression id:
-          RegisterInfo info = _helper.FindVariable(id.Name);
+          VariableInfo info = _helper.FindVariable(id.Name);
           switch (info.Type) {
-            case RegisterType.Global:
+            case VariableInfo.VarType.Global:
               if (!(value is null)) {
                 registerId = VisitExpressionForRegisterId(value);
               }
               _helper.Emit(Opcode.SETGLOB, registerId, info.Id, range);
               _helper.EmitAssignNotification(info.Name, VariableType.Global, registerId, range);
               break;
-            case RegisterType.Local:
+            case VariableInfo.VarType.Local:
               if (!(value is null)) {
                 _exprCompiler.RegisterForSubExpr = info.Id;
                 _exprCompiler.Visit(value);
@@ -336,7 +336,7 @@ namespace SeedLang.Interpreter {
               }
               _helper.EmitAssignNotification(info.Name, VariableType.Local, registerId, range);
               break;
-            case RegisterType.Upvalue:
+            case VariableInfo.VarType.Upvalue:
               // TODO: handle upvalues.
               break;
           }
@@ -353,8 +353,8 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private RegisterInfo DefineVariableIfNeeded(string name, TextRange range) {
-      if (_helper.FindVariable(name) is RegisterInfo info) {
+    private VariableInfo DefineVariableIfNeeded(string name, TextRange range) {
+      if (_helper.FindVariable(name) is VariableInfo info) {
         return info;
       }
       return _helper.DefineVariable(name, range);

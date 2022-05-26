@@ -144,13 +144,13 @@ namespace SeedLang.X {
       return Expression.Identifier(token.Text, range);
     }
 
-    // Builds boolean costant expressions.
+    // Builds boolean constant expressions.
     internal BooleanConstantExpression BuildBooleanConstant(IToken token, bool value) {
       TextRange range = HandleConstantOrVariableExpression(token, TokenType.Boolean);
       return Expression.BooleanConstant(value, range);
     }
 
-    // Builds nil costant expressions.
+    // Builds nil constant expressions.
     internal NilConstantExpression BuildNilConstant(IToken token) {
       TextRange range = HandleConstantOrVariableExpression(token, TokenType.Nil);
       return Expression.NilConstant(range);
@@ -180,11 +180,10 @@ namespace SeedLang.X {
         AddSemanticToken(TokenType.String, CodeReferenceUtils.RangeOfToken(strNode.Symbol));
         string str = strNode.Symbol.Text;
         Debug.Assert(str.Length >= 2 && (str[0] == '"' || str[0] == '\'') &&
-                     (str[str.Length - 1] == '"' || str[str.Length - 1] == '\''));
+                     (str[^1] == '"' || str[^1] == '\''));
         sb.Append(str, 1, str.Length - 2);
       }
-      TextRange range = CodeReferenceUtils.RangeOfTokens(strNodes[0].Symbol,
-                                                         strNodes[strNodes.Length - 1].Symbol);
+      TextRange range = CodeReferenceUtils.RangeOfTokens(strNodes[0].Symbol, strNodes[^1].Symbol);
       range = _groupingRange is null ? range : _groupingRange;
       _groupingRange = null;
       return Expression.StringConstant(sb.ToString(), range);
@@ -367,8 +366,7 @@ namespace SeedLang.X {
       var exprs = BuildExpressions(exprContexts, exprCommaNodes, visitor);
       if (!(targets is null) && !(exprs is null)) {
         Debug.Assert(targets.Length > 0 && targets[0].Length > 0 && exprs.Length > 0);
-        TextRange range = CodeReferenceUtils.CombineRanges(targets[0][0].Range,
-                                                           exprs[exprs.Length - 1].Range);
+        TextRange range = CodeReferenceUtils.CombineRanges(targets[0][0].Range, exprs[^1].Range);
         return Statement.Assignment(targets, exprs, range);
       }
       return null;
@@ -398,8 +396,7 @@ namespace SeedLang.X {
       if (statementContexts.Length == 0) {
         TextRange range = null;
         if (newLineNodes.Length > 0) {
-          range = CodeReferenceUtils.RangeOfTokens(newLineNodes[0].Symbol,
-                                                   newLineNodes[newLineNodes.Length - 1].Symbol);
+          range = CodeReferenceUtils.RangeOfTokens(newLineNodes[0].Symbol, newLineNodes[^1].Symbol);
         }
         return Statement.Block(Array.Empty<Statement>(), range);
       } else if (statementContexts.Length == 1) {
@@ -418,8 +415,7 @@ namespace SeedLang.X {
       }
       Expression[] exprs = BuildExpressions(exprContexts, commaNodes, visitor);
       Debug.Assert(exprs.Length > 1);
-      TextRange range = CodeReferenceUtils.CombineRanges(exprs[0].Range,
-                                                         exprs[exprs.Length - 1].Range);
+      TextRange range = CodeReferenceUtils.CombineRanges(exprs[0].Range, exprs[^1].Range);
       return Statement.Expression(Expression.Tuple(exprs, range), range);
     }
 
@@ -511,7 +507,7 @@ namespace SeedLang.X {
       Expression[] exprs = BuildExpressions(exprContexts, commaNodes, visitor);
       TextRange range = returnRange;
       if (exprs.Length > 0) {
-        range = CodeReferenceUtils.CombineRanges(returnRange, exprs[exprs.Length - 1].Range);
+        range = CodeReferenceUtils.CombineRanges(returnRange, exprs[^1].Range);
       }
       return Statement.Return(exprs, range);
     }
@@ -606,7 +602,7 @@ namespace SeedLang.X {
         return visitor.Visit(context) as Statement;
       });
       if (statements.Length > 0) {
-        range = CodeReferenceUtils.CombineRanges(range, statements[statements.Length - 1].Range);
+        range = CodeReferenceUtils.CombineRanges(range, statements[^1].Range);
       }
       return Statement.VTag(vTags, statements, range);
     }
@@ -616,9 +612,7 @@ namespace SeedLang.X {
       if (statements.Length == 1) {
         return statements[0];
       }
-      Statement first = statements[0];
-      Statement last = statements[statements.Length - 1];
-      TextRange range = CodeReferenceUtils.CombineRanges(first.Range, last.Range);
+      TextRange range = CodeReferenceUtils.CombineRanges(statements[0].Range, statements[^1].Range);
       return new BlockStatement(statements, range);
     }
 

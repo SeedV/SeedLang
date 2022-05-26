@@ -39,8 +39,8 @@ namespace SeedLang.Shell {
         Console.Write($"{lineId,-5} ");
         string line = _lines[lineId - 1];
         if (Intersect(lineId, range) is (int start, int end)) {
-          Console.Write(line.Substring(0, start));
-          if (line.Substring(start) != Environment.NewLine) {
+          Console.Write(line[..start]);
+          if (line[start..] != Environment.NewLine) {
             Console.BackgroundColor = ConsoleColor.DarkCyan;
             Console.ForegroundColor = ConsoleColor.Black;
           }

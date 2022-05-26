@@ -21,36 +21,25 @@ namespace SeedLang.Ast {
   internal static class OperatorExtensions {
     // Returns the internal string representation of binary operators.
     internal static string Symbol(this BinaryOperator op) {
-      switch (op) {
-        case BinaryOperator.Add:
-          return "+";
-        case BinaryOperator.Subtract:
-          return "-";
-        case BinaryOperator.Multiply:
-          return "*";
-        case BinaryOperator.Divide:
-          return "/";
-        case BinaryOperator.FloorDivide:
-          return "//";
-        case BinaryOperator.Power:
-          return "**";
-        case BinaryOperator.Modulo:
-          return "%";
-        default:
-          throw new NotImplementedException($"Unsupported binary operator: {op}.");
-      }
+      return op switch {
+        BinaryOperator.Add => "+",
+        BinaryOperator.Subtract => "-",
+        BinaryOperator.Multiply => "*",
+        BinaryOperator.Divide => "/",
+        BinaryOperator.FloorDivide => "//",
+        BinaryOperator.Power => "**",
+        BinaryOperator.Modulo => "%",
+        _ => throw new NotImplementedException($"Unsupported binary operator: {op}."),
+      };
     }
 
     // Returns the internal string representation of boolean operators.
     internal static string Symbol(this BooleanOperator op) {
-      switch (op) {
-        case BooleanOperator.And:
-          return "and";
-        case BooleanOperator.Or:
-          return "or";
-        default:
-          throw new NotImplementedException($"Unsupported boolean operator: {op}.");
-      }
+      return op switch {
+        BooleanOperator.And => "and",
+        BooleanOperator.Or => "or",
+        _ => throw new NotImplementedException($"Unsupported boolean operator: {op}."),
+      };
     }
 
     // Returns the internal string representation of comparison operators.

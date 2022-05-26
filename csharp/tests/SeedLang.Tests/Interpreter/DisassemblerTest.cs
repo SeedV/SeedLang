@@ -23,7 +23,7 @@ namespace SeedLang.Interpreter.Tests {
     public void TestDisassember() {
       var func = new Function("main");
       var chunk = func.Chunk;
-      var cache = new ConstantCache();
+      var cache = new ChunkCache();
       chunk.Emit(Opcode.LOADK, 0, cache.IdOfConstant(1), _textRange);
       chunk.Emit(Opcode.GETGLOB, 1, cache.IdOfConstant("global_variable"), _textRange);
       chunk.Emit(Opcode.SETGLOB, 1, cache.IdOfConstant("name"), _textRange);
@@ -33,7 +33,8 @@ namespace SeedLang.Interpreter.Tests {
       chunk.Emit(Opcode.DIV, 0, cache.IdOfConstant(4), cache.IdOfConstant(5), _textRange);
       chunk.Emit(Opcode.UNM, 0, cache.IdOfConstant(6), 0, _textRange);
       chunk.Emit(Opcode.RETURN, 0, 0, 0, _textRange);
-      chunk.SetConstants(cache.ToArray());
+      chunk.SetConstants(cache.ConstantArray());
+      chunk.SetNotifications(cache.NotificationArray());
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_textRange}\n" +

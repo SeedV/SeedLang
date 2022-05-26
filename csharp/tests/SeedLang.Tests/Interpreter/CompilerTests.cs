@@ -87,7 +87,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileLocalAssignBinary() {
-      var program = AstHelper.FuncDef("func", Array.Empty<string>(), AstHelper.Assign(
+      var program = AstHelper.FuncDef("func", Array.Empty<IdentifierExpression>(), AstHelper.Assign(
         AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id("a"))),
         AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
@@ -518,7 +518,7 @@ namespace SeedLang.Interpreter.Tests {
       string a = "a";
       string b = "b";
       var program = AstHelper.Block(
-        AstHelper.FuncDef(add, AstHelper.Params(a, b),
+        AstHelper.FuncDef(add, AstHelper.Params(AstHelper.Id(a), AstHelper.Id(b)),
                           AstHelper.Return(AstHelper.Binary(AstHelper.Id(a), BinaryOperator.Add,
                                                             AstHelper.Id(b)))),
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(add), AstHelper.NumberConstant(1),
@@ -549,7 +549,7 @@ namespace SeedLang.Interpreter.Tests {
       string sum = "sum";
       var n = "n";
       var program = AstHelper.Block(
-        AstHelper.FuncDef(sum, AstHelper.Params(n), AstHelper.Block(
+        AstHelper.FuncDef(sum, AstHelper.Params(AstHelper.Id(n)), AstHelper.Block(
           AstHelper.If(
             AstHelper.Comparison(AstHelper.Id(n), AstHelper.CompOps(ComparisonOperator.EqEqual),
                                  AstHelper.NumberConstant(1)),
@@ -701,7 +701,7 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestCompileLocalScopeForIn() {
       string a = "a";
-      var program = AstHelper.FuncDef("func", Array.Empty<string>(), AstHelper.Block(
+      var program = AstHelper.FuncDef("func", Array.Empty<IdentifierExpression>(), AstHelper.Block(
         AstHelper.ForIn(
           AstHelper.Id(a),
           AstHelper.List(AstHelper.NumberConstant(1),

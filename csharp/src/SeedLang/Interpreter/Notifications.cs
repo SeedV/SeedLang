@@ -13,8 +13,8 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -36,7 +36,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal class Assignment : AbstractNotification {
+    internal sealed class Assignment : AbstractNotification, IEquatable<Assignment> {
       private readonly string _name;
       private readonly VariableType _type;
       // The constant or register id of the assigned value.
@@ -48,8 +48,26 @@ namespace SeedLang.Interpreter {
         _valueId = valueId;
       }
 
+      public bool Equals(Assignment other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _name == other._name && _type == other._type && _valueId == other._valueId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Assignment);
+      }
+
+      public override int GetHashCode() {
+        return new { _name, _type, _valueId, }.GetHashCode();
+      }
+
       public override string ToString() {
-        return $"Notification.Assignment: '{_name}': {_type} {_valueId}";
+        return $"Notification.{GetType().Name}: '{_name}': {_type} {_valueId}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
@@ -59,7 +77,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal class Binary : AbstractNotification {
+    internal sealed class Binary : AbstractNotification, IEquatable<Binary> {
       private readonly uint _leftId;
       private readonly BinaryOperator _op;
       private readonly uint _rightId;
@@ -72,8 +90,27 @@ namespace SeedLang.Interpreter {
         _resultId = resultId;
       }
 
+      public bool Equals(Binary other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _leftId == other._leftId && _op == other._op &&
+               _rightId == other._rightId && _resultId == other._resultId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Binary);
+      }
+
+      public override int GetHashCode() {
+        return new { _leftId, _op, _rightId, _resultId, }.GetHashCode();
+      }
+
       public override string ToString() {
-        return $"Notification.Binary: {_leftId} {_op} {_rightId} {_resultId}";
+        return $"Notification.{GetType().Name}: {_leftId} {_op} {_rightId} {_resultId}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
@@ -85,7 +122,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal class Function : AbstractNotification {
+    internal class Function : AbstractNotification, IEquatable<Function> {
       internal enum Status : uint {
         Called,
         Returned,
@@ -101,8 +138,26 @@ namespace SeedLang.Interpreter {
         _argLength = argLength;
       }
 
+      public bool Equals(Function other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _name == other._name && _funcId == other._funcId && _argLength == other._argLength;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Function);
+      }
+
+      public override int GetHashCode() {
+        return new { _name, _funcId, _argLength, }.GetHashCode();
+      }
+
       public override string ToString() {
-        return $"Notification.Function: {_name} {_funcId} {_argLength}";
+        return $"Notification.{GetType().Name}: {_name} {_funcId} {_argLength}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
@@ -125,9 +180,24 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal class SingleStep : AbstractNotification {
+    internal sealed class SingleStep : AbstractNotification, IEquatable<SingleStep> {
+      public bool Equals(SingleStep other) {
+        if (other is null) {
+          return false;
+        }
+        return true;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as SingleStep);
+      }
+
+      public override int GetHashCode() {
+        return GetType().GetHashCode();
+      }
+
       public override string ToString() {
-        return $"Notification.SingleStep";
+        return $"Notification.{GetType().Name}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
@@ -136,7 +206,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal class SubscriptAssignment : AbstractNotification {
+    internal sealed class SubscriptAssignment : AbstractNotification, IEquatable<SubscriptAssignment> {
       private readonly string _name;
       private readonly VariableType _type;
       private readonly uint _keyId;
@@ -149,8 +219,27 @@ namespace SeedLang.Interpreter {
         _valueId = valueId;
       }
 
+      public bool Equals(SubscriptAssignment other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _name == other._name && _type == other._type &&
+               _keyId == other._keyId && _valueId == other._valueId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as SubscriptAssignment);
+      }
+
+      public override int GetHashCode() {
+        return new { _name, _type, _keyId, _valueId, }.GetHashCode();
+      }
+
       public override string ToString() {
-        return $"Notification.SubscriptAssignment: '{_name}': {_type} {_keyId} {_valueId}";
+        return $"Notification.{GetType().Name}: '{_name}': {_type} {_keyId} {_valueId}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
@@ -161,7 +250,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal class Unary : AbstractNotification {
+    internal sealed class Unary : AbstractNotification, IEquatable<Unary> {
       private readonly UnaryOperator _op;
       private readonly uint _valueId;
       private readonly uint _resultId;
@@ -172,8 +261,26 @@ namespace SeedLang.Interpreter {
         _resultId = resultId;
       }
 
+      public bool Equals(Unary other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _op == other._op && _valueId == other._valueId && _resultId == other._resultId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Unary);
+      }
+
+      public override int GetHashCode() {
+        return new { _op, _valueId, _resultId, }.GetHashCode();
+      }
+
       public override string ToString() {
-        return $"Notification.Unary: {_op} {_valueId} {_resultId}";
+        return $"Notification.{GetType().Name}: {_op} {_valueId} {_resultId}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
@@ -184,7 +291,44 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    public class VTagInfo {
+    internal sealed class Variable : AbstractNotification, IEquatable<Variable> {
+      private readonly string _name;
+      private readonly VariableType _type;
+
+      internal Variable(string name, VariableType type) {
+        _name = name;
+        _type = type;
+      }
+
+      public bool Equals(Variable other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _name == other._name && _type == other._type;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Variable);
+      }
+
+      public override int GetHashCode() {
+        return new { _name, _type, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {_name} {_type}";
+      }
+
+      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
+                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+        Notify(new Event.VariableDefined(_name, _type, range), visualizerCenter, vm);
+      }
+    }
+
+    public sealed class VTagInfo : IEquatable<VTagInfo> {
       public string Name { get; }
       public string[] Args { get; }
       public uint?[] ValueIds { get; }
@@ -194,6 +338,34 @@ namespace SeedLang.Interpreter {
         Name = name;
         Args = args;
         ValueIds = valueIds;
+      }
+
+      public bool Equals(VTagInfo other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return Name == other.Name &&
+               Enumerable.SequenceEqual(Args, other.Args) &&
+               Enumerable.SequenceEqual(ValueIds, other.ValueIds);
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as VTagInfo);
+      }
+
+      public override int GetHashCode() {
+        var hashCode = new HashCode();
+        hashCode.Add(Name);
+        foreach (string arg in Args) {
+          hashCode.Add(arg);
+        }
+        foreach (uint? valueId in ValueIds) {
+          hashCode.Add(valueId);
+        }
+        return hashCode.ToHashCode();
       }
 
       public override string ToString() {
@@ -211,11 +383,38 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal abstract class VTag : AbstractNotification {
+    internal sealed class VTag : AbstractNotification, IEquatable<VTag> {
+      internal enum Status : uint {
+        Entered,
+        Exited,
+      }
+
       private readonly VTagInfo[] _vTagInfos;
 
       internal VTag(VTagInfo[] vTagInfos) {
         _vTagInfos = vTagInfos;
+      }
+
+      public bool Equals(VTag other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return Enumerable.SequenceEqual(_vTagInfos, other._vTagInfos);
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as VTag);
+      }
+
+      public override int GetHashCode() {
+        var hashCode = new HashCode();
+        foreach (VTagInfo info in _vTagInfos) {
+          hashCode.Add(info);
+        }
+        return hashCode.ToHashCode();
       }
 
       public override string ToString() {
@@ -224,33 +423,19 @@ namespace SeedLang.Interpreter {
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
                                     Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        var vTags = Array.ConvertAll(_vTagInfos, vTag => {
-          var values = Array.ConvertAll(vTag.ValueIds, valueId =>
+        var vTags = Array.ConvertAll(_vTagInfos, vTagInfo => {
+          var values = Array.ConvertAll(vTagInfo.ValueIds, valueId =>
               valueId.HasValue ? new Value(getRKValue(valueId.Value)) : new Value());
-          return new Visualization.VTagInfo(vTag.Name, vTag.Args, values);
+          return new Visualization.VTagInfo(vTagInfo.Name, vTagInfo.Args, values);
         });
-        Notify(visualizerCenter, vm, vTags, range);
-      }
-
-      protected abstract void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range);
-    }
-
-    internal class VTagEntered : VTag {
-      internal VTagEntered(VTagInfo[] vTagInfos) : base(vTagInfos) { }
-
-      protected override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range) {
-        visualizerCenter.Notify(new Event.VTagEntered(vTags, range), vm);
-      }
-    }
-
-    internal class VTagExited : VTag {
-      internal VTagExited(VTagInfo[] vTagInfos) : base(vTagInfos) { }
-
-      protected override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range) {
-        visualizerCenter.Notify(new Event.VTagExited(vTags, range), vm);
+        switch ((Status)data) {
+          case Status.Entered:
+            Notify(new Event.VTagEntered(vTags, range), visualizerCenter, vm);
+            break;
+          case Status.Exited:
+            Notify(new Event.VTagExited(vTags, range), visualizerCenter, vm);
+            break;
+        }
       }
     }
   }

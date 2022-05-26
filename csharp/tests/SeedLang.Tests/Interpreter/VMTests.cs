@@ -82,7 +82,7 @@ namespace SeedLang.Interpreter.Tests {
       string a = "a";
       string b = "b";
       var program = AstHelper.Block(
-        AstHelper.FuncDef(name, AstHelper.Params(a, b),
+        AstHelper.FuncDef(name, AstHelper.Params(AstHelper.Id(a), AstHelper.Id(b)),
           AstHelper.Return(AstHelper.Binary(AstHelper.Id(a),
                                             BinaryOperator.Add,
                                             AstHelper.Id(b))
@@ -125,7 +125,7 @@ namespace SeedLang.Interpreter.Tests {
                                                            AstHelper.NumberConstant(2)))
       ));
       var program = AstHelper.Block(
-        AstHelper.FuncDef(fib, new string[] { n }, AstHelper.Block(
+        AstHelper.FuncDef(fib, AstHelper.Params(AstHelper.Id(n)), AstHelper.Block(
           AstHelper.If(test, trueBlock, falseBlock)
         )),
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(fib), AstHelper.NumberConstant(10)))

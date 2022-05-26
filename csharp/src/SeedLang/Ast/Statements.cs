@@ -52,8 +52,8 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create function define statements.
-    internal static FuncDefStatement FuncDef(string name, string[] parameters, Statement body,
-                                             TextRange range) {
+    internal static FuncDefStatement FuncDef(string name, IdentifierExpression[] parameters,
+                                             Statement body, TextRange range) {
       return new FuncDefStatement(name, parameters, body, range);
     }
 
@@ -144,11 +144,11 @@ namespace SeedLang.Ast {
 
   internal class FuncDefStatement : Statement {
     public string Name { get; }
-    public string[] Parameters { get; }
+    public IdentifierExpression[] Parameters { get; }
     public Statement Body { get; }
 
-    internal FuncDefStatement(string name, string[] parameters, Statement body, TextRange range) :
-        base(range) {
+    internal FuncDefStatement(string name, IdentifierExpression[] parameters, Statement body,
+        TextRange range) : base(range) {
       Name = name;
       Parameters = parameters;
       Body = body;

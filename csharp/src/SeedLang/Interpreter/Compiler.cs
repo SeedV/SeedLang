@@ -54,7 +54,7 @@ namespace SeedLang.Interpreter {
       foreach (Expression[] targets in assignment.Targets) {
         foreach (Expression target in targets) {
           if (target is IdentifierExpression id) {
-            DefineVariableIfNeeded(id.Name);
+            DefineVariableIfNeeded(id.Name, id.Range);
           }
         }
       }
@@ -101,7 +101,7 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitForIn(ForInStatement forIn) {
       _nestedLoopStack.PushFrame();
-      RegisterInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name);
+      RegisterInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name, forIn.Id.Range);
 
       if (!(_helper.GetRegisterId(forIn.Expr) is uint sequence)) {
         sequence = _helper.DefineTempVariable();
@@ -109,11 +109,11 @@ namespace SeedLang.Interpreter {
         _exprCompiler.Visit(forIn.Expr);
       }
       uint index = _helper.DefineTempVariable();
-      _helper.Emit(Opcode.LOADK, index, _helper.ConstantCache.IdOfConstant(0), forIn.Range);
+      _helper.Emit(Opcode.LOADK, index, _helper.Cache.IdOfConstant(0), forIn.Range);
       uint limit = _helper.DefineTempVariable();
       _helper.Emit(Opcode.LEN, limit, sequence, 0, forIn.Range);
       uint step = _helper.DefineTempVariable();
-      _helper.Emit(Opcode.LOADK, step, _helper.ConstantCache.IdOfConstant(1), forIn.Range);
+      _helper.Emit(Opcode.LOADK, step, _helper.Cache.IdOfConstant(1), forIn.Range);
       _helper.Emit(Opcode.FORPREP, index, 0, forIn.Range);
       int bodyStart = _helper.Chunk.Bytecode.Count;
       switch (loopVar.Type) {
@@ -148,16 +148,16 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitFuncDef(FuncDefStatement funcDef) {
-      RegisterInfo info = DefineVariableIfNeeded(funcDef.Name);
+      RegisterInfo info = DefineVariableIfNeeded(funcDef.Name, funcDef.Range);
       PushFunc(funcDef.Name);
-      foreach (string parameterName in funcDef.Parameters) {
-        _helper.DefineVariable(parameterName);
+      foreach (IdentifierExpression parameter in funcDef.Parameters) {
+        _helper.DefineVariable(parameter.Name, parameter.Range);
       }
       Visit(funcDef.Body);
       _helper.Emit(Opcode.RETURN, 0, 0, 0, _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
 
       Function func = PopFunc();
-      uint funcId = _helper.ConstantCache.IdOfConstant(func);
+      uint funcId = _helper.Cache.IdOfConstant(func);
       switch (info.Type) {
         case RegisterType.Global:
           _helper.BeginExprScope();
@@ -302,7 +302,7 @@ namespace SeedLang.Interpreter {
       uint elemId = _helper.DefineTempVariable();
       for (int i = 0; i < targets.Length; i++) {
         _helper.BeginExprScope();
-        uint constId = _helper.ConstantCache.IdOfConstant(i);
+        uint constId = _helper.Cache.IdOfConstant(i);
         uint indexId = _helper.DefineTempVariable();
         _helper.Emit(Opcode.LOADK, indexId, constId, range);
         _helper.Emit(Opcode.GETELEM, elemId, tupleId, indexId, range);
@@ -353,11 +353,11 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private RegisterInfo DefineVariableIfNeeded(string name) {
+    private RegisterInfo DefineVariableIfNeeded(string name, TextRange range) {
       if (_helper.FindVariable(name) is RegisterInfo info) {
         return info;
       }
-      return _helper.DefineVariable(name);
+      return _helper.DefineVariable(name, range);
     }
 
     private void PushFunc(string name) {
@@ -375,7 +375,7 @@ namespace SeedLang.Interpreter {
 
     private void CacheTopFunction() {
       _helper.Chunk = _nestedFuncStack.CurrentChunk();
-      _helper.ConstantCache = _nestedFuncStack.CurrentConstantCache();
+      _helper.Cache = _nestedFuncStack.CurrentConstantCache();
     }
 
     private uint VisitExpressionForRegisterId(Expression expr) {

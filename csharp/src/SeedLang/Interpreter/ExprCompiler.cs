@@ -180,7 +180,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitNumberConstant(NumberConstantExpression numberConstant) {
-      uint id = _helper.ConstantCache.IdOfConstant(numberConstant.Value);
+      uint id = _helper.Cache.IdOfConstant(numberConstant.Value);
       _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, numberConstant.Range);
     }
 
@@ -194,7 +194,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitStringConstant(StringConstantExpression stringConstant) {
-      uint id = _helper.ConstantCache.IdOfConstant(stringConstant.Value);
+      uint id = _helper.Cache.IdOfConstant(stringConstant.Value);
       _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, stringConstant.Range);
     }
 
@@ -319,9 +319,9 @@ namespace SeedLang.Interpreter {
     private uint? GetConstantId(Expression expr) {
       switch (expr) {
         case NumberConstantExpression number:
-          return _helper.ConstantCache.IdOfConstant(number.Value);
+          return _helper.Cache.IdOfConstant(number.Value);
         case StringConstantExpression str:
-          return _helper.ConstantCache.IdOfConstant(str.Value);
+          return _helper.Cache.IdOfConstant(str.Value);
         default:
           return null;
       }

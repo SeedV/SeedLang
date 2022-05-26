@@ -19,14 +19,23 @@ using SeedLang.Runtime;
 namespace SeedLang.Interpreter {
   // A cache class to cache the constant id of constants. It only adds the unique constant into the
   // constant list of the chunk.
-  internal class ConstantCache {
+  internal class ChunkCache {
     // A list to collect constatnt values during compilation.
     private readonly List<VMValue> _constants = new List<VMValue>();
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
 
-    internal VMValue[] ToArray() {
+    private readonly List<Notification.AbstractNotification> _notifications =
+        new List<Notification.AbstractNotification>();
+    private readonly Dictionary<Notification.AbstractNotification, uint> _notificationMap =
+        new Dictionary<Notification.AbstractNotification, uint>();
+
+    internal VMValue[] ConstantArray() {
       return _constants.ToArray();
+    }
+
+    internal Notification.AbstractNotification[] NotificationArray() {
+      return _notifications.ToArray();
     }
 
     // Returns the id of a given number constant. The number is added into the constant list if it
@@ -52,6 +61,14 @@ namespace SeedLang.Interpreter {
     internal uint IdOfConstant(Function func) {
       _constants.Add(new VMValue(func));
       return IdOfLastConst();
+    }
+
+    internal uint IdOfNotification(Notification.AbstractNotification notification) {
+      if (!_notificationMap.ContainsKey(notification)) {
+        _notifications.Add(notification);
+        _notificationMap[notification] = (uint)_notifications.Count - 1;
+      }
+      return _notificationMap[notification];
     }
 
     private uint IdOfLastConst() {

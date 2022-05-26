@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Linq;
 using System.Text;
 using SeedLang.Runtime;
 
@@ -276,7 +277,7 @@ namespace SeedLang.Ast {
       protected override void VisitFuncDef(FuncDefStatement funcDef) {
         _builder.Append($" ({funcDef.Name}");
         if (funcDef.Parameters.Length > 0) {
-          _builder.Append($":{string.Join(",", funcDef.Parameters)}");
+          _builder.Append($":{string.Join(",", funcDef.Parameters.Select(param => param.Name))}");
         }
         _builder.Append(')');
         Visit(funcDef.Body);

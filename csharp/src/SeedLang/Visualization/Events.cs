@@ -192,6 +192,28 @@ namespace SeedLang.Visualization {
       }
     }
 
+    // An event which is triggered when a variable is defined.
+    public class VariableDefined : AbstractEvent {
+      public string Name { get; }
+      public VariableType Type { get; }
+
+      public VariableDefined(string name, VariableType type, TextRange range) : base(range) {
+        Name = name;
+        Type = type;
+      }
+    }
+
+    // An event which is triggered when a variable is deleted.
+    public class VariableDeleted : AbstractEvent {
+      public string Name { get; }
+      public VariableType Type { get; }
+
+      public VariableDeleted(string name, VariableType type, TextRange range) : base(range) {
+        Name = name;
+        Type = type;
+      }
+    }
+
     // An event which is triggered when a VTag scope is entered.
     public class VTagEntered : AbstractEvent {
       public IReadOnlyList<VTagInfo> VTags { get; }

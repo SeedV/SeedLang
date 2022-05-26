@@ -88,8 +88,11 @@ namespace SeedLang.Ast.Tests {
       }
 
       private void AddFuncDef() {
-        var funcDef = AstHelper.FuncDef("func", AstHelper.Params("arg1", "arg2"),
-                                        AstHelper.Block(Array.Empty<Statement>()));
+        var funcDef = AstHelper.FuncDef(
+          "func",
+          AstHelper.Params(AstHelper.Id("arg1"), AstHelper.Id("arg2")),
+          AstHelper.Block(Array.Empty<Statement>())
+        );
         var expectedOutput = (
             $"{AstHelper.TextRange} FuncDefStatement (func:arg1,arg2)\n" +
             $"  {AstHelper.TextRange} BlockStatement"

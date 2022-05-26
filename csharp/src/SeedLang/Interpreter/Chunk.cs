@@ -19,8 +19,6 @@ using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  using AbstractNotification = Notification.AbstractNotification;
-
   // A data structure to hold bytecode and constants generated from the AST tree by the compiler.
   internal class Chunk {
     // The maximum number of registers that can be allocated in the stack of a chunk.
@@ -29,15 +27,12 @@ namespace SeedLang.Interpreter {
     // The bytecode of this chunk.
     public IReadOnlyList<Instruction> Bytecode => _bytecode;
     public int LatestCodePos => _bytecode.Count - 1;
+    public IReadOnlyList<Notification.AbstractNotification> Notifications => _notifications;
 
     // Source code ranges of the instructions in bytecode.
     //
     // The length of Bytecode and Range lists shall be the same.
     public IReadOnlyList<TextRange> Ranges => _ranges;
-
-    // The notification information list that is used by VISNOTIFY opcode to create the correspoding
-    // notification events and sent to visualizers.
-    public IReadOnlyList<AbstractNotification> Notifications => _notifications;
 
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
@@ -49,13 +44,12 @@ namespace SeedLang.Interpreter {
 
     private readonly List<TextRange> _ranges = new List<TextRange>();
 
-    private readonly List<AbstractNotification> _notifications = new List<AbstractNotification>();
-
-    // The cached index of the shared single step notification.
-    private uint? _indexOfSingleStepNotification = null;
-
     // The constant list to hold all the constants used in this chunk.
     private VMValue[] _constants;
+    // The notification information list that is used by VISNOTIFY opcode to create the correspoding
+    // notification events and sent to visualizers.
+    private Notification.AbstractNotification[] _notifications;
+
 
     internal static bool IsConstId(uint id) {
       return id >= MaxRegisterCount;
@@ -112,6 +106,11 @@ namespace SeedLang.Interpreter {
       _constants = constants;
     }
 
+    // Sets the constant list. It must be called by the compiler after compilation.
+    internal void SetNotifications(Notification.AbstractNotification[] notifications) {
+      _notifications = notifications;
+    }
+
     internal bool IsConstIdValid(uint constId) {
       return IsConstId(constId) && constId - MaxRegisterCount < _constants.Length;
     }
@@ -119,21 +118,6 @@ namespace SeedLang.Interpreter {
     // Gets the constant value of the given constId. Returns a readonly reference to avoid copying.
     internal ref readonly VMValue ValueOfConstId(uint constId) {
       return ref _constants[IndexOfConstId(constId)];
-    }
-
-    // Adds an notification into the notification list.
-    internal uint AddNotification(AbstractNotification notification) {
-      _notifications.Add(notification);
-      return (uint)_notifications.Count - 1;
-    }
-
-    // Returns the cached index of the shared single step notification.
-    internal uint IdOfSingleStepNotification() {
-      if (_indexOfSingleStepNotification is null) {
-        _notifications.Add(new Notification.SingleStep());
-        _indexOfSingleStepNotification = (uint)_notifications.Count - 1;
-      }
-      return (uint)_indexOfSingleStepNotification;
     }
 
     // Converts the constant id to the index in the constant list.

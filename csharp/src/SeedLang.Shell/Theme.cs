@@ -23,7 +23,7 @@ namespace SeedLang.Shell {
       public ConsoleColor ForegroundColor;
     }
 
-    // The dictionary to map syntax token types to theme information. The default console forground
+    // The dictionary to map syntax token types to theme information. The default console foreground
     // color is used if any syntax type does not exist in this dictionary.
     public static IReadOnlyDictionary<TokenType, ThemeInfo> SyntaxToThemeInfoMap =
         new Dictionary<TokenType, ThemeInfo> {

@@ -48,7 +48,7 @@ namespace SeedLang.Runtime.Tests {
       var exception = Assert.Throws<DiagnosticException>(() => {
         ValueHelper.Contains(str, new VMValue());
       });
-      Assert.Equal(Message.RuntimeErrorUnsupportedOperads, exception.Diagnostic.MessageId);
+      Assert.Equal(Message.RuntimeErrorUnsupportedOperands, exception.Diagnostic.MessageId);
     }
 
     [Fact]

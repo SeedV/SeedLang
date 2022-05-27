@@ -16,7 +16,7 @@ using System;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime.HeapObjects {
-  using BuildinFunctionType = Func<VMValue[], int, int, Sys, VMValue>;
+  using BuildInFunctionType = Func<VMValue[], int, int, Sys, VMValue>;
 
   // An empty interface for all function value types. It's only used to identify function types.
   internal interface IFunction {
@@ -26,9 +26,9 @@ namespace SeedLang.Runtime.HeapObjects {
   internal class NativeFunction : IFunction {
     public readonly string Name;
 
-    private readonly BuildinFunctionType _func;
+    private readonly BuildInFunctionType _func;
 
-    internal NativeFunction(string name, BuildinFunctionType func) {
+    internal NativeFunction(string name, BuildInFunctionType func) {
       Name = name;
       _func = func;
     }

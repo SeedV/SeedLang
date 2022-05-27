@@ -61,7 +61,7 @@ namespace SeedLang.X {
       { SeedPythonParser.POWER, TokenType.Operator },
       { SeedPythonParser.MODULO, TokenType.Operator },
       { SeedPythonParser.ADD_ASSIGN, TokenType.Operator },
-      { SeedPythonParser.SUBSTRACT_ASSIGN, TokenType.Operator },
+      { SeedPythonParser.SUBTRACT_ASSIGN, TokenType.Operator },
       { SeedPythonParser.MULTIPLY_ASSIGN, TokenType.Operator },
       { SeedPythonParser.DIVIDE_ASSIGN, TokenType.Operator },
       { SeedPythonParser.MODULO_ASSIGN, TokenType.Operator },

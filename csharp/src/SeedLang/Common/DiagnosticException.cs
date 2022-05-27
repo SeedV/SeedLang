@@ -22,7 +22,7 @@ namespace SeedLang.Common {
   // When reporting diagnostics via SeedLang's public API, please let users to pass in a
   // DiagnosticCollection instance. For example:
   //
-  // public bool DoSomthing(int someParameter, DiagnosticCollection collection) {
+  // public bool DoSomething(int someParameter, DiagnosticCollection collection) {
   //   try {
   //     DoSomethingInternally();
   //   } catch (DiagnosticException e) {

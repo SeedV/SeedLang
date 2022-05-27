@@ -18,7 +18,7 @@ using System.IO;
 namespace SeedLang.Runtime {
   // The class to provide access of some system variables or functions.
   //
-  // This class is not designed as a static or singleton class to support multiple interrepter
+  // This class is not designed as a static or singleton class to support multiple interpreter
   // instances running in different threads at the same time. One scenario is that xUnit will run
   // all the test cases (some test cases need redirect stdout and verify the output from it) in
   // different threads simultaneously.

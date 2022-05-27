@@ -100,9 +100,9 @@ namespace SeedLang.X {
                                         BinaryOperator.Add, context.expression(), this);
     }
 
-    public override AstNode VisitSubstract_assign(
-        [NotNull] SeedPythonParser.Substract_assignContext context) {
-      return _helper.BuildAugAssignment(context.target(), context.SUBSTRACT_ASSIGN().Symbol,
+    public override AstNode VisitSubtract_assign(
+        [NotNull] SeedPythonParser.Subtract_assignContext context) {
+      return _helper.BuildAugAssignment(context.target(), context.SUBTRACT_ASSIGN().Symbol,
                                         BinaryOperator.Subtract, context.expression(), this);
     }
 
@@ -395,28 +395,20 @@ namespace SeedLang.X {
     }
 
     private static ComparisonOperator ToComparisonOperator(IToken token) {
-      switch (token.Type) {
-        case SeedPythonParser.LESS:
-          return ComparisonOperator.Less;
-        case SeedPythonParser.GREATER:
-          return ComparisonOperator.Greater;
-        case SeedPythonParser.LESS_EQUAL:
-          return ComparisonOperator.LessEqual;
-        case SeedPythonParser.GREATER_EQUAL:
-          return ComparisonOperator.GreaterEqual;
-        case SeedPythonParser.EQ_EQUAL:
-          return ComparisonOperator.EqEqual;
-        case SeedPythonParser.NOT_EQUAL:
-          return ComparisonOperator.NotEqual;
-        case SeedPythonParser.IN:
-          return ComparisonOperator.In;
-        default:
-          throw new NotImplementedException(
-              $"Unsupported comparison operator token: {token.Type}.");
-      }
+      return token.Type switch {
+        SeedPythonParser.LESS => ComparisonOperator.Less,
+        SeedPythonParser.GREATER => ComparisonOperator.Greater,
+        SeedPythonParser.LESS_EQUAL => ComparisonOperator.LessEqual,
+        SeedPythonParser.GREATER_EQUAL => ComparisonOperator.GreaterEqual,
+        SeedPythonParser.EQ_EQUAL => ComparisonOperator.EqEqual,
+        SeedPythonParser.NOT_EQUAL => ComparisonOperator.NotEqual,
+        SeedPythonParser.IN => ComparisonOperator.In,
+        _ => throw new NotImplementedException(
+            $"Unsupported comparison operator token: {token.Type}."),
+      };
     }
 
-    private (IToken, IToken[], ParserRuleContext[][]) VisitVTagStart(
+    private static (IToken, IToken[], ParserRuleContext[][]) VisitVTagStart(
     SeedPythonParser.Vtag_startContext vTagStartContext) {
       SeedPythonParser.VtagContext[] vTagContexts = vTagStartContext.vtag();
       var nameTokens = new IToken[vTagContexts.Length];

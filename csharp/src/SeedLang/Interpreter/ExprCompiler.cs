@@ -281,7 +281,7 @@ namespace SeedLang.Interpreter {
     }
 
     private uint VisitExpressionForRegisterId(Expression expr) {
-      if (!(GetRegisterId(expr) is uint exprId)) {
+      if (!(_helper.GetRegisterId(expr) is uint exprId)) {
         exprId = _helper.DefineTempVariable();
         RegisterForSubExpr = exprId;
         Visit(expr);
@@ -290,41 +290,12 @@ namespace SeedLang.Interpreter {
     }
 
     private uint VisitExpressionForRKId(Expression expr) {
-      if (!(GetRegisterOrConstantId(expr) is uint exprId)) {
+      if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
         exprId = _helper.DefineTempVariable();
         RegisterForSubExpr = exprId;
         Visit(expr);
       }
       return exprId;
-    }
-
-    private uint? GetRegisterOrConstantId(Expression expr) {
-      if (GetRegisterId(expr) is uint registerId) {
-        return registerId;
-      } else if (GetConstantId(expr) is uint constantId) {
-        return constantId;
-      }
-      return null;
-    }
-
-    private uint? GetRegisterId(Expression expr) {
-      if (expr is IdentifierExpression identifier &&
-          _helper.FindVariable(identifier.Name) is RegisterInfo info &&
-          info.Type == RegisterType.Local) {
-        return info.Id;
-      }
-      return null;
-    }
-
-    private uint? GetConstantId(Expression expr) {
-      switch (expr) {
-        case NumberConstantExpression number:
-          return _helper.ConstantCache.IdOfConstant(number.Value);
-        case StringConstantExpression str:
-          return _helper.ConstantCache.IdOfConstant(str.Value);
-        default:
-          return null;
-      }
     }
   }
 }

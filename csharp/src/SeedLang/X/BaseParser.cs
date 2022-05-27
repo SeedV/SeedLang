@@ -103,7 +103,7 @@ namespace SeedLang.X {
       var lexer = SetupLexer(source);
       var tokenStream = new CommonTokenStream(lexer);
       Parser parser = MakeParser(tokenStream);
-      // Removes default error listerners which include a console error reporter.
+      // Removes default error listeners which include a console error reporter.
       parser.RemoveErrorListeners();
       if (!(collection is null)) {
         parser.ErrorHandler = new SyntaxErrorStrategy(module, collection);

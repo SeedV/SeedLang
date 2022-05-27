@@ -48,7 +48,7 @@ namespace SeedLang.Runtime {
         return new VMValue(lhs.AsTuple().AddRange(rhs.AsTuple()));
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static VMValue Subtract(in VMValue lhs, in VMValue rhs) {
@@ -58,7 +58,7 @@ namespace SeedLang.Runtime {
         return new VMValue(result);
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static VMValue Multiply(in VMValue lhs, in VMValue rhs) {
@@ -98,7 +98,7 @@ namespace SeedLang.Runtime {
         return new VMValue(builder.MoveToImmutable());
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static VMValue Divide(in VMValue lhs, in VMValue rhs) {
@@ -112,7 +112,7 @@ namespace SeedLang.Runtime {
         return new VMValue(result);
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static VMValue FloorDivide(in VMValue lhs, in VMValue rhs) {
@@ -126,7 +126,7 @@ namespace SeedLang.Runtime {
         return new VMValue(result);
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static VMValue Power(in VMValue lhs, in VMValue rhs) {
@@ -136,7 +136,7 @@ namespace SeedLang.Runtime {
         return new VMValue(result);
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static VMValue Modulo(in VMValue lhs, in VMValue rhs) {
@@ -150,7 +150,7 @@ namespace SeedLang.Runtime {
         return new VMValue(result);
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static bool Less(in VMValue lhs, in VMValue rhs) {
@@ -158,7 +158,7 @@ namespace SeedLang.Runtime {
         return lhs.AsNumber() < rhs.AsNumber();
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static bool LessEqual(in VMValue lhs, in VMValue rhs) {
@@ -166,7 +166,7 @@ namespace SeedLang.Runtime {
         return lhs.AsNumber() <= rhs.AsNumber();
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static bool Contains(in VMValue container, in VMValue value) {
@@ -180,7 +180,7 @@ namespace SeedLang.Runtime {
         return container.AsString().Contains(value.AsString());
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Error, "", null,
-                                    Message.RuntimeErrorUnsupportedOperads);
+                                    Message.RuntimeErrorUnsupportedOperands);
     }
 
     internal static double BooleanToNumber(bool value) {

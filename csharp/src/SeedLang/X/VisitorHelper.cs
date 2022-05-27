@@ -68,8 +68,7 @@ namespace SeedLang.X {
         exprs[i] = visitor.Visit(operands[i + 1]) as Expression;
       }
       if (range is null) {
-        Expression last = exprs[exprs.Length - 1];
-        range = CodeReferenceUtils.CombineRanges(first.Range, last.Range);
+        range = CodeReferenceUtils.CombineRanges(first.Range, exprs[^1].Range);
       }
       return Expression.Comparison(first, ops, exprs, range);
     }
@@ -91,8 +90,7 @@ namespace SeedLang.X {
             return null;
           }
         }
-        Expression last = exprs[exprs.Length - 1];
-        TextRange range = CodeReferenceUtils.CombineRanges(first.Range, last.Range);
+        TextRange range = CodeReferenceUtils.CombineRanges(first.Range, exprs[^1].Range);
         return Expression.Boolean(op, exprs, range);
       }
       return null;
@@ -179,8 +177,8 @@ namespace SeedLang.X {
       foreach (ITerminalNode strNode in strNodes) {
         AddSemanticToken(TokenType.String, CodeReferenceUtils.RangeOfToken(strNode.Symbol));
         string str = strNode.Symbol.Text;
-        Debug.Assert(str.Length >= 2 && (str[0] == '"' || str[0] == '\'') &&
-                     (str[^1] == '"' || str[^1] == '\''));
+        Debug.Assert(str.Length >= 2 &&
+                     (str[0] == '"' || str[0] == '\'') && (str[^1] == '"' || str[^1] == '\''));
         sb.Append(str, 1, str.Length - 2);
       }
       TextRange range = CodeReferenceUtils.RangeOfTokens(strNodes[0].Symbol, strNodes[^1].Symbol);

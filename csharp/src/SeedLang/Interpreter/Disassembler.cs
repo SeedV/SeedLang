@@ -75,17 +75,13 @@ namespace SeedLang.Interpreter {
       bool ignoreC = instr.Opcode == Opcode.MOVE || instr.Opcode == Opcode.UNM ||
                      instr.Opcode == Opcode.RETURN || instr.Opcode == Opcode.HALT;
       OpcodeType type = instr.Opcode.Type();
-      switch (type) {
-        case OpcodeType.ABC:
-          return $"{instr.A} {RegisterOrConstantIndex(instr.B)}" +
-                 (ignoreC ? "" : $" {RegisterOrConstantIndex(instr.C)}");
-        case OpcodeType.ABx:
-          return $"{instr.A} {RegisterOrConstantIndex(instr.Bx)}";
-        case OpcodeType.SBx:
-          return $"{instr.A} {instr.SBx}";
-        default:
-          throw new System.NotImplementedException($"Unsupported opcode type: {type}");
-      }
+      return type switch {
+        OpcodeType.ABC => $"{instr.A} {RegisterOrConstantIndex(instr.B)}" +
+                          (ignoreC ? "" : $" {RegisterOrConstantIndex(instr.C)}"),
+        OpcodeType.ABx => $"{instr.A} {RegisterOrConstantIndex(instr.Bx)}",
+        OpcodeType.SBx => $"{instr.A} {instr.SBx}",
+        _ => throw new System.NotImplementedException($"Unsupported opcode type: {type}"),
+      };
     }
 
     private int RegisterOrConstantIndex(uint rk) {

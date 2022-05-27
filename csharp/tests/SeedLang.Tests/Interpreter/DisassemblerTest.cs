@@ -20,7 +20,7 @@ namespace SeedLang.Interpreter.Tests {
     private static TextRange _textRange => new TextRange(0, 1, 2, 3);
 
     [Fact]
-    public void TestDisassember() {
+    public void TestDisassembler() {
       var func = new Function("main");
       var chunk = func.Chunk;
       var cache = new ChunkCache();

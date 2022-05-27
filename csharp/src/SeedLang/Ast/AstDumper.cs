@@ -44,38 +44,26 @@ namespace SeedLang.Ast {
 
     // Returns the internal string representation of comparison operators.
     internal static string Symbol(this ComparisonOperator op) {
-      switch (op) {
-        case ComparisonOperator.Less:
-          return "<";
-        case ComparisonOperator.Greater:
-          return ">";
-        case ComparisonOperator.LessEqual:
-          return "<=";
-        case ComparisonOperator.GreaterEqual:
-          return ">=";
-        case ComparisonOperator.EqEqual:
-          return "==";
-        case ComparisonOperator.NotEqual:
-          return "!=";
-        case ComparisonOperator.In:
-          return "in";
-        default:
-          throw new NotImplementedException($"Unsupported comparison operator: {op}.");
-      }
+      return op switch {
+        ComparisonOperator.Less => "<",
+        ComparisonOperator.Greater => ">",
+        ComparisonOperator.LessEqual => "<=",
+        ComparisonOperator.GreaterEqual => ">=",
+        ComparisonOperator.EqEqual => "==",
+        ComparisonOperator.NotEqual => "!=",
+        ComparisonOperator.In => "in",
+        _ => throw new NotImplementedException($"Unsupported comparison operator: {op}."),
+      };
     }
 
     // Returns the internal string representation of unary operators.
     internal static string Symbol(this UnaryOperator op) {
-      switch (op) {
-        case UnaryOperator.Positive:
-          return "+";
-        case UnaryOperator.Negative:
-          return "-";
-        case UnaryOperator.Not:
-          return "not";
-        default:
-          throw new NotImplementedException($"Unsupported unary operator: {op}.");
-      }
+      return op switch {
+        UnaryOperator.Positive => "+",
+        UnaryOperator.Negative => "-",
+        UnaryOperator.Not => "not",
+        _ => throw new NotImplementedException($"Unsupported unary operator: {op}."),
+      };
     }
   }
 

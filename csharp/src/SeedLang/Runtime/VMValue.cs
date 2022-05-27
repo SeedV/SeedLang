@@ -88,18 +88,14 @@ namespace SeedLang.Runtime {
     }
 
     public bool Equals(VMValue other) {
-      switch (_type) {
-        case ValueType.Nil:
-          return other._type == ValueType.Nil;
-        case ValueType.Boolean:
-        case ValueType.Number:
-          return (other._type == ValueType.Boolean || other._type == ValueType.Number) &&
-                 _number == other._number;
-        case ValueType.Object:
-          return _type == other._type && _object.Equals(other._object);
-        default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
-      }
+      return _type switch {
+        ValueType.Nil => other._type == ValueType.Nil,
+        var type when type == ValueType.Boolean || type == ValueType.Number =>
+           (other._type == ValueType.Boolean || other._type == ValueType.Number) &&
+           _number == other._number,
+        ValueType.Object => _type == other._type && _object.Equals(other._object),
+        _ => throw new NotImplementedException($"Unsupported value type: {_type}."),
+      };
     }
 
     public override bool Equals(object obj) {
@@ -107,30 +103,22 @@ namespace SeedLang.Runtime {
     }
 
     public override int GetHashCode() {
-      switch (_type) {
-        case ValueType.Nil:
-          return _type.GetHashCode();
-        case ValueType.Boolean:
-        case ValueType.Number:
-          return (_type, _number).GetHashCode();
-        case ValueType.Object:
-          return (_type, _object).GetHashCode();
-        default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
-      }
+      return _type switch {
+        ValueType.Nil => _type.GetHashCode(),
+        var type when type == ValueType.Boolean || type == ValueType.Number =>
+            new { _type, _number }.GetHashCode(),
+        ValueType.Object => new { _type, _object }.GetHashCode(),
+        _ => throw new NotImplementedException($"Unsupported value type: {_type}."),
+      };
     }
 
     public override string ToString() {
-      switch (_type) {
-        case ValueType.Nil:
-        case ValueType.Boolean:
-        case ValueType.Number:
-          return AsString();
-        case ValueType.Object:
-          return _object.ToString();
-        default:
-          throw new NotImplementedException($"Unsupported value type: {_type}.");
-      }
+      return _type switch {
+        var type when type == ValueType.Nil || type == ValueType.Boolean ||
+                      type == ValueType.Number => AsString(),
+        ValueType.Object => _object.ToString(),
+        _ => throw new NotImplementedException($"Unsupported value type: {_type}."),
+      };
     }
 
     internal VMValue this[VMValue key] {
@@ -153,49 +141,35 @@ namespace SeedLang.Runtime {
     }
 
     internal bool AsBoolean() {
-      switch (_type) {
-        case ValueType.Nil:
-          return false;
-        case ValueType.Boolean:
-        case ValueType.Number:
-          return ValueHelper.NumberToBoolean(_number);
-        case ValueType.Object:
-          return _object.AsBoolean();
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _type switch {
+        ValueType.Nil => false,
+        var type when type == ValueType.Boolean || type == ValueType.Number =>
+            ValueHelper.NumberToBoolean(_number),
+        ValueType.Object => _object.AsBoolean(),
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal double AsNumber() {
-      switch (_type) {
-        case ValueType.Nil:
-          return 0;
-        case ValueType.Boolean:
-        case ValueType.Number:
-          return _number;
-        case ValueType.Object:
-          return _object.AsNumber();
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _type switch {
+        ValueType.Nil => 0,
+        var type when type == ValueType.Boolean || type == ValueType.Number => _number,
+        ValueType.Object => _object.AsNumber(),
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal string AsString() {
-      switch (_type) {
-        case ValueType.Nil:
-          return "None";
-        case ValueType.Boolean:
-          return ValueHelper.BooleanToString(ValueHelper.NumberToBoolean(_number));
-        case ValueType.Number:
-          return ValueHelper.NumberToString(_number);
-        case ValueType.Object:
-          return _object.AsString();
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _type switch {
+        ValueType.Nil => "None",
+        ValueType.Boolean => ValueHelper.BooleanToString(ValueHelper.NumberToBoolean(_number)),
+        ValueType.Number => ValueHelper.NumberToString(_number),
+        ValueType.Object => _object.AsString(),
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal IFunction AsFunction() {

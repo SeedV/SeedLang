@@ -20,16 +20,16 @@ namespace SeedLang.Common.Tests {
     public void TestDiagnosticToString() {
       string ts = Utils.Timestamp();
       var diagnostic = new Diagnostic(null, Severity.Error, null, null, Message.Okay, null);
-      Assert.Equal("Error () <> [] 0: ", diagnostic.ToString().Substring(ts.Length + 1));
+      Assert.Equal("Error () <> [] 0: ", diagnostic.ToString()[(ts.Length + 1)..]);
       diagnostic = new Diagnostic(SystemReporters.SeedAst, Severity.Info,
                                   "main", null, Message.Okay, "A sample message.");
       Assert.Equal("Info (SeedLang.Ast) <main> [] 0: A sample message.",
-                   diagnostic.ToString().Substring(ts.Length + 1));
+                   diagnostic.ToString()[(ts.Length + 1)..]);
       diagnostic = new Diagnostic(SystemReporters.SeedX, Severity.Info,
                                   "main", new TextRange(1, 1, 1, 3),
                                   Message.Okay, "A sample message.");
       Assert.Equal("Info (SeedLang.X) <main> [Ln 1, Col 1 - Ln 1, Col 3] 0: A sample message.",
-                   diagnostic.ToString().Substring(ts.Length + 1));
+                   diagnostic.ToString()[(ts.Length + 1)..]);
     }
   }
 }

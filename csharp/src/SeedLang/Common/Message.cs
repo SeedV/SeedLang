@@ -40,7 +40,7 @@ namespace SeedLang.Common {
   // implementation details so that the client code need no change to adapt a real localization
   // mechanism.
   //
-  // With this intermediate layer, we will be able to introduce lightweighted or cross-platform
+  // With this intermediate layer, we will be able to introduce lightweight or cross-platform
   // localization solutions other than .Net's default ResourceManager when necessary.
   public enum Message {
     // Example message strings.
@@ -72,7 +72,7 @@ namespace SeedLang.Common {
     RuntimeErrorNotSubscriptable,       // Value type not subscriptable runtime error.
     RuntimeErrorNotSupportAssignment,   // The value type does not support assignment.
     RuntimeErrorUnhashableType,         // The type of keys is unhashable.
-    RuntimeErrorUnsupportedOperads,     // The type of operads is not supported by the operator.
+    RuntimeErrorUnsupportedOperands,    // The type of operands is not supported by the operator.
     RuntimeErrorOutOfRange,             // Index out of range runtime error.
     RuntimeErrorOverflow,               // Overflow runtime error.
     RuntimeErrorVariableNotDefined,     // Variable not defined runtime error.
@@ -97,8 +97,8 @@ namespace SeedLang.Common {
       return sb.ToString();
     }
 
-    // Formats the message string with the input arguments. The trailing decimal digit of the messag
-    // ID indicates the number of the required arguments, ranging from 0 to 9.
+    // Formats the message string with the input arguments. The trailing decimal digit of the
+    // message ID indicates the number of the required arguments, ranging from 0 to 9.
     public static string Format(this Message message, params string[] arguments) {
       // TODO: Support the real localization system once the strings are localized.
       (string name, int requiredArgumentNumber) = Parse(message);

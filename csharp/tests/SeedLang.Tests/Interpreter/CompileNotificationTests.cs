@@ -245,7 +245,7 @@ flag = \
     }
 
     [Fact]
-    public void TestSingleStepWithParameteredVTag() {
+    public void TestSingleStepVTagWithParameter() {
       var source = @"
 # [[ Assign(x) ]]
 x = 1

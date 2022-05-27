@@ -99,14 +99,11 @@ namespace SeedLang.Interpreter {
     }
 
     internal uint? GetConstantId(Expression expr) {
-      switch (expr) {
-        case NumberConstantExpression number:
-          return Cache.IdOfConstant(number.Value);
-        case StringConstantExpression str:
-          return Cache.IdOfConstant(str.Value);
-        default:
-          return null;
-      }
+      return expr switch {
+        NumberConstantExpression number => Cache.IdOfConstant(number.Value),
+        StringConstantExpression str => Cache.IdOfConstant(str.Value),
+        _ => null,
+      };
     }
 
     internal void PatchJumpsToPos(List<int> jumps, int pos) {
@@ -258,45 +255,29 @@ namespace SeedLang.Interpreter {
     }
 
     internal static Opcode OpcodeOfBinaryOperator(BinaryOperator op) {
-      switch (op) {
-        case BinaryOperator.Add:
-          return Opcode.ADD;
-        case BinaryOperator.Subtract:
-          return Opcode.SUB;
-        case BinaryOperator.Multiply:
-          return Opcode.MUL;
-        case BinaryOperator.Divide:
-          return Opcode.DIV;
-        case BinaryOperator.FloorDivide:
-          return Opcode.FLOORDIV;
-        case BinaryOperator.Power:
-          return Opcode.POW;
-        case BinaryOperator.Modulo:
-          return Opcode.MOD;
-        default:
-          throw new NotImplementedException($"Operator {op} not implemented.");
-      }
+      return op switch {
+        BinaryOperator.Add => Opcode.ADD,
+        BinaryOperator.Subtract => Opcode.SUB,
+        BinaryOperator.Multiply => Opcode.MUL,
+        BinaryOperator.Divide => Opcode.DIV,
+        BinaryOperator.FloorDivide => Opcode.FLOORDIV,
+        BinaryOperator.Power => Opcode.POW,
+        BinaryOperator.Modulo => Opcode.MOD,
+        _ => throw new NotImplementedException($"Operator {op} not implemented."),
+      };
     }
 
     internal static (Opcode, bool) OpcodeAndCheckFlagOfComparisonOperator(ComparisonOperator op) {
-      switch (op) {
-        case ComparisonOperator.Less:
-          return (Opcode.LT, true);
-        case ComparisonOperator.Greater:
-          return (Opcode.LE, false);
-        case ComparisonOperator.LessEqual:
-          return (Opcode.LE, true);
-        case ComparisonOperator.GreaterEqual:
-          return (Opcode.LT, false);
-        case ComparisonOperator.EqEqual:
-          return (Opcode.EQ, true);
-        case ComparisonOperator.NotEqual:
-          return (Opcode.EQ, false);
-        case ComparisonOperator.In:
-          return (Opcode.IN, true);
-        default:
-          throw new NotImplementedException($"Operator {op} not implemented.");
-      }
+      return op switch {
+        ComparisonOperator.Less => (Opcode.LT, true),
+        ComparisonOperator.Greater => (Opcode.LE, false),
+        ComparisonOperator.LessEqual => (Opcode.LE, true),
+        ComparisonOperator.GreaterEqual => (Opcode.LT, false),
+        ComparisonOperator.EqEqual => (Opcode.EQ, true),
+        ComparisonOperator.NotEqual => (Opcode.EQ, false),
+        ComparisonOperator.In => (Opcode.IN, true),
+        _ => throw new NotImplementedException($"Operator {op} not implemented."),
+      };
     }
 
     private void TryEmitSingleStepNotification(TextRange range) {

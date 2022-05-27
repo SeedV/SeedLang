@@ -41,21 +41,15 @@ namespace SeedLang.Runtime {
 
     public int Length {
       get {
-        switch (_object) {
-          case string str:
-            return str.Length;
-          case Dict dict:
-            return dict.Count;
-          case List list:
-            return list.Count;
-          case Tuple tuple:
-            return tuple.Length;
-          case Range range:
-            return range.Length;
-          default:
-            throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                          Message.RuntimeErrorNotCountable);
-        }
+        return _object switch {
+          string str => str.Length,
+          Dict dict => dict.Count,
+          List list => list.Count,
+          Tuple tuple => tuple.Length,
+          Range range => range.Length,
+          _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                             Message.RuntimeErrorNotCountable),
+        };
       }
     }
 
@@ -107,18 +101,13 @@ namespace SeedLang.Runtime {
         return false;
       }
       // Compares contents for String, Tuple, List and Dict types.
-      switch (_object) {
-        case string str:
-          return str == other._object as string;
-        case Dict dict:
-          return dict.SequenceEqual(other._object as Dict);
-        case List list:
-          return list.SequenceEqual(other._object as List);
-        case Tuple tuple:
-          return tuple.SequenceEqual((Tuple)other._object);
-        default:
-          return _object == other._object;
-      }
+      return _object switch {
+        string str => str == other._object as string,
+        Dict dict => dict.SequenceEqual(other._object as Dict),
+        List list => list.SequenceEqual(other._object as List),
+        Tuple tuple => tuple.SequenceEqual((Tuple)other._object),
+        _ => _object == other._object,
+      };
     }
 
     // Computes hash code based on contents for String (uses csharp default implementation) and
@@ -139,103 +128,77 @@ namespace SeedLang.Runtime {
     }
 
     internal bool AsBoolean() {
-      switch (_object) {
-        case string str:
-          return ValueHelper.StringToBoolean(str);
-        case Dict dict:
-          return dict.Count != 0;
-        case List list:
-          return list.Count != 0;
-        case Tuple tuple:
-          return tuple.Length != 0;
-        case Range range:
-          return range.Length != 0;
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _object switch {
+        string str => ValueHelper.StringToBoolean(str),
+        Dict dict => dict.Count != 0,
+        List list => list.Count != 0,
+        Tuple tuple => tuple.Length != 0,
+        Range range => range.Length != 0,
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal double AsNumber() {
-      switch (_object) {
-        case string str:
-          return ValueHelper.StringToNumber(str);
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _object switch {
+        string str => ValueHelper.StringToNumber(str),
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal string AsString() {
-      switch (_object) {
-        case string str:
-          return str;
-        case IFunction func:
-          return func.ToString();
-        case Dict dict:
-          return DictToString(dict);
-        case List list:
-          return ListToString(list);
-        case Tuple tuple:
-          return TupleToString(tuple);
-        case Range range:
-          return range.ToString();
-        case Slice slice:
-          return slice.ToString();
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _object switch {
+        string str => str,
+        IFunction func => func.ToString(),
+        Dict dict => DictToString(dict),
+        List list => ListToString(list),
+        Tuple tuple => TupleToString(tuple),
+        Range range => range.ToString(),
+        Slice slice => slice.ToString(),
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal IFunction AsFunction() {
-      switch (_object) {
-        case IFunction func:
-          return func;
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorNotCallable);
-      }
+      return _object switch {
+        IFunction func => func,
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorNotCallable),
+      };
     }
 
     internal Dict AsDict() {
-      switch (_object) {
-        case Dict dict:
-          return dict;
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _object switch {
+        Dict dict => dict,
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal List AsList() {
-      switch (_object) {
-        case List list:
-          return list;
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _object switch {
+        List list => list,
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal Tuple AsTuple() {
-      switch (_object) {
-        case Tuple tuple:
-          return tuple;
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _object switch {
+        Tuple tuple => tuple,
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal Slice AsSlice() {
-      switch (_object) {
-        case Slice slice:
-          return slice;
-        default:
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidCast);
-      }
+      return _object switch {
+        Slice slice => slice,
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
     }
 
     internal VMValue this[VMValue key] {

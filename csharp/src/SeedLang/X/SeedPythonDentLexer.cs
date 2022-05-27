@@ -109,7 +109,7 @@ namespace SeedLang.X {
       }
       // Ignores all indents, dedents and line breaks when inside brackets or on a blank line.
       if (_opened == 0 && !IsNewline((char)next)) {
-        int indent = GetIndentationCount(Text.Substring(spacesStart));
+        int indent = GetIndentationCount(Text[spacesStart..]);
         int previous = _indents.Count == 0 ? 0 : _indents.Peek();
         if (indent == previous) {
           EmitToken(newlineToken);
@@ -154,7 +154,7 @@ namespace SeedLang.X {
         int contentStart = openBracksIndex + 2;
         _tokens.Enqueue(CommonToken(SeedPythonParser.VTAG_START, comment.StartIndex,
                                     comment.StartIndex + openBracksIndex + 1, comment.Line,
-                                    comment.Column, comment.Text.Substring(0, contentStart)));
+                                    comment.Column, comment.Text[..contentStart]));
         int? closeBracksIndex = FindCloseBracks(comment.Text, false);
         int contentLength = closeBracksIndex is int index ? index - contentStart :
                                                             comment.Text.Length - contentStart;
@@ -193,7 +193,7 @@ namespace SeedLang.X {
       return null;
     }
 
-    private int? FindCloseBracks(string comment, bool checkCloseOnly) {
+    private static int? FindCloseBracks(string comment, bool checkCloseOnly) {
       const char closeBrack = ']';
       int i = comment.Length - 1;
       while (i >= 0 && IsSpace(comment[i])) {

@@ -207,7 +207,7 @@ namespace SeedLang.Interpreter {
     internal void EmitVariableDefinedNotification(string name, VariableType type, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.VariableDefined>() &&
           !_suspendNotificationEmitting) {
-        var n = new Notification.Variable(name, type);
+        var n = new Notification.VariableDefined(name, type);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }

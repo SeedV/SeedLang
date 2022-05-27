@@ -359,7 +359,7 @@ def func():
     }
 
     [Fact]
-    public void TestVariable() {
+    public void TestVariables() {
       string source = @"
 def add(a, b):
   c = a + b
@@ -383,8 +383,8 @@ x = add(1, 2)
         $"                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"  10   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"Notifications\n" +
-        $"  0    Notification.Variable: global.add Global\n" +
-        $"  1    Notification.Variable: global.x Global\n" +
+        $"  0    Notification.VariableDefined: 'global.add' Global\n" +
+        $"  1    Notification.VariableDefined: 'global.x' Global\n" +
         $"\n" +
         $"Function <add>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 8 - Ln 2, Col 8]\n" +
@@ -394,9 +394,9 @@ x = add(1, 2)
         $"  5    RETURN    2 1                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"  6    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
-        $"  0    Notification.Variable: global.add.a Local\n" +
-        $"  1    Notification.Variable: global.add.b Local\n" +
-        $"  2    Notification.Variable: global.add.c Local\n"
+        $"  0    Notification.VariableDefined: 'global.add.a' Local\n" +
+        $"  1    Notification.VariableDefined: 'global.add.b' Local\n" +
+        $"  2    Notification.VariableDefined: 'global.add.c' Local\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.VariableDefined),

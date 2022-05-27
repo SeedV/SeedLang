@@ -278,27 +278,6 @@ print(a, x, y, z)
     }
 
     [Fact]
-    public void TestSingleStepNotification() {
-      string source = @"
-# [[ Assign(a) ]]
-a = 1
-b = 2
-";
-      (string _, VisualizerHelper vh) = Run(Parse(source), new Type[] {
-        typeof(Event.SingleStep),
-        typeof(Event.VTagEntered),
-        typeof(Event.VTagExited),
-      });
-      var expected = (
-        "[Ln 3, Col 0 - Ln 3, Col 0] SingleStep\n" +
-        "[Ln 4, Col 0 - Ln 4, Col 0] SingleStep\n" +
-        "[Ln 2, Col 0 - Ln 3, Col 4] VTagEntered: Assign(a: None)\n" +
-        "[Ln 2, Col 0 - Ln 3, Col 4] VTagExited: Assign(a: 1)\n"
-      ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, vh.EventsToString());
-    }
-
-    [Fact]
     public void TestSlice() {
       string source = @"
 a = [1, 2, 3, 4, 5]

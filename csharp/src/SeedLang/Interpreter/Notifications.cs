@@ -206,7 +206,8 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal sealed class SubscriptAssignment : AbstractNotification, IEquatable<SubscriptAssignment> {
+    internal sealed class SubscriptAssignment :
+        AbstractNotification, IEquatable<SubscriptAssignment> {
       private readonly string _name;
       private readonly VariableType _type;
       private readonly uint _keyId;
@@ -291,16 +292,16 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal sealed class Variable : AbstractNotification, IEquatable<Variable> {
+    internal sealed class VariableDefined : AbstractNotification, IEquatable<VariableDefined> {
       private readonly string _name;
       private readonly VariableType _type;
 
-      internal Variable(string name, VariableType type) {
+      internal VariableDefined(string name, VariableType type) {
         _name = name;
         _type = type;
       }
 
-      public bool Equals(Variable other) {
+      public bool Equals(VariableDefined other) {
         if (other is null) {
           return false;
         }
@@ -311,7 +312,7 @@ namespace SeedLang.Interpreter {
       }
 
       public override bool Equals(object obj) {
-        return Equals(obj as Variable);
+        return Equals(obj as VariableDefined);
       }
 
       public override int GetHashCode() {
@@ -319,7 +320,7 @@ namespace SeedLang.Interpreter {
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {_name} {_type}";
+        return $"Notification.{GetType().Name}: '{_name}' {_type}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,

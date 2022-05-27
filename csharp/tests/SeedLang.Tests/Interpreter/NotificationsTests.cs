@@ -34,8 +34,8 @@ namespace SeedLang.Interpreter.Tests {
       subscriptAssign.ToString().Should().Be("Notification.SubscriptAssignment: 'a': Local 1 2");
       var unary = new Notification.Unary(UnaryOperator.Positive, 1, 2);
       unary.ToString().Should().Be("Notification.Unary: Positive 1 2");
-      var variable = new Notification.Variable("a", VariableType.Global);
-      variable.ToString().Should().Be("Notification.Variable: a Global");
+      var variable = new Notification.VariableDefined("a", VariableType.Global);
+      variable.ToString().Should().Be("Notification.VariableDefined: 'a' Global");
       var vTagInfos = new Notification.VTagInfo[] {
         new Notification.VTagInfo("VTag", new string[] {"a", "b", "c"}, new uint?[] {1, null, 2}),
       };
@@ -65,7 +65,7 @@ namespace SeedLang.Interpreter.Tests {
       dict[unary].Should().Be(6);
       dict[new Notification.Unary(UnaryOperator.Positive, 1, 2)].Should().Be(6);
       dict[variable].Should().Be(7);
-      dict[new Notification.Variable("a", VariableType.Global)].Should().Be(7);
+      dict[new Notification.VariableDefined("a", VariableType.Global)].Should().Be(7);
       dict[vTag].Should().Be(8);
       vTagInfos = new Notification.VTagInfo[] {
         new Notification.VTagInfo("VTag", new string[] {"a", "b", "c"}, new uint?[] {1, null, 2}),

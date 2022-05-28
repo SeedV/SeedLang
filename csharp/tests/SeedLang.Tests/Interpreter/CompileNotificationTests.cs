@@ -30,7 +30,6 @@ namespace SeedLang.Interpreter.Tests {
           return func.Name == NativeFunctions.PrintVal;
         });
     private readonly int _firstGlob = NativeFunctions.Funcs.Length;
-    private readonly TextRange _range = AstHelper.TextRange;
 
     [Fact]
     public void TestAssignment() {
@@ -247,7 +246,7 @@ flag = \
     }
 
     [Fact]
-    public void TestSingleStepWithParameteredVTag() {
+    public void TestSingleStepVTagWithParameter() {
       var source = @"
 # [[ Assign(x) ]]
 x = 1

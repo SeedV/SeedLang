@@ -173,14 +173,11 @@ namespace SeedLang {
     }
 
     private static BaseParser MakeParser(SeedXLanguage language) {
-      switch (language) {
-        case SeedXLanguage.SeedCalc:
-          return new SeedCalc();
-        case SeedXLanguage.SeedPython:
-          return new SeedPython();
-        default:
-          throw new NotImplementedException($"Unsupported SeedX language: {language}.");
-      }
+      return language switch {
+        SeedXLanguage.SeedCalc => new SeedCalc(),
+        SeedXLanguage.SeedPython => new SeedPython(),
+        _ => throw new NotImplementedException($"Unsupported SeedX language: {language}."),
+      };
     }
   }
 }

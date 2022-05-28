@@ -20,72 +20,50 @@ namespace SeedLang.Ast {
   internal static class OperatorExtensions {
     // Returns the internal string representation of binary operators.
     internal static string Symbol(this BinaryOperator op) {
-      switch (op) {
-        case BinaryOperator.Add:
-          return "+";
-        case BinaryOperator.Subtract:
-          return "-";
-        case BinaryOperator.Multiply:
-          return "*";
-        case BinaryOperator.Divide:
-          return "/";
-        case BinaryOperator.FloorDivide:
-          return "//";
-        case BinaryOperator.Power:
-          return "**";
-        case BinaryOperator.Modulo:
-          return "%";
-        default:
-          throw new NotImplementedException($"Unsupported binary operator: {op}.");
-      }
+      return op switch {
+        BinaryOperator.Add => "+",
+        BinaryOperator.Subtract => "-",
+        BinaryOperator.Multiply => "*",
+        BinaryOperator.Divide => "/",
+        BinaryOperator.FloorDivide => "//",
+        BinaryOperator.Power => "**",
+        BinaryOperator.Modulo => "%",
+        _ =>
+          throw new NotImplementedException($"Unsupported binary operator: {op}."),
+      };
     }
 
     // Returns the internal string representation of boolean operators.
     internal static string Symbol(this BooleanOperator op) {
-      switch (op) {
-        case BooleanOperator.And:
-          return "and";
-        case BooleanOperator.Or:
-          return "or";
-        default:
-          throw new NotImplementedException($"Unsupported boolean operator: {op}.");
-      }
+      return op switch {
+        BooleanOperator.And => "and",
+        BooleanOperator.Or => "or",
+        _ => throw new NotImplementedException($"Unsupported boolean operator: {op}."),
+      };
     }
 
     // Returns the internal string representation of comparison operators.
     internal static string Symbol(this ComparisonOperator op) {
-      switch (op) {
-        case ComparisonOperator.Less:
-          return "<";
-        case ComparisonOperator.Greater:
-          return ">";
-        case ComparisonOperator.LessEqual:
-          return "<=";
-        case ComparisonOperator.GreaterEqual:
-          return ">=";
-        case ComparisonOperator.EqEqual:
-          return "==";
-        case ComparisonOperator.NotEqual:
-          return "!=";
-        case ComparisonOperator.In:
-          return "in";
-        default:
-          throw new NotImplementedException($"Unsupported comparison operator: {op}.");
-      }
+      return op switch {
+        ComparisonOperator.Less => "<",
+        ComparisonOperator.Greater => ">",
+        ComparisonOperator.LessEqual => "<=",
+        ComparisonOperator.GreaterEqual => ">=",
+        ComparisonOperator.EqEqual => "==",
+        ComparisonOperator.NotEqual => "!=",
+        ComparisonOperator.In => "in",
+        _ => throw new NotImplementedException($"Unsupported comparison operator: {op}."),
+      };
     }
 
     // Returns the internal string representation of unary operators.
     internal static string Symbol(this UnaryOperator op) {
-      switch (op) {
-        case UnaryOperator.Positive:
-          return "+";
-        case UnaryOperator.Negative:
-          return "-";
-        case UnaryOperator.Not:
-          return "not";
-        default:
-          throw new NotImplementedException($"Unsupported unary operator: {op}.");
-      }
+      return op switch {
+        UnaryOperator.Positive => "+",
+        UnaryOperator.Negative => "-",
+        UnaryOperator.Not => "not",
+        _ => throw new NotImplementedException($"Unsupported unary operator: {op}."),
+      };
     }
   }
 

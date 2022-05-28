@@ -26,7 +26,7 @@ namespace SeedLang.Common {
     public const string SeedVM = "SeedLang.VM";
   }
 
-  // A dignostic info, such as a compiler error or warning.
+  // A diagnostic info, such as a compiler error or warning.
   public sealed class Diagnostic {
     // The name of the reporter.
     //

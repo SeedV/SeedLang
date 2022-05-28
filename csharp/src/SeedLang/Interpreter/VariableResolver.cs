@@ -158,7 +158,7 @@ namespace SeedLang.Interpreter {
     }
 
     private readonly List<IScope> _scopes = new List<IScope>();
-    private IScope _currentScope => _scopes[_scopes.Count - 1];
+    private IScope _currentScope => _scopes[^1];
 
     internal VariableResolver(GlobalEnvironment env) {
       _scopes.Add(new GlobalScope(env));

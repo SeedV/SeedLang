@@ -23,7 +23,7 @@ using SeedLang.Visualization;
 namespace SeedLang.Interpreter {
   internal static class Notification {
     // The base class of all notification classes, which are used to store information for VISNOTIFY
-    // instructions. The VM will create the correspding event object based on the information and
+    // instructions. The VM will create the corresponding event object based on the information and
     // then send to visualizers.
     internal abstract class AbstractNotification {
       internal abstract void Notify(VisualizerCenter visualizerCenter, VMProxy vm,

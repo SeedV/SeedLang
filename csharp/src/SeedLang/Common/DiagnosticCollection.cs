@@ -25,7 +25,7 @@ namespace SeedLang.Common {
   //    DiagnosticCollection for each executable code part, for convenience purposes.
   //
   // 2) The editor/IDE may use a separate DiagnosticCollection to maintain a temporary state to
-  //    supprot the features like temporary editing and validating, static checking, partial
+  //    support the features like temporary editing and validating, static checking, partial
   //    execution, editing during debugging, etc.
   public class DiagnosticCollection {
     private readonly List<Diagnostic> _diagnostics = new List<Diagnostic>();

@@ -17,10 +17,10 @@ using System;
 namespace SeedLang.Ast {
   // An abstract base class to traverse an expression tree.
   //
-  // All node types in the AST tree are either Expression or Statement. So the seperated
+  // All node types in the AST tree are either Expression or Statement. So the separated
   // ExpressionWalker and StatementWalker classes are enough to visit all nodes in AST trees.
   internal abstract class ExpressionWalker {
-    // Dispatches to the correspoding visit method based on the type of the expression node.
+    // Dispatches to the corresponding visit method based on the type of the expression node.
     internal void Visit(Expression expression) {
       Enter(expression);
       switch (expression) {

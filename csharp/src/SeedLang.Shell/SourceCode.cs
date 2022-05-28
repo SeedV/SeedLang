@@ -39,14 +39,14 @@ namespace SeedLang.Shell {
         Console.Write($"{lineId,-5} ");
         string line = _lines[lineId - 1];
         if (Intersect(lineId, range) is (int start, int end)) {
-          Console.Write(line.Substring(0, start));
-          if (line.Substring(start) != Environment.NewLine) {
+          Console.Write(line[..start]);
+          if (line[start..] != Environment.NewLine) {
             Console.BackgroundColor = ConsoleColor.DarkCyan;
             Console.ForegroundColor = ConsoleColor.Black;
           }
-          Console.Write(line.Substring(start, end - start + 1));
+          Console.Write(line[start..(end + 1)]);
           Console.ResetColor();
-          Console.Write(line.Substring(end + 1));
+          Console.Write(line[(end + 1)..]);
         } else {
           Console.Write(line);
         }
@@ -72,7 +72,7 @@ namespace SeedLang.Shell {
              tokens[tokenIndex].Range.Start.Line <= lineId) {
         TokenInfo token = tokens[tokenIndex];
         if (token.Range.Start.Column > column) {
-          Console.Write(line.Substring(column, token.Range.Start.Column - column));
+          Console.Write(line[column..token.Range.Start.Column]);
         }
         if (Theme.SyntaxToThemeInfoMap.ContainsKey(token.Type)) {
           Console.ForegroundColor = Theme.SyntaxToThemeInfoMap[token.Type].ForegroundColor;
@@ -84,7 +84,7 @@ namespace SeedLang.Shell {
           tokenIndex++;
         }
       }
-      Console.Write(line.Substring(column));
+      Console.Write(line[column..]);
     }
 
     internal bool IsCompleteStatement() {

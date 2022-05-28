@@ -65,46 +65,45 @@ namespace SeedLang.Interpreter {
   internal static class OpcodeExtension {
     // Returns the type of this opcode.
     internal static OpcodeType Type(this Opcode op) {
-      switch (op) {
-        case Opcode.MOVE:
-        case Opcode.LOADNIL:
-        case Opcode.LOADBOOL:
-        case Opcode.NEWTUPLE:
-        case Opcode.NEWLIST:
-        case Opcode.NEWDICT:
-        case Opcode.GETELEM:
-        case Opcode.SETELEM:
-        case Opcode.ADD:
-        case Opcode.SUB:
-        case Opcode.MUL:
-        case Opcode.DIV:
-        case Opcode.FLOORDIV:
-        case Opcode.POW:
-        case Opcode.MOD:
-        case Opcode.UNM:
-        case Opcode.LEN:
-        case Opcode.EQ:
-        case Opcode.LT:
-        case Opcode.LE:
-        case Opcode.IN:
-        case Opcode.TEST:
-        case Opcode.TESTSET:
-        case Opcode.CALL:
-        case Opcode.RETURN:
-        case Opcode.HALT:
-          return OpcodeType.ABC;
-        case Opcode.LOADK:
-        case Opcode.GETGLOB:
-        case Opcode.SETGLOB:
-        case Opcode.VISNOTIFY:
-          return OpcodeType.ABx;
-        case Opcode.JMP:
-        case Opcode.FORPREP:
-        case Opcode.FORLOOP:
-          return OpcodeType.SBx;
-        default:
-          throw new NotImplementedException($"Unsupported opcode: {op}.");
-      }
+      return op switch {
+        Opcode.MOVE => OpcodeType.ABC,
+        Opcode.LOADNIL => OpcodeType.ABC,
+        Opcode.LOADBOOL => OpcodeType.ABC,
+        Opcode.NEWTUPLE => OpcodeType.ABC,
+        Opcode.NEWLIST => OpcodeType.ABC,
+        Opcode.NEWDICT => OpcodeType.ABC,
+        Opcode.GETELEM => OpcodeType.ABC,
+        Opcode.SETELEM => OpcodeType.ABC,
+        Opcode.ADD => OpcodeType.ABC,
+        Opcode.SUB => OpcodeType.ABC,
+        Opcode.MUL => OpcodeType.ABC,
+        Opcode.DIV => OpcodeType.ABC,
+        Opcode.FLOORDIV => OpcodeType.ABC,
+        Opcode.POW => OpcodeType.ABC,
+        Opcode.MOD => OpcodeType.ABC,
+        Opcode.UNM => OpcodeType.ABC,
+        Opcode.LEN => OpcodeType.ABC,
+        Opcode.EQ => OpcodeType.ABC,
+        Opcode.LT => OpcodeType.ABC,
+        Opcode.LE => OpcodeType.ABC,
+        Opcode.IN => OpcodeType.ABC,
+        Opcode.TEST => OpcodeType.ABC,
+        Opcode.TESTSET => OpcodeType.ABC,
+        Opcode.CALL => OpcodeType.ABC,
+        Opcode.RETURN => OpcodeType.ABC,
+        Opcode.HALT => OpcodeType.ABC,
+
+        Opcode.LOADK => OpcodeType.ABx,
+        Opcode.GETGLOB => OpcodeType.ABx,
+        Opcode.SETGLOB => OpcodeType.ABx,
+        Opcode.VISNOTIFY => OpcodeType.ABx,
+
+        Opcode.JMP => OpcodeType.SBx,
+        Opcode.FORPREP => OpcodeType.SBx,
+        Opcode.FORLOOP => OpcodeType.SBx,
+
+        _ => throw new NotImplementedException($"Unsupported opcode: {op}."),
+      };
     }
   }
 }

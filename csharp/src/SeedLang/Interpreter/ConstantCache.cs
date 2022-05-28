@@ -20,7 +20,7 @@ namespace SeedLang.Interpreter {
   // A cache class to cache the constant id of constants. It only adds the unique constant into the
   // constant list of the chunk.
   internal class ConstantCache {
-    // A list to collect constatnt values during compilation.
+    // A list to collect constant values during compilation.
     private readonly List<VMValue> _constants = new List<VMValue>();
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();

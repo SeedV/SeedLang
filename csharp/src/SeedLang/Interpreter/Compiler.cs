@@ -117,7 +117,7 @@ namespace SeedLang.Interpreter {
       _helper.Emit(Opcode.FORPREP, index, 0, forIn.Range);
       int bodyStart = _helper.Chunk.Bytecode.Count;
       switch (loopVar.Type) {
-        case VariableInfo.VarType.Global:
+        case VariableType.Global:
           _helper.BeginExprScope();
           uint targetId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
@@ -126,12 +126,12 @@ namespace SeedLang.Interpreter {
                                          forIn.Id.Range);
           _helper.EndExprScope();
           break;
-        case VariableInfo.VarType.Local:
+        case VariableType.Local:
           _helper.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
           _helper.EmitAssignNotification(loopVar.Name, VariableType.Local, loopVar.Id,
                                          forIn.Id.Range);
           break;
-        case VariableInfo.VarType.Upvalue:
+        case VariableType.Upvalue:
           // TODO: handle upvalues.
           break;
       }
@@ -159,17 +159,17 @@ namespace SeedLang.Interpreter {
       Function func = PopFunc();
       uint funcId = _helper.Cache.IdOfConstant(func);
       switch (info.Type) {
-        case VariableInfo.VarType.Global:
+        case VariableType.Global:
           _helper.BeginExprScope();
           uint registerId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
           _helper.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
           _helper.EndExprScope();
           break;
-        case VariableInfo.VarType.Local:
+        case VariableType.Local:
           _helper.Emit(Opcode.LOADK, info.Id, funcId, funcDef.Range);
           break;
-        case VariableInfo.VarType.Upvalue:
+        case VariableType.Upvalue:
           // TODO: handle upvalues.
           break;
       }
@@ -319,14 +319,14 @@ namespace SeedLang.Interpreter {
         case IdentifierExpression id:
           VariableInfo info = _helper.FindVariable(id.Name);
           switch (info.Type) {
-            case VariableInfo.VarType.Global:
+            case VariableType.Global:
               if (!(value is null)) {
                 registerId = VisitExpressionForRegisterId(value);
               }
               _helper.Emit(Opcode.SETGLOB, registerId, info.Id, range);
               _helper.EmitAssignNotification(info.Name, VariableType.Global, registerId, range);
               break;
-            case VariableInfo.VarType.Local:
+            case VariableType.Local:
               if (!(value is null)) {
                 _exprCompiler.RegisterForSubExpr = info.Id;
                 _exprCompiler.Visit(value);
@@ -336,7 +336,7 @@ namespace SeedLang.Interpreter {
               }
               _helper.EmitAssignNotification(info.Name, VariableType.Local, registerId, range);
               break;
-            case VariableInfo.VarType.Upvalue:
+            case VariableType.Upvalue:
               // TODO: handle upvalues.
               break;
           }

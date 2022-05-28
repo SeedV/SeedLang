@@ -48,6 +48,14 @@ namespace SeedLang.Interpreter {
         _valueId = valueId;
       }
 
+      public static bool operator ==(Assignment lhs, Assignment rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(Assignment lhs, Assignment rhs) {
+        return !(lhs == rhs);
+      }
+
       public bool Equals(Assignment other) {
         if (other is null) {
           return false;
@@ -88,6 +96,14 @@ namespace SeedLang.Interpreter {
         _op = op;
         _rightId = rightId;
         _resultId = resultId;
+      }
+
+      public static bool operator ==(Binary lhs, Binary rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(Binary lhs, Binary rhs) {
+        return !(lhs == rhs);
       }
 
       public bool Equals(Binary other) {
@@ -138,6 +154,14 @@ namespace SeedLang.Interpreter {
         _argLength = argLength;
       }
 
+      public static bool operator ==(Function lhs, Function rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(Function lhs, Function rhs) {
+        return !(lhs == rhs);
+      }
+
       public bool Equals(Function other) {
         if (other is null) {
           return false;
@@ -181,6 +205,14 @@ namespace SeedLang.Interpreter {
     }
 
     internal sealed class SingleStep : AbstractNotification, IEquatable<SingleStep> {
+      public static bool operator ==(SingleStep lhs, SingleStep rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(SingleStep lhs, SingleStep rhs) {
+        return !(lhs == rhs);
+      }
+
       public bool Equals(SingleStep other) {
         if (other is null) {
           return false;
@@ -218,6 +250,14 @@ namespace SeedLang.Interpreter {
         _type = type;
         _keyId = keyId;
         _valueId = valueId;
+      }
+
+      public static bool operator ==(SubscriptAssignment lhs, SubscriptAssignment rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(SubscriptAssignment lhs, SubscriptAssignment rhs) {
+        return !(lhs == rhs);
       }
 
       public bool Equals(SubscriptAssignment other) {
@@ -262,6 +302,14 @@ namespace SeedLang.Interpreter {
         _resultId = resultId;
       }
 
+      public static bool operator ==(Unary lhs, Unary rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(Unary lhs, Unary rhs) {
+        return !(lhs == rhs);
+      }
+
       public bool Equals(Unary other) {
         if (other is null) {
           return false;
@@ -293,12 +341,18 @@ namespace SeedLang.Interpreter {
     }
 
     internal sealed class VariableDefined : AbstractNotification, IEquatable<VariableDefined> {
-      private readonly string _name;
-      private readonly VariableType _type;
+      public VariableInfo Info { get; }
 
-      internal VariableDefined(string name, VariableType type) {
-        _name = name;
-        _type = type;
+      internal VariableDefined(VariableInfo info) {
+        Info = info;
+      }
+
+      public static bool operator ==(VariableDefined lhs, VariableDefined rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(VariableDefined lhs, VariableDefined rhs) {
+        return !(lhs == rhs);
       }
 
       public bool Equals(VariableDefined other) {
@@ -308,7 +362,7 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return _name == other._name && _type == other._type;
+        return Info == other.Info;
       }
 
       public override bool Equals(object obj) {
@@ -316,16 +370,16 @@ namespace SeedLang.Interpreter {
       }
 
       public override int GetHashCode() {
-        return new { _name, _type, }.GetHashCode();
+        return Info.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: '{_name}' {_type}";
+        return $"Notification.{GetType().Name}: {Info}";
       }
 
       internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
                                     Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        Notify(new Event.VariableDefined(_name, _type, range), visualizerCenter, vm);
+        Notify(new Event.VariableDefined(Info.Name, Info.Type, range), visualizerCenter, vm);
       }
     }
 
@@ -339,6 +393,14 @@ namespace SeedLang.Interpreter {
         Name = name;
         Args = args;
         ValueIds = valueIds;
+      }
+
+      public static bool operator ==(VTagInfo lhs, VTagInfo rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(VTagInfo lhs, VTagInfo rhs) {
+        return !(lhs == rhs);
       }
 
       public bool Equals(VTagInfo other) {
@@ -394,6 +456,14 @@ namespace SeedLang.Interpreter {
 
       internal VTag(VTagInfo[] vTagInfos) {
         _vTagInfos = vTagInfos;
+      }
+
+      public static bool operator ==(VTag lhs, VTag rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(VTag lhs, VTag rhs) {
+        return !(lhs == rhs);
       }
 
       public bool Equals(VTag other) {

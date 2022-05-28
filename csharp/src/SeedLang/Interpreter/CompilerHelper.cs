@@ -66,9 +66,7 @@ namespace SeedLang.Interpreter {
 
     internal VariableInfo DefineVariable(string name, TextRange range) {
       VariableInfo info = _variableResolver.DefineVariable(name);
-      VariableType type = info.Type == VariableInfo.VarType.Global ? VariableType.Global :
-                                                                     VariableType.Local;
-      EmitVariableDefinedNotification(info.Name, type, range);
+      EmitVariableDefinedNotification(info, range);
       return info;
     }
 
@@ -92,7 +90,7 @@ namespace SeedLang.Interpreter {
     internal uint? GetRegisterId(Expression expr) {
       if (expr is IdentifierExpression identifier &&
           _variableResolver.FindVariable(identifier.Name) is VariableInfo info &&
-          info.Type == VariableInfo.VarType.Local) {
+          info.Type == VariableType.Local) {
         return info.Id;
       }
       return null;
@@ -177,13 +175,13 @@ namespace SeedLang.Interpreter {
         if (subscript.Container is IdentifierExpression identifier) {
           if (_variableResolver.FindVariable(identifier.Name) is VariableInfo info) {
             switch (info.Type) {
-              case VariableInfo.VarType.Global:
+              case VariableType.Global:
                 type = VariableType.Global;
                 break;
-              case VariableInfo.VarType.Local:
+              case VariableType.Local:
                 type = VariableType.Local;
                 break;
-              case VariableInfo.VarType.Upvalue:
+              case VariableType.Upvalue:
                 // TODO: handle upvalues.
                 break;
             }
@@ -204,10 +202,10 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal void EmitVariableDefinedNotification(string name, VariableType type, TextRange range) {
+    internal void EmitVariableDefinedNotification(VariableInfo info, TextRange range) {
       if (_visualizerCenter.HasVisualizer<Event.VariableDefined>() &&
           !_suspendNotificationEmitting) {
-        var n = new Notification.VariableDefined(name, type);
+        var n = new Notification.VariableDefined(info);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }

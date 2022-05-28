@@ -23,6 +23,7 @@ namespace SeedLang.Visualization {
   public enum VariableType {
     Global,
     Local,
+    Upvalue,
   }
 
   public class VTagInfo {

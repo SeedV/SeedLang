@@ -105,6 +105,9 @@ namespace SeedLang.Tests.Helper {
         case Event.VariableDefined vde:
           sb.AppendLine($"{vde.Range} VariableDefined: {vde.Name}: {vde.Type}");
           break;
+        case Event.VariableDeleted vde:
+          sb.AppendLine($"{vde.Range} VariableDeleted: {vde.Name}: {vde.Type}");
+          break;
         case Event.VTagEntered vee:
           sb.AppendLine($"{vee.Range} VTagEntered: {string.Join(", ", vee.VTags)}");
           break;

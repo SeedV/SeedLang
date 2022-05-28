@@ -18,6 +18,7 @@ using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
@@ -94,13 +95,13 @@ namespace SeedLang.Interpreter {
           bool needRegister = resultRegister != _helper.LastRegister;
           uint funcRegister = needRegister ? _helper.DefineTempVariable() : resultRegister;
           switch (info.Type) {
-            case VariableInfo.VarType.Global:
+            case VariableType.Global:
               _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
               break;
-            case VariableInfo.VarType.Local:
+            case VariableType.Local:
               _helper.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
               break;
-            case VariableInfo.VarType.Upvalue:
+            case VariableType.Upvalue:
               // TODO: handle upvalues.
               break;
           }
@@ -155,13 +156,13 @@ namespace SeedLang.Interpreter {
     protected override void VisitIdentifier(IdentifierExpression identifier) {
       if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
         switch (info.Type) {
-          case VariableInfo.VarType.Global:
+          case VariableType.Global:
             _helper.Emit(Opcode.GETGLOB, RegisterForSubExpr, info.Id, identifier.Range);
             break;
-          case VariableInfo.VarType.Local:
+          case VariableType.Local:
             _helper.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
             break;
-          case VariableInfo.VarType.Upvalue:
+          case VariableType.Upvalue:
             // TODO: handle upvalues.
             break;
         }

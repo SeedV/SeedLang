@@ -26,6 +26,27 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class VMNotificationTests {
     [Fact]
+    public void TestSingleStepNotification() {
+      string source = @"
+# [[ Assign(a) ]]
+a = 1
+b = 2
+";
+      (string _, VisualizerHelper vh) = Run(source, new Type[] {
+        typeof(Event.SingleStep),
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      });
+      var expected = (
+        "[Ln 3, Col 0 - Ln 3, Col 0] SingleStep\n" +
+        "[Ln 4, Col 0 - Ln 4, Col 0] SingleStep\n" +
+        "[Ln 2, Col 0 - Ln 3, Col 4] VTagEntered: Assign(a: None)\n" +
+        "[Ln 2, Col 0 - Ln 3, Col 4] VTagExited: Assign(a: 1)\n"
+      ).Replace("\n", Environment.NewLine);
+      Assert.Equal(expected, vh.EventsToString());
+    }
+
+    [Fact]
     public void TestVariableNotification() {
       string source = @"
 def add(a, b):
@@ -43,28 +64,10 @@ x = add(1, 2)
         "[Ln 6, Col 0 - Ln 6, Col 0] VariableDefined: global.x: Global\n" +
         "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: global.add.a: Local\n" +
         "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: global.add.b: Local\n" +
-        "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: global.add.c: Local\n"
-      ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, vh.EventsToString());
-    }
-
-    [Fact]
-    public void TestSingleStepNotification() {
-      string source = @"
-# [[ Assign(a) ]]
-a = 1
-b = 2
-";
-      (string _, VisualizerHelper vh) = Run(source, new Type[] {
-        typeof(Event.SingleStep),
-        typeof(Event.VTagEntered),
-        typeof(Event.VTagExited),
-      });
-      var expected = (
-        "[Ln 3, Col 0 - Ln 3, Col 0] SingleStep\n" +
-        "[Ln 4, Col 0 - Ln 4, Col 0] SingleStep\n" +
-        "[Ln 2, Col 0 - Ln 3, Col 4] VTagEntered: Assign(a: None)\n" +
-        "[Ln 2, Col 0 - Ln 3, Col 4] VTagExited: Assign(a: 1)\n"
+        "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: global.add.c: Local\n" +
+        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: global.add.c: Local\n" +
+        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: global.add.b: Local\n" +
+        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: global.add.a: Local\n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, vh.EventsToString());
     }

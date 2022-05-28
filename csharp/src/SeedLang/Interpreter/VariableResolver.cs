@@ -15,24 +15,48 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
-  internal class VariableInfo {
-    internal enum VarType {
-      Global,
-      Local,
-      Temporary,
-      Upvalue,
-    }
-
-    public VarType Type { get; }
-    public uint Id { get; }
+  internal sealed class VariableInfo : IEquatable<VariableInfo> {
     public string Name { get; }
+    public VariableType Type { get; }
+    public uint Id { get; }
 
-    public VariableInfo(VarType type, uint id, string name) {
+    public VariableInfo(string name, VariableType type, uint id) {
+      Name = name;
       Type = type;
       Id = id;
-      Name = name;
+    }
+
+    public static bool operator ==(VariableInfo lhs, VariableInfo rhs) {
+      return lhs.Equals(rhs);
+    }
+
+    public static bool operator !=(VariableInfo lhs, VariableInfo rhs) {
+      return !(lhs == rhs);
+    }
+
+    public bool Equals(VariableInfo other) {
+      if (other is null) {
+        return false;
+      }
+      if (ReferenceEquals(this, other)) {
+        return true;
+      }
+      return Name == other.Name && Type == other.Type && Id == other.Id;
+    }
+
+    public override bool Equals(object obj) {
+      return Equals(obj as VariableInfo);
+    }
+
+    public override int GetHashCode() {
+      return new { Name, Type, Id }.GetHashCode();
+    }
+
+    public override string ToString() {
+      return $"'{Name}' {Type} {Id}";
     }
   }
 
@@ -43,16 +67,17 @@ namespace SeedLang.Interpreter {
       public int Count => _variableInfos.Count;
       private readonly List<VariableInfo> _variableInfos = new List<VariableInfo>();
 
-      internal VariableInfo AllocateRegister(string name = null) {
-        var type = name is null ? VariableInfo.VarType.Temporary : VariableInfo.VarType.Local;
-        var info = new VariableInfo(type, (uint)_variableInfos.Count, name);
+      internal uint AllocateRegister(string name = null) {
+        var id = (uint)_variableInfos.Count;
+        var info = name is null ? null : new VariableInfo(name, VariableType.Local, id);
         _variableInfos.Add(info);
-        return info;
+        return id;
       }
 
       internal VariableInfo this[int index] {
         get {
           Debug.Assert(index >= 0 && index < _variableInfos.Count);
+          Debug.Assert(!(_variableInfos[index] is null));
           return _variableInfos[index];
         }
       }
@@ -89,11 +114,11 @@ namespace SeedLang.Interpreter {
       }
 
       public uint DefineTempVariable() {
-        return Registers.AllocateRegister().Id;
+        return Registers.AllocateRegister();
       }
 
       private VariableInfo VariableInfoOf(string name, uint id) {
-        return new VariableInfo(VariableInfo.VarType.Global, id, $"{Path}.{name}");
+        return new VariableInfo($"{Path}.{name}", VariableType.Global, id);
       }
     }
 
@@ -117,7 +142,7 @@ namespace SeedLang.Interpreter {
       }
 
       public uint DefineTempVariable() {
-        return Registers.AllocateRegister().Id;
+        return Registers.AllocateRegister();
       }
 
       internal void ClearTempVariables() {
@@ -136,9 +161,10 @@ namespace SeedLang.Interpreter {
       }
 
       public VariableInfo DefineVariable(string name) {
-        VariableInfo info = Registers.AllocateRegister($"{Path}.{name}");
-        _variables[name] = info.Id;
-        return info;
+        string chainedName = $"{Path}.{name}";
+        uint id = Registers.AllocateRegister(chainedName);
+        _variables[name] = id;
+        return new VariableInfo(chainedName, VariableType.Local, id);
       }
 
       public VariableInfo FindVariable(string name) {
@@ -146,7 +172,7 @@ namespace SeedLang.Interpreter {
       }
 
       public uint DefineTempVariable() {
-        return Registers.AllocateRegister().Id;
+        return Registers.AllocateRegister();
       }
     }
 

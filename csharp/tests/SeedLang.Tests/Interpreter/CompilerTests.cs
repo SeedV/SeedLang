@@ -1,3 +1,4 @@
+using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,19 +18,15 @@ using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
-using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static int _printValFunc =>
-        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
-          return func.Name == NativeFunctions.PrintVal;
-        });
-    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
-    private readonly TextRange _range = AstHelper.TextRange;
+    private static readonly int _printValFunc = NativeFunctionIdOf(NativeFunctions.PrintVal);
+    private static readonly int _firstGlob = NativeFunctions.Funcs.Count;
+    private static readonly TextRange _range = AstHelper.TextRange;
 
     [Fact]
     public void TestCompileAssignment() {
@@ -87,7 +84,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileLocalAssignBinary() {
-      var program = AstHelper.FuncDef("func", Array.Empty<string>(), AstHelper.Assign(
+      var program = AstHelper.FuncDef("func", Array.Empty<IdentifierExpression>(), AstHelper.Assign(
         AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id("a"))),
         AstHelper.Binary(AstHelper.NumberConstant(1), BinaryOperator.Add,
                          AstHelper.NumberConstant(2))
@@ -518,7 +515,7 @@ namespace SeedLang.Interpreter.Tests {
       string a = "a";
       string b = "b";
       var program = AstHelper.Block(
-        AstHelper.FuncDef(add, AstHelper.Params(a, b),
+        AstHelper.FuncDef(add, AstHelper.Params(AstHelper.Id(a), AstHelper.Id(b)),
                           AstHelper.Return(AstHelper.Binary(AstHelper.Id(a), BinaryOperator.Add,
                                                             AstHelper.Id(b)))),
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(add), AstHelper.NumberConstant(1),
@@ -549,7 +546,7 @@ namespace SeedLang.Interpreter.Tests {
       string sum = "sum";
       var n = "n";
       var program = AstHelper.Block(
-        AstHelper.FuncDef(sum, AstHelper.Params(n), AstHelper.Block(
+        AstHelper.FuncDef(sum, AstHelper.Params(AstHelper.Id(n)), AstHelper.Block(
           AstHelper.If(
             AstHelper.Comparison(AstHelper.Id(n), AstHelper.CompOps(ComparisonOperator.EqEqual),
                                  AstHelper.NumberConstant(1)),
@@ -701,7 +698,7 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestCompileLocalScopeForIn() {
       string a = "a";
-      var program = AstHelper.FuncDef("func", Array.Empty<string>(), AstHelper.Block(
+      var program = AstHelper.FuncDef("func", Array.Empty<IdentifierExpression>(), AstHelper.Block(
         AstHelper.ForIn(
           AstHelper.Id(a),
           AstHelper.List(AstHelper.NumberConstant(1),
@@ -752,11 +749,15 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private static void TestCompiler(Statement statement, string expected, RunMode mode) {
-      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
       var vc = new VisualizerCenter();
       var compiler = new Compiler();
       var func = compiler.Compile(statement, env, vc, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    private static int NativeFunctionIdOf(string name) {
+      return NativeFunctions.Funcs.Values.ToList().FindIndex(func => { return func.Name == name; });
     }
   }
 }

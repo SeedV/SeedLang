@@ -87,11 +87,12 @@ namespace SeedLang.Tests.Helper {
       return Statement.ForIn(id, expr, body, TextRange);
     }
 
-    internal static FuncDefStatement FuncDef(string name, string[] parameters, Statement body) {
+    internal static FuncDefStatement FuncDef(string name, IdentifierExpression[] parameters,
+                                             Statement body) {
       return Statement.FuncDef(name, parameters, body, TextRange);
     }
 
-    internal static string[] Params(params string[] parameters) {
+    internal static IdentifierExpression[] Params(params IdentifierExpression[] parameters) {
       return parameters;
     }
 

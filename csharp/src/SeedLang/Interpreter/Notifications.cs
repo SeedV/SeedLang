@@ -13,8 +13,8 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -26,17 +26,11 @@ namespace SeedLang.Interpreter {
     // instructions. The VM will create the corresponding event object based on the information and
     // then send to visualizers.
     internal abstract class AbstractNotification {
-      internal abstract void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range);
-
-      // Notifies visualizers and then invalidate the VM proxy.
-      protected static void Notify<Event>(Event e, VisualizerCenter visualizerCenter, VMProxy vm) {
-        visualizerCenter.Notify(e, vm);
-        vm.Invalid();
-      }
+      internal abstract void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range);
     }
 
-    internal class Assignment : AbstractNotification {
+    internal sealed class Assignment : AbstractNotification, IEquatable<Assignment> {
       private readonly string _name;
       private readonly VariableType _type;
       // The constant or register id of the assigned value.
@@ -48,18 +42,43 @@ namespace SeedLang.Interpreter {
         _valueId = valueId;
       }
 
-      public override string ToString() {
-        return $"Notification.Assignment: '{_name}': {_type} {_valueId}";
+      public static bool operator ==(Assignment lhs, Assignment rhs) {
+        return lhs.Equals(rhs);
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        var e = new Event.Assignment(_name, _type, new Value(getRKValue(_valueId)), range);
-        Notify(e, visualizerCenter, vm);
+      public static bool operator !=(Assignment lhs, Assignment rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(Assignment other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _name == other._name && _type == other._type && _valueId == other._valueId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Assignment);
+      }
+
+      public override int GetHashCode() {
+        return new { _name, _type, _valueId, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: '{_name}': {_type} {_valueId}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        vm.Notify(new Event.Assignment(_name, _type, new Value(getRKValue(_valueId)), range));
       }
     }
 
-    internal class Binary : AbstractNotification {
+    internal sealed class Binary : AbstractNotification, IEquatable<Binary> {
       private readonly uint _leftId;
       private readonly BinaryOperator _op;
       private readonly uint _rightId;
@@ -72,20 +91,46 @@ namespace SeedLang.Interpreter {
         _resultId = resultId;
       }
 
-      public override string ToString() {
-        return $"Notification.Binary: {_leftId} {_op} {_rightId} {_resultId}";
+      public static bool operator ==(Binary lhs, Binary rhs) {
+        return lhs.Equals(rhs);
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        var e = new Event.Binary(new Value(getRKValue(_leftId)), _op,
-                                 new Value(getRKValue(_rightId)), new Value(getRKValue(_resultId)),
-                                 range);
-        Notify(e, visualizerCenter, vm);
+      public static bool operator !=(Binary lhs, Binary rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(Binary other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _leftId == other._leftId && _op == other._op &&
+               _rightId == other._rightId && _resultId == other._resultId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Binary);
+      }
+
+      public override int GetHashCode() {
+        return new { _leftId, _op, _rightId, _resultId, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {_leftId} {_op} {_rightId} {_resultId}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        vm.Notify(new Event.Binary(new Value(getRKValue(_leftId)), _op,
+                                   new Value(getRKValue(_rightId)),
+                                   new Value(getRKValue(_resultId)), range));
       }
     }
 
-    internal class Function : AbstractNotification {
+    internal sealed class Function : AbstractNotification, IEquatable<Function> {
       internal enum Status : uint {
         Called,
         Returned,
@@ -101,12 +146,38 @@ namespace SeedLang.Interpreter {
         _argLength = argLength;
       }
 
-      public override string ToString() {
-        return $"Notification.Function: {_name} {_funcId} {_argLength}";
+      public static bool operator ==(Function lhs, Function rhs) {
+        return lhs.Equals(rhs);
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
+      public static bool operator !=(Function lhs, Function rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(Function other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _name == other._name && _funcId == other._funcId && _argLength == other._argLength;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Function);
+      }
+
+      public override int GetHashCode() {
+        return new { _name, _funcId, _argLength, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {_name} {_funcId} {_argLength}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
         Debug.Assert(Enum.IsDefined(typeof(Status), data));
         switch ((Status)data) {
           case Status.Called:
@@ -115,28 +186,51 @@ namespace SeedLang.Interpreter {
             for (uint i = 0; i < _argLength; i++) {
               args[i] = new Value(getRKValue(argStartId + i));
             }
-            Notify(new Event.FuncCalled(_name, args, range), visualizerCenter, vm);
+            vm.Notify(new Event.FuncCalled(_name, args, range));
             break;
           case Status.Returned:
-            var e = new Event.FuncReturned(_name, new Value(getRKValue(_funcId)), range);
-            Notify(e, visualizerCenter, vm);
+            vm.Notify(new Event.FuncReturned(_name, new Value(getRKValue(_funcId)), range));
             break;
         }
       }
     }
 
-    internal class SingleStep : AbstractNotification {
-      public override string ToString() {
-        return $"Notification.SingleStep";
+    internal sealed class SingleStep : AbstractNotification, IEquatable<SingleStep> {
+      public static bool operator ==(SingleStep lhs, SingleStep rhs) {
+        return lhs.Equals(rhs);
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        Notify(new Event.SingleStep(range), visualizerCenter, vm);
+      public static bool operator !=(SingleStep lhs, SingleStep rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(SingleStep other) {
+        if (other is null) {
+          return false;
+        }
+        return true;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as SingleStep);
+      }
+
+      public override int GetHashCode() {
+        return GetType().GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        vm.Notify(new Event.SingleStep(range));
       }
     }
 
-    internal class SubscriptAssignment : AbstractNotification {
+    internal sealed class SubscriptAssignment :
+        AbstractNotification, IEquatable<SubscriptAssignment> {
       private readonly string _name;
       private readonly VariableType _type;
       private readonly uint _keyId;
@@ -149,19 +243,45 @@ namespace SeedLang.Interpreter {
         _valueId = valueId;
       }
 
-      public override string ToString() {
-        return $"Notification.SubscriptAssignment: '{_name}': {_type} {_keyId} {_valueId}";
+      public static bool operator ==(SubscriptAssignment lhs, SubscriptAssignment rhs) {
+        return lhs.Equals(rhs);
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        var e = new Event.SubscriptAssignment(_name, _type, new Value(getRKValue(_keyId)),
-                                              new Value(getRKValue(_valueId)), range);
-        Notify(e, visualizerCenter, vm);
+      public static bool operator !=(SubscriptAssignment lhs, SubscriptAssignment rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(SubscriptAssignment other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _name == other._name && _type == other._type &&
+               _keyId == other._keyId && _valueId == other._valueId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as SubscriptAssignment);
+      }
+
+      public override int GetHashCode() {
+        return new { _name, _type, _keyId, _valueId, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: '{_name}': {_type} {_keyId} {_valueId}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        vm.Notify(new Event.SubscriptAssignment(_name, _type, new Value(getRKValue(_keyId)),
+                                                new Value(getRKValue(_valueId)), range));
       }
     }
 
-    internal class Unary : AbstractNotification {
+    internal sealed class Unary : AbstractNotification, IEquatable<Unary> {
       private readonly UnaryOperator _op;
       private readonly uint _valueId;
       private readonly uint _resultId;
@@ -172,19 +292,130 @@ namespace SeedLang.Interpreter {
         _resultId = resultId;
       }
 
-      public override string ToString() {
-        return $"Notification.Unary: {_op} {_valueId} {_resultId}";
+      public static bool operator ==(Unary lhs, Unary rhs) {
+        return lhs.Equals(rhs);
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        var e = new Event.Unary(_op, new Value(getRKValue(_valueId)),
-                                new Value(getRKValue(_resultId)), range);
-        Notify(e, visualizerCenter, vm);
+      public static bool operator !=(Unary lhs, Unary rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(Unary other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _op == other._op && _valueId == other._valueId && _resultId == other._resultId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Unary);
+      }
+
+      public override int GetHashCode() {
+        return new { _op, _valueId, _resultId, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {_op} {_valueId} {_resultId}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        vm.Notify(new Event.Unary(_op, new Value(getRKValue(_valueId)),
+                                  new Value(getRKValue(_resultId)), range));
       }
     }
 
-    public class VTagInfo {
+    internal sealed class VariableDefined : AbstractNotification, IEquatable<VariableDefined> {
+      public VariableInfo Info { get; }
+
+      internal VariableDefined(VariableInfo info) {
+        Info = info;
+      }
+
+      public static bool operator ==(VariableDefined lhs, VariableDefined rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(VariableDefined lhs, VariableDefined rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(VariableDefined other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return Info == other.Info;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as VariableDefined);
+      }
+
+      public override int GetHashCode() {
+        return Info.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {Info}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        vm.Notify(new Event.VariableDefined(Info.Name, Info.Type, range));
+      }
+    }
+
+    internal sealed class VariableDeleted : AbstractNotification, IEquatable<VariableDeleted> {
+      public uint StartId { get; }
+
+      internal VariableDeleted(uint startId) {
+        StartId = startId;
+      }
+
+      public static bool operator ==(VariableDeleted lhs, VariableDeleted rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(VariableDeleted lhs, VariableDeleted rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(VariableDeleted other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return StartId == other.StartId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as VariableDeleted);
+      }
+
+      public override int GetHashCode() {
+        return StartId.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {StartId}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        throw new NotImplementedException("");
+      }
+    }
+
+    public sealed class VTagInfo : IEquatable<VTagInfo> {
       public string Name { get; }
       public string[] Args { get; }
       public uint?[] ValueIds { get; }
@@ -194,6 +425,42 @@ namespace SeedLang.Interpreter {
         Name = name;
         Args = args;
         ValueIds = valueIds;
+      }
+
+      public static bool operator ==(VTagInfo lhs, VTagInfo rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(VTagInfo lhs, VTagInfo rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(VTagInfo other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return Name == other.Name &&
+               Enumerable.SequenceEqual(Args, other.Args) &&
+               Enumerable.SequenceEqual(ValueIds, other.ValueIds);
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as VTagInfo);
+      }
+
+      public override int GetHashCode() {
+        var hashCode = new HashCode();
+        hashCode.Add(Name);
+        foreach (string arg in Args) {
+          hashCode.Add(arg);
+        }
+        foreach (uint? valueId in ValueIds) {
+          hashCode.Add(valueId);
+        }
+        return hashCode.ToHashCode();
       }
 
       public override string ToString() {
@@ -211,46 +478,67 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal abstract class VTag : AbstractNotification {
+    internal sealed class VTag : AbstractNotification, IEquatable<VTag> {
+      internal enum Status : uint {
+        Entered,
+        Exited,
+      }
+
       private readonly VTagInfo[] _vTagInfos;
 
       internal VTag(VTagInfo[] vTagInfos) {
         _vTagInfos = vTagInfos;
       }
 
+      public static bool operator ==(VTag lhs, VTag rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(VTag lhs, VTag rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(VTag other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return Enumerable.SequenceEqual(_vTagInfos, other._vTagInfos);
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as VTag);
+      }
+
+      public override int GetHashCode() {
+        var hashCode = new HashCode();
+        foreach (VTagInfo info in _vTagInfos) {
+          hashCode.Add(info);
+        }
+        return hashCode.ToHashCode();
+      }
+
       public override string ToString() {
         return $"Notification.{GetType().Name}: {string.Join<VTagInfo>(", ", _vTagInfos)}";
       }
 
-      internal override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                    Func<uint, VMValue> getRKValue, uint data, TextRange range) {
-        var vTags = Array.ConvertAll(_vTagInfos, vTag => {
-          var values = Array.ConvertAll(vTag.ValueIds, valueId =>
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        var vTags = Array.ConvertAll(_vTagInfos, vTagInfo => {
+          var values = Array.ConvertAll(vTagInfo.ValueIds, valueId =>
               valueId.HasValue ? new Value(getRKValue(valueId.Value)) : new Value());
-          return new Visualization.VTagInfo(vTag.Name, vTag.Args, values);
+          return new Visualization.VTagInfo(vTagInfo.Name, vTagInfo.Args, values);
         });
-        Notify(visualizerCenter, vm, vTags, range);
-      }
-
-      protected abstract void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range);
-    }
-
-    internal class VTagEntered : VTag {
-      internal VTagEntered(VTagInfo[] vTagInfos) : base(vTagInfos) { }
-
-      protected override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range) {
-        visualizerCenter.Notify(new Event.VTagEntered(vTags, range), vm);
-      }
-    }
-
-    internal class VTagExited : VTag {
-      internal VTagExited(VTagInfo[] vTagInfos) : base(vTagInfos) { }
-
-      protected override void Notify(VisualizerCenter visualizerCenter, VMProxy vm,
-                                     IReadOnlyList<Visualization.VTagInfo> vTags, TextRange range) {
-        visualizerCenter.Notify(new Event.VTagExited(vTags, range), vm);
+        switch ((Status)data) {
+          case Status.Entered:
+            vm.Notify(new Event.VTagEntered(vTags, range));
+            break;
+          case Status.Exited:
+            vm.Notify(new Event.VTagExited(vTags, range));
+            break;
+        }
       }
     }
   }

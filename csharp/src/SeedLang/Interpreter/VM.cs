@@ -25,8 +25,17 @@ using SeedLang.Visualization;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
+    // The class to track the variable information of each register.
+    private class RegisterInfo {
+      public string Name { get; }
+
+      internal RegisterInfo(string name) {
+        Name = name;
+      }
+    }
+
     public VMState State { get; private set; } = VMState.Ready;
-    public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs);
+    public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
     public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
 
     private readonly Sys _sys = new Sys();
@@ -40,6 +49,8 @@ namespace SeedLang.Interpreter {
     private Chunk _chunk;
     private uint _baseRegister;
     private int _pc;
+
+    private readonly List<RegisterInfo> _registerInfos = new List<RegisterInfo>();
 
     internal void RedirectStdout(TextWriter stdout) {
       _sys.Stdout = stdout;
@@ -71,6 +82,12 @@ namespace SeedLang.Interpreter {
         _chunk.RestoreBreakPoint();
       }
       State = VMState.Stopped;
+    }
+
+    internal void Notify<Event>(Event e) {
+      var vmProxy = new VMProxy(this);
+      VisualizerCenter.Notify(e, vmProxy);
+      vmProxy.Invalid();
     }
 
     private void RunLoop() {
@@ -205,26 +222,13 @@ namespace SeedLang.Interpreter {
                 break;
               }
             case Opcode.CALL:
-              CallFunction(instr);
+              CallFunc(instr);
               break;
             case Opcode.RETURN:
-              // TODO: only support one return value now.
-              if (_baseRegister > 0) {
-                uint returnRegister = _baseRegister - 1;
-                _stack[returnRegister] = instr.B > 0 ? _stack[_baseRegister + instr.A] :
-                                                       new VMValue();
-              }
-              _callStack.PopFunc();
-              Debug.Assert(!_callStack.IsEmpty);
-              _chunk = _callStack.CurrentChunk();
-              _baseRegister = _callStack.CurrentBase();
-              _pc = _callStack.CurrentPC();
+              ReturnFromFunc(instr);
               break;
             case Opcode.VISNOTIFY:
-              var vmProxy = new VMProxy(this);
-              _chunk.Notifications[(int)instr.Bx].Notify(VisualizerCenter, vmProxy, (uint id) => {
-                return ValueOfRK(id);
-              }, instr.A, _chunk.Ranges[_pc]);
+              HandleVisNotify(instr);
               break;
             case Opcode.HALT:
               State = instr.A == 0 ? VMState.Paused : VMState.Stopped;
@@ -280,7 +284,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    private void CallFunction(Instruction instr) {
+    private void CallFunc(Instruction instr) {
       int calleeRegister = (int)(_baseRegister + instr.A);
       var callee = _stack[calleeRegister].AsFunction();
       switch (callee) {
@@ -293,6 +297,47 @@ namespace SeedLang.Interpreter {
           _chunk = func.Chunk;
           _pc = -1;
           break;
+      }
+    }
+
+    private void ReturnFromFunc(Instruction instr) {
+      // TODO: only support one return value now.
+      if (_baseRegister > 0) {
+        uint returnRegister = _baseRegister - 1;
+        _stack[returnRegister] = instr.B > 0 ? _stack[_baseRegister + instr.A] :
+                                               new VMValue();
+      }
+      _callStack.PopFunc();
+      Debug.Assert(!_callStack.IsEmpty);
+      _chunk = _callStack.CurrentChunk();
+      _baseRegister = _callStack.CurrentBase();
+      _pc = _callStack.CurrentPC();
+    }
+
+    private void HandleVisNotify(Instruction instr) {
+      var notification = _chunk.Notifications[(int)instr.Bx];
+      switch (notification) {
+        case Notification.VariableDefined defined:
+          if (defined.Info.Type == VariableType.Local) {
+            for (int i = _registerInfos.Count; i < _baseRegister + defined.Info.Id; i++) {
+              _registerInfos.Add(null);
+            }
+            _registerInfos.Add(new RegisterInfo(defined.Info.Name));
+          }
+          break;
+        case Notification.VariableDeleted deleted:
+          for (int i = _registerInfos.Count - 1; i >= _baseRegister + deleted.StartId; i--) {
+            if (!(_registerInfos[i] is null)) {
+              Notify(new Event.VariableDeleted(_registerInfos[i].Name, VariableType.Local,
+                                               _chunk.Ranges[_pc]));
+            }
+          }
+          return;
+      }
+      if (!(notification is Notification.VariableDefined) ||
+          VisualizerCenter.HasVisualizer<Event.VariableDefined>()) {
+        notification.Notify(this, (uint id) => { return ValueOfRK(id); }, instr.A,
+                            _chunk.Ranges[_pc]);
       }
     }
 

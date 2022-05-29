@@ -82,7 +82,7 @@ namespace SeedLang.Interpreter.Tests {
       string a = "a";
       string b = "b";
       var program = AstHelper.Block(
-        AstHelper.FuncDef(name, AstHelper.Params(a, b),
+        AstHelper.FuncDef(name, AstHelper.Params(AstHelper.Id(a), AstHelper.Id(b)),
           AstHelper.Return(AstHelper.Binary(AstHelper.Id(a),
                                             BinaryOperator.Add,
                                             AstHelper.Id(b))
@@ -125,7 +125,7 @@ namespace SeedLang.Interpreter.Tests {
                                                            AstHelper.NumberConstant(2)))
       ));
       var program = AstHelper.Block(
-        AstHelper.FuncDef(fib, new string[] { n }, AstHelper.Block(
+        AstHelper.FuncDef(fib, AstHelper.Params(AstHelper.Id(n)), AstHelper.Block(
           AstHelper.If(test, trueBlock, falseBlock)
         )),
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(fib), AstHelper.NumberConstant(10)))
@@ -275,27 +275,6 @@ print(a, x, y, z)
       (string output, VisualizerHelper _) = Run(Parse(source), Array.Empty<Type>());
       var expectedOutput = $"[1, [...], 3] 1 2 (1, 2)" + Environment.NewLine;
       Assert.Equal(expectedOutput, output);
-    }
-
-    [Fact]
-    public void TestSingleStepNotification() {
-      string source = @"
-# [[ Assign(a) ]]
-a = 1
-b = 2
-";
-      (string _, VisualizerHelper vh) = Run(Parse(source), new Type[] {
-        typeof(Event.SingleStep),
-        typeof(Event.VTagEntered),
-        typeof(Event.VTagExited),
-      });
-      var expected = (
-        "[Ln 3, Col 0 - Ln 3, Col 0] SingleStep\n" +
-        "[Ln 4, Col 0 - Ln 4, Col 0] SingleStep\n" +
-        "[Ln 2, Col 0 - Ln 3, Col 4] VTagEntered: Assign(a: None)\n" +
-        "[Ln 2, Col 0 - Ln 3, Col 4] VTagExited: Assign(a: 1)\n"
-      ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, vh.EventsToString());
     }
 
     [Fact]

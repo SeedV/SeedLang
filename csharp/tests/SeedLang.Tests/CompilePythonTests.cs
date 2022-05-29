@@ -1,3 +1,4 @@
+using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +16,12 @@
 using System;
 using SeedLang.Common;
 using SeedLang.Runtime;
-using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
 namespace SeedLang.Tests {
   public class CompilePythonTests {
-    private static int _rangeFunc =>
-        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
-          return func.Name == NativeFunctions.Range;
-        });
-    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
+    private static readonly int _rangeFunc = NativeFunctionIdOf(NativeFunctions.Range);
+    private static readonly int _firstGlob = NativeFunctions.Funcs.Count;
 
     [Fact]
     public void TestCompileBreak() {
@@ -153,6 +150,10 @@ for i in range(10):
       engine.Compile(source, "");
       engine.Disassemble(out string result, new DiagnosticCollection());
       Assert.Equal(expectedResult, result);
+    }
+
+    private static int NativeFunctionIdOf(string name) {
+      return NativeFunctions.Funcs.Values.ToList().FindIndex(func => { return func.Name == name; });
     }
   }
 }

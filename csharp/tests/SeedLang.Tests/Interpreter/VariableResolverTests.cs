@@ -15,6 +15,7 @@
 using System;
 using FluentAssertions;
 using SeedLang.Runtime.HeapObjects;
+using SeedLang.Visualization;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
@@ -27,8 +28,8 @@ namespace SeedLang.Interpreter.Tests {
       env.DefineVariable(a).Should().Be(0);
 
       var resolver = new VariableResolver(env);
-      var expectedA = new RegisterInfo(RegisterType.Global, 0, "global.a");
-      var expectedB = new RegisterInfo(RegisterType.Global, 1, "global.b");
+      var expectedA = new VariableInfo("global.a", VariableType.Global, 0);
+      var expectedB = new VariableInfo("global.b", VariableType.Global, 1);
       resolver.FindVariable(a).Should().BeEquivalentTo(expectedA);
       resolver.FindVariable(b).Should().BeNull();
       resolver.DefineVariable(b).Should().BeEquivalentTo(expectedB);
@@ -39,22 +40,24 @@ namespace SeedLang.Interpreter.Tests {
       resolver.BeginFuncScope("foo");
       string local = "local";
       resolver.FindVariable(local).Should().BeNull();
-      var expectedFooLocal = new RegisterInfo(RegisterType.Local, 0, "global.foo.local");
+      var expectedFooLocal = new VariableInfo("global.foo.local", VariableType.Local, 0);
       resolver.DefineVariable(local).Should().BeEquivalentTo(expectedFooLocal);
       resolver.FindVariable(local).Should().BeEquivalentTo(expectedFooLocal);
 
       resolver.FindVariable(a).Should().BeEquivalentTo(expectedA);
       resolver.FindVariable(b).Should().BeEquivalentTo(expectedB);
-      var expectedFooA = new RegisterInfo(RegisterType.Local, 1, "global.foo.a");
+      var expectedFooA = new VariableInfo("global.foo.a", VariableType.Local, 1);
       resolver.DefineVariable(a).Should().BeEquivalentTo(expectedFooA);
 
       resolver.DefineTempVariable().Should().Be(2);
 
       resolver.BeginFuncScope("bar");
-      var expectedBarA = new RegisterInfo(RegisterType.Local, 0, "global.foo.bar.a");
+      var expectedBarA = new VariableInfo("global.foo.bar.a", VariableType.Local, 0);
       resolver.DefineVariable(a).Should().BeEquivalentTo(expectedBarA);
       resolver.FindVariable(a).Should().BeEquivalentTo(expectedBarA);
-      var expectedBarLocal = new RegisterInfo(RegisterType.Local, 1, "global.foo.bar.local");
+      var expectedBarLocal = new VariableInfo("global.foo.bar.local",
+                                              VariableType.Local,
+                                              1);
       resolver.DefineVariable(local).Should().BeEquivalentTo(expectedBarLocal);
       resolver.FindVariable(local).Should().BeEquivalentTo(expectedBarLocal);
       resolver.EndFuncScope();

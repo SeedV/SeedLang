@@ -429,11 +429,11 @@ namespace SeedLang.X {
       AddSemanticToken(TokenType.OpenParenthesis, CodeReferenceUtils.RangeOfToken(openParenToken));
       Debug.Assert(parameterNodes.Length == 0 && commaNodes.Length == 0 ||
                    parameterNodes.Length == commaNodes.Length + 1);
-      var arguments = new string[parameterNodes.Length];
+      var parameters = new IdentifierExpression[parameterNodes.Length];
       for (int i = 0; i < parameterNodes.Length; i++) {
         TextRange parameterRange = CodeReferenceUtils.RangeOfToken(parameterNodes[i].Symbol);
         AddSemanticToken(TokenType.Parameter, parameterRange);
-        arguments[i] = parameterNodes[i].Symbol.Text;
+        parameters[i] = Expression.Identifier(parameterNodes[i].Symbol.Text, parameterRange);
         if (i < commaNodes.Length) {
           AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
         }
@@ -442,7 +442,7 @@ namespace SeedLang.X {
       AddSemanticToken(TokenType.Symbol, CodeReferenceUtils.RangeOfToken(colonToken));
       if (visitor.Visit(blockContext) is Statement block) {
         TextRange range = CodeReferenceUtils.CombineRanges(defRange, block.Range);
-        return Statement.FuncDef(nameToken.Text, arguments, block, range);
+        return Statement.FuncDef(nameToken.Text, parameters, block, range);
       }
       return null;
     }
@@ -610,9 +610,7 @@ namespace SeedLang.X {
       if (statements.Length == 1) {
         return statements[0];
       }
-      Statement first = statements[0];
-      Statement last = statements[^1];
-      TextRange range = CodeReferenceUtils.CombineRanges(first.Range, last.Range);
+      TextRange range = CodeReferenceUtils.CombineRanges(statements[0].Range, statements[^1].Range);
       return new BlockStatement(statements, range);
     }
 

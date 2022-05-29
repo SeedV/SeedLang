@@ -23,6 +23,7 @@ namespace SeedLang.Visualization {
   public enum VariableType {
     Global,
     Local,
+    Upvalue,
   }
 
   public class VTagInfo {
@@ -189,6 +190,28 @@ namespace SeedLang.Visualization {
         Op = op;
         Value = value;
         Result = result;
+      }
+    }
+
+    // An event which is triggered when a variable is defined.
+    public class VariableDefined : AbstractEvent {
+      public string Name { get; }
+      public VariableType Type { get; }
+
+      public VariableDefined(string name, VariableType type, TextRange range) : base(range) {
+        Name = name;
+        Type = type;
+      }
+    }
+
+    // An event which is triggered when a variable is deleted.
+    public class VariableDeleted : AbstractEvent {
+      public string Name { get; }
+      public VariableType Type { get; }
+
+      public VariableDeleted(string name, VariableType type, TextRange range) : base(range) {
+        Name = name;
+        Type = type;
       }
     }
 

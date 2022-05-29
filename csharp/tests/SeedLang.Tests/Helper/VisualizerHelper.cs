@@ -102,6 +102,12 @@ namespace SeedLang.Tests.Helper {
         case Event.Unary ue:
           sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");
           break;
+        case Event.VariableDefined vde:
+          sb.AppendLine($"{vde.Range} VariableDefined: {vde.Name}: {vde.Type}");
+          break;
+        case Event.VariableDeleted vde:
+          sb.AppendLine($"{vde.Range} VariableDeleted: {vde.Name}: {vde.Type}");
+          break;
         case Event.VTagEntered vee:
           sb.AppendLine($"{vee.Range} VTagEntered: {string.Join(", ", vee.VTags)}");
           break;

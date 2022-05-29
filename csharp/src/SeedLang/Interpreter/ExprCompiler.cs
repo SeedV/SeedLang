@@ -18,6 +18,7 @@ using System.Diagnostics;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
@@ -89,18 +90,18 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       // TODO: should call.Func always be IdentifierExpression?
       if (call.Func is IdentifierExpression identifier) {
-        if (_helper.FindVariable(identifier.Name) is RegisterInfo info) {
+        if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
           uint resultRegister = RegisterForSubExpr;
           bool needRegister = resultRegister != _helper.LastRegister;
           uint funcRegister = needRegister ? _helper.DefineTempVariable() : resultRegister;
           switch (info.Type) {
-            case RegisterType.Global:
+            case VariableType.Global:
               _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
               break;
-            case RegisterType.Local:
+            case VariableType.Local:
               _helper.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
               break;
-            case RegisterType.Upvalue:
+            case VariableType.Upvalue:
               // TODO: handle upvalues.
               break;
           }
@@ -153,15 +154,15 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitIdentifier(IdentifierExpression identifier) {
-      if (_helper.FindVariable(identifier.Name) is RegisterInfo info) {
+      if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
         switch (info.Type) {
-          case RegisterType.Global:
+          case VariableType.Global:
             _helper.Emit(Opcode.GETGLOB, RegisterForSubExpr, info.Id, identifier.Range);
             break;
-          case RegisterType.Local:
+          case VariableType.Local:
             _helper.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
             break;
-          case RegisterType.Upvalue:
+          case VariableType.Upvalue:
             // TODO: handle upvalues.
             break;
         }
@@ -180,7 +181,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitNumberConstant(NumberConstantExpression numberConstant) {
-      uint id = _helper.ConstantCache.IdOfConstant(numberConstant.Value);
+      uint id = _helper.Cache.IdOfConstant(numberConstant.Value);
       _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, numberConstant.Range);
     }
 
@@ -194,7 +195,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitStringConstant(StringConstantExpression stringConstant) {
-      uint id = _helper.ConstantCache.IdOfConstant(stringConstant.Value);
+      uint id = _helper.Cache.IdOfConstant(stringConstant.Value);
       _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, stringConstant.Range);
     }
 

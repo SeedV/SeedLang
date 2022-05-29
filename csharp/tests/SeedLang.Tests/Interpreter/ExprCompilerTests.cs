@@ -1,3 +1,4 @@
+using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -351,7 +352,7 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private static void TestCompiler(Statement statement, string expected, RunMode mode) {
-      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
       var vc = new VisualizerCenter();
       var compiler = new Compiler();
       var func = compiler.Compile(statement, env, vc, mode);
@@ -359,9 +360,7 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private static int NativeFunctionIdOf(string name) {
-      return Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
-        return func.Name == name;
-      });
+      return NativeFunctions.Funcs.Values.ToList().FindIndex(func => { return func.Name == name; });
     }
   }
 }

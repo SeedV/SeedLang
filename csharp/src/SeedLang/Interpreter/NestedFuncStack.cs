@@ -20,14 +20,15 @@ namespace SeedLang.Interpreter {
   internal class NestedFuncStack {
     private class Frame {
       public Function Func { get; }
-      public ConstantCache ConstantCache { get; } = new ConstantCache();
+      public ChunkCache Cache { get; } = new ChunkCache();
 
       internal Frame(string name) {
         Func = new Function(name);
       }
 
       internal void UpdateConstantArray() {
-        Func.Chunk.SetConstants(ConstantCache.ToArray());
+        Func.Chunk.SetConstants(Cache.ConstantArray());
+        Func.Chunk.SetNotifications(Cache.NotificationArray());
       }
     }
 
@@ -54,9 +55,9 @@ namespace SeedLang.Interpreter {
       return _frames.Peek().Func.Chunk;
     }
 
-    internal ConstantCache CurrentConstantCache() {
+    internal ChunkCache CurrentConstantCache() {
       Debug.Assert(_frames.Count > 0);
-      return _frames.Peek().ConstantCache;
+      return _frames.Peek().Cache;
     }
   }
 }

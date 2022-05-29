@@ -157,10 +157,14 @@ namespace SeedLang.Shell {
         case Event.SubscriptAssignment sae:
           Console.Write($"SubscriptAssign: {sae.Name}[{sae.Key}] = {sae.Value}");
           break;
-        case Event.Unary ue: {
-            var op = _unaryOperatorStrings[ue.Op];
-            Console.Write($"Unary: {op} {ue.Value} = {ue.Result}");
-          }
+        case Event.Unary ue:
+          Console.Write($"Unary: {_unaryOperatorStrings[ue.Op]} {ue.Value} = {ue.Result}");
+          break;
+        case Event.VariableDefined vde:
+          Console.Write($"VariableDefined: {vde.Name}");
+          break;
+        case Event.VariableDeleted vde:
+          Console.Write($"VariableDeleted: {vde.Name}");
           break;
         case Event.VTagEntered vee:
           Console.Write($"VTagEntered: {string.Join(", ", vee.VTags)}");

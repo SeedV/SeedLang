@@ -1,3 +1,4 @@
+using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,19 +18,15 @@ using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
-using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static int _printValFunc =>
-        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
-          return func.Name == NativeFunctions.PrintVal;
-        });
-    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
-    private readonly TextRange _range = AstHelper.TextRange;
+    private static readonly int _printValFunc = NativeFunctionIdOf(NativeFunctions.PrintVal);
+    private static readonly int _firstGlob = NativeFunctions.Funcs.Count;
+    private static readonly TextRange _range = AstHelper.TextRange;
 
     [Fact]
     public void TestCompileAssignment() {
@@ -752,11 +749,15 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private static void TestCompiler(Statement statement, string expected, RunMode mode) {
-      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
       var vc = new VisualizerCenter();
       var compiler = new Compiler();
       var func = compiler.Compile(statement, env, vc, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    private static int NativeFunctionIdOf(string name) {
+      return NativeFunctions.Funcs.Values.ToList().FindIndex(func => { return func.Name == name; });
     }
   }
 }

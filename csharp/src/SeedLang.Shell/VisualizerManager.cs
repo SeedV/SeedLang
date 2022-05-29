@@ -163,6 +163,9 @@ namespace SeedLang.Shell {
         case Event.VariableDefined vde:
           Console.Write($"VariableDefined: {vde.Name}");
           break;
+        case Event.VariableDeleted vde:
+          Console.Write($"VariableDeleted: {vde.Name}");
+          break;
         case Event.VTagEntered vee:
           Console.Write($"VTagEntered: {string.Join(", ", vee.VTags)}");
           break;

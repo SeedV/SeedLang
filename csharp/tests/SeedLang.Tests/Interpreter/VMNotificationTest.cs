@@ -65,9 +65,9 @@ x = add(1, 2)
         "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: global.add.a: Local\n" +
         "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: global.add.b: Local\n" +
         "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: global.add.c: Local\n" +
-        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: global.add.c: Local\n" +
-        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: global.add.b: Local\n" +
-        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: global.add.a: Local\n"
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: global.add.c: Local\n" +
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: global.add.b: Local\n" +
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: global.add.a: Local\n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, vh.EventsToString());
     }

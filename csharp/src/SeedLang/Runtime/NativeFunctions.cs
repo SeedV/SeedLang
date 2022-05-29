@@ -30,15 +30,20 @@ namespace SeedLang.Runtime {
     public const string Range = "range";
     public const string Slice = "slice";
 
-    public static NativeFunction[] Funcs = new NativeFunction[] {
-        new NativeFunction(PrintVal, PrintValFunc),
-        new NativeFunction(Append, AppendFunc),
-        new NativeFunction(Len, LenFunc),
-        new NativeFunction(List, ListFunc),
-        new NativeFunction(Print, PrintFunc),
-        new NativeFunction(Range, RangeFunc),
-        new NativeFunction(Slice, SliceFunc),
-    };
+    public static Dictionary<string, NativeFunction> Funcs =
+        new Dictionary<string, NativeFunction> {
+          [PrintVal] = new NativeFunction(PrintVal, PrintValFunc),
+          [Append] = new NativeFunction(Append, AppendFunc),
+          [Len] = new NativeFunction(Len, LenFunc),
+          [List] = new NativeFunction(List, ListFunc),
+          [Print] = new NativeFunction(Print, PrintFunc),
+          [Range] = new NativeFunction(Range, RangeFunc),
+          [Slice] = new NativeFunction(Slice, SliceFunc),
+        };
+
+    internal static bool IsNativeFunc(string name) {
+      return Funcs.ContainsKey(name);
+    }
 
     internal static bool IsInternalFunction(string name) {
       return name.StartsWith("__") && name.EndsWith("__");

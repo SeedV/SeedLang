@@ -1,3 +1,4 @@
+using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,7 +143,7 @@ namespace SeedLang.Runtime.Tests {
     }
 
     private static NativeFunction FindFunc(string name) {
-      var func = Array.Find(NativeFunctions.Funcs, func => func.Name == name);
+      var func = NativeFunctions.Funcs.Values.ToList().Find(func => func.Name == name);
       func.Should().NotBeNull();
       return func;
     }

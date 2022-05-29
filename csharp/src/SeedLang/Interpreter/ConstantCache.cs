@@ -17,14 +17,15 @@ using System.Diagnostics;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
-  // A cache class to cache the constant id of constants. It only adds the unique constant into the
-  // constant list of the chunk.
+  // The class to cache the constants and notifications. It only adds the unique constant and
+  // notification into the constant and notification list of the chunk.
   internal class ChunkCache {
-    // A list to collect constant values during compilation.
+    // The list to collect constant values during compilation.
     private readonly List<VMValue> _constants = new List<VMValue>();
     private readonly Dictionary<double, uint> _numbers = new Dictionary<double, uint>();
     private readonly Dictionary<string, uint> _strings = new Dictionary<string, uint>();
 
+    // The list to collect notification information during compilation.
     private readonly List<Notification.AbstractNotification> _notifications =
         new List<Notification.AbstractNotification>();
     private readonly Dictionary<Notification.AbstractNotification, uint> _notificationMap =

@@ -1,3 +1,4 @@
+using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +18,6 @@ using System.Collections.Generic;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
-using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using SeedLang.X;
@@ -25,11 +25,8 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompileNotificationTests {
-    private static int _printValFunc =>
-        Array.FindIndex(NativeFunctions.Funcs, (NativeFunction func) => {
-          return func.Name == NativeFunctions.PrintVal;
-        });
-    private readonly int _firstGlob = NativeFunctions.Funcs.Length;
+    private static readonly int _printValFunc = NativeFunctionIdOf(NativeFunctions.PrintVal);
+    private static readonly int _firstGlob = NativeFunctions.Funcs.Count;
 
     [Fact]
     public void TestAssignment() {
@@ -379,12 +376,14 @@ x = add(1, 2)
         $"  6    LOADK     1 -2             ; 1                 [Ln 6, Col 8 - Ln 6, Col 8]\n" +
         $"  7    LOADK     2 -3             ; 2                 [Ln 6, Col 11 - Ln 6, Col 11]\n" +
         $"  8    CALL      0 2 0                                [Ln 6, Col 4 - Ln 6, Col 12]\n" +
-        $"  9    SETGLOB   0 {_firstGlob + 1}" +
+        $"  9    VISNOTIFY 0 2                                  [Ln 6, Col 4 - Ln 6, Col 12]\n" +
+        $"  10   SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
-        $"  10   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
+        $"  11   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'global.add' Global {_firstGlob}\n" +
         $"  1    Notification.VariableDefined: 'global.x' Global {_firstGlob + 1}\n" +
+        $"  2    Notification.VariableDeleted: 0\n" +
         $"\n" +
         $"Function <add>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 8 - Ln 2, Col 8]\n" +
@@ -509,13 +508,17 @@ x, y = 1, 1 + 2
                                      RunMode mode) {
       Assert.True(new SeedPython().Parse(source, "", new DiagnosticCollection(),
                                          out Statement program, out IReadOnlyList<TokenInfo> _));
-      var env = new GlobalEnvironment(NativeFunctions.Funcs);
+      var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
       var visualizerCenter = new VisualizerCenter();
       var visualizerHelper = new VisualizerHelper(eventTypes);
       visualizerHelper.RegisterToVisualizerCenter(visualizerCenter);
       var compiler = new Compiler();
       var func = compiler.Compile(program, env, visualizerCenter, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
+    }
+
+    private static int NativeFunctionIdOf(string name) {
+      return NativeFunctions.Funcs.Values.ToList().FindIndex(func => { return func.Name == name; });
     }
   }
 }

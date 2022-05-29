@@ -25,6 +25,7 @@ using SeedLang.Visualization;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
+    // The class to track the variable information of each register.
     private class RegisterInfo {
       public string Name { get; }
 
@@ -34,7 +35,7 @@ namespace SeedLang.Interpreter {
     }
 
     public VMState State { get; private set; } = VMState.Ready;
-    public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs);
+    public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
     public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
 
     private readonly Sys _sys = new Sys();
@@ -81,6 +82,12 @@ namespace SeedLang.Interpreter {
         _chunk.RestoreBreakPoint();
       }
       State = VMState.Stopped;
+    }
+
+    internal void Notify<Event>(Event e) {
+      var vmProxy = new VMProxy(this);
+      VisualizerCenter.Notify(e, vmProxy);
+      vmProxy.Invalid();
     }
 
     private void RunLoop() {
@@ -301,17 +308,6 @@ namespace SeedLang.Interpreter {
                                                new VMValue();
       }
       _callStack.PopFunc();
-      if (VisualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
-        for (int i = _registerInfos.Count - 1; i >= _baseRegister; i--) {
-          if (!(_registerInfos[i] is null)) {
-            var vmProxy = new VMProxy(this);
-            var e = new Event.VariableDeleted(_registerInfos[i].Name, VariableType.Local,
-                                              _chunk.Ranges[_pc]);
-            VisualizerCenter.Notify(e, vmProxy);
-            vmProxy.Invalid();
-          }
-        }
-      }
       Debug.Assert(!_callStack.IsEmpty);
       _chunk = _callStack.CurrentChunk();
       _baseRegister = _callStack.CurrentBase();
@@ -320,18 +316,28 @@ namespace SeedLang.Interpreter {
 
     private void HandleVisNotify(Instruction instr) {
       var notification = _chunk.Notifications[(int)instr.Bx];
-      if (notification is Notification.VariableDefined variableDefined &&
-          variableDefined.Info.Type == VariableType.Local) {
-        for (int i = _registerInfos.Count; i < variableDefined.Info.Id; i++) {
-          _registerInfos.Add(null);
-        }
-        _registerInfos.Add(new RegisterInfo(variableDefined.Info.Name));
+      switch (notification) {
+        case Notification.VariableDefined defined:
+          if (defined.Info.Type == VariableType.Local) {
+            for (int i = _registerInfos.Count; i < _baseRegister + defined.Info.Id; i++) {
+              _registerInfos.Add(null);
+            }
+            _registerInfos.Add(new RegisterInfo(defined.Info.Name));
+          }
+          break;
+        case Notification.VariableDeleted deleted:
+          for (int i = _registerInfos.Count - 1; i >= _baseRegister + deleted.StartId; i--) {
+            if (!(_registerInfos[i] is null)) {
+              Notify(new Event.VariableDeleted(_registerInfos[i].Name, VariableType.Local,
+                                               _chunk.Ranges[_pc]));
+            }
+          }
+          return;
       }
       if (!(notification is Notification.VariableDefined) ||
           VisualizerCenter.HasVisualizer<Event.VariableDefined>()) {
-        notification.Notify(VisualizerCenter, new VMProxy(this), (uint id) => {
-          return ValueOfRK(id);
-        }, instr.A, _chunk.Ranges[_pc]);
+        notification.Notify(this, (uint id) => { return ValueOfRK(id); }, instr.A,
+                            _chunk.Ranges[_pc]);
       }
     }
 

@@ -38,6 +38,19 @@ namespace SeedLang.Interpreter {
     public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
     public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
 
+    public IEnumerable<IVM.VariableInfo> Globals => Env.Globals;
+    public IEnumerable<IVM.VariableInfo> Locals {
+      get {
+        var locals = new List<IVM.VariableInfo>();
+        for (int i = (int)_baseRegister; i < _registerInfos.Count; i++) {
+          if (_registerInfos[i] is RegisterInfo info) {
+            locals.Add(new IVM.VariableInfo(info.Name, new Value(_stack[i])));
+          }
+        }
+        return locals;
+      }
+    }
+
     private readonly Sys _sys = new Sys();
 
     // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack

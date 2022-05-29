@@ -147,7 +147,7 @@ namespace SeedLang.Interpreter {
       }
       bool notifyVariableDeleted = !_suspendNotificationEmitting &&
                                    !NativeFunctions.IsNativeFunc(name) &&
-                                   _visualizerCenter.HasVisualizer<Event.VariableDeleted>();
+                                   _visualizerCenter.VariableTrackingEnabled;
       if (notifyVariableDeleted) {
         var nId = Cache.IdOfNotification(new Notification.VariableDeleted(0));
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
@@ -209,8 +209,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal void EmitVariableDefinedNotification(VariableInfo info, TextRange range) {
-      if (!_suspendNotificationEmitting &&
-          _visualizerCenter.HasVisualizer<Event.VariableDefined>()) {
+      if (!_suspendNotificationEmitting && _visualizerCenter.VariableTrackingEnabled) {
         var n = new Notification.VariableDefined(info);
         // Doesn't emit single step notifications for the VISNOTIFY instruction.
         Chunk.Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);

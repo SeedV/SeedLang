@@ -38,7 +38,18 @@ namespace SeedLang.Interpreter {
     public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
     public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
 
-    public IEnumerable<IVM.VariableInfo> Globals => Env.Globals;
+    public IEnumerable<IVM.VariableInfo> Globals {
+      get {
+        var globals = new List<IVM.VariableInfo>();
+        foreach (string name in _globals) {
+          if (Env.FindVariable(name) is uint id) {
+            globals.Add(new IVM.VariableInfo(name, new Value(Env.GetVariable(id))));
+          }
+        }
+        return globals;
+      }
+    }
+
     public IEnumerable<IVM.VariableInfo> Locals {
       get {
         var locals = new List<IVM.VariableInfo>();
@@ -63,6 +74,7 @@ namespace SeedLang.Interpreter {
     private uint _baseRegister;
     private int _pc;
 
+    private readonly HashSet<string> _globals = new HashSet<string>();
     private readonly List<RegisterInfo> _registerInfos = new List<RegisterInfo>();
 
     internal void RedirectStdout(TextWriter stdout) {
@@ -331,11 +343,17 @@ namespace SeedLang.Interpreter {
       var notification = _chunk.Notifications[(int)instr.Bx];
       switch (notification) {
         case Notification.VariableDefined defined:
-          if (defined.Info.Type == VariableType.Local) {
-            for (int i = _registerInfos.Count; i < _baseRegister + defined.Info.Id; i++) {
-              _registerInfos.Add(null);
-            }
-            _registerInfos.Add(new RegisterInfo(defined.Info.Name));
+          switch (defined.Info.Type) {
+            case VariableType.Global:
+              Debug.Assert(!_globals.Contains(defined.Info.Name));
+              _globals.Add(defined.Info.Name);
+              break;
+            case VariableType.Local:
+              for (int i = _registerInfos.Count; i < _baseRegister + defined.Info.Id; i++) {
+                _registerInfos.Add(null);
+              }
+              _registerInfos.Add(new RegisterInfo(defined.Info.Name));
+              break;
           }
           break;
         case Notification.VariableDeleted deleted:

@@ -36,22 +36,14 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private class MockupGlobalsVisualizer : IVisualizer<Event.SingleStep> {
-      private Dictionary<string, Value> _initialGlobals;
-
       public void On(Event.SingleStep e, IVM vm) {
         switch (e.Range.Start.Line) {
-          case 2: {
-              _initialGlobals = Enumerable.ToDictionary(vm.Globals,
-                                                        variable => variable.Name,
-                                                        variable => variable.Value);
-            }
-            break;
           case 3: {
               var globals = Enumerable.ToDictionary(vm.Globals,
                                                     variable => variable.Name,
                                                     variable => variable.Value);
               var expected = new Dictionary<string, Value>() { ["a"] = new Value(1), };
-              globals.Except(_initialGlobals).Should().BeEquivalentTo(expected);
+              globals.Should().BeEquivalentTo(expected);
             }
             break;
           case 4: {
@@ -62,7 +54,7 @@ namespace SeedLang.Interpreter.Tests {
                 ["a"] = new Value(1),
                 ["b"] = new Value(2),
               };
-              globals.Except(_initialGlobals).Should().BeEquivalentTo(expected);
+              globals.Should().BeEquivalentTo(expected);
             }
             break;
         }
@@ -77,9 +69,8 @@ namespace SeedLang.Interpreter.Tests {
                                                     variable => variable.Name,
                                                     variable => variable.Value);
               var expected = new Dictionary<string, Value>() {
-                ["global.add.a"] = new Value(1),
-                ["global.add.b"] = new Value(2),
-                ["global.add.c"] = new Value(),
+                ["add.a"] = new Value(1),
+                ["add.b"] = new Value(2),
               };
               locals.Should().BeEquivalentTo(expected);
             }
@@ -89,9 +80,9 @@ namespace SeedLang.Interpreter.Tests {
                                                     variable => variable.Name,
                                                     variable => variable.Value);
               var expected = new Dictionary<string, Value>() {
-                ["global.add.a"] = new Value(1),
-                ["global.add.b"] = new Value(2),
-                ["global.add.c"] = new Value(3),
+                ["add.a"] = new Value(1),
+                ["add.b"] = new Value(2),
+                ["add.c"] = new Value(3),
               };
               locals.Should().BeEquivalentTo(expected);
             }
@@ -110,6 +101,7 @@ print(a + b)
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
                                out IReadOnlyList<TokenInfo> _);
       var vm = new VM();
+      vm.VisualizerCenter.VariableTrackingEnabled = true;
       vm.VisualizerCenter.Register(new MockupGlobalsVisualizer());
       var compiler = new Compiler();
       Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);

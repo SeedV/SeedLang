@@ -163,7 +163,7 @@ namespace SeedLang.Interpreter.Tests {
       (string output, VisualizerHelper vh) = Run(program,
                                                  new Type[] { typeof(Event.SubscriptAssignment) });
       Assert.Equal("5" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} (global.a: Global)[1] = 5" + Environment.NewLine;
+      var expected = $"{AstHelper.TextRange} (a: Global)[1] = 5" + Environment.NewLine;
       Assert.Equal(expected, vh.EventsToString());
     }
 
@@ -200,7 +200,7 @@ namespace SeedLang.Interpreter.Tests {
       );
       (string output, VisualizerHelper vh) = Run(program, new Type[] { typeof(Event.Assignment) });
       Assert.Equal("1" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} global.{name}: Global = 1" + Environment.NewLine;
+      var expected = $"{AstHelper.TextRange} {name}: Global = 1" + Environment.NewLine;
       Assert.Equal(expected, vh.EventsToString());
     }
 
@@ -224,8 +224,8 @@ namespace SeedLang.Interpreter.Tests {
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expectedOutput, output);
       var expected = (
-        $"{AstHelper.TextRange} global.{a}: Global = 1\n" +
-        $"{AstHelper.TextRange} global.{b}: Global = 2\n"
+        $"{AstHelper.TextRange} {a}: Global = 1\n" +
+        $"{AstHelper.TextRange} {b}: Global = 2\n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, vh.EventsToString());
     }
@@ -241,7 +241,7 @@ namespace SeedLang.Interpreter.Tests {
       );
       (string output, VisualizerHelper vh) = Run(block, new Type[] { typeof(Event.Assignment) });
       Assert.Equal("(1, 2)" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} global.{name}: Global = (1, 2)" + Environment.NewLine;
+      var expected = $"{AstHelper.TextRange} {name}: Global = (1, 2)" + Environment.NewLine;
       Assert.Equal(expected, vh.EventsToString());
     }
 

@@ -96,7 +96,7 @@ namespace SeedLang.Interpreter {
     }
 
     private class GlobalScope : IScope {
-      public string Path => "global";
+      public string Path => null;
       public Registers Registers { get; } = new Registers();
 
       private readonly GlobalEnvironment _env;
@@ -117,13 +117,13 @@ namespace SeedLang.Interpreter {
         return Registers.AllocateRegister();
       }
 
-      private VariableInfo VariableInfoOf(string name, uint id) {
-        return new VariableInfo($"{Path}.{name}", VariableType.Global, id);
+      private static VariableInfo VariableInfoOf(string name, uint id) {
+        return new VariableInfo($"{name}", VariableType.Global, id);
       }
     }
 
     private class ExprScope : IScope {
-      public string Path => "";
+      public string Path => null;
       public Registers Registers { get; }
 
       private readonly int _start;
@@ -157,7 +157,7 @@ namespace SeedLang.Interpreter {
       private readonly Dictionary<string, uint> _variables = new Dictionary<string, uint>();
 
       internal FuncScope(IScope parent, string name) {
-        Path = $"{parent.Path}.{name}";
+        Path = !(parent.Path is null) ? $"{parent.Path}.{name}" : $"{name}";
       }
 
       public VariableInfo DefineVariable(string name) {

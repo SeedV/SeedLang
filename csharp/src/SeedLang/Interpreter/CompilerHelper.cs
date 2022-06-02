@@ -22,23 +22,23 @@ using SeedLang.Visualization;
 namespace SeedLang.Interpreter {
   // A helper class to encapsulate common functions of Compiler and ExprCompiler classes.
   internal class CompilerHelper {
-    // The chunk on the top of the function stack.
-    public Chunk Chunk { get; set; }
-    // The constant cache on the top of the function stack.
-    public ChunkCache Cache { get; set; }
-
     public uint LastRegister => _variableResolver.LastRegister;
 
     // The stack to collect positions of nested true and false jump bytecode for comparison and
     // boolean expressions.
     public ExprJumpStack ExprJumpStack { get; } = new ExprJumpStack();
 
+    // The chunk on the top of the function stack.
+    public Chunk Chunk => _nestedFuncStack.CurrentChunk();
+
+    // The constant cache on the top of the function stack.
+    public ChunkCache Cache => _nestedFuncStack.CurrentChunkCache();
+
     private readonly VisualizerCenter _visualizerCenter;
 
     private readonly VariableResolver _variableResolver;
 
-    // The source code line number (1-based) of the previous bytecode.
-    private int _sourceLineOfPrevBytecode = 0;
+    private readonly NestedFuncStack _nestedFuncStack = new NestedFuncStack();
 
     // The flag to suspend emitting of notifications.
     private bool _suspendNotificationEmitting = false;
@@ -48,12 +48,22 @@ namespace SeedLang.Interpreter {
       _visualizerCenter = visualizerCenter;
     }
 
-    internal void BeginFuncScope(string name) {
+    internal void PushMainFunc() {
+      _nestedFuncStack.PushFunc("main");
+    }
+
+    internal Function PopMainFunc() {
+      return _nestedFuncStack.PopFunc();
+    }
+
+    internal void PushFunc(string name) {
+      _nestedFuncStack.PushFunc(name);
       _variableResolver.BeginFuncScope(name);
     }
 
-    internal void EndFuncScope() {
+    internal Function PopFunc() {
       _variableResolver.EndFuncScope();
+      return _nestedFuncStack.PopFunc();
     }
 
     internal void BeginExprScope() {
@@ -279,12 +289,12 @@ namespace SeedLang.Interpreter {
 
     private void TryEmitSingleStepNotification(TextRange range) {
       if (!_suspendNotificationEmitting && _visualizerCenter.HasVisualizer<Event.SingleStep>()) {
-        if (range.Start.Line != _sourceLineOfPrevBytecode) {
+        if (range.Start.Line != _nestedFuncStack.CurrentSourceLineOfPrevBytecode()) {
           // Creates the text range to indicate the start of a single step source line.
           var eventRange = new TextRange(range.Start.Line, 0, range.Start.Line, 0);
           var n = new Notification.SingleStep();
           Chunk.Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), eventRange);
-          _sourceLineOfPrevBytecode = range.Start.Line;
+          _nestedFuncStack.SetCurrentSourceLineOfPrevBytecode(range.Start.Line);
         }
       }
     }

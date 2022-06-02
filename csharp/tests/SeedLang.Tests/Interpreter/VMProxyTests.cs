@@ -27,37 +27,30 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class VMProxyTests {
     private class MockupStateVisualizer : IVisualizer<Event.SingleStep> {
-      public Event.SingleStep Event { get; set; }
+      public bool StopOnNextLine { get; set; }
+      public Event.SingleStep Event { get; private set; }
 
       public void On(Event.SingleStep e, IVM vm) {
         Event = e;
-        vm.Pause();
+        if (StopOnNextLine) {
+          vm.Stop();
+          StopOnNextLine = false;
+        } else {
+          vm.Pause();
+        }
       }
     }
 
-    private class MockupGlobalsVisualizer : IVisualizer<Event.SingleStep> {
+    private class MockupVariableVisualizer : IVisualizer<Event.SingleStep> {
+      public int Line { get; private set; }
+      public IEnumerable<IVM.VariableInfo> Globals { get; private set; }
+      public IEnumerable<IVM.VariableInfo> Locals { get; private set; }
+
       public void On(Event.SingleStep e, IVM vm) {
-        switch (e.Range.Start.Line) {
-          case 3: {
-              var globals = Enumerable.ToDictionary(vm.Globals,
-                                                    variable => variable.Name,
-                                                    variable => variable.Value);
-              var expected = new Dictionary<string, Value>() { ["a"] = new Value(1), };
-              globals.Should().BeEquivalentTo(expected);
-            }
-            break;
-          case 4: {
-              var globals = Enumerable.ToDictionary(vm.Globals,
-                                                    variable => variable.Name,
-                                                    variable => variable.Value);
-              var expected = new Dictionary<string, Value>() {
-                ["a"] = new Value(1),
-                ["b"] = new Value(2),
-              };
-              globals.Should().BeEquivalentTo(expected);
-            }
-            break;
-        }
+        Line = e.Range.Start.Line;
+        Globals = vm.Globals;
+        Locals = vm.Locals;
+        vm.Pause();
       }
     }
 
@@ -98,14 +91,22 @@ a = 1
 b = 2
 print(a + b)
 ";
-      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
-                               out IReadOnlyList<TokenInfo> _);
-      var vm = new VM();
-      vm.VisualizerCenter.VariableTrackingEnabled = true;
-      vm.VisualizerCenter.Register(new MockupGlobalsVisualizer());
-      var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
+      var visualizer = new MockupVariableVisualizer();
+      Function func = Compile(source, visualizer, out VM vm, out StringWriter _);
       vm.Run(func);
+      visualizer.Line.Should().Be(2);
+      visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
+      vm.Continue();
+      visualizer.Line.Should().Be(3);
+      visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
+        new IVM.VariableInfo("a", new Value(1)),
+      });
+      vm.Continue();
+      visualizer.Line.Should().Be(4);
+      visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
+        new IVM.VariableInfo("a", new Value(1)),
+        new IVM.VariableInfo("b", new Value(2)),
+      });
     }
 
     [Fact]
@@ -117,14 +118,30 @@ def add(a, b):
 
 add(1, 2)
 ";
-      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
-                               out IReadOnlyList<TokenInfo> _);
-      var vm = new VM();
-      vm.VisualizerCenter.VariableTrackingEnabled = true;
-      vm.VisualizerCenter.Register(new MockupLocalsVisualizer());
-      var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
+      var visualizer = new MockupVariableVisualizer();
+      Function func = Compile(source, visualizer, out VM vm, out StringWriter _);
       vm.Run(func);
+      visualizer.Line.Should().Be(2);
+      visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
+      vm.Continue();
+      visualizer.Line.Should().Be(6);
+      visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
+      vm.Continue();
+      visualizer.Line.Should().Be(2);
+      visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
+      vm.Continue();
+      visualizer.Line.Should().Be(3);
+      visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
+        new IVM.VariableInfo("add.a", new Value(1)),
+        new IVM.VariableInfo("add.b", new Value(2)),
+      });
+      vm.Continue();
+      visualizer.Line.Should().Be(4);
+      visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
+        new IVM.VariableInfo("add.a", new Value(1)),
+        new IVM.VariableInfo("add.b", new Value(2)),
+        new IVM.VariableInfo("add.c", new Value(3)),
+      });
     }
 
     [Fact]
@@ -134,16 +151,8 @@ a = 1
 b = 2
 print(a + b)
 ";
-      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
-                             out IReadOnlyList<TokenInfo> _);
-      var vm = new VM();
       var visualizer = new MockupStateVisualizer();
-      vm.VisualizerCenter.Register(visualizer);
-      var stringWriter = new StringWriter();
-      vm.RedirectStdout(stringWriter);
-      var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
-
+      Function func = Compile(source, visualizer, out VM vm, out StringWriter stringWriter);
       vm.State.Should().Be(VMState.Ready);
       vm.Run(func);
       vm.State.Should().Be(VMState.Paused);
@@ -163,8 +172,6 @@ print(a + b)
       action = () => vm.Pause();
       action.Should().Throw<Exception>();
 
-      stringWriter = new StringWriter();
-      vm.RedirectStdout(stringWriter);
       vm.Run(func);
       vm.State.Should().Be(VMState.Paused);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
@@ -177,6 +184,24 @@ print(a + b)
       vm.Run(func);
       vm.State.Should().Be(VMState.Stopped);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
+
+      visualizer.StopOnNextLine = true;
+      vm.VisualizerCenter.Register(visualizer);
+      vm.Run(func);
+      vm.State.Should().Be(VMState.Stopped);
+    }
+
+    private static Function Compile<Event>(string source, IVisualizer<Event> visualizer,
+                                           out VM vm, out StringWriter stringWriter) {
+      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
+                             out IReadOnlyList<TokenInfo> _);
+      vm = new VM();
+      vm.VisualizerCenter.VariableTrackingEnabled = true;
+      vm.VisualizerCenter.Register(visualizer);
+      stringWriter = new StringWriter();
+      vm.RedirectStdout(stringWriter);
+      var compiler = new Compiler();
+      return compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
     }
   }
 }

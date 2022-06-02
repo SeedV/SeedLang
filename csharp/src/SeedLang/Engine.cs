@@ -99,7 +99,7 @@ namespace SeedLang {
     }
 
     // Dumps the AST tree of the source code.
-    public bool DumpAst(out string result, DiagnosticCollection collection) {
+    public bool DumpAst(out string result, DiagnosticCollection collection = null) {
       if (_astTree is null) {
         result = null;
         collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
@@ -111,7 +111,7 @@ namespace SeedLang {
     }
 
     // Disassembles the compiled bytecode of the source code.
-    public bool Disassemble(out string result, DiagnosticCollection collection) {
+    public bool Disassemble(out string result, DiagnosticCollection collection = null) {
       if (_func is null) {
         result = null;
         collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,

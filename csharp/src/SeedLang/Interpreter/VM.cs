@@ -74,31 +74,37 @@ namespace SeedLang.Interpreter {
     private uint _baseRegister;
     private int _pc;
 
-    private readonly HashSet<string> _globals = new HashSet<string>();
-    private readonly List<RegisterInfo> _registerInfos = new List<RegisterInfo>();
+    private HashSet<string> _globals;
+    private List<RegisterInfo> _registerInfos;
 
     internal void RedirectStdout(TextWriter stdout) {
       _sys.Stdout = stdout;
     }
 
     internal void Run(Function func) {
-      _baseRegister = 0;
+      Debug.Assert(State != VMState.Running, "VM shall be ready or stopped.");
       _callStack = new CallStack();
+      _baseRegister = 0;
       _callStack.PushFunc(func, _baseRegister, 0);
       _chunk = func.Chunk;
       _pc = 0;
+      _globals = new HashSet<string>();
+      _registerInfos = new List<RegisterInfo>();
+      State = VMState.Running;
       RunLoop();
     }
 
     internal void Pause() {
-      Debug.Assert(State == VMState.Running);
+      Debug.Assert(State == VMState.Running, "VM shall be running.");
       Debug.Assert(_pc + 1 < _chunk.Bytecode.Count);
       _chunk.SetBreakPointAt(_pc + 1);
+      State = VMState.Paused;
     }
 
     internal void Continue() {
-      Debug.Assert(State == VMState.Paused);
+      Debug.Assert(State == VMState.Paused, "VM shall be paused.");
       _chunk.RestoreBreakPoint();
+      State = VMState.Running;
       RunLoop();
     }
 
@@ -116,7 +122,6 @@ namespace SeedLang.Interpreter {
     }
 
     private void RunLoop() {
-      State = VMState.Running;
       while (_pc < _chunk.Bytecode.Count) {
         Instruction instr = _chunk.Bytecode[_pc];
         try {
@@ -254,14 +259,20 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.VISNOTIFY:
               HandleVisNotify(instr);
+              if (State == VMState.Stopped) {
+                return;
+              }
               break;
             case Opcode.HALT:
+              // TODO: Explain instr.A
               State = instr.A == 0 ? VMState.Paused : VMState.Stopped;
               return;
             default:
+              State = VMState.Stopped;
               throw new NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
         } catch (DiagnosticException ex) {
+          State = VMState.Stopped;
           throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
                                         ex.Diagnostic.Module, _chunk.Ranges[_pc],
                                         ex.Diagnostic.MessageId);

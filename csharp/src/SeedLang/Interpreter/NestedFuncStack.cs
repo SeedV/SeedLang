@@ -21,6 +21,8 @@ namespace SeedLang.Interpreter {
     private class Frame {
       public Function Func { get; }
       public ChunkCache Cache { get; } = new ChunkCache();
+      // The source code line number (1-based) of the previous bytecode.
+      public int SourceLineOfPrevBytecode { get; set; }
 
       internal Frame(string name) {
         Func = new Function(name);
@@ -55,9 +57,19 @@ namespace SeedLang.Interpreter {
       return _frames.Peek().Func.Chunk;
     }
 
-    internal ChunkCache CurrentConstantCache() {
+    internal ChunkCache CurrentChunkCache() {
       Debug.Assert(_frames.Count > 0);
       return _frames.Peek().Cache;
+    }
+
+    internal int CurrentSourceLineOfPrevBytecode() {
+      Debug.Assert(_frames.Count > 0);
+      return _frames.Peek().SourceLineOfPrevBytecode;
+    }
+
+    internal void SetCurrentSourceLineOfPrevBytecode(int sourceLineOfPrevBytecode) {
+      Debug.Assert(_frames.Count > 0);
+      _frames.Peek().SourceLineOfPrevBytecode = sourceLineOfPrevBytecode;
     }
   }
 }

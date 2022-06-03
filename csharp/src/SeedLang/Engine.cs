@@ -123,7 +123,7 @@ namespace SeedLang {
 
     // Disassembles the compiled bytecode of the source code.
     public bool Disassemble(out string result, DiagnosticCollection collection = null) {
-      if (_func is null) {
+      if (!IsProgramCompiled) {
         result = null;
         collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
                            Message.EngineProgramNotCompiled);
@@ -135,7 +135,7 @@ namespace SeedLang {
 
     // Runs the compiled bytecode of the source code.
     public bool Run(DiagnosticCollection collection = null) {
-      if (_func is null) {
+      if (!IsProgramCompiled) {
         collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
                            Message.EngineProgramNotCompiled);
         return false;

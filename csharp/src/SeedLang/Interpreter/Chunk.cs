@@ -38,7 +38,7 @@ namespace SeedLang.Interpreter {
     private readonly List<Instruction> _bytecode = new List<Instruction>();
 
     // The position of the breakpoint. Only support one breakpoint now.
-    private int _breakPointPos;
+    private int? _breakpointPos;
     // The original instruction at the position of the breakpoint. It is replaced with a HALT
     // instruction when the breakpoint is set.
     private Instruction _instructionAtBreakPoint;
@@ -90,16 +90,19 @@ namespace SeedLang.Interpreter {
 
     // Sets the breakpoint at the given position. The original instruction will be stored, and
     // replaced with a HALT instruction.
-    internal void SetBreakPointAt(int pos) {
+    internal void SetBreakpointAt(int pos) {
       Debug.Assert(pos >= 0 && pos < _bytecode.Count);
-      _breakPointPos = pos;
+      _breakpointPos = pos;
       _instructionAtBreakPoint = _bytecode[pos];
-      _bytecode[pos] = new Instruction(Opcode.HALT, 0, 0, 0);
+      _bytecode[pos] = new Instruction(Opcode.HALT, (uint)HaltReason.Breakpoint, 0, 0);
     }
 
     // Restores the breakpoint with the stored instruction.
-    internal void RestoreBreakPoint() {
-      _bytecode[_breakPointPos] = _instructionAtBreakPoint;
+    internal void RestoreBreakpoint() {
+      if (_breakpointPos is int breakpointPos) {
+        _bytecode[breakpointPos] = _instructionAtBreakPoint;
+        _breakpointPos = default;
+      }
     }
 
     // Sets the constant list. It must be called by the compiler after compilation.

@@ -31,7 +31,7 @@ namespace SeedLang.Interpreter {
     // The chunk on the top of the function stack.
     public Chunk Chunk => _nestedFuncStack.CurrentChunk();
 
-    // The constant cache on the top of the function stack.
+    // The chunk cache on the top of the function stack.
     public ChunkCache Cache => _nestedFuncStack.CurrentChunkCache();
 
     private readonly VisualizerCenter _visualizerCenter;

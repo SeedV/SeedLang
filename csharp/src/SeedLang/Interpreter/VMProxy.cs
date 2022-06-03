@@ -23,9 +23,21 @@ namespace SeedLang.Interpreter {
       _vm = vm;
     }
 
-    public IEnumerable<IVM.VariableInfo> Globals => _vm.Globals;
+    public bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
+      if (_vm is null) {
+        globals = new List<IVM.VariableInfo>();
+        return false;
+      }
+      return _vm.GetGlobals(out globals);
+    }
 
-    public IEnumerable<IVM.VariableInfo> Locals => _vm.Locals;
+    public bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
+      if (_vm is null) {
+        locals = new List<IVM.VariableInfo>();
+        return false;
+      }
+      return _vm.GetLocals(out locals);
+    }
 
     public void Pause() {
       _vm?.Pause();

@@ -19,7 +19,6 @@ using System.Linq;
 using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
-using SeedLang.Runtime;
 using SeedLang.Visualization;
 using SeedLang.X;
 using Xunit;
@@ -27,8 +26,8 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class VMProxyTests {
     private class MockupStateVisualizer : IVisualizer<Event.SingleStep> {
-      public bool StopOnNextLine { get; set; }
-      public Event.SingleStep Event { get; private set; }
+      public bool StopOnNextLine;
+      public Event.SingleStep Event;
 
       public void On(Event.SingleStep e, IVM vm) {
         Event = e;
@@ -42,45 +41,15 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private class MockupVariableVisualizer : IVisualizer<Event.SingleStep> {
-      public int Line { get; private set; }
-      public IEnumerable<IVM.VariableInfo> Globals { get; private set; }
-      public IEnumerable<IVM.VariableInfo> Locals { get; private set; }
+      public int Line;
+      public IReadOnlyList<IVM.VariableInfo> Globals;
+      public IReadOnlyList<IVM.VariableInfo> Locals;
 
       public void On(Event.SingleStep e, IVM vm) {
         Line = e.Range.Start.Line;
-        Globals = vm.Globals;
-        Locals = vm.Locals;
+        vm.GetGlobals(out Globals).Should().Be(true);
+        vm.GetLocals(out Locals).Should().Be(true);
         vm.Pause();
-      }
-    }
-
-    private class MockupLocalsVisualizer : IVisualizer<Event.SingleStep> {
-      public void On(Event.SingleStep e, IVM vm) {
-        switch (e.Range.Start.Line) {
-          case 3: {
-              var locals = Enumerable.ToDictionary(vm.Locals,
-                                                    variable => variable.Name,
-                                                    variable => variable.Value);
-              var expected = new Dictionary<string, Value>() {
-                ["add.a"] = new Value(1),
-                ["add.b"] = new Value(2),
-              };
-              locals.Should().BeEquivalentTo(expected);
-            }
-            break;
-          case 4: {
-              var locals = Enumerable.ToDictionary(vm.Locals,
-                                                    variable => variable.Name,
-                                                    variable => variable.Value);
-              var expected = new Dictionary<string, Value>() {
-                ["add.a"] = new Value(1),
-                ["add.b"] = new Value(2),
-                ["add.c"] = new Value(3),
-              };
-              locals.Should().BeEquivalentTo(expected);
-            }
-            break;
-        }
       }
     }
 
@@ -153,18 +122,18 @@ print(a + b)
 ";
       var visualizer = new MockupStateVisualizer();
       Function func = Compile(source, visualizer, out VM vm, out StringWriter stringWriter);
-      vm.State.Should().Be(VMState.Ready);
+      vm.IsStopped.Should().Be(true);
       vm.Run(func);
-      vm.State.Should().Be(VMState.Paused);
+      vm.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
       vm.Continue();
-      vm.State.Should().Be(VMState.Paused);
+      vm.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(3, 0, 3, 0)));
       vm.Continue();
-      vm.State.Should().Be(VMState.Paused);
+      vm.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(4, 0, 4, 0)));
       vm.Continue();
-      vm.State.Should().Be(VMState.Stopped);
+      vm.IsStopped.Should().Be(true);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
 
       Action action = () => vm.Continue();
@@ -173,22 +142,22 @@ print(a + b)
       action.Should().Throw<Exception>();
 
       vm.Run(func);
-      vm.State.Should().Be(VMState.Paused);
+      vm.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
       vm.Stop();
-      vm.State.Should().Be(VMState.Stopped);
+      vm.IsStopped.Should().Be(true);
 
       stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       vm.VisualizerCenter.Unregister(visualizer);
       vm.Run(func);
-      vm.State.Should().Be(VMState.Stopped);
+      vm.IsStopped.Should().Be(true);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
 
       visualizer.StopOnNextLine = true;
       vm.VisualizerCenter.Register(visualizer);
       vm.Run(func);
-      vm.State.Should().Be(VMState.Stopped);
+      vm.IsStopped.Should().Be(true);
     }
 
     private static Function Compile<Event>(string source, IVisualizer<Event> visualizer,

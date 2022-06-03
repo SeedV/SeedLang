@@ -62,6 +62,11 @@ namespace SeedLang.Interpreter {
     SBx,
   }
 
+  internal enum HaltReason : uint {
+    Breakpoint,
+    Terminated,
+  }
+
   internal static class OpcodeExtension {
     // Returns the type of this opcode.
     internal static OpcodeType Type(this Opcode op) {

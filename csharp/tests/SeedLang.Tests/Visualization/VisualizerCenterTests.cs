@@ -52,15 +52,19 @@ namespace SeedLang.Visualization.Tests {
   }
 
   internal class MockupVM : IVM {
-    public IEnumerable<IVM.VariableInfo> Globals => throw new NotImplementedException();
-
-    public IEnumerable<IVM.VariableInfo> Locals => throw new NotImplementedException();
-
     public void Pause() {
       throw new NotImplementedException();
     }
 
     public void Stop() {
+      throw new NotImplementedException();
+    }
+
+    public bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
+      throw new NotImplementedException();
+    }
+
+    public bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
       throw new NotImplementedException();
     }
   }

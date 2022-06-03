@@ -148,7 +148,7 @@ for i in range(10):
     private static void TestCompile(string source, string expectedResult) {
       var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
       engine.Compile(source, "");
-      engine.Disassemble(out string result, new DiagnosticCollection());
+      engine.Disassemble(out string result);
       Assert.Equal(expectedResult, result);
     }
 

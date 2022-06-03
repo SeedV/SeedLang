@@ -25,7 +25,13 @@ using SeedLang.Visualization;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
-    // The class to track the variable information of each register.
+    private enum State {
+      Running,
+      Paused,
+      Stopped,
+    }
+
+    // The class to store variable information of registers.
     private class RegisterInfo {
       public string Name { get; }
 
@@ -34,33 +40,14 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    public VMState State { get; private set; } = VMState.Ready;
     public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
     public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
 
-    public IEnumerable<IVM.VariableInfo> Globals {
-      get {
-        var globals = new List<IVM.VariableInfo>();
-        foreach (string name in _globals) {
-          if (Env.FindVariable(name) is uint id) {
-            globals.Add(new IVM.VariableInfo(name, new Value(Env.GetVariable(id))));
-          }
-        }
-        return globals;
-      }
-    }
+    public bool IsRunning => _state == State.Running;
+    public bool IsPaused => _state == State.Paused;
+    public bool IsStopped => _state == State.Stopped;
 
-    public IEnumerable<IVM.VariableInfo> Locals {
-      get {
-        var locals = new List<IVM.VariableInfo>();
-        for (int i = (int)_baseRegister; i < _registerInfos.Count; i++) {
-          if (_registerInfos[i] is RegisterInfo info) {
-            locals.Add(new IVM.VariableInfo(info.Name, new Value(_stack[i])));
-          }
-        }
-        return locals;
-      }
-    }
+    private State _state = State.Stopped;
 
     private readonly Sys _sys = new Sys();
 
@@ -74,15 +61,52 @@ namespace SeedLang.Interpreter {
     private uint _baseRegister;
     private int _pc;
 
+    // The hash table to store defined global variable names.
     private HashSet<string> _globals;
+    // The list to store variable information of registers.
     private List<RegisterInfo> _registerInfos;
 
     internal void RedirectStdout(TextWriter stdout) {
       _sys.Stdout = stdout;
     }
 
+    internal bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
+      if (!VisualizerCenter.VariableTrackingEnabled) {
+        globals = new List<IVM.VariableInfo>();
+        return false;
+      }
+      var globalList = new List<IVM.VariableInfo>();
+      foreach (string name in _globals) {
+        if (Env.FindVariable(name) is uint id) {
+          globalList.Add(new IVM.VariableInfo(name, new Value(Env.GetVariable(id))));
+        }
+      }
+      globals = globalList;
+      return true;
+    }
+
+    internal bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
+      if (!VisualizerCenter.VariableTrackingEnabled) {
+        locals = new List<IVM.VariableInfo>();
+        return false;
+      }
+      var localList = new List<IVM.VariableInfo>();
+      for (int i = (int)_baseRegister; i < _registerInfos.Count; i++) {
+        if (_registerInfos[i] is RegisterInfo info) {
+          localList.Add(new IVM.VariableInfo(info.Name, new Value(_stack[i])));
+        }
+      }
+      locals = localList;
+      return true;
+    }
+
     internal void Run(Function func) {
-      Debug.Assert(State != VMState.Running, "VM shall be ready or stopped.");
+      Debug.Assert(!IsRunning, "VM shall not be running.");
+      if (!IsStopped) {
+        Stop();
+      }
+      _state = State.Running;
+
       _callStack = new CallStack();
       _baseRegister = 0;
       _callStack.PushFunc(func, _baseRegister, 0);
@@ -90,29 +114,25 @@ namespace SeedLang.Interpreter {
       _pc = 0;
       _globals = new HashSet<string>();
       _registerInfos = new List<RegisterInfo>();
-      State = VMState.Running;
       RunLoop();
     }
 
     internal void Pause() {
-      Debug.Assert(State == VMState.Running, "VM shall be running.");
-      Debug.Assert(_pc + 1 < _chunk.Bytecode.Count);
-      _chunk.SetBreakPointAt(_pc + 1);
-      State = VMState.Paused;
+      Debug.Assert(IsRunning, "VM shall be running.");
+      _state = State.Paused;
+      _chunk.SetBreakpointAt(_pc + 1);
     }
 
     internal void Continue() {
-      Debug.Assert(State == VMState.Paused, "VM shall be paused.");
-      _chunk.RestoreBreakPoint();
-      State = VMState.Running;
+      Debug.Assert(IsPaused, "VM shall be paused.");
+      _state = State.Running;
+      _chunk.RestoreBreakpoint();
       RunLoop();
     }
 
     internal void Stop() {
-      if (State == VMState.Paused) {
-        _chunk.RestoreBreakPoint();
-      }
-      State = VMState.Stopped;
+      _state = State.Stopped;
+      _chunk.RestoreBreakpoint();
     }
 
     internal void Notify<Event>(Event e) {
@@ -259,20 +279,20 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.VISNOTIFY:
               HandleVisNotify(instr);
-              if (State == VMState.Stopped) {
+              if (IsStopped) {
+                // The execution is stopped by the visualizers.
                 return;
               }
               break;
             case Opcode.HALT:
-              // TODO: Explain instr.A
-              State = instr.A == 0 ? VMState.Paused : VMState.Stopped;
+              _state = instr.A == (uint)HaltReason.Breakpoint ? State.Paused : State.Stopped;
               return;
             default:
-              State = VMState.Stopped;
+              _state = State.Stopped;
               throw new NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
         } catch (DiagnosticException ex) {
-          State = VMState.Stopped;
+          _state = State.Stopped;
           throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
                                         ex.Diagnostic.Module, _chunk.Ranges[_pc],
                                         ex.Diagnostic.MessageId);

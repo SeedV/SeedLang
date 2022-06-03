@@ -21,6 +21,7 @@ namespace SeedLang.Interpreter {
     private class Frame {
       public Function Func { get; }
       public ChunkCache Cache { get; } = new ChunkCache();
+
       // The source code line number (1-based) of the previous bytecode.
       public int SourceLineOfPrevBytecode { get; set; }
 

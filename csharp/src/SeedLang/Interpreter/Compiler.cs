@@ -36,8 +36,8 @@ namespace SeedLang.Interpreter {
       _exprCompiler = new ExprCompiler(_helper);
       _helper.PushMainFunc();
       Visit(program);
-      // Emits the HALT instruction to indicate the ending of the program.
-      _helper.Chunk.Emit(Opcode.HALT, 1, 0, 0, _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
+      _helper.Chunk.Emit(Opcode.HALT, (uint)HaltReason.Terminated, 0, 0,
+                         _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
       return _helper.PopMainFunc();
     }
 

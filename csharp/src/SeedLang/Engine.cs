@@ -25,10 +25,17 @@ namespace SeedLang {
   // and executing SeedX programs, registering visualizers, and inspecting the execution status of
   // programs.
   public class Engine {
-    // The flag to indicate if variable tracking is enabled. It's enabled by calling
-    // "EnableVariableTracking", or registering variable related visualizers like "VariableDefined",
-    // "VariableDeleted" etc.
-    public bool VariableTrackingEnabled => _vm.VisualizerCenter.VariableTrackingEnabled;
+    // The flag to indicate if variable tracking is enabled. The SeedVM will track information of
+    // all global and local variables if It is set to true explicitly or any variable related
+    // visualizers like "VariableDefined", "VariableDeleted" etc. are registered.
+    public bool IsVariableTrackingEnabled {
+      get {
+        return _vm.VisualizerCenter.IsVariableTrackingEnabled;
+      }
+      set {
+        _vm.VisualizerCenter.IsVariableTrackingEnabled = value;
+      }
+    }
 
     public bool IsProgramCompiled => !(_func is null);
     public bool IsRunning => _vm.IsRunning;
@@ -68,11 +75,6 @@ namespace SeedLang {
     // Un-registers a visualizer from the visualizer center.
     public void Unregister<Visualizer>(Visualizer visualizer) {
       _vm.VisualizerCenter.Unregister(visualizer);
-    }
-
-    // Enables variable tracking.
-    public void EnableVariableTracking() {
-      _vm.VisualizerCenter.VariableTrackingEnabled = true;
     }
 
     // Parses SeedX source code into a list of syntax tokens. Incomplete or invalid source code can

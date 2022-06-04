@@ -53,7 +53,7 @@ namespace SeedLang.Visualization {
       }
     }
 
-    public bool VariableTrackingEnabled { get; set; } = false;
+    public bool IsVariableTrackingEnabled { get; set; } = false;
 
     private readonly Dictionary<Type, object> _publishers = new Dictionary<Type, object>();
 
@@ -87,7 +87,7 @@ namespace SeedLang.Visualization {
       }
       if (visualizer is IVisualizer<Event.VariableDefined> ||
           visualizer is IVisualizer<Event.VariableDeleted>) {
-        VariableTrackingEnabled = true;
+        IsVariableTrackingEnabled = true;
       }
     }
 

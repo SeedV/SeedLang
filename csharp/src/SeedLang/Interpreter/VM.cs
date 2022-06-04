@@ -71,7 +71,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
-      if (!VisualizerCenter.VariableTrackingEnabled) {
+      if (!VisualizerCenter.IsVariableTrackingEnabled) {
         globals = new List<IVM.VariableInfo>();
         return false;
       }
@@ -86,7 +86,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
-      if (!VisualizerCenter.VariableTrackingEnabled) {
+      if (!VisualizerCenter.IsVariableTrackingEnabled) {
         locals = new List<IVM.VariableInfo>();
         return false;
       }

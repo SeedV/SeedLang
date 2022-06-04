@@ -165,7 +165,7 @@ print(a + b)
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
                              out IReadOnlyList<TokenInfo> _);
       vm = new VM();
-      vm.VisualizerCenter.VariableTrackingEnabled = true;
+      vm.VisualizerCenter.IsVariableTrackingEnabled = true;
       vm.VisualizerCenter.Register(visualizer);
       stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);

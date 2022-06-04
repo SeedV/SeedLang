@@ -155,7 +155,7 @@ namespace SeedLang.Interpreter {
       }
       bool notifyVariableDeleted = !_suspendNotificationEmitting &&
                                    !NativeFunctions.IsNativeFunc(name) &&
-                                   _visualizerCenter.VariableTrackingEnabled;
+                                   _visualizerCenter.IsVariableTrackingEnabled;
       if (notifyVariableDeleted) {
         var nId = Cache.IdOfNotification(new Notification.VariableDeleted(0));
         Emit(Opcode.VISNOTIFY, 0, nId, range);
@@ -212,7 +212,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal void EmitVariableDefinedNotification(VariableInfo info, TextRange range) {
-      if (!_suspendNotificationEmitting && _visualizerCenter.VariableTrackingEnabled) {
+      if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
         var n = new Notification.VariableDefined(info);
         Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }

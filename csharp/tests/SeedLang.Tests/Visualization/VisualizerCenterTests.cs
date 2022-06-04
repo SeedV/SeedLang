@@ -71,18 +71,18 @@ namespace SeedLang.Visualization.Tests {
 
   public class VisualizerCenterTests {
     [Fact]
-    public void TestEnableVariableTracking() {
+    public void TestIsVariableTrackingEnabled() {
       var vc = new VisualizerCenter();
-      vc.VariableTrackingEnabled.Should().Be(false);
-      vc.VariableTrackingEnabled = true;
-      vc.VariableTrackingEnabled.Should().Be(true);
+      vc.IsVariableTrackingEnabled.Should().Be(false);
+      vc.IsVariableTrackingEnabled = true;
+      vc.IsVariableTrackingEnabled.Should().Be(true);
 
-      vc.VariableTrackingEnabled = false;
+      vc.IsVariableTrackingEnabled = false;
       vc.Register(new MockupVariableDefinedVisualizer());
-      vc.VariableTrackingEnabled.Should().Be(true);
-      vc.VariableTrackingEnabled = false;
+      vc.IsVariableTrackingEnabled.Should().Be(true);
+      vc.IsVariableTrackingEnabled = false;
       vc.Register(new MockupVariableDeletedVisualizer());
-      vc.VariableTrackingEnabled.Should().Be(true);
+      vc.IsVariableTrackingEnabled.Should().Be(true);
     }
 
     [Fact]

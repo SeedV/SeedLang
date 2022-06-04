@@ -181,14 +181,14 @@ namespace SeedLang.Interpreter {
     internal void EmitGetElementNotification(uint targetId, uint containerId, uint keyId,
                                              TextRange range) {
       if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
-        var n = new Notification.GetElement(targetId, containerId, keyId);
+        var n = new Notification.ElementLoaded(targetId, containerId, keyId);
         Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }
     }
 
     internal void EmitGetGlobalNotification(uint targetId, string name, TextRange range) {
       if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
-        var n = new Notification.GetGlobal(targetId, name);
+        var n = new Notification.GlobalLoaded(targetId, name);
         Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }
     }

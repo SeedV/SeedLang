@@ -308,7 +308,7 @@ a[1] = 1
         $"  10   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'a' Global 7\n" +
-        $"  1    Notification.GetGlobal: 0 'a'\n" +
+        $"  1    Notification.GlobalLoaded: 0 'a'\n" +
         $"  2    Notification.SubscriptAssignment: 'a': Global 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },

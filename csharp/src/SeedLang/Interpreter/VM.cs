@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Runtime.HeapObjects;
@@ -29,15 +30,6 @@ namespace SeedLang.Interpreter {
       Running,
       Paused,
       Stopped,
-    }
-
-    // The class to store variable information of registers.
-    private class RegisterInfo {
-      public string Name { get; }
-
-      internal RegisterInfo(string name) {
-        Name = name;
-      }
     }
 
     public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
@@ -92,8 +84,8 @@ namespace SeedLang.Interpreter {
       }
       var localList = new List<IVM.VariableInfo>();
       for (int i = (int)_baseRegister; i < _registerInfos.Count; i++) {
-        if (_registerInfos[i] is RegisterInfo info) {
-          localList.Add(new IVM.VariableInfo(info.Name, new Value(_stack[i])));
+        if (_registerInfos[i] is LocalVariable local) {
+          localList.Add(new IVM.VariableInfo(local.Name, new Value(_stack[i])));
         }
       }
       locals = localList;
@@ -278,7 +270,7 @@ namespace SeedLang.Interpreter {
               ReturnFromFunc(instr);
               break;
             case Opcode.VISNOTIFY:
-              HandleVisNotify(instr);
+              HandleNotification(instr);
               if (IsStopped) {
                 // The execution is stopped by the visualizers.
                 return;
@@ -370,12 +362,14 @@ namespace SeedLang.Interpreter {
       _pc = _callStack.CurrentPC();
     }
 
-    private void HandleVisNotify(Instruction instr) {
+    private void HandleNotification(Instruction instr) {
       var notification = _chunk.Notifications[(int)instr.Bx];
       switch (notification) {
-        case Notification.GetElement:
+        case Notification.ElementLoaded elementLoaded:
+          HandleElementLoaded(elementLoaded);
           return;
-        case Notification.GetGlobal:
+        case Notification.GlobalLoaded globalLoaded:
+          HandleGlobalLoaded(globalLoaded);
           return;
         case Notification.VariableDefined defined:
           switch (defined.Info.Type) {
@@ -384,18 +378,14 @@ namespace SeedLang.Interpreter {
               _globals.Add(defined.Info.Name);
               break;
             case VariableType.Local:
-              for (int i = _registerInfos.Count; i < _baseRegister + defined.Info.Id; i++) {
-                _registerInfos.Add(null);
-              }
-              _registerInfos.Add(new RegisterInfo(defined.Info.Name));
+              SetRegisterInfo(new LocalVariable(defined.Info.Name), defined.Info.Id);
               break;
           }
           break;
         case Notification.VariableDeleted deleted:
           for (int i = _registerInfos.Count - 1; i >= _baseRegister + deleted.StartId; i--) {
-            if (!(_registerInfos[i] is null)) {
-              Notify(new Event.VariableDeleted(_registerInfos[i].Name, VariableType.Local,
-                                               _chunk.Ranges[_pc]));
+            if (_registerInfos[i] is LocalVariable local) {
+              Notify(new Event.VariableDeleted(local.Name, VariableType.Local, _chunk.Ranges[_pc]));
             }
           }
           return;
@@ -404,6 +394,38 @@ namespace SeedLang.Interpreter {
           VisualizerCenter.HasVisualizer<Event.VariableDefined>()) {
         notification.Notify(this, (uint id) => { return ValueOfRK(id); }, instr.A,
                             _chunk.Ranges[_pc]);
+      }
+    }
+
+    private void HandleElementLoaded(Notification.ElementLoaded notification) {
+      if (!(_registerInfos[(int)notification.TargetId] is LocalVariable)) {
+        var key = new Value(ValueOfRK(notification.KeyId));
+        if (_registerInfos[(int)notification.ContainerId] is LocalVariable localVariable) {
+          var info = new Reference(VariableType.Local, localVariable.Name, new List<Value> { key });
+          SetRegisterInfo(info, notification.TargetId);
+        } else if (_registerInfos[(int)notification.ContainerId] is Reference reference) {
+          var keys = reference.Keys.ToList();
+          keys.Add(key);
+          var info = new Reference(VariableType.Local, reference.Name, keys);
+          SetRegisterInfo(info, notification.TargetId);
+        }
+      }
+    }
+
+    private void HandleGlobalLoaded(Notification.GlobalLoaded notification) {
+      var reference = new Reference(VariableType.Global, notification.Name, new List<Value>());
+      SetRegisterInfo(reference, notification.TargetId);
+    }
+
+    private void SetRegisterInfo(RegisterInfo info, uint registerId) {
+      int index = (int)(_baseRegister + registerId);
+      if (index < _registerInfos.Count) {
+        _registerInfos[index] = info;
+      } else {
+        for (int i = _registerInfos.Count; i < index; i++) {
+          _registerInfos.Add(new TempVariable());
+        }
+        _registerInfos.Add(info);
       }
     }
 

@@ -130,6 +130,54 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal sealed class ElementLoaded : AbstractNotification, IEquatable<ElementLoaded> {
+      public readonly uint TargetId;
+      public readonly uint ContainerId;
+      public readonly uint KeyId;
+
+      internal ElementLoaded(uint targetId, uint containerId, uint keyId) {
+        TargetId = targetId;
+        ContainerId = containerId;
+        KeyId = keyId;
+      }
+
+      public static bool operator ==(ElementLoaded lhs, ElementLoaded rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(ElementLoaded lhs, ElementLoaded rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(ElementLoaded other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return TargetId == other.TargetId && ContainerId == other.ContainerId &&
+               KeyId == other.KeyId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as ElementLoaded);
+      }
+
+      public override int GetHashCode() {
+        return new { TargetId, ContainerId, KeyId, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {TargetId} {ContainerId} {KeyId}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        throw new NotImplementedException("");
+      }
+    }
+
     internal sealed class Function : AbstractNotification, IEquatable<Function> {
       internal enum Status : uint {
         Called,
@@ -195,91 +243,43 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal sealed class GetElement : AbstractNotification, IEquatable<GetElement> {
-      private readonly uint _targetId;
-      private readonly uint _containerId;
-      private readonly uint _keyId;
+    internal sealed class GlobalLoaded : AbstractNotification, IEquatable<GlobalLoaded> {
+      public readonly uint TargetId;
+      public readonly string Name;
 
-      internal GetElement(uint targetId, uint containerId, uint keyId) {
-        _targetId = targetId;
-        _containerId = containerId;
-        _keyId = keyId;
+      internal GlobalLoaded(uint targetId, string name) {
+        TargetId = targetId;
+        Name = name;
       }
 
-      public static bool operator ==(GetElement lhs, GetElement rhs) {
+      public static bool operator ==(GlobalLoaded lhs, GlobalLoaded rhs) {
         return lhs.Equals(rhs);
       }
 
-      public static bool operator !=(GetElement lhs, GetElement rhs) {
+      public static bool operator !=(GlobalLoaded lhs, GlobalLoaded rhs) {
         return !(lhs == rhs);
       }
 
-      public bool Equals(GetElement other) {
+      public bool Equals(GlobalLoaded other) {
         if (other is null) {
           return false;
         }
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return _targetId == other._targetId && _containerId == other._containerId &&
-               _keyId == other._keyId;
+        return TargetId == other.TargetId && Name == other.Name;
       }
 
       public override bool Equals(object obj) {
-        return Equals(obj as GetElement);
+        return Equals(obj as GlobalLoaded);
       }
 
       public override int GetHashCode() {
-        return new { _targetId, _containerId, _keyId, }.GetHashCode();
+        return new { TargetId, Name, }.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {_targetId} {_containerId} {_keyId}";
-      }
-
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        throw new NotImplementedException("");
-      }
-    }
-
-    internal sealed class GetGlobal : AbstractNotification, IEquatable<GetGlobal> {
-      private readonly uint _targetId;
-      private readonly string _name;
-
-      internal GetGlobal(uint targetId, string name) {
-        _targetId = targetId;
-        _name = name;
-      }
-
-      public static bool operator ==(GetGlobal lhs, GetGlobal rhs) {
-        return lhs.Equals(rhs);
-      }
-
-      public static bool operator !=(GetGlobal lhs, GetGlobal rhs) {
-        return !(lhs == rhs);
-      }
-
-      public bool Equals(GetGlobal other) {
-        if (other is null) {
-          return false;
-        }
-        if (ReferenceEquals(this, other)) {
-          return true;
-        }
-        return _targetId == other._targetId && _name == other._name;
-      }
-
-      public override bool Equals(object obj) {
-        return Equals(obj as GetGlobal);
-      }
-
-      public override int GetHashCode() {
-        return new { _targetId, _name, }.GetHashCode();
-      }
-
-      public override string ToString() {
-        return $"Notification.{GetType().Name}: {_targetId} '{_name}'";
+        return $"Notification.{GetType().Name}: {TargetId} '{Name}'";
       }
 
       internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,

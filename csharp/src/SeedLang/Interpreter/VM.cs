@@ -373,6 +373,10 @@ namespace SeedLang.Interpreter {
     private void HandleVisNotify(Instruction instr) {
       var notification = _chunk.Notifications[(int)instr.Bx];
       switch (notification) {
+        case Notification.GetElement:
+          return;
+        case Notification.GetGlobal:
+          return;
         case Notification.VariableDefined defined:
           switch (defined.Info.Type) {
             case VariableType.Global:

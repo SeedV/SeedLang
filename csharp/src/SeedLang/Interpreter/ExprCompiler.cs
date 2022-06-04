@@ -157,7 +157,9 @@ namespace SeedLang.Interpreter {
       if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
         switch (info.Type) {
           case VariableType.Global:
-            _helper.Emit(Opcode.GETGLOB, RegisterForSubExpr, info.Id, identifier.Range);
+            var targetId = RegisterForSubExpr;
+            _helper.Emit(Opcode.GETGLOB, targetId, info.Id, identifier.Range);
+            _helper.EmitGetGlobalNotification(targetId, info.Name, identifier.Range);
             break;
           case VariableType.Local:
             _helper.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
@@ -203,8 +205,9 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       uint targetId = RegisterForSubExpr;
       uint containerId = VisitExpressionForRegisterId(subscript.Container);
-      uint sliceId = VisitExpressionForRKId(subscript.Key);
-      _helper.Emit(Opcode.GETELEM, targetId, containerId, sliceId, subscript.Range);
+      uint keyId = VisitExpressionForRKId(subscript.Key);
+      _helper.Emit(Opcode.GETELEM, targetId, containerId, keyId, subscript.Range);
+      _helper.EmitGetElementNotification(targetId, containerId, keyId, subscript.Range);
       _helper.EndExprScope();
     }
 

@@ -195,6 +195,99 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal sealed class GetElement : AbstractNotification, IEquatable<GetElement> {
+      private readonly uint _targetId;
+      private readonly uint _containerId;
+      private readonly uint _keyId;
+
+      internal GetElement(uint targetId, uint containerId, uint keyId) {
+        _targetId = targetId;
+        _containerId = containerId;
+        _keyId = keyId;
+      }
+
+      public static bool operator ==(GetElement lhs, GetElement rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(GetElement lhs, GetElement rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(GetElement other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _targetId == other._targetId && _containerId == other._containerId &&
+               _keyId == other._keyId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as GetElement);
+      }
+
+      public override int GetHashCode() {
+        return new { _targetId, _containerId, _keyId, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {_targetId} {_containerId} {_keyId}";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        throw new NotImplementedException("");
+      }
+    }
+
+    internal sealed class GetGlobal : AbstractNotification, IEquatable<GetGlobal> {
+      private readonly uint _targetId;
+      private readonly string _name;
+
+      internal GetGlobal(uint targetId, string name) {
+        _targetId = targetId;
+        _name = name;
+      }
+
+      public static bool operator ==(GetGlobal lhs, GetGlobal rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(GetGlobal lhs, GetGlobal rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(GetGlobal other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return _targetId == other._targetId && _name == other._name;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as GetGlobal);
+      }
+
+      public override int GetHashCode() {
+        return new { _targetId, _name, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {_targetId} '{_name}'";
+      }
+
+      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
+                                    TextRange range) {
+        throw new NotImplementedException("");
+      }
+    }
+
     internal sealed class SingleStep : AbstractNotification, IEquatable<SingleStep> {
       public static bool operator ==(SingleStep lhs, SingleStep rhs) {
         return lhs.Equals(rhs);

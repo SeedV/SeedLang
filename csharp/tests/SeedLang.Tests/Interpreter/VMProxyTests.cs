@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -163,7 +162,7 @@ print(a + b)
     private static Function Compile<Event>(string source, IVisualizer<Event> visualizer,
                                            out VM vm, out StringWriter stringWriter) {
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
-                             out IReadOnlyList<TokenInfo> _);
+                             out IReadOnlyList<TokenInfo> _).Should().Be(true);
       vm = new VM();
       vm.VisualizerCenter.IsVariableTrackingEnabled = true;
       vm.VisualizerCenter.Register(visualizer);

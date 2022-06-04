@@ -28,8 +28,8 @@ namespace SeedLang.Interpreter.Tests {
       env.DefineVariable(a).Should().Be(0);
 
       var resolver = new VariableResolver(env);
-      var expectedA = new VariableInfo("global.a", VariableType.Global, 0);
-      var expectedB = new VariableInfo("global.b", VariableType.Global, 1);
+      var expectedA = new VariableInfo("a", VariableType.Global, 0);
+      var expectedB = new VariableInfo("b", VariableType.Global, 1);
       resolver.FindVariable(a).Should().BeEquivalentTo(expectedA);
       resolver.FindVariable(b).Should().BeNull();
       resolver.DefineVariable(b).Should().BeEquivalentTo(expectedB);
@@ -40,22 +40,22 @@ namespace SeedLang.Interpreter.Tests {
       resolver.BeginFuncScope("foo");
       string local = "local";
       resolver.FindVariable(local).Should().BeNull();
-      var expectedFooLocal = new VariableInfo("global.foo.local", VariableType.Local, 0);
+      var expectedFooLocal = new VariableInfo("foo.local", VariableType.Local, 0);
       resolver.DefineVariable(local).Should().BeEquivalentTo(expectedFooLocal);
       resolver.FindVariable(local).Should().BeEquivalentTo(expectedFooLocal);
 
       resolver.FindVariable(a).Should().BeEquivalentTo(expectedA);
       resolver.FindVariable(b).Should().BeEquivalentTo(expectedB);
-      var expectedFooA = new VariableInfo("global.foo.a", VariableType.Local, 1);
+      var expectedFooA = new VariableInfo("foo.a", VariableType.Local, 1);
       resolver.DefineVariable(a).Should().BeEquivalentTo(expectedFooA);
 
       resolver.DefineTempVariable().Should().Be(2);
 
       resolver.BeginFuncScope("bar");
-      var expectedBarA = new VariableInfo("global.foo.bar.a", VariableType.Local, 0);
+      var expectedBarA = new VariableInfo("foo.bar.a", VariableType.Local, 0);
       resolver.DefineVariable(a).Should().BeEquivalentTo(expectedBarA);
       resolver.FindVariable(a).Should().BeEquivalentTo(expectedBarA);
-      var expectedBarLocal = new VariableInfo("global.foo.bar.local",
+      var expectedBarLocal = new VariableInfo("foo.bar.local",
                                               VariableType.Local,
                                               1);
       resolver.DefineVariable(local).Should().BeEquivalentTo(expectedBarLocal);

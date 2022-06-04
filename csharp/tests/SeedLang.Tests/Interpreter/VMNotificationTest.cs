@@ -60,14 +60,14 @@ x = add(1, 2)
         typeof(Event.VariableDeleted),
       });
       var expected = (
-        "[Ln 2, Col 0 - Ln 4, Col 9] VariableDefined: global.add: Global\n" +
-        "[Ln 6, Col 0 - Ln 6, Col 0] VariableDefined: global.x: Global\n" +
-        "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: global.add.a: Local\n" +
-        "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: global.add.b: Local\n" +
-        "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: global.add.c: Local\n" +
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: global.add.c: Local\n" +
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: global.add.b: Local\n" +
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: global.add.a: Local\n"
+        "[Ln 2, Col 0 - Ln 4, Col 9] VariableDefined: add: Global\n" +
+        "[Ln 6, Col 0 - Ln 6, Col 0] VariableDefined: x: Global\n" +
+        "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: add.a: Local\n" +
+        "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: add.b: Local\n" +
+        "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: add.c: Local\n" +
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.c: Local\n" +
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.b: Local\n" +
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.a: Local\n"
       ).Replace("\n", Environment.NewLine);
       Assert.Equal(expected, vh.EventsToString());
     }

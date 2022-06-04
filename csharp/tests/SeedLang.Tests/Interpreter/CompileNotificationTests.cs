@@ -39,7 +39,7 @@ namespace SeedLang.Interpreter.Tests {
         $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"  4    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 7]\n" +
         $"Notifications\n" +
-        $"  0    Notification.Assignment: 'global.name': Global 0\n"
+        $"  0    Notification.Assignment: 'name': Global 0\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
@@ -304,7 +304,7 @@ a[1] = 1
         $"  7    VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"  8    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"Notifications\n" +
-        $"  0    Notification.SubscriptAssignment: 'global.a': Global 250 250\n"
+        $"  0    Notification.SubscriptAssignment: 'a': Global 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -332,7 +332,7 @@ def func():
         $"  5    VISNOTIFY 0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"  6    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
-        $"  0    Notification.SubscriptAssignment: 'global.func.a': Local 250 250\n"
+        $"  0    Notification.SubscriptAssignment: 'func.a': Local 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -366,38 +366,46 @@ x = add(1, 2)
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  2    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  3    SETGLOB   0 {_firstGlob}" +
+        $"  1    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
+        $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"  3    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"  4    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  4    VISNOTIFY 0 1                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
-        $"  5    GETGLOB   0 {_firstGlob}" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
+        $"  7    GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 6, Col 4 - Ln 6, Col 6]\n" +
-        $"  6    LOADK     1 -2             ; 1                 [Ln 6, Col 8 - Ln 6, Col 8]\n" +
-        $"  7    LOADK     2 -3             ; 2                 [Ln 6, Col 11 - Ln 6, Col 11]\n" +
-        $"  8    CALL      0 2 0                                [Ln 6, Col 4 - Ln 6, Col 12]\n" +
-        $"  9    VISNOTIFY 0 2                                  [Ln 6, Col 4 - Ln 6, Col 12]\n" +
-        $"  10   SETGLOB   0 {_firstGlob + 1}" +
+        $"  8    LOADK     1 -2             ; 1                 [Ln 6, Col 8 - Ln 6, Col 8]\n" +
+        $"  9    LOADK     2 -3             ; 2                 [Ln 6, Col 11 - Ln 6, Col 11]\n" +
+        $"  10   CALL      0 2 0                                [Ln 6, Col 4 - Ln 6, Col 12]\n" +
+        $"  11   VISNOTIFY 0 3                                  [Ln 6, Col 4 - Ln 6, Col 12]\n" +
+        $"  12   SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
-        $"  11   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
+        $"  13   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VariableDefined: 'global.add' Global {_firstGlob}\n" +
-        $"  1    Notification.VariableDefined: 'global.x' Global {_firstGlob + 1}\n" +
-        $"  2    Notification.VariableDeleted: 0\n" +
+        $"  0    Notification.VariableDefined: 'add' Global {_firstGlob}\n" +
+        $"  1    Notification.SingleStep\n" +
+        $"  2    Notification.VariableDefined: 'x' Global {_firstGlob + 1}\n" +
+        $"  3    Notification.VariableDeleted: 0\n" +
         $"\n" +
         $"Function <add>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 8 - Ln 2, Col 8]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 2, Col 11 - Ln 2, Col 11]\n" +
-        $"  3    VISNOTIFY 0 2                                  [Ln 3, Col 2 - Ln 3, Col 2]\n" +
-        $"  4    ADD       2 0 1                                [Ln 3, Col 6 - Ln 3, Col 10]\n" +
-        $"  5    RETURN    2 1                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  6    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  1    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
+        $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 8 - Ln 2, Col 8]\n" +
+        $"  3    VISNOTIFY 0 2                                  [Ln 2, Col 11 - Ln 2, Col 11]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"  5    VISNOTIFY 0 3                                  [Ln 3, Col 2 - Ln 3, Col 2]\n" +
+        $"  6    ADD       2 0 1                                [Ln 3, Col 6 - Ln 3, Col 10]\n" +
+        $"  7    VISNOTIFY 0 1                                  [Ln 4, Col 0 - Ln 4, Col 0]\n" +
+        $"  8    RETURN    2 1                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  9    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VariableDefined: 'global.add.a' Local 0\n" +
-        $"  1    Notification.VariableDefined: 'global.add.b' Local 1\n" +
-        $"  2    Notification.VariableDefined: 'global.add.c' Local 2\n"
+        $"  0    Notification.VariableDefined: 'add.a' Local 0\n" +
+        $"  1    Notification.SingleStep\n" +
+        $"  2    Notification.VariableDefined: 'add.b' Local 1\n" +
+        $"  3    Notification.VariableDefined: 'add.c' Local 2\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
+        typeof(Event.SingleStep),
         typeof(Event.VariableDefined),
         typeof(Event.VariableDeleted),
       }, RunMode.Interactive);
@@ -492,8 +500,8 @@ x, y = 1, 1 + 2
         $"Notifications\n" +
         $"  0    Notification.VTag: Assign(x: null, 1: 250, y: null, 1+2: 2)\n" +
         $"  1    Notification.Binary: 250 Add 251 2\n" +
-        $"  2    Notification.Assignment: 'global.x': Global 1\n" +
-        $"  3    Notification.Assignment: 'global.y': Global 1\n" +
+        $"  2    Notification.Assignment: 'x': Global 1\n" +
+        $"  3    Notification.Assignment: 'y': Global 1\n" +
         $"  4    Notification.VTag: Assign(x: 0, 1: 250, y: 1, 1+2: 2)\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {

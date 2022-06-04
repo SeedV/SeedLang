@@ -18,7 +18,6 @@ using System.IO;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Interpreter;
-using SeedLang.Runtime;
 using SeedLang.X;
 
 namespace SeedLang {
@@ -26,12 +25,26 @@ namespace SeedLang {
   // and executing SeedX programs, registering visualizers, and inspecting the execution status of
   // programs.
   public class Engine {
+    // The flag to indicate if variable tracking is enabled. The SeedVM will track information of
+    // all global and local variables if It is set to true explicitly or any variable related
+    // visualizers like "VariableDefined", "VariableDeleted" etc. are registered.
+    public bool IsVariableTrackingEnabled {
+      get {
+        return _vm.VisualizerCenter.IsVariableTrackingEnabled;
+      }
+      set {
+        _vm.VisualizerCenter.IsVariableTrackingEnabled = value;
+      }
+    }
+
+    public bool IsProgramCompiled => !(_func is null);
+    public bool IsRunning => _vm.IsRunning;
+    public bool IsPaused => _vm.IsPaused;
+    public bool IsStopped => _vm.IsStopped;
+
     // The semantic tokens of the source code. It falls back to syntax tokens when there are parsing
     // or compiling errors.
     public IReadOnlyList<TokenInfo> SemanticTokens => _semanticTokens;
-
-    // The state of SeedLang VM.
-    public VMState State => _vm.State;
 
     private readonly SeedXLanguage _language;
     private readonly RunMode _runMode;
@@ -86,8 +99,8 @@ namespace SeedLang {
       }
       try {
         BaseParser parser = MakeParser(_language);
-        var localCollection = collection ?? new DiagnosticCollection();
-        if (!parser.Parse(source, module, localCollection, out _astTree, out _semanticTokens)) {
+        if (!parser.Parse(source, module, collection ?? new DiagnosticCollection(), out _astTree,
+                          out _semanticTokens)) {
           return false;
         }
         _func = new Compiler().Compile(_astTree, _vm.Env, _vm.VisualizerCenter, _runMode);
@@ -99,7 +112,7 @@ namespace SeedLang {
     }
 
     // Dumps the AST tree of the source code.
-    public bool DumpAst(out string result, DiagnosticCollection collection) {
+    public bool DumpAst(out string result, DiagnosticCollection collection = null) {
       if (_astTree is null) {
         result = null;
         collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
@@ -111,8 +124,8 @@ namespace SeedLang {
     }
 
     // Disassembles the compiled bytecode of the source code.
-    public bool Disassemble(out string result, DiagnosticCollection collection) {
-      if (_func is null) {
+    public bool Disassemble(out string result, DiagnosticCollection collection = null) {
+      if (!IsProgramCompiled) {
         result = null;
         collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
                            Message.EngineProgramNotCompiled);
@@ -124,12 +137,15 @@ namespace SeedLang {
 
     // Runs the compiled bytecode of the source code.
     public bool Run(DiagnosticCollection collection = null) {
-      if (_func is null) {
+      if (!IsProgramCompiled) {
         collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
                            Message.EngineProgramNotCompiled);
         return false;
       }
       try {
+        if (!_vm.IsStopped) {
+          _vm.Stop();
+        }
         _vm.Run(_func);
         return true;
       } catch (DiagnosticException exception) {
@@ -143,7 +159,7 @@ namespace SeedLang {
     // The execution must be paused from the callback function of visualization events before
     // calling this function.
     public bool Continue(DiagnosticCollection collection = null) {
-      if (State != VMState.Paused) {
+      if (!IsPaused) {
         collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
                            Message.EngineNotPaused);
         return false;
@@ -162,12 +178,7 @@ namespace SeedLang {
     // Multiple-thread is not support now. This function can only be called from the same thread
     // when execution is paused.
     // TODO: Add multiple-thread support.
-    public bool Stop(DiagnosticCollection collection = null) {
-      if (State != VMState.Paused) {
-        collection?.Report(SystemReporters.SeedLang, Severity.Error, "", null,
-                           Message.EngineNotPaused);
-        return false;
-      }
+    public bool Stop() {
       _vm.Stop();
       return true;
     }

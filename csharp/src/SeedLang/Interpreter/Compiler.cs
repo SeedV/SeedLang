@@ -23,8 +23,6 @@ namespace SeedLang.Interpreter {
     private RunMode _runMode;
     private CompilerHelper _helper;
     private ExprCompiler _exprCompiler;
-
-    private NestedFuncStack _nestedFuncStack;
     private NestedLoopStack _nestedLoopStack;
 
     // The range of the statement that is just compiled.
@@ -34,16 +32,13 @@ namespace SeedLang.Interpreter {
                               VisualizerCenter visualizerCenter, RunMode runMode) {
       _runMode = runMode;
       _helper = new CompilerHelper(visualizerCenter, env);
-      _nestedFuncStack = new NestedFuncStack();
       _nestedLoopStack = new NestedLoopStack();
       _exprCompiler = new ExprCompiler(_helper);
-      // Starts to parse the main function in the global scope.
-      _nestedFuncStack.PushFunc("main");
-      CacheTopFunction();
+      _helper.PushMainFunc();
       Visit(program);
-      // Emits the HALT instruction to indicate the ending of the program.
-      _helper.Chunk.Emit(Opcode.HALT, 1, 0, 0, _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
-      return _nestedFuncStack.PopFunc();
+      _helper.Chunk.Emit(Opcode.HALT, (uint)HaltReason.Terminated, 0, 0,
+                         _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
+      return _helper.PopMainFunc();
     }
 
     protected override void Enter(Statement statement) {
@@ -149,14 +144,14 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitFuncDef(FuncDefStatement funcDef) {
       VariableInfo info = DefineVariableIfNeeded(funcDef.Name, funcDef.Range);
-      PushFunc(funcDef.Name);
+      _helper.PushFunc(funcDef.Name);
       foreach (IdentifierExpression parameter in funcDef.Parameters) {
         _helper.DefineVariable(parameter.Name, parameter.Range);
       }
       Visit(funcDef.Body);
       _helper.Emit(Opcode.RETURN, 0, 0, 0, _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
 
-      Function func = PopFunc();
+      Function func = _helper.PopFunc();
       uint funcId = _helper.Cache.IdOfConstant(func);
       switch (info.Type) {
         case VariableType.Global:
@@ -358,24 +353,6 @@ namespace SeedLang.Interpreter {
         return info;
       }
       return _helper.DefineVariable(name, range);
-    }
-
-    private void PushFunc(string name) {
-      _nestedFuncStack.PushFunc(name);
-      CacheTopFunction();
-      _helper.BeginFuncScope(name);
-    }
-
-    private Function PopFunc() {
-      _helper.EndFuncScope();
-      Function func = _nestedFuncStack.PopFunc();
-      CacheTopFunction();
-      return func;
-    }
-
-    private void CacheTopFunction() {
-      _helper.Chunk = _nestedFuncStack.CurrentChunk();
-      _helper.Cache = _nestedFuncStack.CurrentConstantCache();
     }
 
     private uint VisitExpressionForRegisterId(Expression expr) {

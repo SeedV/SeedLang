@@ -13,15 +13,13 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Visualization.Tests {
-  using BinaryVisualizerCenter = Tuple<VisualizerCenter, MockupBinaryVisualizer>;
-  using MultipleVisualizerCenter = Tuple<VisualizerCenter,
-                                         MockupBinaryVisualizer,
-                                         MockupMultipleVisualizer>;
   internal class MockupBinaryVisualizer : IVisualizer<Event.Binary> {
     public Event.Binary BinaryEvent { get; private set; }
 
@@ -30,11 +28,26 @@ namespace SeedLang.Visualization.Tests {
     }
   }
 
-  internal class MockupMultipleVisualizer : IVisualizer<Event.Binary> {
+  internal class AnotherMockupBinaryVisualizer : IVisualizer<Event.Binary> {
     public Event.Binary BinaryEvent { get; private set; }
-
     public void On(Event.Binary be, IVM vm) {
       BinaryEvent = be;
+    }
+  }
+
+  internal class MockupVariableDefinedVisualizer : IVisualizer<Event.VariableDefined> {
+    public Event.VariableDefined VariableDefined { get; private set; }
+
+    public void On(Event.VariableDefined vde, IVM vm) {
+      VariableDefined = vde;
+    }
+  }
+
+  internal class MockupVariableDeletedVisualizer : IVisualizer<Event.VariableDeleted> {
+    public Event.VariableDeleted VariableDeleted { get; private set; }
+
+    public void On(Event.VariableDeleted vde, IVM vm) {
+      VariableDeleted = vde;
     }
   }
 
@@ -46,9 +59,32 @@ namespace SeedLang.Visualization.Tests {
     public void Stop() {
       throw new NotImplementedException();
     }
+
+    public bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
+      throw new NotImplementedException();
+    }
+
+    public bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
+      throw new NotImplementedException();
+    }
   }
 
   public class VisualizerCenterTests {
+    [Fact]
+    public void TestIsVariableTrackingEnabled() {
+      var vc = new VisualizerCenter();
+      vc.IsVariableTrackingEnabled.Should().Be(false);
+      vc.IsVariableTrackingEnabled = true;
+      vc.IsVariableTrackingEnabled.Should().Be(true);
+
+      vc.IsVariableTrackingEnabled = false;
+      vc.Register(new MockupVariableDefinedVisualizer());
+      vc.IsVariableTrackingEnabled.Should().Be(true);
+      vc.IsVariableTrackingEnabled = false;
+      vc.Register(new MockupVariableDeletedVisualizer());
+      vc.IsVariableTrackingEnabled.Should().Be(true);
+    }
+
     [Fact]
     public void TestRegisterVisualizer() {
       (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
@@ -76,20 +112,21 @@ namespace SeedLang.Visualization.Tests {
       Assert.Null(binaryVisualizer.BinaryEvent);
     }
 
-    private static BinaryVisualizerCenter NewBinaryVisualizerCenter() {
+    private static (VisualizerCenter, MockupBinaryVisualizer) NewBinaryVisualizerCenter() {
       var binaryVisualizer = new MockupBinaryVisualizer();
       var visualizerCenter = new VisualizerCenter();
       visualizerCenter.Register(binaryVisualizer);
-      return new BinaryVisualizerCenter(visualizerCenter, binaryVisualizer);
+      return (visualizerCenter, binaryVisualizer);
     }
 
-    private static MultipleVisualizerCenter NewMultipleVisualizerCenter() {
+    private static (VisualizerCenter, MockupBinaryVisualizer, AnotherMockupBinaryVisualizer)
+        NewMultipleVisualizerCenter() {
       var binaryVisualizer = new MockupBinaryVisualizer();
-      var multipleVisualizer = new MockupMultipleVisualizer();
+      var anotherBinaryVisualizer = new AnotherMockupBinaryVisualizer();
       var visualizerCenter = new VisualizerCenter();
       visualizerCenter.Register(binaryVisualizer);
-      visualizerCenter.Register(multipleVisualizer);
-      return new MultipleVisualizerCenter(visualizerCenter, binaryVisualizer, multipleVisualizer);
+      visualizerCenter.Register(anotherBinaryVisualizer);
+      return (visualizerCenter, binaryVisualizer, anotherBinaryVisualizer);
     }
 
     private static Event.Binary NewBinaryEvent() {

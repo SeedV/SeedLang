@@ -25,7 +25,13 @@ using SeedLang.Visualization;
 namespace SeedLang.Interpreter {
   // The SeedLang virtual machine to run bytecode stored in a chunk.
   internal class VM {
-    // The class to track the variable information of each register.
+    private enum State {
+      Running,
+      Paused,
+      Stopped,
+    }
+
+    // The class to store variable information of registers.
     private class RegisterInfo {
       public string Name { get; }
 
@@ -34,9 +40,14 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    public VMState State { get; private set; } = VMState.Ready;
     public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
     public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
+
+    public bool IsRunning => _state == State.Running;
+    public bool IsPaused => _state == State.Paused;
+    public bool IsStopped => _state == State.Stopped;
+
+    private State _state = State.Stopped;
 
     private readonly Sys _sys = new Sys();
 
@@ -50,38 +61,78 @@ namespace SeedLang.Interpreter {
     private uint _baseRegister;
     private int _pc;
 
-    private readonly List<RegisterInfo> _registerInfos = new List<RegisterInfo>();
+    // The hash table to store defined global variable names.
+    private HashSet<string> _globals;
+    // The list to store variable information of registers.
+    private List<RegisterInfo> _registerInfos;
 
     internal void RedirectStdout(TextWriter stdout) {
       _sys.Stdout = stdout;
     }
 
+    internal bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
+      if (!VisualizerCenter.IsVariableTrackingEnabled) {
+        globals = new List<IVM.VariableInfo>();
+        return false;
+      }
+      var globalList = new List<IVM.VariableInfo>();
+      foreach (string name in _globals) {
+        if (Env.FindVariable(name) is uint id) {
+          globalList.Add(new IVM.VariableInfo(name, new Value(Env.GetVariable(id))));
+        }
+      }
+      globals = globalList;
+      return true;
+    }
+
+    internal bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
+      if (!VisualizerCenter.IsVariableTrackingEnabled) {
+        locals = new List<IVM.VariableInfo>();
+        return false;
+      }
+      var localList = new List<IVM.VariableInfo>();
+      for (int i = (int)_baseRegister; i < _registerInfos.Count; i++) {
+        if (_registerInfos[i] is RegisterInfo info) {
+          localList.Add(new IVM.VariableInfo(info.Name, new Value(_stack[i])));
+        }
+      }
+      locals = localList;
+      return true;
+    }
+
     internal void Run(Function func) {
-      _baseRegister = 0;
+      Debug.Assert(!IsRunning, "VM shall not be running.");
+      if (!IsStopped) {
+        Stop();
+      }
+      _state = State.Running;
+
       _callStack = new CallStack();
+      _baseRegister = 0;
       _callStack.PushFunc(func, _baseRegister, 0);
       _chunk = func.Chunk;
       _pc = 0;
+      _globals = new HashSet<string>();
+      _registerInfos = new List<RegisterInfo>();
       RunLoop();
     }
 
     internal void Pause() {
-      Debug.Assert(State == VMState.Running);
-      Debug.Assert(_pc + 1 < _chunk.Bytecode.Count);
-      _chunk.SetBreakPointAt(_pc + 1);
+      Debug.Assert(IsRunning, "VM shall be running.");
+      _state = State.Paused;
+      _chunk.SetBreakpointAt(_pc + 1);
     }
 
     internal void Continue() {
-      Debug.Assert(State == VMState.Paused);
-      _chunk.RestoreBreakPoint();
+      Debug.Assert(IsPaused, "VM shall be paused.");
+      _state = State.Running;
+      _chunk.RestoreBreakpoint();
       RunLoop();
     }
 
     internal void Stop() {
-      if (State == VMState.Paused) {
-        _chunk.RestoreBreakPoint();
-      }
-      State = VMState.Stopped;
+      _state = State.Stopped;
+      _chunk.RestoreBreakpoint();
     }
 
     internal void Notify<Event>(Event e) {
@@ -91,7 +142,6 @@ namespace SeedLang.Interpreter {
     }
 
     private void RunLoop() {
-      State = VMState.Running;
       while (_pc < _chunk.Bytecode.Count) {
         Instruction instr = _chunk.Bytecode[_pc];
         try {
@@ -229,14 +279,20 @@ namespace SeedLang.Interpreter {
               break;
             case Opcode.VISNOTIFY:
               HandleVisNotify(instr);
+              if (IsStopped) {
+                // The execution is stopped by the visualizers.
+                return;
+              }
               break;
             case Opcode.HALT:
-              State = instr.A == 0 ? VMState.Paused : VMState.Stopped;
+              _state = instr.A == (uint)HaltReason.Breakpoint ? State.Paused : State.Stopped;
               return;
             default:
+              _state = State.Stopped;
               throw new NotImplementedException($"Unimplemented opcode: {instr.Opcode}");
           }
         } catch (DiagnosticException ex) {
+          _state = State.Stopped;
           throw new DiagnosticException(SystemReporters.SeedVM, ex.Diagnostic.Severity,
                                         ex.Diagnostic.Module, _chunk.Ranges[_pc],
                                         ex.Diagnostic.MessageId);
@@ -318,11 +374,17 @@ namespace SeedLang.Interpreter {
       var notification = _chunk.Notifications[(int)instr.Bx];
       switch (notification) {
         case Notification.VariableDefined defined:
-          if (defined.Info.Type == VariableType.Local) {
-            for (int i = _registerInfos.Count; i < _baseRegister + defined.Info.Id; i++) {
-              _registerInfos.Add(null);
-            }
-            _registerInfos.Add(new RegisterInfo(defined.Info.Name));
+          switch (defined.Info.Type) {
+            case VariableType.Global:
+              Debug.Assert(!_globals.Contains(defined.Info.Name));
+              _globals.Add(defined.Info.Name);
+              break;
+            case VariableType.Local:
+              for (int i = _registerInfos.Count; i < _baseRegister + defined.Info.Id; i++) {
+                _registerInfos.Add(null);
+              }
+              _registerInfos.Add(new RegisterInfo(defined.Info.Name));
+              break;
           }
           break;
         case Notification.VariableDeleted deleted:

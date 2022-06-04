@@ -16,7 +16,6 @@ using System;
 using System.IO;
 using FluentAssertions;
 using SeedLang.Common;
-using SeedLang.Runtime;
 using SeedLang.Visualization;
 using Xunit;
 
@@ -44,33 +43,33 @@ b = 2
 print(a + b)
 ";
       engine.Compile(source, "");
-      engine.State.Should().Be(VMState.Ready);
+      engine.IsStopped.Should().Be(true);
       engine.Run().Should().Be(true);
-      engine.State.Should().Be(VMState.Paused);
+      engine.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
       engine.Continue().Should().Be(true);
-      engine.State.Should().Be(VMState.Paused);
+      engine.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(3, 0, 3, 0)));
       engine.Continue().Should().Be(true);
-      engine.State.Should().Be(VMState.Paused);
+      engine.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(4, 0, 4, 0)));
       engine.Continue().Should().Be(true);
-      engine.State.Should().Be(VMState.Stopped);
+      engine.IsStopped.Should().Be(true);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
 
       stringWriter = new StringWriter();
       engine.RedirectStdout(stringWriter);
       engine.Run().Should().Be(true);
-      engine.State.Should().Be(VMState.Paused);
+      engine.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
       engine.Stop().Should().Be(true);
-      engine.State.Should().Be(VMState.Stopped);
+      engine.IsStopped.Should().Be(true);
 
       stringWriter = new StringWriter();
       engine.RedirectStdout(stringWriter);
       engine.Unregister(visualizer);
       engine.Run().Should().Be(true);
-      engine.State.Should().Be(VMState.Stopped);
+      engine.IsStopped.Should().Be(true);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
     }
   }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
@@ -20,6 +21,22 @@ namespace SeedLang.Interpreter {
 
     internal VMProxy(VM vm) {
       _vm = vm;
+    }
+
+    public bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
+      if (_vm is null) {
+        globals = new List<IVM.VariableInfo>();
+        return false;
+      }
+      return _vm.GetGlobals(out globals);
+    }
+
+    public bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
+      if (_vm is null) {
+        locals = new List<IVM.VariableInfo>();
+        return false;
+      }
+      return _vm.GetLocals(out locals);
     }
 
     public void Pause() {

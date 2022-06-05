@@ -17,27 +17,37 @@ using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The class to store variable information of registers.
-  internal interface RegisterInfo { }
-
-  internal class TempVariable : RegisterInfo { }
-
-  internal class LocalVariable : RegisterInfo {
-    public string Name { get; }
-
-    internal LocalVariable(string name) {
-      Name = name;
+  internal class RegisterInfo {
+    private enum Type {
+      Temporary,
+      Local,
+      Reference,
     }
-  }
 
-  internal class Reference : RegisterInfo {
-    public VariableType Type { get; }
+    public bool IsTemporary => _type == Type.Temporary;
+    public bool IsLocal => _type == Type.Local;
+    public bool IsReference => _type == Type.Reference;
+
     public string Name { get; }
+    public VariableType RefVariableType { get; }
     public IReadOnlyList<Value> Keys { get; }
 
-    internal Reference(VariableType type, string name, IReadOnlyList<Value> keys) {
-      Type = type;
+    private readonly Type _type;
+
+    internal RegisterInfo() {
+      _type = Type.Temporary;
+    }
+
+    internal RegisterInfo(string name) {
       Name = name;
+      _type = Type.Local;
+    }
+
+    internal RegisterInfo(string name, VariableType refVariableType, IReadOnlyList<Value> keys) {
+      Name = name;
+      RefVariableType = refVariableType;
       Keys = keys;
+      _type = Type.Reference;
     }
   }
 }

@@ -26,20 +26,19 @@ namespace SeedLang.Interpreter {
     // instructions. The VM will create the corresponding event object based on the information and
     // then send to visualizers.
     internal abstract class AbstractNotification {
-      internal abstract void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range);
+      internal abstract void Accept(VM vm);
     }
 
     internal sealed class Assignment : AbstractNotification, IEquatable<Assignment> {
-      private readonly string _name;
-      private readonly VariableType _type;
+      public string Name { get; }
+      public VariableType Type { get; }
       // The constant or register id of the assigned value.
-      private readonly uint _valueId;
+      public uint ValueId { get; }
 
       internal Assignment(string name, VariableType type, uint valueId) {
-        _name = name;
-        _type = type;
-        _valueId = valueId;
+        Name = name;
+        Type = type;
+        ValueId = valueId;
       }
 
       public static bool operator ==(Assignment lhs, Assignment rhs) {
@@ -57,7 +56,7 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return _name == other._name && _type == other._type && _valueId == other._valueId;
+        return Name == other.Name && Type == other.Type && ValueId == other.ValueId;
       }
 
       public override bool Equals(object obj) {
@@ -65,30 +64,29 @@ namespace SeedLang.Interpreter {
       }
 
       public override int GetHashCode() {
-        return new { _name, _type, _valueId, }.GetHashCode();
+        return new { Name, Type, ValueId, }.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: '{_name}': {_type} {_valueId}";
+        return $"Notification.{GetType().Name}: '{Name}': {Type} {ValueId}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        vm.Notify(new Event.Assignment(_name, _type, new Value(getRKValue(_valueId)), range));
+      internal override void Accept(VM vm) {
+        vm.HandleAssignment(this);
       }
     }
 
     internal sealed class Binary : AbstractNotification, IEquatable<Binary> {
-      private readonly uint _leftId;
-      private readonly BinaryOperator _op;
-      private readonly uint _rightId;
-      private readonly uint _resultId;
+      public uint LeftId { get; }
+      public BinaryOperator Op { get; }
+      public uint RightId { get; }
+      public uint ResultId { get; }
 
       internal Binary(uint leftId, BinaryOperator op, uint rightId, uint resultId) {
-        _leftId = leftId;
-        _op = op;
-        _rightId = rightId;
-        _resultId = resultId;
+        LeftId = leftId;
+        Op = op;
+        RightId = rightId;
+        ResultId = resultId;
       }
 
       public static bool operator ==(Binary lhs, Binary rhs) {
@@ -106,8 +104,8 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return _leftId == other._leftId && _op == other._op &&
-               _rightId == other._rightId && _resultId == other._resultId;
+        return LeftId == other.LeftId && Op == other.Op &&
+               RightId == other.RightId && ResultId == other.ResultId;
       }
 
       public override bool Equals(object obj) {
@@ -115,25 +113,22 @@ namespace SeedLang.Interpreter {
       }
 
       public override int GetHashCode() {
-        return new { _leftId, _op, _rightId, _resultId, }.GetHashCode();
+        return new { LeftId, Op, RightId, ResultId, }.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {_leftId} {_op} {_rightId} {_resultId}";
+        return $"Notification.{GetType().Name}: {LeftId} {Op} {RightId} {ResultId}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        vm.Notify(new Event.Binary(new Value(getRKValue(_leftId)), _op,
-                                   new Value(getRKValue(_rightId)),
-                                   new Value(getRKValue(_resultId)), range));
+      internal override void Accept(VM vm) {
+        vm.HandleBinary(this);
       }
     }
 
     internal sealed class ElementLoaded : AbstractNotification, IEquatable<ElementLoaded> {
-      public readonly uint TargetId;
-      public readonly uint ContainerId;
-      public readonly uint KeyId;
+      public uint TargetId { get; }
+      public uint ContainerId { get; }
+      public uint KeyId { get; }
 
       internal ElementLoaded(uint targetId, uint containerId, uint keyId) {
         TargetId = targetId;
@@ -172,9 +167,8 @@ namespace SeedLang.Interpreter {
         return $"Notification.{GetType().Name}: {TargetId} {ContainerId} {KeyId}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        throw new NotImplementedException("");
+      internal override void Accept(VM vm) {
+        vm.HandleElementLoaded(this);
       }
     }
 
@@ -184,14 +178,14 @@ namespace SeedLang.Interpreter {
         Returned,
       }
 
-      private readonly string _name;
-      private readonly uint _funcId;
-      private readonly uint _argLength;
+      public string Name { get; }
+      public uint FuncId { get; }
+      public uint ArgLength { get; }
 
       internal Function(string name, uint funcId, uint argLength) {
-        _name = name;
-        _funcId = funcId;
-        _argLength = argLength;
+        Name = name;
+        FuncId = funcId;
+        ArgLength = argLength;
       }
 
       public static bool operator ==(Function lhs, Function rhs) {
@@ -209,7 +203,7 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return _name == other._name && _funcId == other._funcId && _argLength == other._argLength;
+        return Name == other.Name && FuncId == other.FuncId && ArgLength == other.ArgLength;
       }
 
       public override bool Equals(object obj) {
@@ -217,35 +211,21 @@ namespace SeedLang.Interpreter {
       }
 
       public override int GetHashCode() {
-        return new { _name, _funcId, _argLength, }.GetHashCode();
+        return new { Name, FuncId, ArgLength, }.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {_name} {_funcId} {_argLength}";
+        return $"Notification.{GetType().Name}: {Name} {FuncId} {ArgLength}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        Debug.Assert(Enum.IsDefined(typeof(Status), data));
-        switch ((Status)data) {
-          case Status.Called:
-            var args = new Value[_argLength];
-            uint argStartId = _funcId + 1;
-            for (uint i = 0; i < _argLength; i++) {
-              args[i] = new Value(getRKValue(argStartId + i));
-            }
-            vm.Notify(new Event.FuncCalled(_name, args, range));
-            break;
-          case Status.Returned:
-            vm.Notify(new Event.FuncReturned(_name, new Value(getRKValue(_funcId)), range));
-            break;
-        }
+      internal override void Accept(VM vm) {
+        vm.HandleFunction(this);
       }
     }
 
     internal sealed class GlobalLoaded : AbstractNotification, IEquatable<GlobalLoaded> {
-      public readonly uint TargetId;
-      public readonly string Name;
+      public uint TargetId { get; }
+      public string Name { get; }
 
       internal GlobalLoaded(uint targetId, string name) {
         TargetId = targetId;
@@ -282,9 +262,8 @@ namespace SeedLang.Interpreter {
         return $"Notification.{GetType().Name}: {TargetId} '{Name}'";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        throw new NotImplementedException("");
+      internal override void Accept(VM vm) {
+        vm.HandleGlobalLoaded(this);
       }
     }
 
@@ -316,24 +295,23 @@ namespace SeedLang.Interpreter {
         return $"Notification.{GetType().Name}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        vm.Notify(new Event.SingleStep(range));
+      internal override void Accept(VM vm) {
+        vm.HandleSingleStep(this);
       }
     }
 
     internal sealed class SubscriptAssignment :
         AbstractNotification, IEquatable<SubscriptAssignment> {
-      private readonly string _name;
-      private readonly VariableType _type;
-      private readonly uint _keyId;
-      private readonly uint _valueId;
+      public string Name { get; }
+      public VariableType Type { get; }
+      public uint KeyId { get; }
+      public uint ValueId { get; }
 
       internal SubscriptAssignment(string name, VariableType type, uint keyId, uint valueId) {
-        _name = name;
-        _type = type;
-        _keyId = keyId;
-        _valueId = valueId;
+        Name = name;
+        Type = type;
+        KeyId = keyId;
+        ValueId = valueId;
       }
 
       public static bool operator ==(SubscriptAssignment lhs, SubscriptAssignment rhs) {
@@ -351,8 +329,8 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return _name == other._name && _type == other._type &&
-               _keyId == other._keyId && _valueId == other._valueId;
+        return Name == other.Name && Type == other.Type &&
+               KeyId == other.KeyId && ValueId == other.ValueId;
       }
 
       public override bool Equals(object obj) {
@@ -360,29 +338,27 @@ namespace SeedLang.Interpreter {
       }
 
       public override int GetHashCode() {
-        return new { _name, _type, _keyId, _valueId, }.GetHashCode();
+        return new { Name, Type, KeyId, ValueId, }.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: '{_name}': {_type} {_keyId} {_valueId}";
+        return $"Notification.{GetType().Name}: '{Name}': {Type} {KeyId} {ValueId}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        vm.Notify(new Event.SubscriptAssignment(_name, _type, new Value(getRKValue(_keyId)),
-                                                new Value(getRKValue(_valueId)), range));
+      internal override void Accept(VM vm) {
+        vm.HandleSubscriptAssignment(this);
       }
     }
 
     internal sealed class Unary : AbstractNotification, IEquatable<Unary> {
-      private readonly UnaryOperator _op;
-      private readonly uint _valueId;
-      private readonly uint _resultId;
+      public UnaryOperator Op { get; }
+      public uint ValueId { get; }
+      public uint ResultId { get; }
 
       internal Unary(UnaryOperator op, uint valueId, uint resultId) {
-        _op = op;
-        _valueId = valueId;
-        _resultId = resultId;
+        Op = op;
+        ValueId = valueId;
+        ResultId = resultId;
       }
 
       public static bool operator ==(Unary lhs, Unary rhs) {
@@ -400,7 +376,7 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return _op == other._op && _valueId == other._valueId && _resultId == other._resultId;
+        return Op == other.Op && ValueId == other.ValueId && ResultId == other.ResultId;
       }
 
       public override bool Equals(object obj) {
@@ -408,17 +384,15 @@ namespace SeedLang.Interpreter {
       }
 
       public override int GetHashCode() {
-        return new { _op, _valueId, _resultId, }.GetHashCode();
+        return new { Op, ValueId, ResultId, }.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {_op} {_valueId} {_resultId}";
+        return $"Notification.{GetType().Name}: {Op} {ValueId} {ResultId}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        vm.Notify(new Event.Unary(_op, new Value(getRKValue(_valueId)),
-                                  new Value(getRKValue(_resultId)), range));
+      internal override void Accept(VM vm) {
+        vm.HandleUnary(this);
       }
     }
 
@@ -459,9 +433,8 @@ namespace SeedLang.Interpreter {
         return $"Notification.{GetType().Name}: {Info}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        vm.Notify(new Event.VariableDefined(Info.Name, Info.Type, range));
+      internal override void Accept(VM vm) {
+        vm.HandleVariableDefined(this);
       }
     }
 
@@ -502,9 +475,8 @@ namespace SeedLang.Interpreter {
         return $"Notification.{GetType().Name}: {StartId}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        throw new NotImplementedException("");
+      internal override void Accept(VM vm) {
+        vm.HandleVariableDeleted(this);
       }
     }
 
@@ -577,10 +549,10 @@ namespace SeedLang.Interpreter {
         Exited,
       }
 
-      private readonly VTagInfo[] _vTagInfos;
+      public VTagInfo[] VTagInfos { get; }
 
       internal VTag(VTagInfo[] vTagInfos) {
-        _vTagInfos = vTagInfos;
+        VTagInfos = vTagInfos;
       }
 
       public static bool operator ==(VTag lhs, VTag rhs) {
@@ -598,7 +570,7 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return Enumerable.SequenceEqual(_vTagInfos, other._vTagInfos);
+        return Enumerable.SequenceEqual(VTagInfos, other.VTagInfos);
       }
 
       public override bool Equals(object obj) {
@@ -607,31 +579,18 @@ namespace SeedLang.Interpreter {
 
       public override int GetHashCode() {
         var hashCode = new HashCode();
-        foreach (VTagInfo info in _vTagInfos) {
+        foreach (VTagInfo info in VTagInfos) {
           hashCode.Add(info);
         }
         return hashCode.ToHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {string.Join<VTagInfo>(", ", _vTagInfos)}";
+        return $"Notification.{GetType().Name}: {string.Join<VTagInfo>(", ", VTagInfos)}";
       }
 
-      internal override void Notify(VM vm, Func<uint, VMValue> getRKValue, uint data,
-                                    TextRange range) {
-        var vTags = Array.ConvertAll(_vTagInfos, vTagInfo => {
-          var values = Array.ConvertAll(vTagInfo.ValueIds, valueId =>
-              valueId.HasValue ? new Value(getRKValue(valueId.Value)) : new Value());
-          return new Visualization.VTagInfo(vTagInfo.Name, vTagInfo.Args, values);
-        });
-        switch ((Status)data) {
-          case Status.Entered:
-            vm.Notify(new Event.VTagEntered(vTags, range));
-            break;
-          case Status.Exited:
-            vm.Notify(new Event.VTagExited(vTags, range));
-            break;
-        }
+      internal override void Accept(VM vm) {
+        vm.HandleVTag(this);
       }
     }
   }

@@ -14,6 +14,7 @@
 
 using System.Collections.Generic;
 using SeedLang.Common;
+using SeedLang.Interpreter;
 
 namespace SeedLang.Runtime {
   using NativeFunction = HeapObjects.NativeFunction;
@@ -51,91 +52,91 @@ namespace SeedLang.Runtime {
 
     // Prints a value when it's not nil. It's used in interactive mode to print the result of an
     // expression statement.
-    private static VMValue PrintValFunc(VMValue[] args, int offset, int length, Sys sys) {
-      if (length != 1) {
+    private static VMValue PrintValFunc(Registers.Span args, Sys sys) {
+      if (args.Count != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      if (!args[offset].IsNil) {
-        sys.Stdout.WriteLine(args[offset]);
+      if (!args[0].IsNil) {
+        sys.Stdout.WriteLine(args[0]);
       }
       return new VMValue();
     }
 
     // Appends a value to a list. The first argument is the list, the second argument is the
     // value to be appended to the list.
-    private static VMValue AppendFunc(VMValue[] args, int offset, int length, Sys _) {
-      if (length != 2) {
+    private static VMValue AppendFunc(Registers.Span args, Sys _) {
+      if (args.Count != 2) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      VMValue value = args[offset];
+      VMValue value = args[0];
       if (value.IsList) {
         List<VMValue> list = value.AsList();
-        list.Add(args[offset + 1]);
+        list.Add(args[1]);
       }
       return new VMValue();
     }
 
-    private static VMValue LenFunc(VMValue[] args, int offset, int length, Sys _) {
-      if (length != 1) {
+    private static VMValue LenFunc(Registers.Span args, Sys _) {
+      if (args.Count != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      return new VMValue(args[offset].Length);
+      return new VMValue(args[0].Length);
     }
 
     // Creates an empty list if the length of arguments is empty, and a list if the argument is a
     // subscriptable value.
-    private static VMValue ListFunc(VMValue[] args, int offset, int length, Sys _) {
-      if (length < 0 || length > 1) {
+    private static VMValue ListFunc(Registers.Span args, Sys _) {
+      if (args.Count < 0 || args.Count > 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      if (length == 0) {
+      if (args.Count == 0) {
         return new VMValue(new List<VMValue>());
       }
       var list = new List<VMValue>();
-      for (int i = 0; i < args[offset].Length; i++) {
-        list.Add(args[offset][new VMValue(i)]);
+      for (int i = 0; i < args[0].Length; i++) {
+        list.Add(args[0][new VMValue(i)]);
       }
       return new VMValue(list);
     }
 
-    private static VMValue PrintFunc(VMValue[] args, int offset, int length, Sys sys) {
-      for (int i = 0; i < length; i++) {
+    private static VMValue PrintFunc(Registers.Span args, Sys sys) {
+      for (int i = 0; i < args.Count; i++) {
         if (i > 0) {
           sys.Stdout.Write(" ");
         }
-        sys.Stdout.Write(args[offset + i].AsString());
+        sys.Stdout.Write(args[i].AsString());
       }
       sys.Stdout.WriteLine();
       return new VMValue();
     }
 
-    private static VMValue RangeFunc(VMValue[] args, int offset, int length, Sys _) {
-      if (length == 1) {
-        return new VMValue(new Range((int)args[offset].AsNumber()));
-      } else if (length == 2) {
-        var range = new Range((int)args[offset].AsNumber(), (int)args[offset + 1].AsNumber());
+    private static VMValue RangeFunc(Registers.Span args, Sys _) {
+      if (args.Count == 1) {
+        return new VMValue(new Range((int)args[0].AsNumber()));
+      } else if (args.Count == 2) {
+        var range = new Range((int)args[0].AsNumber(), (int)args[1].AsNumber());
         return new VMValue(range);
-      } else if (length == 3) {
-        return new VMValue(new Range((int)args[offset].AsNumber(),
-                                     (int)args[offset + 1].AsNumber(),
-                                     (int)args[offset + 2].AsNumber()));
+      } else if (args.Count == 3) {
+        return new VMValue(new Range((int)args[0].AsNumber(),
+                                     (int)args[1].AsNumber(),
+                                     (int)args[2].AsNumber()));
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                     Message.RuntimeErrorIncorrectArgsCount);
     }
 
-    private static VMValue SliceFunc(VMValue[] args, int offset, int length, Sys _) {
-      if (length != 3) {
+    private static VMValue SliceFunc(Registers.Span args, Sys _) {
+      if (args.Count != 3) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      double? start = args[offset].IsNumber ? args[offset].AsNumber() : default(double?);
-      double? stop = args[offset + 1].IsNumber ? args[offset + 1].AsNumber() : default(double?);
-      double? step = args[offset + 2].IsNumber ? args[offset + 2].AsNumber() : default(double?);
+      double? start = args[0].IsNumber ? args[0].AsNumber() : default(double?);
+      double? stop = args[1].IsNumber ? args[1].AsNumber() : default(double?);
+      double? step = args[2].IsNumber ? args[2].AsNumber() : default(double?);
       return new VMValue(new Slice(start, stop, step));
     }
   }

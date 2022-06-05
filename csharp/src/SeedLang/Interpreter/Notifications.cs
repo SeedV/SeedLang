@@ -16,7 +16,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Visualization;
 
@@ -302,14 +301,12 @@ namespace SeedLang.Interpreter {
 
     internal sealed class SubscriptAssignment :
         AbstractNotification, IEquatable<SubscriptAssignment> {
-      public string Name { get; }
-      public VariableType Type { get; }
+      public uint ContainerId { get; }
       public uint KeyId { get; }
       public uint ValueId { get; }
 
-      internal SubscriptAssignment(string name, VariableType type, uint keyId, uint valueId) {
-        Name = name;
-        Type = type;
+      internal SubscriptAssignment(uint containerId, uint keyId, uint valueId) {
+        ContainerId = containerId;
         KeyId = keyId;
         ValueId = valueId;
       }
@@ -329,8 +326,7 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return Name == other.Name && Type == other.Type &&
-               KeyId == other.KeyId && ValueId == other.ValueId;
+        return ContainerId == other.ContainerId && KeyId == other.KeyId && ValueId == other.ValueId;
       }
 
       public override bool Equals(object obj) {
@@ -338,11 +334,11 @@ namespace SeedLang.Interpreter {
       }
 
       public override int GetHashCode() {
-        return new { Name, Type, KeyId, ValueId, }.GetHashCode();
+        return new { ContainerId, KeyId, ValueId, }.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: '{Name}': {Type} {KeyId} {ValueId}";
+        return $"Notification.{GetType().Name}: {ContainerId} {KeyId} {ValueId}";
       }
 
       internal override void Accept(VM vm) {

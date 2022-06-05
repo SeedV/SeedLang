@@ -159,23 +159,18 @@ namespace SeedLang.Visualization {
     }
 
     // An event which is triggered when a value is assigned to an element of a container.
-    //
-    // The container might be unnamed variables in following cases. The name of the container is
-    // null and the type is undefined in these cases.
-    // 1) Sets the element of a temporary container: [1, 2, 3][1] = 5
-    // 2) Sets the element of a intermediate container: a[1][2] = 5
     public class SubscriptAssignment : AbstractEvent {
       public string Name { get; }
       // The variable type of the container.
       public VariableType Type { get; }
-      public Value Key { get; }
+      public IReadOnlyList<Value> Keys { get; }
       public Value Value { get; }
 
-      public SubscriptAssignment(string name, VariableType type, Value key, Value value,
-                                 TextRange range) : base(range) {
+      public SubscriptAssignment(string name, VariableType type, IReadOnlyList<Value> keys,
+                                 Value value, TextRange range) : base(range) {
         Name = name;
         Type = type;
-        Key = key;
+        Keys = keys;
         Value = value;
       }
     }

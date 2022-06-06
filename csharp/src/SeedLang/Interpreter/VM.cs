@@ -185,16 +185,26 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleVariableDefined(Notification.VariableDefined vdn) {
+      bool isFirstTimeDefined = false;
       switch (vdn.Info.Type) {
         case VariableType.Global:
-          Debug.Assert(!_globals.Contains(vdn.Info.Name));
-          _globals.Add(vdn.Info.Name);
+          // for i in range(5):
+          //   for j in range(5):
+          //     ...
+          // Global variable j will be defined for several times.
+          if (!_globals.Contains(vdn.Info.Name)) {
+            isFirstTimeDefined = true;
+            _globals.Add(vdn.Info.Name);
+          }
           break;
         case VariableType.Local:
-          _registers.SetLocalRegisterInfoAt(vdn.Info.Id, vdn.Info.Name);
+          if (!_registers.GetRegisterInfo(vdn.Info.Id).IsLocal) {
+            isFirstTimeDefined = true;
+            _registers.SetLocalRegisterInfoAt(vdn.Info.Id, vdn.Info.Name);
+          }
           break;
       }
-      if (VisualizerCenter.HasVisualizer<Event.VariableDefined>()) {
+      if (isFirstTimeDefined && VisualizerCenter.HasVisualizer<Event.VariableDefined>()) {
         Notify(new Event.VariableDefined(vdn.Info.Name, vdn.Info.Type, _chunk.Ranges[_pc]));
       }
     }

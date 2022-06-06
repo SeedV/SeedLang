@@ -97,7 +97,8 @@ namespace SeedLang.Tests.Helper {
           sb.AppendLine($"{sse.Range} SingleStep");
           break;
         case Event.SubscriptAssignment sae:
-          sb.AppendLine($"{sae.Range} ({sae.Name}: {sae.Type})[{sae.Key}] = {sae.Value}");
+          var keys = string.Join("][", sae.Keys);
+          sb.AppendLine($"{sae.Range} ({sae.Name}: {sae.Type})[{keys}] = {sae.Value}");
           break;
         case Event.Unary ue:
           sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");

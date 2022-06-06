@@ -280,7 +280,10 @@ x = 1
         $"  2    LOADK     2 -2             ; 2                 [Ln 1, Col 4 - Ln 1, Col 4]\n" +
         $"  3    NEWLIST   0 1 2                                [Ln 1, Col 0 - Ln 1, Col 5]\n" +
         $"  4    SETELEM   0 -1 -1          ; 1 1               [Ln 1, Col 0 - Ln 1, Col 12]\n" +
-        $"  5    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n"
+        $"  5    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
+        $"  6    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -309,7 +312,7 @@ a[1] = 1
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'a' Global 7\n" +
         $"  1    Notification.GlobalLoaded: 0 'a'\n" +
-        $"  2    Notification.SubscriptAssignment: 'a': Global 250 250\n"
+        $"  2    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -342,7 +345,7 @@ def func():
         $"  7    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'func.a' Local 0\n" +
-        $"  1    Notification.SubscriptAssignment: 'func.a': Local 250 250\n"
+        $"  1    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);

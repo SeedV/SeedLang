@@ -27,7 +27,7 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class VMNotificationTests {
     [Fact]
-    public void TestSingleStepNotification() {
+    public void TestSingleStep() {
       string source = @"
 # [[ Assign(a) ]]
 a = 1
@@ -74,7 +74,7 @@ x = add(1, 2)
     }
 
     [Fact]
-    public void TestMultipleListAssignNotification() {
+    public void TestMultipleListAssignment() {
       string source = @"
 a = [[1, 2, 3], [1, 2]]
 a[0][1] = 10
@@ -85,12 +85,57 @@ a[0][1] = 10
         typeof(Event.VariableDeleted),
       });
       var expected = new string[] {
+        "[Ln 3, Col 0 - Ln 3, Col 11] (a: Global)[0][1] = 10",
         "[Ln 2, Col 0 - Ln 2, Col 0] VariableDefined: a: Global",
       };
       events.Should().BeEquivalentTo(expected);
     }
 
-    private static (string, IEnumerable<string>) Run(string source, IReadOnlyList<Type> eventTypes) {
+    [Fact]
+    public void TestQuickSort() {
+      string source = @"
+# [[ Data ]]
+a = [8, 1, 0, 5, 6, 3, 2, 4, 7, 1]
+
+# [[ Index(start, end) ]]
+def partition(start, end, a):
+  # [[ Index ]]
+  pivot_index = start
+  # [[ Save ]]
+  pivot = a[pivot_index]
+  while start < end:
+    while start < len(a) and a[start] <= pivot:
+      start += 1
+    while a[end] > pivot:
+      end -= 1
+    if (start < end):
+      # [[ Swap(start, end) ]]
+      a[start], a[end] = a[end], a[start]
+    # [[ Swap(end, pivot_index) ]]
+    a[end], a[pivot_index] = a[pivot_index], a[end]
+  return end
+
+
+# [[ Bounds(start, end) ]]
+def quick_sort(start, end, a):
+  if start < end:
+    mid = partition(start, end, a)
+    quick_sort(start, mid - 1, a)
+    quick_sort(mid + 1, end, a)
+
+
+quick_sort(0, len(a) - 1, a)
+print(a)
+";
+      (string output, IEnumerable<string> _) = Run(source, new Type[] {
+        typeof(Event.VTagEntered),
+        typeof(Event.VTagExited),
+      });
+      output.Should().Be("[0, 1, 1, 2, 3, 4, 5, 6, 7, 8]" + Environment.NewLine);
+    }
+
+    private static (string, IEnumerable<string>) Run(string source,
+                                                     IReadOnlyList<Type> eventTypes) {
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
                              out IReadOnlyList<TokenInfo> _).Should().Be(true);
       var vm = new VM();

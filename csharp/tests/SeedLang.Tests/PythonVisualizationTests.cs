@@ -32,7 +32,7 @@ namespace SeedLang.Tests {
 
     [Fact]
     public void TestRunningStates() {
-      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Interactive);
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
       var stringWriter = new StringWriter();
       engine.RedirectStdout(stringWriter);
       var visualizer = new MockupVisualizer();

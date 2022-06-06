@@ -14,7 +14,6 @@
 
 using System.Collections.Generic;
 using SeedLang.Common;
-using SeedLang.Interpreter;
 
 namespace SeedLang.Runtime {
   using NativeFunction = HeapObjects.NativeFunction;
@@ -52,7 +51,7 @@ namespace SeedLang.Runtime {
 
     // Prints a value when it's not nil. It's used in interactive mode to print the result of an
     // expression statement.
-    private static VMValue PrintValFunc(Registers.Span args, Sys sys) {
+    private static VMValue PrintValFunc(ValueSpan args, Sys sys) {
       if (args.Count != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -65,7 +64,7 @@ namespace SeedLang.Runtime {
 
     // Appends a value to a list. The first argument is the list, the second argument is the
     // value to be appended to the list.
-    private static VMValue AppendFunc(Registers.Span args, Sys _) {
+    private static VMValue AppendFunc(ValueSpan args, Sys _) {
       if (args.Count != 2) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -78,7 +77,7 @@ namespace SeedLang.Runtime {
       return new VMValue();
     }
 
-    private static VMValue LenFunc(Registers.Span args, Sys _) {
+    private static VMValue LenFunc(ValueSpan args, Sys _) {
       if (args.Count != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -88,7 +87,7 @@ namespace SeedLang.Runtime {
 
     // Creates an empty list if the length of arguments is empty, and a list if the argument is a
     // subscriptable value.
-    private static VMValue ListFunc(Registers.Span args, Sys _) {
+    private static VMValue ListFunc(ValueSpan args, Sys _) {
       if (args.Count < 0 || args.Count > 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -103,7 +102,7 @@ namespace SeedLang.Runtime {
       return new VMValue(list);
     }
 
-    private static VMValue PrintFunc(Registers.Span args, Sys sys) {
+    private static VMValue PrintFunc(ValueSpan args, Sys sys) {
       for (int i = 0; i < args.Count; i++) {
         if (i > 0) {
           sys.Stdout.Write(" ");
@@ -114,7 +113,7 @@ namespace SeedLang.Runtime {
       return new VMValue();
     }
 
-    private static VMValue RangeFunc(Registers.Span args, Sys _) {
+    private static VMValue RangeFunc(ValueSpan args, Sys _) {
       if (args.Count == 1) {
         return new VMValue(new Range((int)args[0].AsNumber()));
       } else if (args.Count == 2) {
@@ -129,7 +128,7 @@ namespace SeedLang.Runtime {
                                     Message.RuntimeErrorIncorrectArgsCount);
     }
 
-    private static VMValue SliceFunc(Registers.Span args, Sys _) {
+    private static VMValue SliceFunc(ValueSpan args, Sys _) {
       if (args.Count != 3) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);

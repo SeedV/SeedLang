@@ -155,7 +155,8 @@ namespace SeedLang.Shell {
           Console.Write($"SingleStep: {sse.Range.Start.Line}");
           break;
         case Event.SubscriptAssignment sae:
-          Console.Write($"SubscriptAssign: {sae.Name}[{sae.Key}] = {sae.Value}");
+          var keys = string.Join("][", sae.Keys);
+          Console.Write($"SubscriptAssign: {sae.Name}[{keys}] = {sae.Value}");
           break;
         case Event.Unary ue:
           Console.Write($"Unary: {_unaryOperatorStrings[ue.Op]} {ue.Value} = {ue.Result}");

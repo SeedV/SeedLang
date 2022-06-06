@@ -14,31 +14,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SeedLang.Runtime;
 using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
+  // The class to manage the register stack and register information.
   internal class Registers {
-    internal class Span {
-      public int Count { get; }
-      private readonly VMValue[] _values;
-      private readonly int _start;
-
-      internal Span(VMValue[] values, int start, int count) {
-        _values = values;
-        _start = start;
-        Count = count;
-      }
-
-      internal ref readonly VMValue this[int index] {
-        get {
-          Debug.Assert(_start + index < Count);
-          return ref _values[_start + index];
-        }
-      }
-    }
-
     // The class to store variable information of registers.
     internal class RegisterInfo {
       private enum Type {
@@ -47,25 +28,36 @@ namespace SeedLang.Interpreter {
         Reference,
       }
 
+      // The flag to indicate a temporary variable is stored in the register.
       public bool IsTemporary => _type == Type.Temporary;
+      // The flag to indicate a local variable is stored in the register.
       public bool IsLocal => _type == Type.Local;
+      // The flag to indicate a reference of a global variable, or an element of a container is
+      // stored in the register.
       public bool IsReference => _type == Type.Reference;
 
+      // The name of the local or referenced variable.
       public string Name { get; }
+      // The referenced variable type.
       public VariableType RefVariableType { get; }
+      // The keys of the container elements, e.g. for a[0][1], 0 and 1 are stored in the keys.
       public IReadOnlyList<Value> Keys { get; }
 
       private readonly Type _type;
 
+      // Constructs a temporary register information.
       internal RegisterInfo() {
         _type = Type.Temporary;
       }
 
+      // Constructs a local register information.
       internal RegisterInfo(string name) {
         Name = name;
+        Keys = new List<Value>();
         _type = Type.Local;
       }
 
+      // Constructs a reference register information.
       internal RegisterInfo(string name, VariableType refVariableType, IReadOnlyList<Value> keys) {
         Name = name;
         RefVariableType = refVariableType;
@@ -86,12 +78,17 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    // Base register index of current function.
     public uint Base { get; set; }
 
     // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
     // can hold maximun 100 recursive function calls.
     private const int _stackSize = 25 * 1024;
+
+    // The stack of registers.
     private readonly VMValue[] _stack = new VMValue[_stackSize];
+
+    // The list of register information.
     private List<RegisterInfo> _registerInfos;
 
     internal ref readonly VMValue GetValueAt(uint registerId) {
@@ -107,8 +104,8 @@ namespace SeedLang.Interpreter {
       _registerInfos = new List<RegisterInfo>();
     }
 
-    internal Span GetArguments(uint funcRegisterId, int count) {
-      return new Span(_stack, (int)(Base + funcRegisterId + 1), count);
+    internal ValueSpan GetArguments(uint funcRegisterId, int count) {
+      return new ValueSpan(_stack, (int)(Base + funcRegisterId + 1), count);
     }
 
     internal void SetReturnValue(in VMValue value) {
@@ -117,10 +114,12 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    // Gets register information for a given register id. Returns temporary register information if
+    // the index is out of the range, because there isn't mechanism to track temporary variables in
+    // the registers.
     internal RegisterInfo GetRegisterInfo(uint registerId) {
       int index = (int)(Base + registerId);
-      Debug.Assert(index < _registerInfos.Count);
-      return _registerInfos[index];
+      return index < _registerInfos.Count ? _registerInfos[index] : new RegisterInfo();
     }
 
     internal void SetTempRegisterAt(uint registerId) {
@@ -139,6 +138,7 @@ namespace SeedLang.Interpreter {
     internal void DeleteRegisterInfoFrom(uint startId, Action<RegisterInfo> notifyAction) {
       var index = (int)(Base + startId);
       for (int i = _registerInfos.Count - 1; i >= index; i--) {
+        // Calls the notify action for registers that hold local variables.
         if (_registerInfos[i].IsLocal) {
           notifyAction(_registerInfos[i]);
         }
@@ -151,10 +151,14 @@ namespace SeedLang.Interpreter {
       if (index < _registerInfos.Count) {
         _registerInfos[index] = info;
       } else {
-        for (int i = _registerInfos.Count; i < index; i++) {
-          _registerInfos.Add(new RegisterInfo());
-        }
+        AddTemporaryInfoTo(index);
         _registerInfos.Add(info);
+      }
+    }
+
+    private void AddTemporaryInfoTo(int index) {
+      for (int i = _registerInfos.Count; i < index; i++) {
+        _registerInfos.Add(new RegisterInfo());
       }
     }
   }

@@ -23,56 +23,114 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestNotifications() {
       var assignment = new Notification.Assignment("a", VariableType.Global, 1);
+      (assignment == new Notification.Assignment("a", VariableType.Global, 1)).Should().Be(true);
+      (assignment != null).Should().Be(true);
       assignment.ToString().Should().Be($"Notification.Assignment: 'a': Global 1");
+
       var binary = new Notification.Binary(1, BinaryOperator.Add, 2, 3);
+      (binary == new Notification.Binary(1, BinaryOperator.Add, 2, 3)).Should().Be(true);
+      (binary != null).Should().Be(true);
       binary.ToString().Should().Be("Notification.Binary: 1 Add 2 3");
+
+      var elementLoaded = new Notification.ElementLoaded(1, 2, 3);
+      (elementLoaded == new Notification.ElementLoaded(1, 2, 3)).Should().Be(true);
+      (elementLoaded != new Notification.ElementLoaded(2, 2, 3)).Should().Be(true);
+      elementLoaded.ToString().Should().Be("Notification.ElementLoaded: 1 2 3");
+
       var function = new Notification.Function("func", 1, 2);
+      (function == new Notification.Function("func", 1, 2)).Should().Be(true);
+      (function != null).Should().Be(true);
       function.ToString().Should().Be("Notification.Function: func 1 2");
+
+      var globalLoaded = new Notification.GlobalLoaded(1, "global");
+      (globalLoaded == new Notification.GlobalLoaded(1, "global")).Should().Be(true);
+      (globalLoaded != new Notification.GlobalLoaded(1, "another global")).Should().Be(true);
+      globalLoaded.ToString().Should().Be("Notification.GlobalLoaded: 1 'global'");
+
       var singleStep = new Notification.SingleStep();
+      (singleStep == new Notification.SingleStep()).Should().Be(true);
+      (singleStep != null).Should().Be(true);
       singleStep.ToString().Should().Be("Notification.SingleStep");
-      var subscriptAssign = new Notification.SubscriptAssignment("a", VariableType.Local, 1, 2);
-      subscriptAssign.ToString().Should().Be("Notification.SubscriptAssignment: 'a': Local 1 2");
+
+      var subscriptAssign = new Notification.SubscriptAssignment(0, 1, 2);
+      (subscriptAssign == new Notification.SubscriptAssignment(0, 1, 2)).Should().Be(true);
+      (subscriptAssign != null).Should().Be(true);
+      subscriptAssign.ToString().Should().Be("Notification.SubscriptAssignment: 0 1 2");
+
       var unary = new Notification.Unary(UnaryOperator.Positive, 1, 2);
+      (unary == new Notification.Unary(UnaryOperator.Positive, 1, 2)).Should().Be(true);
+      (unary != null).Should().Be(true);
       unary.ToString().Should().Be("Notification.Unary: Positive 1 2");
+
       var info = new VariableInfo("a", VariableType.Global, 1);
       var variableDefined = new Notification.VariableDefined(info);
+      (variableDefined == new Notification.VariableDefined(info)).Should().Be(true);
+      (variableDefined != null).Should().Be(true);
       variableDefined.ToString().Should().Be("Notification.VariableDefined: 'a' Global 1");
+
+      var variableDeleted = new Notification.VariableDeleted(1);
+      (variableDeleted == new Notification.VariableDeleted(1)).Should().Be(true);
+      (variableDeleted != new Notification.VariableDeleted(2)).Should().Be(true);
+      variableDeleted.ToString().Should().Be("Notification.VariableDeleted: 1");
+
       var vTagInfos = new Notification.VTagInfo[] {
         new Notification.VTagInfo("VTag", new string[] {"a", "b", "c"}, new uint?[] {1, null, 2}),
       };
       var vTag = new Notification.VTag(vTagInfos);
+      (vTag == new Notification.VTag(vTagInfos)).Should().Be(true);
+      (vTag != null).Should().Be(true);
       vTag.ToString().Should().Be("Notification.VTag: VTag(a: 1, b: null, c: 2)");
 
-      var dict = new Dictionary<Notification.AbstractNotification, int>() {
-        [assignment] = 1,
-        [binary] = 2,
-        [function] = 3,
-        [singleStep] = 4,
-        [subscriptAssign] = 5,
-        [unary] = 6,
-        [variableDefined] = 7,
-        [vTag] = 8,
+      var dict = new Dictionary<Notification.AbstractNotification, string>() {
+        [assignment] = "assignment",
+        [binary] = "binary",
+        [elementLoaded] = "elementLoaded",
+        [function] = "function",
+        [globalLoaded] = "globalLoaded",
+        [singleStep] = "singleStep",
+        [subscriptAssign] = "subscriptAssign",
+        [unary] = "unary",
+        [variableDefined] = "variableDefined",
+        [variableDeleted] = "variableDeleted",
+        [vTag] = "vTag",
       };
-      dict[assignment].Should().Be(1);
-      dict[new Notification.Assignment("a", VariableType.Global, 1)].Should().Be(1);
-      dict[binary].Should().Be(2);
-      dict[new Notification.Binary(1, BinaryOperator.Add, 2, 3)].Should().Be(2);
-      dict[function].Should().Be(3);
-      dict[new Notification.Function("func", 1, 2)].Should().Be(3);
-      dict[singleStep].Should().Be(4);
-      dict[new Notification.SingleStep()].Should().Be(4);
-      dict[subscriptAssign].Should().Be(5);
-      dict[new Notification.SubscriptAssignment("a", VariableType.Local, 1, 2)].Should().Be(5);
-      dict[unary].Should().Be(6);
-      dict[new Notification.Unary(UnaryOperator.Positive, 1, 2)].Should().Be(6);
-      dict[variableDefined].Should().Be(7);
+
+      dict[assignment].Should().Be("assignment");
+      dict[new Notification.Assignment("a", VariableType.Global, 1)].Should().Be("assignment");
+
+      dict[binary].Should().Be("binary");
+      dict[new Notification.Binary(1, BinaryOperator.Add, 2, 3)].Should().Be("binary");
+
+      dict[elementLoaded].Should().Be("elementLoaded");
+      dict[new Notification.ElementLoaded(1, 2, 3)].Should().Be("elementLoaded");
+
+      dict[function].Should().Be("function");
+      dict[new Notification.Function("func", 1, 2)].Should().Be("function");
+
+      dict[globalLoaded].Should().Be("globalLoaded");
+      dict[new Notification.GlobalLoaded(1, "global")].Should().Be("globalLoaded");
+
+      dict[singleStep].Should().Be("singleStep");
+      dict[new Notification.SingleStep()].Should().Be("singleStep");
+
+      dict[subscriptAssign].Should().Be("subscriptAssign");
+      dict[new Notification.SubscriptAssignment(0, 1, 2)].Should().Be("subscriptAssign");
+
+      dict[unary].Should().Be("unary");
+      dict[new Notification.Unary(UnaryOperator.Positive, 1, 2)].Should().Be("unary");
+
+      dict[variableDefined].Should().Be("variableDefined");
       info = new VariableInfo("a", VariableType.Global, 1);
-      dict[new Notification.VariableDefined(info)].Should().Be(7);
-      dict[vTag].Should().Be(8);
+      dict[new Notification.VariableDefined(info)].Should().Be("variableDefined");
+
+      dict[variableDeleted].Should().Be("variableDeleted");
+      dict[new Notification.VariableDeleted(1)].Should().Be("variableDeleted");
+
+      dict[vTag].Should().Be("vTag");
       vTagInfos = new Notification.VTagInfo[] {
         new Notification.VTagInfo("VTag", new string[] {"a", "b", "c"}, new uint?[] {1, null, 2}),
       };
-      dict[new Notification.VTag(vTagInfos)].Should().Be(8);
+      dict[new Notification.VTag(vTagInfos)].Should().Be("vTag");
     }
   }
 }

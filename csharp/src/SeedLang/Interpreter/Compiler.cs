@@ -343,7 +343,7 @@ namespace SeedLang.Interpreter {
           uint containerId = VisitExpressionForRegisterId(subscript.Container);
           uint keyId = VisitExpressionForRKId(subscript.Key);
           _helper.Emit(Opcode.SETELEM, containerId, keyId, registerId, range);
-          _helper.EmitSubscriptAssignNotification(subscript, keyId, registerId, range);
+          _helper.EmitSubscriptAssignNotification(containerId, keyId, registerId, range);
           break;
       }
     }

@@ -16,7 +16,7 @@ using System;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime.HeapObjects {
-  using BuildInFunctionType = Func<VMValue[], int, int, Sys, VMValue>;
+  using BuildInFunctionType = Func<ValueSpan, Sys, VMValue>;
 
   // An empty interface for all function value types. It's only used to identify function types.
   internal interface IFunction {
@@ -35,8 +35,8 @@ namespace SeedLang.Runtime.HeapObjects {
 
     // Calls the build-in function with given arguments that locate in the "args" array starting
     // from "offset". The number of arguments is "length".
-    internal VMValue Call(VMValue[] args, int offset, int length, Sys sys) {
-      return _func(args, offset, length, sys);
+    internal VMValue Call(ValueSpan args, Sys sys) {
+      return _func(args, sys);
     }
 
     public override string ToString() {

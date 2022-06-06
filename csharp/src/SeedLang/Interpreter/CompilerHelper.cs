@@ -178,28 +178,27 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal void EmitSubscriptAssignNotification(SubscriptExpression subscript, uint keyId,
-                                                  uint valueId, TextRange range) {
+    internal void EmitGetElementNotification(uint targetId, uint containerId, uint keyId,
+                                             TextRange range) {
+      if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
+        var n = new Notification.ElementLoaded(targetId, containerId, keyId);
+        Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
+      }
+    }
+
+    internal void EmitGetGlobalNotification(uint targetId, string name, TextRange range) {
+      if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
+        var n = new Notification.GlobalLoaded(targetId, name);
+        Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
+      }
+    }
+
+    internal void EmitSubscriptAssignNotification(uint containerId, uint keyId, uint valueId,
+                                                  TextRange range) {
       if (!_suspendNotificationEmitting &&
           _visualizerCenter.HasVisualizer<Event.SubscriptAssignment>()) {
-        VariableType type = VariableType.Global;
-        if (subscript.Container is IdentifierExpression identifier) {
-          if (_variableResolver.FindVariable(identifier.Name) is VariableInfo info) {
-            switch (info.Type) {
-              case VariableType.Global:
-                type = VariableType.Global;
-                break;
-              case VariableType.Local:
-                type = VariableType.Local;
-                break;
-              case VariableType.Upvalue:
-                // TODO: handle upvalues.
-                break;
-            }
-            var n = new Notification.SubscriptAssignment(info.Name, type, keyId, valueId);
-            Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
-          }
-        }
+        var n = new Notification.SubscriptAssignment(containerId, keyId, valueId);
+        Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }
     }
 
@@ -315,6 +314,11 @@ namespace SeedLang.Interpreter {
             }
           } catch (DiagnosticException ex) {
             if (ex.Diagnostic.MessageId == Message.RuntimeErrorVariableNotDefined) {
+              // Ignores variable not defined exception for variables in VTags and resets
+              // RegisterForSubExpr.
+              // TODO: The state of RegisterForSubExpr is error-prone. Consider using an IR to
+              // optimize expression compilation algorithms.
+              _ = exprCompiler.RegisterForSubExpr;
               valueIds[j] = null;
             } else {
               throw ex;

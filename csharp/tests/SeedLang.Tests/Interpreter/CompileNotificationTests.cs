@@ -15,6 +15,7 @@ using System.Linq;
 
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -271,7 +272,7 @@ x = 1
     }
 
     [Fact]
-    public void TestSubscriptAssignment() {
+    public void TestSubscriptAssignTempArray() {
       string source = "[1, 2][1] = 1";
       string expected = (
         $"Function <main>\n" +
@@ -279,39 +280,46 @@ x = 1
         $"  2    LOADK     2 -2             ; 2                 [Ln 1, Col 4 - Ln 1, Col 4]\n" +
         $"  3    NEWLIST   0 1 2                                [Ln 1, Col 0 - Ln 1, Col 5]\n" +
         $"  4    SETELEM   0 -1 -1          ; 1 1               [Ln 1, Col 0 - Ln 1, Col 12]\n" +
-        $"  5    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n"
+        $"  5    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
+        $"  6    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
     }
 
     [Fact]
-    public void TestSubscriptAssignmentOfGlobalVariable() {
+    public void TestSubscriptAssignGlobalArray() {
       string source = @"
 a = [1, 2]
 a[1] = 1
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    LOADK     1 -1             ; 1                 [Ln 2, Col 5 - Ln 2, Col 5]\n" +
-        $"  2    LOADK     2 -2             ; 2                 [Ln 2, Col 8 - Ln 2, Col 8]\n" +
-        $"  3    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  4    SETGLOB   0 {_firstGlob}" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
+        $"  2    LOADK     1 -1             ; 1                 [Ln 2, Col 5 - Ln 2, Col 5]\n" +
+        $"  3    LOADK     2 -2             ; 2                 [Ln 2, Col 8 - Ln 2, Col 8]\n" +
+        $"  4    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 9]\n" +
+        $"  5    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
-        $"  5    GETGLOB   0 {_firstGlob}" +
+        $"  6    GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  6    SETELEM   0 -1 -1          ; 1 1               [Ln 3, Col 0 - Ln 3, Col 7]\n" +
-        $"  7    VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
-        $"  8    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
+        $"  7    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"  8    SETELEM   0 -1 -1          ; 1 1               [Ln 3, Col 0 - Ln 3, Col 7]\n" +
+        $"  9    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
+        $"  10   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"Notifications\n" +
-        $"  0    Notification.SubscriptAssignment: 'a': Global 250 250\n"
+        $"  0    Notification.VariableDefined: 'a' Global 7\n" +
+        $"  1    Notification.GlobalLoaded: 0 'a'\n" +
+        $"  2    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
     }
 
     [Fact]
-    public void TestSubscriptAssignmentOfLocalVariable() {
+    public void TestSubscriptAssignLocalArray() {
       string source = @"
 def func():
   a = [1, 2]
@@ -319,20 +327,25 @@ def func():
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    LOADK     0 -1             ; Func <func>       [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  2    SETGLOB   0 {_firstGlob}" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"  2    LOADK     0 -1             ; Func <func>       [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"  3    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  3    HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  4    HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.VariableDefined: 'func' Global 7\n" +
         $"\n" +
         $"Function <func>\n" +
-        $"  1    LOADK     1 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
-        $"  2    LOADK     2 -2             ; 2                 [Ln 3, Col 10 - Ln 3, Col 10]\n" +
-        $"  3    NEWLIST   0 1 2                                [Ln 3, Col 6 - Ln 3, Col 11]\n" +
-        $"  4    SETELEM   0 -1 -1          ; 1 1               [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  5    VISNOTIFY 0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  6    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 3, Col 2 - Ln 3, Col 2]\n" +
+        $"  2    LOADK     1 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
+        $"  3    LOADK     2 -2             ; 2                 [Ln 3, Col 10 - Ln 3, Col 10]\n" +
+        $"  4    NEWLIST   0 1 2                                [Ln 3, Col 6 - Ln 3, Col 11]\n" +
+        $"  5    SETELEM   0 -1 -1          ; 1 1               [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  6    VISNOTIFY 0 1                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  7    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
-        $"  0    Notification.SubscriptAssignment: 'func.a': Local 250 250\n"
+        $"  0    Notification.VariableDefined: 'func.a' Local 0\n" +
+        $"  1    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.SubscriptAssignment) },
                    RunMode.Interactive);
@@ -514,8 +527,8 @@ x, y = 1, 1 + 2
 
     private static void TestCompiler(string source, string expected, IReadOnlyList<Type> eventTypes,
                                      RunMode mode) {
-      Assert.True(new SeedPython().Parse(source, "", new DiagnosticCollection(),
-                                         out Statement program, out IReadOnlyList<TokenInfo> _));
+      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
+                             out IReadOnlyList<TokenInfo> _).Should().Be(true);
       var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
       var visualizerCenter = new VisualizerCenter();
       var visualizerHelper = new VisualizerHelper(eventTypes);

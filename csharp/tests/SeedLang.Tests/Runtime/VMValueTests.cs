@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using FluentAssertions;
 using SeedLang.Common;
+using SeedLang.Interpreter;
 using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
@@ -234,9 +235,9 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestNativeFunction() {
       string add = "add";
-      var nativeFunc = new NativeFunction(add, (VMValue[] args, int offset, int length, Sys _) => {
-        if (length == 2) {
-          return new VMValue(args[offset].AsNumber() + args[offset + 1].AsNumber());
+      var nativeFunc = new NativeFunction(add, (ValueSpan args, Sys _) => {
+        if (args.Count == 2) {
+          return new VMValue(args[0].AsNumber() + args[1].AsNumber());
         }
         throw new NotImplementedException();
       });
@@ -244,7 +245,8 @@ namespace SeedLang.Runtime.Tests {
       func.IsFunction.Should().Be(true);
       func.AsString().Should().Be($"NativeFunction <{add}>");
       func.ToString().Should().Be($"NativeFunction <{add}>");
-      var result = nativeFunc.Call(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2, null);
+      var args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
+      var result = nativeFunc.Call(args, null);
       result.AsNumber().Should().Be(3);
     }
 

@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Runtime.HeapObjects;
@@ -31,15 +32,6 @@ namespace SeedLang.Interpreter {
       Stopped,
     }
 
-    // The class to store variable information of registers.
-    private class RegisterInfo {
-      public string Name { get; }
-
-      internal RegisterInfo(string name) {
-        Name = name;
-      }
-    }
-
     public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
     public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
 
@@ -51,20 +43,13 @@ namespace SeedLang.Interpreter {
 
     private readonly Sys _sys = new Sys();
 
-    // The stack size. Each function can allocate maximun 250 registers in the stack. So the stack
-    // can hold maximun 100 recursive function calls.
-    private const int _stackSize = 25 * 1024;
-
-    private readonly VMValue[] _stack = new VMValue[_stackSize];
+    private readonly Registers _registers = new Registers();
     private CallStack _callStack;
     private Chunk _chunk;
-    private uint _baseRegister;
     private int _pc;
 
     // The hash table to store defined global variable names.
     private HashSet<string> _globals;
-    // The list to store variable information of registers.
-    private List<RegisterInfo> _registerInfos;
 
     internal void RedirectStdout(TextWriter stdout) {
       _sys.Stdout = stdout;
@@ -90,13 +75,7 @@ namespace SeedLang.Interpreter {
         locals = new List<IVM.VariableInfo>();
         return false;
       }
-      var localList = new List<IVM.VariableInfo>();
-      for (int i = (int)_baseRegister; i < _registerInfos.Count; i++) {
-        if (_registerInfos[i] is RegisterInfo info) {
-          localList.Add(new IVM.VariableInfo(info.Name, new Value(_stack[i])));
-        }
-      }
-      locals = localList;
+      locals = _registers.Locals;
       return true;
     }
 
@@ -108,12 +87,11 @@ namespace SeedLang.Interpreter {
       _state = State.Running;
 
       _callStack = new CallStack();
-      _baseRegister = 0;
-      _callStack.PushFunc(func, _baseRegister, 0);
+      _registers.Reset();
+      _callStack.PushFunc(func, _registers.Base, 0);
       _chunk = func.Chunk;
       _pc = 0;
       _globals = new HashSet<string>();
-      _registerInfos = new List<RegisterInfo>();
       RunLoop();
     }
 
@@ -135,10 +113,127 @@ namespace SeedLang.Interpreter {
       _chunk.RestoreBreakpoint();
     }
 
-    internal void Notify<Event>(Event e) {
-      var vmProxy = new VMProxy(this);
-      VisualizerCenter.Notify(e, vmProxy);
-      vmProxy.Invalid();
+    internal void HandleAssignment(Notification.Assignment an) {
+      Notify(new Event.Assignment(an.Name, an.Type, new Value(ValueOfRK(an.ValueId)),
+                                  _chunk.Ranges[_pc]));
+    }
+
+    internal void HandleBinary(Notification.Binary bn) {
+      Notify(new Event.Binary(new Value(ValueOfRK(bn.LeftId)), bn.Op,
+                              new Value(ValueOfRK(bn.RightId)), new Value(ValueOfRK(bn.ResultId)),
+                              _chunk.Ranges[_pc]));
+    }
+
+    internal void HandleElementLoaded(Notification.ElementLoaded eln) {
+      if (!_registers.GetRegisterInfo(eln.TargetId).IsLocal) {
+        var key = new Value(ValueOfRK(eln.KeyId));
+        Registers.RegisterInfo container = _registers.GetRegisterInfo(eln.ContainerId);
+        if (container.IsLocal) {
+          _registers.SetRefRegisterInfoAt(eln.TargetId, container.Name, VariableType.Local,
+                                          new List<Value> { key });
+        } else if (container.IsReference) {
+          var keys = container.Keys.ToList();
+          keys.Add(key);
+          _registers.SetRefRegisterInfoAt(eln.TargetId, container.Name, container.RefVariableType,
+                                          keys);
+        }
+      }
+    }
+
+    internal void HandleFunction(Notification.Function fn) {
+      Instruction instr = _chunk.Bytecode[_pc];
+      Debug.Assert(Enum.IsDefined(typeof(Notification.Function.Status), instr.A));
+      switch ((Notification.Function.Status)instr.A) {
+        case Notification.Function.Status.Called:
+          var args = new Value[fn.ArgLength];
+          uint argStartId = fn.FuncId + 1;
+          for (uint i = 0; i < fn.ArgLength; i++) {
+            args[i] = new Value(ValueOfRK(argStartId + i));
+          }
+          Notify(new Event.FuncCalled(fn.Name, args, _chunk.Ranges[_pc]));
+          break;
+        case Notification.Function.Status.Returned:
+          Notify(new Event.FuncReturned(fn.Name, new Value(ValueOfRK(fn.FuncId)),
+                                        _chunk.Ranges[_pc]));
+          break;
+      }
+    }
+
+    internal void HandleGlobalLoaded(Notification.GlobalLoaded gln) {
+      _registers.SetRefRegisterInfoAt(gln.TargetId, gln.Name, VariableType.Global,
+                                      new List<Value>());
+    }
+
+    internal void HandleSingleStep(Notification.SingleStep _) {
+      Notify(new Event.SingleStep(_chunk.Ranges[_pc]));
+    }
+
+    internal void HandleSubscriptAssignment(Notification.SubscriptAssignment san) {
+      Registers.RegisterInfo container = _registers.GetRegisterInfo(san.ContainerId);
+      if (!container.IsTemporary) {
+        var keys = container.Keys.ToList();
+        keys.Add(new Value(ValueOfRK(san.KeyId)));
+        Notify(new Event.SubscriptAssignment(container.Name, container.RefVariableType, keys,
+                                             new Value(ValueOfRK(san.ValueId)),
+                                             _chunk.Ranges[_pc]));
+      }
+    }
+
+    internal void HandleUnary(Notification.Unary un) {
+      Notify(new Event.Unary(un.Op, new Value(ValueOfRK(un.ValueId)),
+                             new Value(ValueOfRK(un.ResultId)), _chunk.Ranges[_pc]));
+    }
+
+    internal void HandleVariableDefined(Notification.VariableDefined vdn) {
+      bool isFirstTimeDefined = false;
+      switch (vdn.Info.Type) {
+        case VariableType.Global:
+          // for i in range(5):
+          //   for j in range(5):
+          //     ...
+          // Global variable j will be defined for several times.
+          if (!_globals.Contains(vdn.Info.Name)) {
+            isFirstTimeDefined = true;
+            _globals.Add(vdn.Info.Name);
+          }
+          break;
+        case VariableType.Local:
+          if (!_registers.GetRegisterInfo(vdn.Info.Id).IsLocal) {
+            isFirstTimeDefined = true;
+            _registers.SetLocalRegisterInfoAt(vdn.Info.Id, vdn.Info.Name);
+          }
+          break;
+      }
+      if (isFirstTimeDefined && VisualizerCenter.HasVisualizer<Event.VariableDefined>()) {
+        Notify(new Event.VariableDefined(vdn.Info.Name, vdn.Info.Type, _chunk.Ranges[_pc]));
+      }
+    }
+
+    internal void HandleVariableDeleted(Notification.VariableDeleted vdn) {
+      _registers.DeleteRegisterInfoFrom(vdn.StartId, localInfo => {
+        if (VisualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
+          Notify(new Event.VariableDeleted(localInfo.Name, VariableType.Local, _chunk.Ranges[_pc]));
+        }
+      });
+    }
+
+    internal void HandleVTag(Notification.VTag vTag) {
+      var vTags = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
+        var values = Array.ConvertAll(vTagInfo.ValueIds, valueId =>
+            valueId.HasValue ? new Value(ValueOfRK(valueId.Value)) : new Value());
+        return new VTagInfo(vTagInfo.Name, vTagInfo.Args, values);
+      });
+      Instruction instr = _chunk.Bytecode[_pc];
+      var range = _chunk.Ranges[_pc];
+      Debug.Assert(Enum.IsDefined(typeof(Notification.VTag.Status), instr.A));
+      switch ((Notification.VTag.Status)instr.A) {
+        case Notification.VTag.Status.Entered:
+          Notify(new Event.VTagEntered(vTags, range));
+          break;
+        case Notification.VTag.Status.Exited:
+          Notify(new Event.VTagExited(vTags, range));
+          break;
+      }
     }
 
     private void RunLoop() {
@@ -147,52 +242,50 @@ namespace SeedLang.Interpreter {
         try {
           switch (instr.Opcode) {
             case Opcode.MOVE:
-              _stack[_baseRegister + instr.A] = _stack[_baseRegister + instr.B];
+              _registers.SetValueAt(instr.A, _registers.GetValueAt(instr.B));
               break;
             case Opcode.LOADNIL:
-              for (int i = 0; i < instr.B; i++) {
-                _stack[_baseRegister + instr.A + i] = new VMValue();
+              for (uint i = 0; i < instr.B; i++) {
+                _registers.SetValueAt(instr.A + i, new VMValue());
               }
               break;
             case Opcode.LOADBOOL:
-              _stack[_baseRegister + instr.A] = new VMValue(instr.B == 1);
+              _registers.SetValueAt(instr.A, new VMValue(instr.B == 1));
               if (instr.C == 1) {
                 _pc++;
               }
               break;
             case Opcode.LOADK:
-              _stack[_baseRegister + instr.A] = _chunk.ValueOfConstId(instr.Bx);
+              _registers.SetValueAt(instr.A, _chunk.ValueOfConstId(instr.Bx));
               break;
             case Opcode.NEWTUPLE:
               var builder = ImmutableArray.CreateBuilder<VMValue>((int)instr.C);
-              for (int i = 0; i < instr.C; i++) {
-                builder.Add(_stack[_baseRegister + instr.B + i]);
+              for (uint i = 0; i < instr.C; i++) {
+                builder.Add(_registers.GetValueAt(instr.B + i));
               }
-              _stack[_baseRegister + instr.A] = new VMValue(builder.MoveToImmutable());
+              _registers.SetValueAt(instr.A, new VMValue(builder.MoveToImmutable()));
               break;
             case Opcode.NEWLIST:
               var list = new List<VMValue>((int)instr.C);
-              for (int i = 0; i < instr.C; i++) {
-                list.Add(_stack[_baseRegister + instr.B + i]);
+              for (uint i = 0; i < instr.C; i++) {
+                list.Add(_registers.GetValueAt(instr.B + i));
               }
-              _stack[_baseRegister + instr.A] = new VMValue(list);
+              _registers.SetValueAt(instr.A, new VMValue(list));
               break;
             case Opcode.NEWDICT:
               int count = (int)instr.C / 2;
               var dict = new Dictionary<VMValue, VMValue>(count);
-              uint dictRegister = _baseRegister + instr.A;
-              uint kvStart = _baseRegister + instr.B;
               for (uint i = 0; i < count; i++) {
-                uint keyRegister = kvStart + i * 2;
-                dict[_stack[keyRegister]] = _stack[keyRegister + 1];
+                uint keyRegister = instr.B + i * 2;
+                dict[_registers.GetValueAt(keyRegister)] = _registers.GetValueAt(keyRegister + 1);
               }
-              _stack[dictRegister] = new VMValue(dict);
+              _registers.SetValueAt(instr.A, new VMValue(dict));
               break;
             case Opcode.GETGLOB:
-              _stack[_baseRegister + instr.A] = Env.GetVariable(instr.Bx);
+              _registers.SetValueAt(instr.A, Env.GetVariable(instr.Bx));
               break;
             case Opcode.SETGLOB:
-              Env.SetVariable(instr.Bx, _stack[_baseRegister + instr.A]);
+              Env.SetVariable(instr.Bx, _registers.GetValueAt(instr.A));
               break;
             case Opcode.GETELEM:
               GetElement(instr);
@@ -210,10 +303,10 @@ namespace SeedLang.Interpreter {
               HandleBinary(instr);
               break;
             case Opcode.UNM:
-              _stack[_baseRegister + instr.A] = new VMValue(-ValueOfRK(instr.B).AsNumber());
+              _registers.SetValueAt(instr.A, new VMValue(-ValueOfRK(instr.B).AsNumber()));
               break;
             case Opcode.LEN:
-              _stack[_baseRegister + instr.A] = new VMValue(_stack[_baseRegister + instr.B].Length);
+              _registers.SetValueAt(instr.A, new VMValue(_registers.GetValueAt(instr.B).Length));
               break;
             case Opcode.JMP:
               _pc += instr.SBx;
@@ -247,7 +340,7 @@ namespace SeedLang.Interpreter {
               }
               break;
             case Opcode.TEST:
-              if (_stack[_baseRegister + instr.A].AsBoolean() == (instr.C == 1)) {
+              if (_registers.GetValueAt(instr.A).AsBoolean() == (instr.C == 1)) {
                 _pc++;
               }
               break;
@@ -255,18 +348,20 @@ namespace SeedLang.Interpreter {
               // TODO: implement the TESTSET opcode.
               break;
             case Opcode.FORPREP: {
-                uint loopReg = _baseRegister + instr.A;
-                const uint stepOff = 2;
-                _stack[loopReg] = ValueHelper.Subtract(_stack[loopReg], _stack[loopReg + stepOff]);
+                const uint stepOffset = 2;
+                VMValue loop = ValueHelper.Subtract(_registers.GetValueAt(instr.A),
+                                                    _registers.GetValueAt(instr.A + stepOffset));
+                _registers.SetValueAt(instr.A, loop);
                 _pc += instr.SBx;
                 break;
               }
             case Opcode.FORLOOP: {
-                uint loopReg = _baseRegister + instr.A;
-                const uint limitOff = 1;
-                const uint stepOff = 2;
-                _stack[loopReg] = ValueHelper.Add(_stack[loopReg], _stack[loopReg + stepOff]);
-                if (_stack[loopReg].AsNumber() < _stack[loopReg + limitOff].AsNumber()) {
+                const uint limitOffset = 1;
+                const uint stepOffset = 2;
+                VMValue loop = ValueHelper.Add(_registers.GetValueAt(instr.A),
+                                               _registers.GetValueAt(instr.A + stepOffset));
+                _registers.SetValueAt(instr.A, loop);
+                if (loop.AsNumber() < _registers.GetValueAt(instr.A + limitOffset).AsNumber()) {
                   _pc += instr.SBx;
                 }
                 break;
@@ -278,7 +373,7 @@ namespace SeedLang.Interpreter {
               ReturnFromFunc(instr);
               break;
             case Opcode.VISNOTIFY:
-              HandleVisNotify(instr);
+              _chunk.Notifications[(int)instr.Bx].Accept(this);
               if (IsStopped) {
                 // The execution is stopped by the visualizers.
                 return;
@@ -302,112 +397,83 @@ namespace SeedLang.Interpreter {
     }
 
     private void GetElement(Instruction instr) {
-      VMValue index = ValueOfRK(instr.C);
-      _stack[_baseRegister + instr.A] = _stack[_baseRegister + instr.B][index];
+      _registers.SetValueAt(instr.A, _registers.GetValueAt(instr.B)[ValueOfRK(instr.C)]);
     }
 
     private void SetElement(Instruction instr) {
-      VMValue index = ValueOfRK(instr.B);
-      _stack[_baseRegister + instr.A][index] = ValueOfRK(instr.C);
+      _registers.GetValueAt(instr.A)[ValueOfRK(instr.B)] = ValueOfRK(instr.C);
     }
 
     private void HandleBinary(Instruction instr) {
-      VMValue left = ValueOfRK(instr.B);
-      VMValue right = ValueOfRK(instr.C);
-      uint register = _baseRegister + instr.A;
       switch (instr.Opcode) {
         case Opcode.ADD:
-          _stack[register] = ValueHelper.Add(left, right);
+          _registers.SetValueAt(instr.A, ValueHelper.Add(ValueOfRK(instr.B), ValueOfRK(instr.C)));
           break;
         case Opcode.SUB:
-          _stack[register] = ValueHelper.Subtract(left, right);
+          _registers.SetValueAt(instr.A, ValueHelper.Subtract(ValueOfRK(instr.B),
+                                                              ValueOfRK(instr.C)));
           break;
         case Opcode.MUL:
-          _stack[register] = ValueHelper.Multiply(left, right);
+          _registers.SetValueAt(instr.A, ValueHelper.Multiply(ValueOfRK(instr.B),
+                                                              ValueOfRK(instr.C)));
           break;
         case Opcode.DIV:
-          _stack[register] = ValueHelper.Divide(left, right);
+          _registers.SetValueAt(instr.A, ValueHelper.Divide(ValueOfRK(instr.B),
+                                                            ValueOfRK(instr.C)));
           break;
         case Opcode.FLOORDIV:
-          _stack[register] = ValueHelper.FloorDivide(left, right);
+          _registers.SetValueAt(instr.A, ValueHelper.FloorDivide(ValueOfRK(instr.B),
+                                                                 ValueOfRK(instr.C)));
           break;
         case Opcode.POW:
-          _stack[register] = ValueHelper.Power(left, right);
+          _registers.SetValueAt(instr.A, ValueHelper.Power(ValueOfRK(instr.B), ValueOfRK(instr.C)));
           break;
         case Opcode.MOD:
-          _stack[register] = ValueHelper.Modulo(left, right);
+          _registers.SetValueAt(instr.A, ValueHelper.Modulo(ValueOfRK(instr.B),
+                                                            ValueOfRK(instr.C)));
           break;
       }
     }
 
     private void CallFunc(Instruction instr) {
-      int calleeRegister = (int)(_baseRegister + instr.A);
-      var callee = _stack[calleeRegister].AsFunction();
+      var callee = _registers.GetValueAt(instr.A).AsFunction();
       switch (callee) {
         case NativeFunction nativeFunc:
-          _stack[calleeRegister] = nativeFunc.Call(_stack, calleeRegister + 1, (int)instr.B, _sys);
+          VMValue result = nativeFunc.Call(_registers.GetArguments(instr.A, (int)instr.B), _sys);
+          _registers.SetValueAt(instr.A, result);
           break;
         case Function func:
-          _baseRegister += instr.A + 1;
-          _callStack.PushFunc(func, _baseRegister, _pc);
+          _registers.Base += instr.A + 1;
+          _callStack.PushFunc(func, _registers.Base, _pc);
           _chunk = func.Chunk;
           _pc = -1;
           break;
+        default:
+          throw new NotImplementedException("");
       }
     }
 
     private void ReturnFromFunc(Instruction instr) {
       // TODO: only support one return value now.
-      if (_baseRegister > 0) {
-        uint returnRegister = _baseRegister - 1;
-        _stack[returnRegister] = instr.B > 0 ? _stack[_baseRegister + instr.A] :
-                                               new VMValue();
-      }
+      _registers.SetReturnValue(instr.B > 0 ? _registers.GetValueAt(instr.A) : new VMValue());
       _callStack.PopFunc();
       Debug.Assert(!_callStack.IsEmpty);
       _chunk = _callStack.CurrentChunk();
-      _baseRegister = _callStack.CurrentBase();
+      _registers.Base = _callStack.CurrentBase();
       _pc = _callStack.CurrentPC();
     }
 
-    private void HandleVisNotify(Instruction instr) {
-      var notification = _chunk.Notifications[(int)instr.Bx];
-      switch (notification) {
-        case Notification.VariableDefined defined:
-          switch (defined.Info.Type) {
-            case VariableType.Global:
-              Debug.Assert(!_globals.Contains(defined.Info.Name));
-              _globals.Add(defined.Info.Name);
-              break;
-            case VariableType.Local:
-              for (int i = _registerInfos.Count; i < _baseRegister + defined.Info.Id; i++) {
-                _registerInfos.Add(null);
-              }
-              _registerInfos.Add(new RegisterInfo(defined.Info.Name));
-              break;
-          }
-          break;
-        case Notification.VariableDeleted deleted:
-          for (int i = _registerInfos.Count - 1; i >= _baseRegister + deleted.StartId; i--) {
-            if (!(_registerInfos[i] is null)) {
-              Notify(new Event.VariableDeleted(_registerInfos[i].Name, VariableType.Local,
-                                               _chunk.Ranges[_pc]));
-            }
-          }
-          return;
-      }
-      if (!(notification is Notification.VariableDefined) ||
-          VisualizerCenter.HasVisualizer<Event.VariableDefined>()) {
-        notification.Notify(this, (uint id) => { return ValueOfRK(id); }, instr.A,
-                            _chunk.Ranges[_pc]);
-      }
+    private void Notify<Event>(Event e) {
+      var vmProxy = new VMProxy(this);
+      VisualizerCenter.Notify(e, vmProxy);
+      vmProxy.Invalid();
     }
 
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to
     // avoid copying.
     private ref readonly VMValue ValueOfRK(uint rkPos) {
       if (rkPos < Chunk.MaxRegisterCount) {
-        return ref _stack[_baseRegister + rkPos];
+        return ref _registers.GetValueAt(rkPos);
       }
       return ref _chunk.ValueOfConstId(rkPos);
     }

@@ -23,7 +23,7 @@ namespace SeedLang.Interpreter {
     public VariableType Type { get; }
     public uint Id { get; }
 
-    public VariableInfo(string name, VariableType type, uint id) {
+    internal VariableInfo(string name, VariableType type, uint id) {
       Name = name;
       Type = type;
       Id = id;
@@ -65,6 +65,7 @@ namespace SeedLang.Interpreter {
   internal class VariableResolver {
     private class Registers {
       public int Count => _variableInfos.Count;
+
       private readonly List<VariableInfo> _variableInfos = new List<VariableInfo>();
 
       internal uint AllocateRegister(string name = null) {

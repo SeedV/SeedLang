@@ -85,10 +85,7 @@ namespace SeedLang.Visualization {
           publisher.Register(visualizer);
         }
       }
-      if (visualizer is IVisualizer<Event.VariableDefined> ||
-          visualizer is IVisualizer<Event.VariableDeleted>) {
-        IsVariableTrackingEnabled = true;
-      }
+      EnableVariableTrackingForVariableVisualizers(visualizer);
     }
 
     // Unregisters a visualizer from this visualizer center.
@@ -100,6 +97,14 @@ namespace SeedLang.Visualization {
         if (keyValue.Value is IPublisher<Visualizer> publisher) {
           publisher.Unregister(visualizer);
         }
+      }
+    }
+
+    private void EnableVariableTrackingForVariableVisualizers<Visualizer>(Visualizer visualizer) {
+      if (visualizer is IVisualizer<Event.SubscriptAssignment> ||
+          visualizer is IVisualizer<Event.VariableDefined> ||
+          visualizer is IVisualizer<Event.VariableDeleted>) {
+        IsVariableTrackingEnabled = true;
       }
     }
   }

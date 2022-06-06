@@ -14,7 +14,6 @@ using System.Linq;
 // limitations under the License.
 
 using System;
-using SeedLang.Common;
 using SeedLang.Runtime;
 using Xunit;
 

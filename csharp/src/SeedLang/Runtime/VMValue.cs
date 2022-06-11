@@ -46,6 +46,8 @@ namespace SeedLang.Runtime {
     public bool IsRange => _type == ValueType.Object && _object.IsRange;
     public bool IsSlice => _type == ValueType.Object && _object.IsSlice;
 
+    public bool IsIterable => IsString || IsDict || IsList || IsTuple || IsRange;
+
     public int Length {
       get {
         if (_type == ValueType.Object) {

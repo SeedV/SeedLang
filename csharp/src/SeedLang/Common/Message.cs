@@ -56,31 +56,32 @@ namespace SeedLang.Common {
     //
     // Please keep the following message IDs in alphabetical order.
 
-    EngineNotPaused,                    // Program execution is not paused.
-    EngineProgramNotCompiled,           // Program is not compiled to AST and bytecode.
-    RuntimeErrorBreakOutsideLoop,       // The Break statement is outside of loop statements.
-    RuntimeErrorContinueOutsideLoop,    // The Continue statement is outside of loop statements.
-    RuntimeErrorDivideByZero,           // Divide by zero runtime error.
-    RuntimeErrorIncorrectArgsCount,     // Incorrect arguments count runtime error.
-    RuntimeErrorSliceAssignmentCount,   // Incorrect count of the sequence for slice assignment.
-    RuntimeErrorIncorrectUnpackCount,   // Incorrect number of values to be unpack runtime error.
-    RuntimeErrorInvalidCast,            // Invalid cast of value types runtime error.
-    RuntimeErrorInvalidIntIndex,        // Not a valid integer index runtime error.
-    RuntimeErrorNoKey,                  // Couldn't find the given key in the dictionary.
-    RuntimeErrorNotCallable,            // Value type not callable runtime error.
-    RuntimeErrorNotCountable,           // Value type not countable runtime error.
-    RuntimeErrorNotSubscriptable,       // Value type not subscriptable runtime error.
-    RuntimeErrorNotSupportAssignment,   // The value type does not support assignment.
-    RuntimeErrorUnhashableType,         // The type of keys is unhashable.
-    RuntimeErrorUnsupportedOperands,    // The type of operands is not supported by the operator.
-    RuntimeErrorOutOfRange,             // Index out of range runtime error.
-    RuntimeErrorOverflow,               // Overflow runtime error.
-    RuntimeErrorVariableNotDefined,     // Variable not defined runtime error.
-    SyntaxErrorFailedPredicate1,        // Semantic predicate failed syntax error.
-    SyntaxErrorInputMismatch2,          // Input mismatch syntax error.
-    SyntaxErrorMissingToken2,           // Missing token syntax error.
-    SyntaxErrorNoViableAlternative1,    // No viable alternative path syntax error.
-    SyntaxErrorUnwantedToken2,          // Unwanted token syntax error.
+    EngineNotPaused,                        // Program execution is not paused.
+    EngineProgramNotCompiled,               // Program is not compiled to AST and bytecode.
+    RuntimeErrorBreakOutsideLoop,           // The Break statement is outside of loop statements.
+    RuntimeErrorContinueOutsideLoop,        // The Continue statement is outside of loop statements.
+    RuntimeErrorDivideByZero,               // Divide by zero.
+    RuntimeErrorIncorrectArgsCount,         // Incorrect arguments count.
+    RuntimeErrorIncorrectSliceAssignCount,  // Incorrect count of the sequence for slice assignment.
+    RuntimeErrorIncorrectUnpackCount,       // Incorrect number of values to be unpack.
+    RuntimeErrorInvalidCast,                // Invalid cast of value types.
+    RuntimeErrorInvalidIntIndex,            // Not a valid integer index.
+    RuntimeErrorNoKey,                      // Couldn't find the given key in the dictionary.
+    RuntimeErrorNotCallable,                // Value type not callable.
+    RuntimeErrorNotCountable,               // Value type not countable.
+    RuntimeErrorNotSubscriptable,           // Value type not subscriptable.
+    RuntimeErrorNotSupportAssignment,       // The value type does not support assignment.
+    RuntimeErrorOutOfRange,                 // Index out of range.
+    RuntimeErrorOverflow,                   // Overflow.
+    RuntimeErrorSliceAssignNotIterable,     // The value assigned to a sliced list is not iterable.
+    RuntimeErrorUnhashableType,             // The type of keys is unhashable.
+    RuntimeErrorUnsupportedOperands,        // The type of operands isn't supported by the operator.
+    RuntimeErrorVariableNotDefined,         // Variable not defined.
+    SyntaxErrorFailedPredicate1,            // Semantic predicate failed syntax error.
+    SyntaxErrorInputMismatch2,              // Input mismatch syntax error.
+    SyntaxErrorMissingToken2,               // Missing token syntax error.
+    SyntaxErrorNoViableAlternative1,        // No viable alternative path syntax error.
+    SyntaxErrorUnwantedToken2,              // Unwanted token syntax error.
   }
 
   public static class MessageHelper {

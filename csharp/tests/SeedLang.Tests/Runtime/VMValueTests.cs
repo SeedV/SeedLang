@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using FluentAssertions;
 using SeedLang.Common;
-using SeedLang.Interpreter;
 using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
@@ -346,11 +345,7 @@ namespace SeedLang.Runtime.Tests {
         new VMValue(5),
       }));
 
-      list[new VMValue(new Slice(4, 2))] = new VMValue(new List<VMValue> {
-        new VMValue(1),
-        new VMValue(2),
-        new VMValue(3),
-      });
+      list[new VMValue(new Slice(4, 2))] = new VMValue(new HeapObjects.Range(1, 4));
       list.Should().Be(new VMValue(new List<VMValue> {
         new VMValue(1),
         new VMValue(2),
@@ -392,6 +387,26 @@ namespace SeedLang.Runtime.Tests {
         new VMValue(1),
         new VMValue(5),
       }));
+
+    }
+
+    [Fact]
+    public void TestListSubscriptAssignWithException() {
+      var list = new VMValue(new List<VMValue>{
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+        new VMValue(4),
+        new VMValue(5),
+      });
+
+      Action action = () => list[new VMValue(new Slice(0, 2))] = new VMValue(5);
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorSliceAssignNotIterable);
+
+      action = () => list[new VMValue(new Slice(0, 4, 2))] = new VMValue(new HeapObjects.Range(3));
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectSliceAssignCount);
     }
 
     [Fact]

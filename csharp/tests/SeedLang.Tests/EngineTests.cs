@@ -16,14 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
-using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Visualization;
-using SeedLang.X;
 using Xunit;
 
-namespace SeedLang.Interpreter.Tests {
-  public class VMProxyTests {
+namespace SeedLang.Tests {
+  public class EngineTests {
     private class MockupStateVisualizer : IVisualizer<Event.SingleStep> {
       public bool StopOnNextLine;
       public Event.SingleStep Event;
@@ -54,22 +52,25 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestGlobals() {
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
+      engine.IsVariableTrackingEnabled = true;
+      var visualizer = new MockupVariableVisualizer();
+      engine.Register(visualizer);
       string source = @"
 a = 1
 b = 2
 print(a + b)
 ";
-      var visualizer = new MockupVariableVisualizer();
-      Function func = Compile(source, visualizer, out VM vm, out StringWriter _);
-      vm.Run(func);
+      engine.Compile(source, "");
+      engine.Run();
       visualizer.Line.Should().Be(2);
       visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
-      vm.Continue();
+      engine.Continue();
       visualizer.Line.Should().Be(3);
       visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
         new IVM.VariableInfo("a", new Value(1)),
       });
-      vm.Continue();
+      engine.Continue();
       visualizer.Line.Should().Be(4);
       visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
         new IVM.VariableInfo("a", new Value(1)),
@@ -79,6 +80,10 @@ print(a + b)
 
     [Fact]
     public void TestLocals() {
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
+      engine.IsVariableTrackingEnabled = true;
+      var visualizer = new MockupVariableVisualizer();
+      engine.Register(visualizer);
       string source = @"
 def add(a, b):
   c = a + b
@@ -86,24 +91,23 @@ def add(a, b):
 
 add(1, 2)
 ";
-      var visualizer = new MockupVariableVisualizer();
-      Function func = Compile(source, visualizer, out VM vm, out StringWriter _);
-      vm.Run(func);
+      engine.Compile(source, "");
+      engine.Run();
       visualizer.Line.Should().Be(2);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
-      vm.Continue();
+      engine.Continue();
       visualizer.Line.Should().Be(6);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
-      vm.Continue();
+      engine.Continue();
       visualizer.Line.Should().Be(2);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
-      vm.Continue();
+      engine.Continue();
       visualizer.Line.Should().Be(3);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
         new IVM.VariableInfo("add.a", new Value(1)),
         new IVM.VariableInfo("add.b", new Value(2)),
       });
-      vm.Continue();
+      engine.Continue();
       visualizer.Line.Should().Be(4);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
         new IVM.VariableInfo("add.a", new Value(1)),
@@ -113,63 +117,53 @@ add(1, 2)
     }
 
     [Fact]
-    public void TestState() {
+    public void TestRunningStates() {
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
+      var stringWriter = new StringWriter();
+      engine.RedirectStdout(stringWriter);
+      var visualizer = new MockupStateVisualizer();
+      engine.Register(visualizer);
       string source = @"
 a = 1
 b = 2
 print(a + b)
 ";
-      var visualizer = new MockupStateVisualizer();
-      Function func = Compile(source, visualizer, out VM vm, out StringWriter stringWriter);
-      vm.IsStopped.Should().Be(true);
-      vm.Run(func);
-      vm.IsPaused.Should().Be(true);
+      engine.Compile(source, "");
+      engine.IsStopped.Should().Be(true);
+      engine.Run().Should().Be(true);
+      engine.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
-      vm.Continue();
-      vm.IsPaused.Should().Be(true);
+      engine.Continue().Should().Be(true);
+      engine.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(3, 0, 3, 0)));
-      vm.Continue();
-      vm.IsPaused.Should().Be(true);
+      engine.Continue().Should().Be(true);
+      engine.IsPaused.Should().Be(true);
       visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(4, 0, 4, 0)));
-      vm.Continue();
-      vm.IsStopped.Should().Be(true);
+      engine.Continue().Should().Be(true);
+      engine.IsStopped.Should().Be(true);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
 
-      Action action = () => vm.Continue();
-      action.Should().Throw<Exception>();
-      action = () => vm.Pause();
-      action.Should().Throw<Exception>();
-
-      vm.Run(func);
-      vm.IsPaused.Should().Be(true);
-      visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
-      vm.Stop();
-      vm.IsStopped.Should().Be(true);
+      engine.Continue().Should().Be(false);
 
       stringWriter = new StringWriter();
-      vm.RedirectStdout(stringWriter);
-      vm.VisualizerCenter.Unregister(visualizer);
-      vm.Run(func);
-      vm.IsStopped.Should().Be(true);
+      engine.RedirectStdout(stringWriter);
+      engine.Run().Should().Be(true);
+      engine.IsPaused.Should().Be(true);
+      visualizer.Event.Should().BeEquivalentTo(new Event.SingleStep(new TextRange(2, 0, 2, 0)));
+      engine.Stop().Should().Be(true);
+      engine.IsStopped.Should().Be(true);
+
+      stringWriter = new StringWriter();
+      engine.RedirectStdout(stringWriter);
+      engine.Unregister(visualizer);
+      engine.Run().Should().Be(true);
+      engine.IsStopped.Should().Be(true);
       stringWriter.ToString().Should().Be("3" + Environment.NewLine);
 
       visualizer.StopOnNextLine = true;
-      vm.VisualizerCenter.Register(visualizer);
-      vm.Run(func);
-      vm.IsStopped.Should().Be(true);
-    }
-
-    private static Function Compile<Event>(string source, IVisualizer<Event> visualizer,
-                                           out VM vm, out StringWriter stringWriter) {
-      new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
-                             out IReadOnlyList<TokenInfo> _).Should().Be(true);
-      vm = new VM();
-      vm.VisualizerCenter.IsVariableTrackingEnabled = true;
-      vm.VisualizerCenter.Register(visualizer);
-      stringWriter = new StringWriter();
-      vm.RedirectStdout(stringWriter);
-      var compiler = new Compiler();
-      return compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
+      engine.Register(visualizer);
+      engine.Run().Should().Be(true);
+      engine.IsStopped.Should().Be(true);
     }
   }
 }

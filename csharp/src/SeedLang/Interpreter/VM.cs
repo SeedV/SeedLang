@@ -32,8 +32,11 @@ namespace SeedLang.Interpreter {
       Stopped,
     }
 
+    private readonly Sys _sys = new Sys();
+    private readonly Registers _registers = new Registers();
+    private readonly VisualizerCenter _visualizerCenter;
+
     public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
-    public VisualizerCenter VisualizerCenter { get; } = new VisualizerCenter();
 
     public bool IsRunning => _state == State.Running;
     public bool IsPaused => _state == State.Paused;
@@ -41,9 +44,6 @@ namespace SeedLang.Interpreter {
 
     private State _state = State.Stopped;
 
-    private readonly Sys _sys = new Sys();
-
-    private readonly Registers _registers = new Registers();
     private CallStack _callStack;
     private Chunk _chunk;
     private int _pc;
@@ -51,12 +51,16 @@ namespace SeedLang.Interpreter {
     // The hash table to store defined global variable names.
     private HashSet<string> _globals;
 
+    internal VM(VisualizerCenter visualizerCenter) {
+      _visualizerCenter = visualizerCenter;
+    }
+
     internal void RedirectStdout(TextWriter stdout) {
       _sys.Stdout = stdout;
     }
 
     internal bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
-      if (!VisualizerCenter.IsVariableTrackingEnabled) {
+      if (!_visualizerCenter.IsVariableTrackingEnabled) {
         globals = new List<IVM.VariableInfo>();
         return false;
       }
@@ -71,7 +75,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
-      if (!VisualizerCenter.IsVariableTrackingEnabled) {
+      if (!_visualizerCenter.IsVariableTrackingEnabled) {
         locals = new List<IVM.VariableInfo>();
         return false;
       }
@@ -114,14 +118,14 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleAssignment(Notification.Assignment an) {
-      Notify(new Event.Assignment(an.Name, an.Type, new Value(ValueOfRK(an.ValueId)),
-                                  _chunk.Ranges[_pc]));
+      _visualizerCenter.Notify(new Event.Assignment(an.Name, an.Type, new Value(ValueOfRK(an.ValueId)),
+                                            _chunk.Ranges[_pc]));
     }
 
     internal void HandleBinary(Notification.Binary bn) {
-      Notify(new Event.Binary(new Value(ValueOfRK(bn.LeftId)), bn.Op,
-                              new Value(ValueOfRK(bn.RightId)), new Value(ValueOfRK(bn.ResultId)),
-                              _chunk.Ranges[_pc]));
+      _visualizerCenter.Notify(new Event.Binary(new Value(ValueOfRK(bn.LeftId)), bn.Op,
+                                        new Value(ValueOfRK(bn.RightId)),
+                                        new Value(ValueOfRK(bn.ResultId)), _chunk.Ranges[_pc]));
     }
 
     internal void HandleElementLoaded(Notification.ElementLoaded eln) {
@@ -150,11 +154,11 @@ namespace SeedLang.Interpreter {
           for (uint i = 0; i < fn.ArgLength; i++) {
             args[i] = new Value(ValueOfRK(argStartId + i));
           }
-          Notify(new Event.FuncCalled(fn.Name, args, _chunk.Ranges[_pc]));
+          _visualizerCenter.Notify(new Event.FuncCalled(fn.Name, args, _chunk.Ranges[_pc]));
           break;
         case Notification.Function.Status.Returned:
-          Notify(new Event.FuncReturned(fn.Name, new Value(ValueOfRK(fn.FuncId)),
-                                        _chunk.Ranges[_pc]));
+          _visualizerCenter.Notify(new Event.FuncReturned(fn.Name, new Value(ValueOfRK(fn.FuncId)),
+                                                  _chunk.Ranges[_pc]));
           break;
       }
     }
@@ -165,7 +169,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleSingleStep(Notification.SingleStep _) {
-      Notify(new Event.SingleStep(_chunk.Ranges[_pc]));
+      _visualizerCenter.Notify(new Event.SingleStep(_chunk.Ranges[_pc]));
     }
 
     internal void HandleSubscriptAssignment(Notification.SubscriptAssignment san) {
@@ -173,15 +177,15 @@ namespace SeedLang.Interpreter {
       if (!container.IsTemporary) {
         var keys = container.Keys.ToList();
         keys.Add(new Value(ValueOfRK(san.KeyId)));
-        Notify(new Event.SubscriptAssignment(container.Name, container.RefVariableType, keys,
-                                             new Value(ValueOfRK(san.ValueId)),
-                                             _chunk.Ranges[_pc]));
+        _visualizerCenter.Notify(new Event.SubscriptAssignment(container.Name, container.RefVariableType,
+                                                       keys, new Value(ValueOfRK(san.ValueId)),
+                                                       _chunk.Ranges[_pc]));
       }
     }
 
     internal void HandleUnary(Notification.Unary un) {
-      Notify(new Event.Unary(un.Op, new Value(ValueOfRK(un.ValueId)),
-                             new Value(ValueOfRK(un.ResultId)), _chunk.Ranges[_pc]));
+      _visualizerCenter.Notify(new Event.Unary(un.Op, new Value(ValueOfRK(un.ValueId)),
+                                       new Value(ValueOfRK(un.ResultId)), _chunk.Ranges[_pc]));
     }
 
     internal void HandleVariableDefined(Notification.VariableDefined vdn) {
@@ -191,7 +195,7 @@ namespace SeedLang.Interpreter {
           // for i in range(5):
           //   for j in range(5):
           //     ...
-          // Global variable j will be defined for several times.
+          // Global variable j will be defined for several times. Only adds it in the first time.
           if (!_globals.Contains(vdn.Info.Name)) {
             isFirstTimeDefined = true;
             _globals.Add(vdn.Info.Name);
@@ -204,15 +208,16 @@ namespace SeedLang.Interpreter {
           }
           break;
       }
-      if (isFirstTimeDefined && VisualizerCenter.HasVisualizer<Event.VariableDefined>()) {
-        Notify(new Event.VariableDefined(vdn.Info.Name, vdn.Info.Type, _chunk.Ranges[_pc]));
+      if (isFirstTimeDefined && _visualizerCenter.HasVisualizer<Event.VariableDefined>()) {
+        _visualizerCenter.Notify(new Event.VariableDefined(vdn.Info.Name, vdn.Info.Type,
+                                                   _chunk.Ranges[_pc]));
       }
     }
 
     internal void HandleVariableDeleted(Notification.VariableDeleted vdn) {
       _registers.DeleteRegisterInfoFrom(vdn.StartId, localInfo => {
-        if (VisualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
-          Notify(new Event.VariableDeleted(localInfo.Name, VariableType.Local, _chunk.Ranges[_pc]));
+        if (_visualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
+          _visualizerCenter.Notify(new Event.VariableDeleted(localInfo.Name, VariableType.Local, _chunk.Ranges[_pc]));
         }
       });
     }
@@ -228,10 +233,10 @@ namespace SeedLang.Interpreter {
       Debug.Assert(Enum.IsDefined(typeof(Notification.VTag.Status), instr.A));
       switch ((Notification.VTag.Status)instr.A) {
         case Notification.VTag.Status.Entered:
-          Notify(new Event.VTagEntered(vTags, range));
+          _visualizerCenter.Notify(new Event.VTagEntered(vTags, range));
           break;
         case Notification.VTag.Status.Exited:
-          Notify(new Event.VTagExited(vTags, range));
+          _visualizerCenter.Notify(new Event.VTagExited(vTags, range));
           break;
       }
     }
@@ -461,12 +466,6 @@ namespace SeedLang.Interpreter {
       _chunk = _callStack.CurrentChunk();
       _registers.Base = _callStack.CurrentBase();
       _pc = _callStack.CurrentPC();
-    }
-
-    private void Notify<Event>(Event e) {
-      var vmProxy = new VMProxy(this);
-      VisualizerCenter.Notify(e, vmProxy);
-      vmProxy.Invalid();
     }
 
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to

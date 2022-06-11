@@ -289,13 +289,14 @@ print(a[1:3])
 
     private static (string, VisualizerHelper) Run(Statement program,
                                                   IReadOnlyList<Type> eventTypes) {
-      var vm = new VM();
+      var visualizerCenter = new VisualizerCenter(() => new VMProxy(null));
+      var vm = new VM(visualizerCenter);
       var vh = new VisualizerHelper(eventTypes);
-      vh.RegisterToVisualizerCenter(vm.VisualizerCenter);
+      vh.RegisterToVisualizerCenter(visualizerCenter);
       var stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
+      Function func = compiler.Compile(program, vm.Env, visualizerCenter, RunMode.Interactive);
       vm.Run(func);
       return (stringWriter.ToString(), vh);
     }

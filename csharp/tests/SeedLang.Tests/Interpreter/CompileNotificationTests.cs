@@ -530,7 +530,7 @@ x, y = 1, 1 + 2
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
                              out IReadOnlyList<TokenInfo> _).Should().Be(true);
       var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
-      var visualizerCenter = new VisualizerCenter();
+      var visualizerCenter = new VisualizerCenter(() => null);
       var visualizerHelper = new VisualizerHelper(eventTypes);
       visualizerHelper.RegisterToVisualizerCenter(visualizerCenter);
       var compiler = new Compiler();

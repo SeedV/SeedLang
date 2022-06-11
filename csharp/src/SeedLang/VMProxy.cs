@@ -13,10 +13,12 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using SeedLang.Common;
+using SeedLang.Interpreter;
 using SeedLang.Visualization;
 
-namespace SeedLang.Interpreter {
-  internal class VMProxy : IVM {
+namespace SeedLang {
+  internal class VMProxy : IVMProxy {
     private VM _vm;
 
     internal VMProxy(VM vm) {
@@ -47,7 +49,14 @@ namespace SeedLang.Interpreter {
       _vm?.Stop();
     }
 
-    internal void Invalid() {
+    public bool Eval(string source, DiagnosticCollection collection = null) {
+      if (string.IsNullOrEmpty(source)) {
+        return false;
+      }
+      return true;
+    }
+
+    public void Invalid() {
       _vm = null;
     }
   }

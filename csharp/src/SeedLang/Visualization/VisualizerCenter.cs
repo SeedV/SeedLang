@@ -57,20 +57,25 @@ namespace SeedLang.Visualization {
 
     private readonly Dictionary<Type, object> _publishers = new Dictionary<Type, object>();
 
-    internal VisualizerCenter() {
+    private readonly Func<IVMProxy> _makeVMProxy;
+
+    internal VisualizerCenter(Func<IVMProxy> makeVMProxy) {
       Type[] eventTypes = typeof(Event).GetNestedTypes();
       foreach (Type type in eventTypes) {
         Type publisherType = typeof(Publisher<>).MakeGenericType(new Type[] { type });
         _publishers[type] = Activator.CreateInstance(publisherType);
       }
+      _makeVMProxy = makeVMProxy;
     }
 
     internal bool HasVisualizer<Event>() {
       return !(_publishers[typeof(Event)] as Publisher<Event>).IsEmpty();
     }
 
-    internal void Notify<Event>(Event e, IVM vm) {
+    internal void Notify<Event>(Event e) {
+      var vm = _makeVMProxy();
       (_publishers[typeof(Event)] as Publisher<Event>).Notify(e, vm);
+      vm.Invalid();
     }
 
     // Registers a visualizer into this visualizer center.

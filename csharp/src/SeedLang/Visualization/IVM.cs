@@ -38,4 +38,8 @@ namespace SeedLang.Visualization {
     // Stops execution.
     void Stop();
   }
+
+  internal interface IVMProxy : IVM {
+    void Invalid();
+  }
 }

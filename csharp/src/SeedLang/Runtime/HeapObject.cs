@@ -243,7 +243,7 @@ namespace SeedLang.Runtime {
             if (key.IsNumber) {
               list[ToIntIndex(key.AsNumber(), list.Count)] = value;
             } else {
-              AssignListSlice(list, key.AsSlice(), value);
+              AssignSlicedList(list, key.AsSlice(), value);
             }
             break;
           case string _:
@@ -288,7 +288,11 @@ namespace SeedLang.Runtime {
       }
     }
 
-    private static void AssignListSlice(List list, Slice slice, VMValue value) {
+    private static void AssignSlicedList(List list, Slice slice, VMValue value) {
+      if (!value.IsIterable) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorSliceAssignNotIterable);
+      }
       (int start, int stop, int step) = AdjustSliceInLength(slice, list.Count);
       if (step == 1) {
         if (stop > start) {
@@ -305,7 +309,7 @@ namespace SeedLang.Runtime {
         }
         if (index != value.Length) {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorSliceAssignmentCount);
+                                        Message.RuntimeErrorIncorrectSliceAssignCount);
         }
       }
     }

@@ -16,71 +16,71 @@ using System;
 
 namespace SeedLang.Ast {
   // An abstract base class to traverse a statement tree.
-  internal abstract class StatementWalker {
+  internal abstract class StatementWalker<Param> {
     // Dispatches to the corresponding visit method based on the type of the statement node.
     //
     // All node types in the AST tree are either Expression or Statement. So the separated
     // ExpressionWalker and StatementWalker classes are enough to visit all nodes in AST trees.
-    internal void Visit(Statement statement) {
-      Enter(statement);
+    internal void Visit(Statement statement, Param param) {
+      Enter(statement, param);
       switch (statement) {
         case AssignmentStatement assignment:
-          VisitAssignment(assignment);
+          VisitAssignment(assignment, param);
           break;
         case BlockStatement block:
-          VisitBlock(block);
+          VisitBlock(block, param);
           break;
         case BreakStatement @break:
-          VisitBreak(@break);
+          VisitBreak(@break, param);
           break;
         case ContinueStatement @continue:
-          VisitContinue(@continue);
+          VisitContinue(@continue, param);
           break;
         case ExpressionStatement expr:
-          VisitExpression(expr);
+          VisitExpression(expr, param);
           break;
         case ForInStatement forIn:
-          VisitForIn(forIn);
+          VisitForIn(forIn, param);
           break;
         case FuncDefStatement funcDef:
-          VisitFuncDef(funcDef);
+          VisitFuncDef(funcDef, param);
           break;
         case IfStatement @if:
-          VisitIf(@if);
+          VisitIf(@if, param);
           break;
         case PassStatement pass:
-          VisitPass(pass);
+          VisitPass(pass, param);
           break;
         case ReturnStatement @return:
-          VisitReturn(@return);
+          VisitReturn(@return, param);
           break;
         case WhileStatement @while:
-          VisitWhile(@while);
+          VisitWhile(@while, param);
           break;
         case VTagStatement vTag:
-          VisitVTag(vTag);
+          VisitVTag(vTag, param);
           break;
         default:
           throw new NotImplementedException(
               $"Not implemented statement type: {statement.GetType()}");
       }
-      Exit(statement);
+      Exit(statement, param);
     }
 
-    protected virtual void Enter(Statement statement) { }
-    protected virtual void Exit(Statement statement) { }
+    protected virtual void Enter(Statement statement, Param param) { }
+    protected virtual void Exit(Statement statement, Param param) { }
 
-    protected abstract void VisitAssignment(AssignmentStatement assignment);
-    protected abstract void VisitBlock(BlockStatement block);
-    protected abstract void VisitBreak(BreakStatement @break);
-    protected abstract void VisitContinue(ContinueStatement @continue);
-    protected abstract void VisitExpression(ExpressionStatement expr);
-    protected abstract void VisitForIn(ForInStatement forIn);
-    protected abstract void VisitFuncDef(FuncDefStatement funcDef);
-    protected abstract void VisitIf(IfStatement @if);
-    protected abstract void VisitPass(PassStatement pass);
-    protected abstract void VisitReturn(ReturnStatement @return);
-    protected abstract void VisitVTag(VTagStatement vTag);
-    protected abstract void VisitWhile(WhileStatement @while);
+    protected abstract void VisitAssignment(AssignmentStatement assignment, Param param);
+    protected abstract void VisitBlock(BlockStatement block, Param param);
+    protected abstract void VisitBreak(BreakStatement @break, Param param);
+    protected abstract void VisitContinue(ContinueStatement @continue, Param param);
+    protected abstract void VisitExpression(ExpressionStatement expr, Param param);
+    protected abstract void VisitForIn(ForInStatement forIn, Param param);
+    protected abstract void VisitFuncDef(FuncDefStatement funcDef, Param param);
+    protected abstract void VisitIf(IfStatement @if, Param param);
+    protected abstract void VisitPass(PassStatement pass, Param param);
+    protected abstract void VisitReturn(ReturnStatement @return, Param param);
+    protected abstract void VisitVTag(VTagStatement vTag, Param param);
+    protected abstract void VisitWhile(WhileStatement @while, Param param);
   }
 }

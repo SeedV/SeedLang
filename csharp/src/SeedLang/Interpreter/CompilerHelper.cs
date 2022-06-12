@@ -310,7 +310,7 @@ namespace SeedLang.Interpreter {
             } else {
               valueIds[j] = DefineTempVariable();
               exprCompiler.RegisterForSubExpr = valueIds[j].Value;
-              exprCompiler.Visit(vTagInfo.Args[j].Expr);
+              exprCompiler.Visit(vTagInfo.Args[j].Expr, 0);
             }
           } catch (DiagnosticException ex) {
             if (ex.Diagnostic.MessageId == Message.RuntimeErrorVariableNotDefined) {

@@ -19,80 +19,83 @@ namespace SeedLang.Ast {
   //
   // All node types in the AST tree are either Expression or Statement. So the separated
   // ExpressionWalker and StatementWalker classes are enough to visit all nodes in AST trees.
-  internal abstract class ExpressionWalker {
+  internal abstract class ExpressionWalker<Param> {
     // Dispatches to the corresponding visit method based on the type of the expression node.
-    internal void Visit(Expression expression) {
-      Enter(expression);
+    internal void Visit(Expression expression, Param param) {
+      Enter(expression, param);
       switch (expression) {
         case BinaryExpression binary:
-          VisitBinary(binary);
+          VisitBinary(binary, param);
           break;
         case BooleanExpression boolean:
-          VisitBoolean(boolean);
+          VisitBoolean(boolean, param);
           break;
         case BooleanConstantExpression booleanConstant:
-          VisitBooleanConstant(booleanConstant);
+          VisitBooleanConstant(booleanConstant, param);
           break;
         case CallExpression call:
-          VisitCall(call);
+          VisitCall(call, param);
           break;
         case ComparisonExpression comparison:
-          VisitComparison(comparison);
+          VisitComparison(comparison, param);
           break;
         case DictExpression dict:
-          VisitDict(dict);
+          VisitDict(dict, param);
           break;
         case IdentifierExpression identifier:
-          VisitIdentifier(identifier);
+          VisitIdentifier(identifier, param);
           break;
         case ListExpression list:
-          VisitList(list);
+          VisitList(list, param);
           break;
         case NilConstantExpression nilConstant:
-          VisitNilConstant(nilConstant);
+          VisitNilConstant(nilConstant, param);
           break;
         case NumberConstantExpression numberConstant:
-          VisitNumberConstant(numberConstant);
+          VisitNumberConstant(numberConstant, param);
           break;
         case SliceExpression slice:
-          VisitSlice(slice);
+          VisitSlice(slice, param);
           break;
         case StringConstantExpression stringConstant:
-          VisitStringConstant(stringConstant);
+          VisitStringConstant(stringConstant, param);
           break;
         case SubscriptExpression subscript:
-          VisitSubscript(subscript);
+          VisitSubscript(subscript, param);
           break;
         case TupleExpression tuple:
-          VisitTuple(tuple);
+          VisitTuple(tuple, param);
           break;
         case UnaryExpression unary:
-          VisitUnary(unary);
+          VisitUnary(unary, param);
           break;
         default:
           throw new NotImplementedException(
               $"Not implemented expression type: {expression.GetType()}");
       }
-      Exit(expression);
+      Exit(expression, param);
     }
 
-    protected virtual void Enter(Expression expr) { }
-    protected virtual void Exit(Expression expr) { }
+    protected virtual void Enter(Expression expr, Param param) { }
+    protected virtual void Exit(Expression expr, Param param) { }
 
-    protected abstract void VisitBinary(BinaryExpression binary);
-    protected abstract void VisitBoolean(BooleanExpression boolean);
-    protected abstract void VisitBooleanConstant(BooleanConstantExpression booleanConstant);
-    protected abstract void VisitCall(CallExpression call);
-    protected abstract void VisitComparison(ComparisonExpression comparison);
-    protected abstract void VisitDict(DictExpression dict);
-    protected abstract void VisitIdentifier(IdentifierExpression identifier);
-    protected abstract void VisitList(ListExpression list);
-    protected abstract void VisitNilConstant(NilConstantExpression nilConstant);
-    protected abstract void VisitNumberConstant(NumberConstantExpression numberConstant);
-    protected abstract void VisitSlice(SliceExpression slice);
-    protected abstract void VisitStringConstant(StringConstantExpression stringConstant);
-    protected abstract void VisitSubscript(SubscriptExpression subscript);
-    protected abstract void VisitTuple(TupleExpression tuple);
-    protected abstract void VisitUnary(UnaryExpression unary);
+    protected abstract void VisitBinary(BinaryExpression binary, Param param);
+    protected abstract void VisitBoolean(BooleanExpression boolean, Param param);
+    protected abstract void VisitBooleanConstant(BooleanConstantExpression booleanConstant,
+                                                 Param param);
+    protected abstract void VisitCall(CallExpression call, Param param);
+    protected abstract void VisitComparison(ComparisonExpression comparison, Param param);
+    protected abstract void VisitDict(DictExpression dict, Param param);
+    protected abstract void VisitIdentifier(IdentifierExpression identifier, Param param);
+    protected abstract void VisitList(ListExpression list, Param param);
+    protected abstract void VisitNilConstant(NilConstantExpression nilConstant, Param param);
+    protected abstract void VisitNumberConstant(NumberConstantExpression numberConstant,
+                                                Param param);
+    protected abstract void VisitSlice(SliceExpression slice, Param param);
+    protected abstract void VisitStringConstant(StringConstantExpression stringConstant,
+                                                Param param);
+    protected abstract void VisitSubscript(SubscriptExpression subscript, Param param);
+    protected abstract void VisitTuple(TupleExpression tuple, Param param);
+    protected abstract void VisitUnary(UnaryExpression unary, Param param);
   }
 }

@@ -187,16 +187,16 @@ namespace SeedLang {
       return true;
     }
 
-    private IVMProxy MakeVMProxy() {
-      return new VMProxy(_vm);
-    }
-
-    private static BaseParser MakeParser(SeedXLanguage language) {
+    internal static BaseParser MakeParser(SeedXLanguage language) {
       return language switch {
         SeedXLanguage.SeedCalc => new SeedCalc(),
         SeedXLanguage.SeedPython => new SeedPython(),
         _ => throw new NotImplementedException($"Unsupported SeedX language: {language}."),
       };
+    }
+
+    private IVMProxy MakeVMProxy() {
+      return new VMProxy(_language, _vm);
     }
   }
 }

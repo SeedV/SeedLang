@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using SeedLang.Common;
 
 namespace SeedLang.Visualization {
   // The interface of SeedLang VM. The methods of it can only be called during visualization
@@ -37,6 +38,8 @@ namespace SeedLang.Visualization {
     void Pause();
     // Stops execution.
     void Stop();
+
+    bool Eval(string source, out Value result, DiagnosticCollection collection = null);
   }
 
   internal interface IVMProxy : IVM {

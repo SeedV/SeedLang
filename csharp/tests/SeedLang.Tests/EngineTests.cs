@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using SeedLang.Common;
 using SeedLang.Visualization;
@@ -41,19 +42,38 @@ namespace SeedLang.Tests {
       public int Line;
       public IReadOnlyList<IVM.VariableInfo> Globals;
       public IReadOnlyList<IVM.VariableInfo> Locals;
+      public Value Result;
 
       public void On(Event.SingleStep e, IVM vm) {
         Line = e.Range.Start.Line;
         vm.GetGlobals(out Globals).Should().Be(true);
         vm.GetLocals(out Locals).Should().Be(true);
+        if (IsVariableDefined("a") && IsVariableDefined("b")) {
+          vm.Eval("a + b", out Result).Should().Be(true);
+        }
         vm.Pause();
+      }
+
+      private bool IsVariableDefined(string name) {
+        try {
+          _ = Locals.First((info) => info.Name == name);
+          return true;
+        } catch (Exception) {
+          try {
+            _ = Globals.First((info) => info.Name == name);
+            return true;
+          } catch (Exception) {
+            return false;
+          }
+        }
       }
     }
 
     [Fact]
     public void TestGlobals() {
-      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
-      engine.IsVariableTrackingEnabled = true;
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script) {
+        IsVariableTrackingEnabled = true
+      };
       var visualizer = new MockupVariableVisualizer();
       engine.Register(visualizer);
       string source = @"
@@ -65,23 +85,28 @@ print(a + b)
       engine.Run();
       visualizer.Line.Should().Be(2);
       visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
+
       engine.Continue();
       visualizer.Line.Should().Be(3);
       visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
         new IVM.VariableInfo("a", new Value(1)),
       });
+
       engine.Continue();
       visualizer.Line.Should().Be(4);
       visualizer.Globals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
         new IVM.VariableInfo("a", new Value(1)),
         new IVM.VariableInfo("b", new Value(2)),
       });
+      visualizer.Result.IsNumber.Should().Be(true);
+      visualizer.Result.AsNumber().Should().Be(3);
     }
 
     [Fact]
     public void TestLocals() {
-      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script);
-      engine.IsVariableTrackingEnabled = true;
+      var engine = new Engine(SeedXLanguage.SeedPython, RunMode.Script) {
+        IsVariableTrackingEnabled = true
+      };
       var visualizer = new MockupVariableVisualizer();
       engine.Register(visualizer);
       string source = @"
@@ -95,24 +120,30 @@ add(1, 2)
       engine.Run();
       visualizer.Line.Should().Be(2);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
+
       engine.Continue();
       visualizer.Line.Should().Be(6);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
+
       engine.Continue();
       visualizer.Line.Should().Be(2);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>());
+
       engine.Continue();
       visualizer.Line.Should().Be(3);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
-        new IVM.VariableInfo("add.a", new Value(1)),
-        new IVM.VariableInfo("add.b", new Value(2)),
+        new IVM.VariableInfo("a", new Value(1)),
+        new IVM.VariableInfo("b", new Value(2)),
       });
+      visualizer.Result.IsNumber.Should().Be(true);
+      visualizer.Result.AsNumber().Should().Be(3);
+
       engine.Continue();
       visualizer.Line.Should().Be(4);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
-        new IVM.VariableInfo("add.a", new Value(1)),
-        new IVM.VariableInfo("add.b", new Value(2)),
-        new IVM.VariableInfo("add.c", new Value(3)),
+        new IVM.VariableInfo("a", new Value(1)),
+        new IVM.VariableInfo("b", new Value(2)),
+        new IVM.VariableInfo("c", new Value(3)),
       });
     }
 

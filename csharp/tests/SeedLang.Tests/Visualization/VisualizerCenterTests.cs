@@ -96,19 +96,19 @@ namespace SeedLang.Visualization.Tests {
 
     private static (VisualizerCenter, MockupBinaryVisualizer) NewBinaryVisualizerCenter() {
       var binaryVisualizer = new MockupBinaryVisualizer();
-      var visualizerCenter = new VisualizerCenter(() => new VMProxy(null));
-      visualizerCenter.Register(binaryVisualizer);
-      return (visualizerCenter, binaryVisualizer);
+      var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));
+      vc.Register(binaryVisualizer);
+      return (vc, binaryVisualizer);
     }
 
     private static (VisualizerCenter, MockupBinaryVisualizer, AnotherMockupBinaryVisualizer)
         NewMultipleVisualizerCenter() {
       var binaryVisualizer = new MockupBinaryVisualizer();
       var anotherBinaryVisualizer = new AnotherMockupBinaryVisualizer();
-      var visualizerCenter = new VisualizerCenter(() => new VMProxy(null));
-      visualizerCenter.Register(binaryVisualizer);
-      visualizerCenter.Register(anotherBinaryVisualizer);
-      return (visualizerCenter, binaryVisualizer, anotherBinaryVisualizer);
+      var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));
+      vc.Register(binaryVisualizer);
+      vc.Register(anotherBinaryVisualizer);
+      return (vc, binaryVisualizer, anotherBinaryVisualizer);
     }
 
     private static Event.Binary NewBinaryEvent() {

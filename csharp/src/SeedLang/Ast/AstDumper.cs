@@ -69,247 +69,222 @@ namespace SeedLang.Ast {
 
   // A helper class to create the string representation of an AST tree.
   internal class AstDumper {
-    private class HeaderDumper {
+    private class ExpressionDumper : ExpressionWalker<int> {
       private readonly StringBuilder _builder;
-      private int _level = 0;
 
-      internal HeaderDumper(StringBuilder builder) {
+      public ExpressionDumper(StringBuilder builder) {
         _builder = builder;
       }
 
-      internal void Enter(AstNode node) {
-        if (_level > 0) {
-          _builder.AppendLine();
-          _builder.Append($"{new string(' ', _level * 2)}");
-        }
-        _builder.Append($"{node.Range} {node.GetType().Name}");
-        _level++;
+      protected override void Enter(Expression expr, int level) {
+        AppendHeader(_builder, expr, level);
       }
 
-      internal void Exit(AstNode _) {
-        _level--;
-      }
-    }
-
-    private class ExpressionDumper : ExpressionWalker {
-      private readonly StringBuilder _builder;
-      private readonly HeaderDumper _headerDumper;
-
-      public ExpressionDumper(StringBuilder builder, HeaderDumper headerDumper) {
-        _builder = builder;
-        _headerDumper = headerDumper;
-      }
-
-      protected override void Enter(Expression expr) {
-        _headerDumper.Enter(expr);
-      }
-
-      protected override void Exit(Expression expr) {
-        _headerDumper.Exit(expr);
-      }
-
-      protected override void VisitBinary(BinaryExpression binary) {
+      protected override void VisitBinary(BinaryExpression binary, int level) {
         _builder.Append($" ({binary.Op.Symbol()})");
-        Visit(binary.Left);
-        Visit(binary.Right);
+        Visit(binary.Left, level + 1);
+        Visit(binary.Right, level + 1);
       }
 
-      protected override void VisitBoolean(BooleanExpression boolean) {
+      protected override void VisitBoolean(BooleanExpression boolean, int level) {
         _builder.Append($" ({boolean.Op.Symbol()})");
         foreach (Expression expr in boolean.Exprs) {
-          Visit(expr);
+          Visit(expr, level + 1);
         }
       }
 
-      protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant) {
+      protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant,
+                                                    int level) {
         _builder.Append($" ({booleanConstant.Value})");
       }
 
-      protected override void VisitCall(CallExpression call) {
-        Visit(call.Func);
+      protected override void VisitCall(CallExpression call, int level) {
+        Visit(call.Func, level + 1);
         foreach (Expression argument in call.Arguments) {
-          Visit(argument);
+          Visit(argument, level + 1);
         }
       }
 
-      protected override void VisitComparison(ComparisonExpression comparison) {
-        Visit(comparison.First);
+      protected override void VisitComparison(ComparisonExpression comparison, int level) {
+        Visit(comparison.First, level + 1);
         for (int i = 0; i < comparison.Ops.Length; ++i) {
           _builder.Append($" ({comparison.Ops[i].Symbol()})");
-          Visit(comparison.Exprs[i]);
+          Visit(comparison.Exprs[i], level + 1);
         }
       }
 
-      protected override void VisitDict(DictExpression dict) {
+      protected override void VisitDict(DictExpression dict, int level) {
         foreach (var item in dict.Items) {
-          Visit(item.Key);
-          Visit(item.Value);
+          Visit(item.Key, level + 1);
+          Visit(item.Value, level + 1);
         }
       }
 
-      protected override void VisitIdentifier(IdentifierExpression identifier) {
+      protected override void VisitIdentifier(IdentifierExpression identifier, int level) {
         _builder.Append($" ({identifier.Name})");
       }
 
-      protected override void VisitList(ListExpression list) {
+      protected override void VisitList(ListExpression list, int level) {
         foreach (Expression expr in list.Exprs) {
-          Visit(expr);
+          Visit(expr, level + 1);
         }
       }
 
-      protected override void VisitNilConstant(NilConstantExpression nilConstant) { }
+      protected override void VisitNilConstant(NilConstantExpression nilConstant, int level) { }
 
-      protected override void VisitNumberConstant(NumberConstantExpression numberConstant) {
+      protected override void VisitNumberConstant(NumberConstantExpression numberConstant,
+                                                   int level) {
         _builder.Append($" ({numberConstant.Value})");
       }
 
-      protected override void VisitSlice(SliceExpression slice) {
+      protected override void VisitSlice(SliceExpression slice, int level) {
         _builder.Append($" ({(slice.Start is null ? "" : "start")}:");
         _builder.Append($"{(slice.Stop is null ? "" : "stop")}:");
         _builder.Append($"{(slice.Step is null ? "" : "step")})");
         if (!(slice.Start is null)) {
-          Visit(slice.Start);
+          Visit(slice.Start, level + 1);
         }
         if (!(slice.Stop is null)) {
-          Visit(slice.Stop);
+          Visit(slice.Stop, level + 1);
         }
         if (!(slice.Step is null)) {
-          Visit(slice.Step);
+          Visit(slice.Step, level + 1);
         }
       }
 
-      protected override void VisitStringConstant(StringConstantExpression stringConstant) {
+      protected override void VisitStringConstant(StringConstantExpression stringConstant,
+                                                   int level) {
         _builder.Append($" ({stringConstant.Value})");
       }
 
-      protected override void VisitSubscript(SubscriptExpression subscript) {
-        Visit(subscript.Container);
-        Visit(subscript.Key);
+      protected override void VisitSubscript(SubscriptExpression subscript, int level) {
+        Visit(subscript.Container, level + 1);
+        Visit(subscript.Key, level + 1);
       }
 
-      protected override void VisitTuple(TupleExpression tuple) {
+      protected override void VisitTuple(TupleExpression tuple, int level) {
         foreach (Expression expr in tuple.Exprs) {
-          Visit(expr);
+          Visit(expr, level + 1);
         }
       }
 
-      protected override void VisitUnary(UnaryExpression unary) {
+      protected override void VisitUnary(UnaryExpression unary, int level) {
         _builder.Append($" ({unary.Op.Symbol()})");
-        Visit(unary.Expr);
+        Visit(unary.Expr, level + 1);
       }
     }
 
-    private class StatementDumper : StatementWalker {
+    private class StatementDumper : StatementWalker<int> {
       private readonly StringBuilder _builder;
       private readonly ExpressionDumper _exprDumper;
-      private readonly HeaderDumper _headerDumper;
 
-      public StatementDumper(StringBuilder builder, HeaderDumper headerDumper,
-                             ExpressionDumper exprDumper) {
+      public StatementDumper(StringBuilder builder, ExpressionDumper exprDumper) {
         _builder = builder;
-        _headerDumper = headerDumper;
         _exprDumper = exprDumper;
       }
 
-      protected override void Enter(Statement statement) {
-        _headerDumper.Enter(statement);
+      protected override void Enter(Statement statement, int level) {
+        AppendHeader(_builder, statement, level);
       }
 
-      protected override void Exit(Statement statement) {
-        _headerDumper.Exit(statement);
-      }
-
-      protected override void VisitAssignment(AssignmentStatement assignment) {
+      protected override void VisitAssignment(AssignmentStatement assignment, int level) {
         foreach (Expression[] targets in assignment.Targets) {
           foreach (Expression target in targets) {
-            _exprDumper.Visit(target);
+            _exprDumper.Visit(target, level + 1);
           }
           _builder.Append(" =");
         }
         foreach (Expression expr in assignment.Values) {
-          _exprDumper.Visit(expr);
+          _exprDumper.Visit(expr, level + 1);
         }
       }
 
-      protected override void VisitBlock(BlockStatement block) {
+      protected override void VisitBlock(BlockStatement block, int level) {
         foreach (Statement statement in block.Statements) {
-          Visit(statement);
+          Visit(statement, level + 1);
         }
       }
 
-      protected override void VisitBreak(BreakStatement @break) { }
+      protected override void VisitBreak(BreakStatement @break, int level) { }
 
-      protected override void VisitContinue(ContinueStatement @continue) { }
+      protected override void VisitContinue(ContinueStatement @continue, int level) { }
 
-      protected override void VisitExpression(ExpressionStatement expr) {
-        _exprDumper.Visit(expr.Expr);
+      protected override void VisitExpression(ExpressionStatement expr, int level) {
+        _exprDumper.Visit(expr.Expr, level + 1);
       }
 
-      protected override void VisitForIn(ForInStatement forIn) {
-        _exprDumper.Visit(forIn.Id);
-        _exprDumper.Visit(forIn.Expr);
-        Visit(forIn.Body);
+      protected override void VisitForIn(ForInStatement forIn, int level) {
+        _exprDumper.Visit(forIn.Id, level + 1);
+        _exprDumper.Visit(forIn.Expr, level + 1);
+        Visit(forIn.Body, level + 1);
       }
 
-      protected override void VisitFuncDef(FuncDefStatement funcDef) {
+      protected override void VisitFuncDef(FuncDefStatement funcDef, int level) {
         _builder.Append($" ({funcDef.Name}");
         if (funcDef.Parameters.Length > 0) {
           _builder.Append($":{string.Join(",", funcDef.Parameters.Select(param => param.Name))}");
         }
         _builder.Append(')');
-        Visit(funcDef.Body);
+        Visit(funcDef.Body, level + 1);
       }
 
-      protected override void VisitIf(IfStatement @if) {
-        _exprDumper.Visit(@if.Test);
-        Visit(@if.ThenBody);
+      protected override void VisitIf(IfStatement @if, int level) {
+        _exprDumper.Visit(@if.Test, level + 1);
+        Visit(@if.ThenBody, level + 1);
         if (!(@if.ElseBody is null)) {
-          Visit(@if.ElseBody);
+          Visit(@if.ElseBody, level + 1);
         }
       }
 
-      protected override void VisitPass(PassStatement pass) { }
+      protected override void VisitPass(PassStatement pass, int level) { }
 
-      protected override void VisitReturn(ReturnStatement @return) {
+      protected override void VisitReturn(ReturnStatement @return, int level) {
         foreach (Expression value in @return.Exprs) {
-          _exprDumper.Visit(value);
+          _exprDumper.Visit(value, level + 1);
         }
       }
 
-      protected override void VisitVTag(VTagStatement vTag) {
+      protected override void VisitVTag(VTagStatement vTag, int level) {
         _builder.Append($" ({string.Join<VTagStatement.VTagInfo>(",", vTag.VTagInfos)})");
         foreach (var statement in vTag.Statements) {
-          Visit(statement);
+          Visit(statement, level + 1);
         }
       }
 
-      protected override void VisitWhile(WhileStatement @while) {
-        _exprDumper.Visit(@while.Test);
-        Visit(@while.Body);
+      protected override void VisitWhile(WhileStatement @while, int level) {
+        _exprDumper.Visit(@while.Test, level + 1);
+        Visit(@while.Body, level + 1);
       }
     }
 
     private readonly StringBuilder _builder = new StringBuilder();
     private readonly ExpressionDumper _expressionDumper;
     private readonly StatementDumper _statementDumper;
-    private readonly HeaderDumper _headerDumper;
 
     internal AstDumper() {
-      _headerDumper = new HeaderDumper(_builder);
-      _expressionDumper = new ExpressionDumper(_builder, _headerDumper);
-      _statementDumper = new StatementDumper(_builder, _headerDumper, _expressionDumper);
+      _expressionDumper = new ExpressionDumper(_builder);
+      _statementDumper = new StatementDumper(_builder, _expressionDumper);
     }
 
     internal string Dump(AstNode node) {
+      int level = 0;
       switch (node) {
         case Expression expression:
-          _expressionDumper.Visit(expression);
+          _expressionDumper.Visit(expression, level);
           break;
         case Statement statement:
-          _statementDumper.Visit(statement);
+          _statementDumper.Visit(statement, level);
           break;
       }
       return _builder.ToString();
+    }
+
+    private static void AppendHeader(StringBuilder builder, AstNode node, int level) {
+      if (level > 0) {
+        builder.AppendLine();
+        builder.Append($"{new string(' ', level * 2)}");
+      }
+      builder.Append($"{node.Range} {node.GetType().Name}");
     }
   }
 }

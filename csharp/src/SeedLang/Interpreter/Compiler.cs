@@ -19,7 +19,7 @@ using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
-  internal class Compiler : StatementWalker {
+  internal class Compiler : StatementWalker<int> {
     private RunMode _runMode;
     private CompilerHelper _helper;
     private ExprCompiler _exprCompiler;
@@ -35,17 +35,17 @@ namespace SeedLang.Interpreter {
       _nestedLoopStack = new NestedLoopStack();
       _exprCompiler = new ExprCompiler(_helper);
       _helper.PushMainFunc();
-      Visit(program);
+      Visit(program, 0);
       _helper.Chunk.Emit(Opcode.HALT, (uint)HaltReason.Terminated, 0, 0,
                          _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
       return _helper.PopMainFunc();
     }
 
-    protected override void Enter(Statement statement) {
+    protected override void Enter(Statement statement, int _) {
       _rangeOfPrevStatement = statement.Range;
     }
 
-    protected override void VisitAssignment(AssignmentStatement assignment) {
+    protected override void VisitAssignment(AssignmentStatement assignment, int _) {
       foreach (Expression[] targets in assignment.Targets) {
         foreach (Expression target in targets) {
           if (target is IdentifierExpression id) {
@@ -62,46 +62,46 @@ namespace SeedLang.Interpreter {
       _helper.EndExprScope();
     }
 
-    protected override void VisitBlock(BlockStatement block) {
+    protected override void VisitBlock(BlockStatement block, int _) {
       foreach (Statement statement in block.Statements) {
-        Visit(statement);
+        Visit(statement, 0);
       }
     }
 
-    protected override void VisitBreak(BreakStatement @break) {
+    protected override void VisitBreak(BreakStatement @break, int _) {
       _helper.Emit(Opcode.JMP, 0, 0, @break.Range);
       _nestedLoopStack.AddBreakJump(_helper.Chunk.LatestCodePos, @break.Range);
     }
 
     // TODO: implement continue statements.
-    protected override void VisitContinue(ContinueStatement @continue) {
+    protected override void VisitContinue(ContinueStatement @continue, int _) {
       _helper.Emit(Opcode.JMP, 0, 0, @continue.Range);
       _nestedLoopStack.AddContinueJump(_helper.Chunk.LatestCodePos, @continue.Range);
     }
 
-    protected override void VisitExpression(ExpressionStatement expr) {
+    protected override void VisitExpression(ExpressionStatement expr, int _) {
       _helper.BeginExprScope();
       _exprCompiler.RegisterForSubExpr = _helper.DefineTempVariable();
       switch (_runMode) {
         case RunMode.Interactive:
           Expression eval = Expression.Identifier(NativeFunctions.PrintVal, expr.Range);
-          _exprCompiler.Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range));
+          _exprCompiler.Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range), 0);
           break;
         case RunMode.Script:
-          _exprCompiler.Visit(expr.Expr);
+          _exprCompiler.Visit(expr.Expr, 0);
           break;
       }
       _helper.EndExprScope();
     }
 
-    protected override void VisitForIn(ForInStatement forIn) {
+    protected override void VisitForIn(ForInStatement forIn, int _) {
       _nestedLoopStack.PushFrame();
       VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name, forIn.Id.Range);
 
       if (!(_helper.GetRegisterId(forIn.Expr) is uint sequence)) {
         sequence = _helper.DefineTempVariable();
         _exprCompiler.RegisterForSubExpr = sequence;
-        _exprCompiler.Visit(forIn.Expr);
+        _exprCompiler.Visit(forIn.Expr, 0);
       }
       uint index = _helper.DefineTempVariable();
       _helper.Emit(Opcode.LOADK, index, _helper.Cache.IdOfConstant(0), forIn.Range);
@@ -130,7 +130,7 @@ namespace SeedLang.Interpreter {
           // TODO: handle upvalues.
           break;
       }
-      Visit(forIn.Body);
+      Visit(forIn.Body, 0);
       // Patches all continue jumps to the FORLOOP instruction.
       _helper.PatchJumpsToCurrentPos(_nestedLoopStack.ContinueJumps);
       _helper.Emit(Opcode.FORLOOP, index, 0, forIn.Range);
@@ -142,13 +142,13 @@ namespace SeedLang.Interpreter {
       _nestedLoopStack.PopFrame();
     }
 
-    protected override void VisitFuncDef(FuncDefStatement funcDef) {
+    protected override void VisitFuncDef(FuncDefStatement funcDef, int _) {
       VariableInfo info = DefineVariableIfNeeded(funcDef.Name, funcDef.Range);
       _helper.PushFunc(funcDef.Name);
       foreach (IdentifierExpression parameter in funcDef.Parameters) {
         _helper.DefineVariable(parameter.Name, parameter.Range);
       }
-      Visit(funcDef.Body);
+      Visit(funcDef.Body, 0);
       _helper.Emit(Opcode.RETURN, 0, 0, 0, _rangeOfPrevStatement ?? new TextRange(1, 0, 1, 0));
 
       Function func = _helper.PopFunc();
@@ -170,16 +170,16 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    protected override void VisitIf(IfStatement @if) {
+    protected override void VisitIf(IfStatement @if, int _) {
       _helper.ExprJumpStack.PushFrame();
       VisitTest(@if.Test);
       _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.TrueJumps);
-      Visit(@if.ThenBody);
+      Visit(@if.ThenBody, 0);
       if (!(@if.ElseBody is null)) {
         _helper.Emit(Opcode.JMP, 0, 0, @if.Range);
         int jumpEndPos = _helper.Chunk.LatestCodePos;
         _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
-        Visit(@if.ElseBody);
+        Visit(@if.ElseBody, 0);
         _helper.PatchJumpToCurrentPos(jumpEndPos);
       } else {
         _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
@@ -187,9 +187,9 @@ namespace SeedLang.Interpreter {
       _helper.ExprJumpStack.PopFrame();
     }
 
-    protected override void VisitPass(PassStatement pass) { }
+    protected override void VisitPass(PassStatement pass, int _) { }
 
-    protected override void VisitReturn(ReturnStatement @return) {
+    protected override void VisitReturn(ReturnStatement @return, int _) {
       if (@return.Exprs.Length == 0) {
         _helper.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
       } else if (@return.Exprs.Length == 1) {
@@ -197,7 +197,7 @@ namespace SeedLang.Interpreter {
           _helper.BeginExprScope();
           result = _helper.DefineTempVariable();
           _exprCompiler.RegisterForSubExpr = result;
-          _exprCompiler.Visit(@return.Exprs[0]);
+          _exprCompiler.Visit(@return.Exprs[0], 0);
           _helper.EndExprScope();
         }
         _helper.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
@@ -205,18 +205,18 @@ namespace SeedLang.Interpreter {
         _helper.BeginExprScope();
         uint listRegister = _helper.DefineTempVariable();
         _exprCompiler.RegisterForSubExpr = listRegister;
-        _exprCompiler.Visit(Expression.Tuple(@return.Exprs, @return.Range));
+        _exprCompiler.Visit(Expression.Tuple(@return.Exprs, @return.Range), 0);
         _helper.Emit(Opcode.RETURN, listRegister, 1, 0, @return.Range);
         _helper.EndExprScope();
       }
     }
 
-    protected override void VisitWhile(WhileStatement @while) {
+    protected override void VisitWhile(WhileStatement @while, int _) {
       _nestedLoopStack.PushFrame();
       _helper.ExprJumpStack.PushFrame();
       int start = _helper.Chunk.Bytecode.Count;
       VisitTest(@while.Test);
-      Visit(@while.Body);
+      Visit(@while.Body, 0);
       // Doesn't emit single step notifications for this jump instruction, because it's at the same
       // line with the while statement. The single step notification in the first instruction of
       // the while statement will trigger correct single step events.
@@ -229,17 +229,17 @@ namespace SeedLang.Interpreter {
       _nestedLoopStack.PopFrame();
     }
 
-    protected override void VisitVTag(VTagStatement vTag) {
+    protected override void VisitVTag(VTagStatement vTag, int _) {
       _helper.EmitVTagEnteredNotification(vTag, _exprCompiler);
       foreach (Statement statement in vTag.Statements) {
-        Visit(statement);
+        Visit(statement, 0);
       }
       _helper.EmitVTagExitedNotification(vTag, _exprCompiler);
     }
 
     private void VisitTest(Expression test) {
       if (test is ComparisonExpression || test is BooleanExpression) {
-        _exprCompiler.Visit(test);
+        _exprCompiler.Visit(test, 0);
       } else {
         if (_helper.GetRegisterId(test) is uint registerId) {
           _helper.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
@@ -247,7 +247,7 @@ namespace SeedLang.Interpreter {
           _helper.BeginExprScope();
           registerId = _helper.DefineTempVariable();
           _exprCompiler.RegisterForSubExpr = registerId;
-          _exprCompiler.Visit(test);
+          _exprCompiler.Visit(test, 0);
           _helper.Emit(Opcode.TEST, registerId, 0, 1, test.Range);
           _helper.EndExprScope();
         }
@@ -324,7 +324,7 @@ namespace SeedLang.Interpreter {
             case VariableType.Local:
               if (!(value is null)) {
                 _exprCompiler.RegisterForSubExpr = info.Id;
-                _exprCompiler.Visit(value);
+                _exprCompiler.Visit(value, 0);
                 registerId = info.Id;
               } else {
                 _helper.Emit(Opcode.MOVE, info.Id, registerId, 0, range);
@@ -359,7 +359,7 @@ namespace SeedLang.Interpreter {
       if (!(_helper.GetRegisterId(expr) is uint exprId)) {
         exprId = _helper.DefineTempVariable();
         _exprCompiler.RegisterForSubExpr = exprId;
-        _exprCompiler.Visit(expr);
+        _exprCompiler.Visit(expr, 0);
       }
       return exprId;
     }
@@ -368,7 +368,7 @@ namespace SeedLang.Interpreter {
       if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
         exprId = _helper.DefineTempVariable();
         _exprCompiler.RegisterForSubExpr = exprId;
-        _exprCompiler.Visit(expr);
+        _exprCompiler.Visit(expr, 0);
       }
       return exprId;
     }

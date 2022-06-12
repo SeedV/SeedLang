@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SeedLang.Runtime;
 using SeedLang.Visualization;
 
@@ -71,7 +72,9 @@ namespace SeedLang.Interpreter {
         var locals = new List<IVM.VariableInfo>();
         for (int i = (int)Base; i < _registerInfos.Count; i++) {
           if (_registerInfos[i].IsLocal) {
-            locals.Add(new IVM.VariableInfo(_registerInfos[i].Name, new Value(_stack[i])));
+            var names = _registerInfos[i].Name.Split(".");
+            Debug.Assert(names.Length > 0);
+            locals.Add(new IVM.VariableInfo(names[^1], new Value(_stack[i])));
           }
         }
         return locals;

@@ -22,7 +22,7 @@ using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
-  internal class ExprCompiler : ExpressionWalker {
+  internal class ExprCompiler : ExpressionWalker<int> {
     // The register allocated for the result of sub-expressions. The getter resets the storage to
     // null after getting the value to make sure the result register is set before visiting each
     // sub-expression.
@@ -50,7 +50,7 @@ namespace SeedLang.Interpreter {
       _helper = helper;
     }
 
-    protected override void VisitBinary(BinaryExpression binary) {
+    protected override void VisitBinary(BinaryExpression binary, int _) {
       _helper.BeginExprScope();
       uint register = RegisterForSubExpr;
       uint left = VisitExpressionForRKId(binary.Left);
@@ -61,12 +61,12 @@ namespace SeedLang.Interpreter {
       _helper.EndExprScope();
     }
 
-    protected override void VisitBoolean(BooleanExpression boolean) {
+    protected override void VisitBoolean(BooleanExpression boolean, int _) {
       VisitBooleanOrComparisonExpression(() => {
         BooleanOperator nextBooleanOp = _nextBooleanOp;
         for (int i = 0; i < boolean.Exprs.Length; i++) {
           _nextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : nextBooleanOp;
-          Visit(boolean.Exprs[i]);
+          Visit(boolean.Exprs[i], 0);
           if (i < boolean.Exprs.Length - 1) {
             switch (boolean.Op) {
               case BooleanOperator.And:
@@ -81,12 +81,12 @@ namespace SeedLang.Interpreter {
       }, boolean.Range);
     }
 
-    protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant) {
+    protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant, int _) {
       _helper.Emit(Opcode.LOADBOOL, RegisterForSubExpr, booleanConstant.Value ? 1u : 0, 0,
                    booleanConstant.Range);
     }
 
-    protected override void VisitCall(CallExpression call) {
+    protected override void VisitCall(CallExpression call, int _) {
       _helper.BeginExprScope();
       // TODO: should call.Func always be IdentifierExpression?
       if (call.Func is IdentifierExpression identifier) {
@@ -107,7 +107,7 @@ namespace SeedLang.Interpreter {
           }
           foreach (Expression expr in call.Arguments) {
             RegisterForSubExpr = _helper.DefineTempVariable();
-            Visit(expr);
+            Visit(expr, 0);
           }
           _helper.EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
           if (needRegister) {
@@ -121,7 +121,7 @@ namespace SeedLang.Interpreter {
       _helper.EndExprScope();
     }
 
-    protected override void VisitComparison(ComparisonExpression comparison) {
+    protected override void VisitComparison(ComparisonExpression comparison, int _) {
       Debug.Assert(comparison.Ops.Length > 0 && comparison.Exprs.Length > 0);
       VisitBooleanOrComparisonExpression(() => {
         BooleanOperator nextBooleanOp = _nextBooleanOp;
@@ -134,7 +134,7 @@ namespace SeedLang.Interpreter {
       }, comparison.Range);
     }
 
-    protected override void VisitDict(DictExpression dict) {
+    protected override void VisitDict(DictExpression dict, int _) {
       _helper.BeginExprScope();
       uint target = RegisterForSubExpr;
       uint? first = null;
@@ -144,16 +144,16 @@ namespace SeedLang.Interpreter {
           first = register;
         }
         RegisterForSubExpr = register;
-        Visit(item.Key);
+        Visit(item.Key, 0);
         RegisterForSubExpr = _helper.DefineTempVariable();
-        Visit(item.Value);
+        Visit(item.Value, 0);
       }
       _helper.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Items.Length * 2,
                    dict.Range);
       _helper.EndExprScope();
     }
 
-    protected override void VisitIdentifier(IdentifierExpression identifier) {
+    protected override void VisitIdentifier(IdentifierExpression identifier, int _) {
       if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
         switch (info.Type) {
           case VariableType.Global:
@@ -174,34 +174,34 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    protected override void VisitList(ListExpression list) {
+    protected override void VisitList(ListExpression list, int _) {
       CreateTupleOrList(Opcode.NEWLIST, list.Exprs, list.Range);
     }
 
-    protected override void VisitNilConstant(NilConstantExpression nilConstant) {
+    protected override void VisitNilConstant(NilConstantExpression nilConstant, int _) {
       _helper.Emit(Opcode.LOADNIL, RegisterForSubExpr, 1, 0, nilConstant.Range);
     }
 
-    protected override void VisitNumberConstant(NumberConstantExpression numberConstant) {
+    protected override void VisitNumberConstant(NumberConstantExpression numberConstant, int _) {
       uint id = _helper.Cache.IdOfConstant(numberConstant.Value);
       _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, numberConstant.Range);
     }
 
-    protected override void VisitSlice(SliceExpression slice) {
+    protected override void VisitSlice(SliceExpression slice, int _) {
       Expression sliceFunc = Expression.Identifier(NativeFunctions.Slice, slice.Range);
       Visit(Expression.Call(sliceFunc, new Expression[] {
         slice.Start ?? Expression.NilConstant(slice.Range),
         slice.Stop ?? Expression.NilConstant(slice.Range),
         slice.Step ?? Expression.NilConstant(slice.Range),
-      }, slice.Range));
+      }, slice.Range), 0);
     }
 
-    protected override void VisitStringConstant(StringConstantExpression stringConstant) {
+    protected override void VisitStringConstant(StringConstantExpression stringConstant, int _) {
       uint id = _helper.Cache.IdOfConstant(stringConstant.Value);
       _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, stringConstant.Range);
     }
 
-    protected override void VisitSubscript(SubscriptExpression subscript) {
+    protected override void VisitSubscript(SubscriptExpression subscript, int _) {
       _helper.BeginExprScope();
       uint targetId = RegisterForSubExpr;
       uint containerId = VisitExpressionForRegisterId(subscript.Container);
@@ -211,11 +211,11 @@ namespace SeedLang.Interpreter {
       _helper.EndExprScope();
     }
 
-    protected override void VisitTuple(TupleExpression tuple) {
+    protected override void VisitTuple(TupleExpression tuple, int _) {
       CreateTupleOrList(Opcode.NEWTUPLE, tuple.Exprs, tuple.Range);
     }
 
-    protected override void VisitUnary(UnaryExpression unary) {
+    protected override void VisitUnary(UnaryExpression unary, int _) {
       _helper.BeginExprScope();
       uint register = RegisterForSubExpr;
       uint exprId = VisitExpressionForRKId(unary.Expr);
@@ -278,7 +278,7 @@ namespace SeedLang.Interpreter {
           first = register;
         }
         RegisterForSubExpr = register;
-        Visit(expr);
+        Visit(expr, 0);
       }
       _helper.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);
       _helper.EndExprScope();
@@ -288,7 +288,7 @@ namespace SeedLang.Interpreter {
       if (!(_helper.GetRegisterId(expr) is uint exprId)) {
         exprId = _helper.DefineTempVariable();
         RegisterForSubExpr = exprId;
-        Visit(expr);
+        Visit(expr, 0);
       }
       return exprId;
     }
@@ -297,7 +297,7 @@ namespace SeedLang.Interpreter {
       if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
         exprId = _helper.DefineTempVariable();
         RegisterForSubExpr = exprId;
-        Visit(expr);
+        Visit(expr, 0);
       }
       return exprId;
     }

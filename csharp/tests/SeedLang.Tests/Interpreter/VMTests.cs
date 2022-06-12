@@ -289,14 +289,14 @@ print(a[1:3])
 
     private static (string, VisualizerHelper) Run(Statement program,
                                                   IReadOnlyList<Type> eventTypes) {
-      var visualizerCenter = new VisualizerCenter(() => new VMProxy(null));
-      var vm = new VM(visualizerCenter);
+      var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));
+      var vm = new VM(vc);
       var vh = new VisualizerHelper(eventTypes);
-      vh.RegisterToVisualizerCenter(visualizerCenter);
+      vh.RegisterToVisualizerCenter(vc);
       var stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, visualizerCenter, RunMode.Interactive);
+      Function func = compiler.Compile(program, vm.Env, vc, RunMode.Interactive);
       vm.Run(func);
       return (stringWriter.ToString(), vh);
     }

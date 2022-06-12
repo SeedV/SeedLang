@@ -89,21 +89,28 @@ namespace SeedLang.Runtime.HeapObjects {
       Step = ToInt(step);
     }
 
+    internal Slice(in VMValue start, in VMValue stop, in VMValue step) :
+        this(ToNumber(start), ToNumber(stop), ToNumber(step)) { }
+
     public override string ToString() {
       return $"slice({Start?.ToString() ?? "None"}, {Stop?.ToString() ?? "None"}, " +
              $"{Step?.ToString() ?? "None"})";
     }
 
     private static int? ToInt(double? value) {
-      if (value == null) {
-        return null;
+      if (value is double doubleValue) {
+        if ((int)doubleValue == doubleValue) {
+          return (int)doubleValue;
+        } else {
+          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                        Message.RuntimeErrorInvalidIntIndex);
+        }
       }
-      int intValue = (int)value;
-      if (intValue != value) {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidIntIndex);
-      }
-      return intValue;
+      return null;
+    }
+
+    private static double? ToNumber(VMValue value) {
+      return value.IsNumber ? value.AsNumber() : null;
     }
   }
 }

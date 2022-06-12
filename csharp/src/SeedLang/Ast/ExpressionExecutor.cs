@@ -13,8 +13,10 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Ast {
   internal interface IEnvironment {
@@ -83,7 +85,12 @@ namespace SeedLang.Ast {
     }
 
     protected override void VisitList(ListExpression list, Result result) {
-      throw new NotImplementedException();
+      var resultList = new List<VMValue>(list.Exprs.Length);
+      foreach (Expression expr in list.Exprs) {
+        Visit(expr, result);
+        resultList.Add(result.Value);
+      }
+      result.Value = new VMValue(resultList);
     }
 
     protected override void VisitNilConstant(NilConstantExpression nilConstant, Result result) {
@@ -96,16 +103,26 @@ namespace SeedLang.Ast {
     }
 
     protected override void VisitSlice(SliceExpression slice, Result result) {
-      throw new NotImplementedException();
+      var start = new Result();
+      Visit(slice.Start, start);
+      var stop = new Result();
+      Visit(slice.Stop, stop);
+      var step = new Result();
+      Visit(slice.Step, step);
+      result.Value = new VMValue(new Slice(start.Value, stop.Value, step.Value));
     }
 
     protected override void VisitStringConstant(StringConstantExpression stringConstant,
                                                 Result result) {
-      throw new NotImplementedException();
+      result.Value = new VMValue(stringConstant.Value);
     }
 
     protected override void VisitSubscript(SubscriptExpression subscript, Result result) {
-      throw new NotImplementedException();
+      var container = new Result();
+      Visit(subscript.Container, container);
+      var key = new Result();
+      Visit(subscript.Key, key);
+      result.Value = container.Value[key.Value];
     }
 
     protected override void VisitTuple(TupleExpression tuple, Result result) {

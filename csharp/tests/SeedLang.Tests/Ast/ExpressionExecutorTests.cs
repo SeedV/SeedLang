@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using FluentAssertions;
 using SeedLang.Runtime;
+using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
 using Xunit;
 
@@ -82,6 +83,60 @@ namespace SeedLang.Ast {
                                   AstHelper.BooleanConstant(false));
       executor.Visit(boolean, result);
       result.Value.Should().Be(new VMValue(false));
+    }
+
+    [Fact]
+    public void TestList() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+
+      var list = AstHelper.List(AstHelper.NumberConstant(1),
+                                AstHelper.NumberConstant(2),
+                                AstHelper.NumberConstant(3));
+      executor.Visit(list, result);
+      result.Value.Should().Be(new VMValue(new List<VMValue> {
+        new VMValue(1),
+        new VMValue(2),
+        new VMValue(3),
+      }));
+    }
+
+    [Fact]
+    public void TestSlice() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+
+      var stringConstant = AstHelper.Slice(AstHelper.NumberConstant(1),
+                                           AstHelper.NumberConstant(2),
+                                           AstHelper.NumberConstant(3));
+      executor.Visit(stringConstant, result);
+      result.Value.AsSlice().Should().BeEquivalentTo(new Slice(1, 2, 3));
+    }
+
+    [Fact]
+    public void TestStringConstant() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+
+      string str = "test string";
+      var stringConstant = AstHelper.StringConstant(str);
+      executor.Visit(stringConstant, result);
+      result.Value.Should().Be(new VMValue(str));
+    }
+
+    [Fact]
+    public void TestSubscript() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+
+      var subscript = AstHelper.Subscript(
+        AstHelper.List(AstHelper.NumberConstant(1),
+                       AstHelper.NumberConstant(2),
+                       AstHelper.NumberConstant(3)),
+        AstHelper.NumberConstant(1)
+      );
+      executor.Visit(subscript, result);
+      result.Value.Should().Be(new VMValue(2));
     }
 
     [Fact]

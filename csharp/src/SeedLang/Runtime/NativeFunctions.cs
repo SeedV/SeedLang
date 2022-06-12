@@ -133,10 +133,7 @@ namespace SeedLang.Runtime {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
-      double? start = args[0].IsNumber ? args[0].AsNumber() : default(double?);
-      double? stop = args[1].IsNumber ? args[1].AsNumber() : default(double?);
-      double? step = args[2].IsNumber ? args[2].AsNumber() : default(double?);
-      return new VMValue(new Slice(start, stop, step));
+      return new VMValue(new Slice(args[0], args[1], args[2]));
     }
   }
 }

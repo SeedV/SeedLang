@@ -132,8 +132,8 @@ namespace SeedLang.Tests.Helper {
       return Expression.Slice(start, stop, step, TextRange);
     }
 
-    internal static SubscriptExpression Subscript(Expression expr, Expression index) {
-      return Expression.Subscript(expr, index, TextRange);
+    internal static SubscriptExpression Subscript(Expression container, Expression key) {
+      return Expression.Subscript(container, key, TextRange);
     }
 
     internal static TupleExpression Tuple(params Expression[] exprs) {

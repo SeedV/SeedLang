@@ -23,18 +23,18 @@ using SeedLang.X;
 
 namespace SeedLang {
   internal class VMProxy : IVMProxy {
-    private class Variables : IVariables {
+    private class Environment : IEnvironment {
       private readonly IImmutableDictionary<string, VMValue> _globals;
       private readonly IImmutableDictionary<string, VMValue> _locals;
 
-      internal Variables(IReadOnlyList<IVM.VariableInfo> globals,
-                         IReadOnlyList<IVM.VariableInfo> locals) {
+      internal Environment(IReadOnlyList<IVM.VariableInfo> globals,
+                           IReadOnlyList<IVM.VariableInfo> locals) {
         _globals = globals.ToImmutableDictionary(info => info.Name,
                                                  info => info.Value.GetRawValue());
         _locals = locals.ToImmutableDictionary(info => info.Name, info => info.Value.GetRawValue());
       }
 
-      public bool GetValueOf(string name, out VMValue value) {
+      public bool GetValueOfVariable(string name, out VMValue value) {
         if (_locals.TryGetValue(name, out value) || _globals.TryGetValue(name, out value)) {
           return true;
         }
@@ -83,7 +83,7 @@ namespace SeedLang {
             if (GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) &&
                 GetLocals(out IReadOnlyList<IVM.VariableInfo> locals)) {
               var executorResult = new ExpressionExecutor.Result();
-              new StatementExecutor(new Variables(globals, locals)).Visit(expr, executorResult);
+              new StatementExecutor(new Environment(globals, locals)).Visit(expr, executorResult);
               result = new Value(executorResult.Value);
               return true;
             }

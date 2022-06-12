@@ -56,11 +56,11 @@ namespace SeedLang.Tests {
 
       private bool IsVariableDefined(string name) {
         try {
-          _ = Locals.First((info) => info.Name == name);
+          _ = Locals.First(info => info.Name == name);
           return true;
         } catch (Exception) {
           try {
-            _ = Globals.First((info) => info.Name == name);
+            _ = Globals.First(info => info.Name == name);
             return true;
           } catch (Exception) {
             return false;
@@ -132,8 +132,8 @@ add(1, 2)
       engine.Continue();
       visualizer.Line.Should().Be(3);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
-        new IVM.VariableInfo("a", new Value(1)),
-        new IVM.VariableInfo("b", new Value(2)),
+        new IVM.VariableInfo("add.a", new Value(1)),
+        new IVM.VariableInfo("add.b", new Value(2)),
       });
       visualizer.Result.IsNumber.Should().Be(true);
       visualizer.Result.AsNumber().Should().Be(3);
@@ -141,9 +141,9 @@ add(1, 2)
       engine.Continue();
       visualizer.Line.Should().Be(4);
       visualizer.Locals.Should().BeEquivalentTo(new List<IVM.VariableInfo>() {
-        new IVM.VariableInfo("a", new Value(1)),
-        new IVM.VariableInfo("b", new Value(2)),
-        new IVM.VariableInfo("c", new Value(3)),
+        new IVM.VariableInfo("add.a", new Value(1)),
+        new IVM.VariableInfo("add.b", new Value(2)),
+        new IVM.VariableInfo("add.c", new Value(3)),
       });
     }
 

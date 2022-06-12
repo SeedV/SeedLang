@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections.Immutable;
 using SeedLang.Runtime;
 
 namespace SeedLang.Ast {
-  internal interface IVariables {
-    bool GetValueOf(string name, out VMValue value);
+  internal interface IEnvironment {
+    bool GetValueOfVariable(string name, out VMValue value);
   }
 
   internal class ExpressionExecutor : ExpressionWalker<ExpressionExecutor.Result> {
@@ -24,10 +26,10 @@ namespace SeedLang.Ast {
       public VMValue Value;
     }
 
-    private readonly IVariables _variables;
+    private readonly IEnvironment _env;
 
-    internal ExpressionExecutor(IVariables variables) {
-      _variables = variables;
+    internal ExpressionExecutor(IEnvironment env) {
+      _env = env;
     }
 
     protected override void VisitBinary(BinaryExpression binary, Result result) {
@@ -35,40 +37,57 @@ namespace SeedLang.Ast {
       Visit(binary.Left, left);
       var right = new Result();
       Visit(binary.Right, right);
-      result.Value = ValueHelper.Add(left.Value, right.Value);
+      result.Value = binary.Op switch {
+        BinaryOperator.Add => ValueHelper.Add(left.Value, right.Value),
+        BinaryOperator.Subtract => ValueHelper.Subtract(left.Value, right.Value),
+        BinaryOperator.Multiply => ValueHelper.Multiply(left.Value, right.Value),
+        BinaryOperator.Divide => ValueHelper.Divide(left.Value, right.Value),
+        BinaryOperator.FloorDivide => ValueHelper.FloorDivide(left.Value, right.Value),
+        BinaryOperator.Power => ValueHelper.Power(left.Value, right.Value),
+        BinaryOperator.Modulo => ValueHelper.Modulo(left.Value, right.Value),
+        _ => throw new NotImplementedException($"Unsupported binary operator: {binary.Op}."),
+      };
     }
 
     protected override void VisitBoolean(BooleanExpression boolean, Result result) {
-      throw new System.NotImplementedException();
+      result.Value = new VMValue(boolean.Op == BooleanOperator.And);
+      foreach (Expression expr in boolean.Exprs) {
+        var exprResult = new Result();
+        Visit(expr, exprResult);
+        if (exprResult.Value != result.Value) {
+          result.Value = exprResult.Value;
+          break;
+        }
+      }
     }
 
     protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant,
                                                  Result result) {
-      throw new System.NotImplementedException();
+      result.Value = new VMValue(booleanConstant.Value);
     }
 
     protected override void VisitCall(CallExpression call, Result result) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     protected override void VisitComparison(ComparisonExpression comparison, Result result) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     protected override void VisitDict(DictExpression dict, Result result) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     protected override void VisitIdentifier(IdentifierExpression identifier, Result result) {
-      _variables.GetValueOf(identifier.Name, out result.Value);
+      _env.GetValueOfVariable(identifier.Name, out result.Value);
     }
 
     protected override void VisitList(ListExpression list, Result result) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     protected override void VisitNilConstant(NilConstantExpression nilConstant, Result result) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     protected override void VisitNumberConstant(NumberConstantExpression numberConstant,
@@ -77,24 +96,35 @@ namespace SeedLang.Ast {
     }
 
     protected override void VisitSlice(SliceExpression slice, Result result) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     protected override void VisitStringConstant(StringConstantExpression stringConstant,
                                                 Result result) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     protected override void VisitSubscript(SubscriptExpression subscript, Result result) {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
 
     protected override void VisitTuple(TupleExpression tuple, Result result) {
-      throw new System.NotImplementedException();
+      var builder = ImmutableArray.CreateBuilder<VMValue>(tuple.Exprs.Length);
+      foreach (Expression expr in tuple.Exprs) {
+        Visit(expr, result);
+        builder.Add(result.Value);
+      }
+      result.Value = new VMValue(builder.MoveToImmutable());
     }
 
     protected override void VisitUnary(UnaryExpression unary, Result result) {
-      throw new System.NotImplementedException();
+      Visit(unary.Expr, result);
+      result.Value = unary.Op switch {
+        UnaryOperator.Negative => new VMValue(-result.Value.AsNumber()),
+        UnaryOperator.Not => new VMValue(!result.Value.AsBoolean()),
+        UnaryOperator.Positive => result.Value,
+        _ => throw new NotImplementedException($"Unsupported unary operator: {unary.Op}."),
+      };
     }
   }
 }

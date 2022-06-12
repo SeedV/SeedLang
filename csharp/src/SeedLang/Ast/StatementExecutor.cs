@@ -16,9 +16,9 @@ namespace SeedLang.Ast {
   using Result = ExpressionExecutor.Result;
 
   internal class StatementExecutor : StatementWalker<Result> {
-    private readonly IVariables _variables;
+    private readonly IEnvironment _variables;
 
-    internal StatementExecutor(IVariables variables) {
+    internal StatementExecutor(IEnvironment variables) {
       _variables = variables;
     }
 

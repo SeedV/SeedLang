@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using SeedLang.Common;
 
 namespace SeedLang.Visualization {
@@ -20,11 +21,19 @@ namespace SeedLang.Visualization {
   // notification.
   public interface IVM {
     public class VariableInfo {
-      public string Name { get; }
+      public string Name {
+        get {
+          var names = ChainedName.Split(".");
+          Debug.Assert(names.Length > 0);
+          return names[^1];
+        }
+      }
+
+      public string ChainedName { get; }
       public Value Value { get; }
 
-      public VariableInfo(string name, Value value) {
-        Name = name;
+      public VariableInfo(string chainedName, Value value) {
+        ChainedName = chainedName;
         Value = value;
       }
     }
@@ -32,6 +41,9 @@ namespace SeedLang.Visualization {
     // Gets the list of global variables. Returns false if variable tracking is not enabled.
     bool GetGlobals(out IReadOnlyList<VariableInfo> globals);
     // Gets the list of local variables. Returns false if variable tracking is not enabled.
+    //
+    // Only includes local variables in current executing functions, and the returned variable name
+    // is not the chained name.
     bool GetLocals(out IReadOnlyList<VariableInfo> locals);
 
     // Pauses execution.

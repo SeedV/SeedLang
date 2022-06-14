@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using FluentAssertions;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
@@ -23,8 +25,13 @@ using Xunit;
 namespace SeedLang.Ast {
   public class ExpressionExecutorTests {
     private class MockupEnvironment : IEnvironment {
-      public bool GetValueOfVariable(string name, out VMValue value) {
-        throw new System.NotImplementedException();
+      public bool TryGetValueOfVariable(string name, out VMValue value) {
+        if (name == "a") {
+          value = new VMValue(1);
+          return true;
+        }
+        value = new VMValue();
+        return false;
       }
     }
 
@@ -86,6 +93,125 @@ namespace SeedLang.Ast {
     }
 
     [Fact]
+    public void TestBooleanConstant() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+
+      var booleanConstant = AstHelper.BooleanConstant(false);
+      executor.Visit(booleanConstant, result);
+      result.Value.Should().Be(new VMValue(false));
+
+      booleanConstant = AstHelper.BooleanConstant(true);
+      executor.Visit(booleanConstant, result);
+      result.Value.Should().Be(new VMValue(true));
+    }
+
+    [Fact]
+    public void TestCall() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+      var call = AstHelper.Call(AstHelper.Id("func"));
+      Action action = () => executor.Visit(call, result);
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.UnsupportedEvalSyntax);
+    }
+
+    [Fact]
+    public void TestComparison() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+      var comparison = AstHelper.Comparison(AstHelper.NumberConstant(1),
+                                            AstHelper.CompOps(ComparisonOperator.Less),
+                                            AstHelper.NumberConstant(2));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(true));
+
+      comparison = AstHelper.Comparison(AstHelper.NumberConstant(1),
+                                        AstHelper.CompOps(ComparisonOperator.Greater),
+                                        AstHelper.NumberConstant(2));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(false));
+
+      comparison = AstHelper.Comparison(AstHelper.NumberConstant(2),
+                                        AstHelper.CompOps(ComparisonOperator.LessEqual),
+                                        AstHelper.NumberConstant(2));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(true));
+
+      comparison = AstHelper.Comparison(AstHelper.NumberConstant(3),
+                                        AstHelper.CompOps(ComparisonOperator.GreaterEqual),
+                                        AstHelper.NumberConstant(2));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(true));
+
+      comparison = AstHelper.Comparison(AstHelper.NumberConstant(2),
+                                        AstHelper.CompOps(ComparisonOperator.EqEqual),
+                                        AstHelper.NumberConstant(2));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(true));
+
+      comparison = AstHelper.Comparison(AstHelper.NumberConstant(2),
+                                        AstHelper.CompOps(ComparisonOperator.NotEqual),
+                                        AstHelper.NumberConstant(2));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(false));
+
+      comparison = AstHelper.Comparison(AstHelper.StringConstant("abc"),
+                                        AstHelper.CompOps(ComparisonOperator.In),
+                                        AstHelper.StringConstant("a"));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(true));
+
+      comparison = AstHelper.Comparison(AstHelper.NumberConstant(1),
+                                        AstHelper.CompOps(ComparisonOperator.Less,
+                                                          ComparisonOperator.Less),
+                                        AstHelper.NumberConstant(2),
+                                        AstHelper.NumberConstant(3));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(true));
+
+      comparison = AstHelper.Comparison(AstHelper.NumberConstant(1),
+                                        AstHelper.CompOps(ComparisonOperator.GreaterEqual,
+                                                          ComparisonOperator.Less),
+                                        AstHelper.NumberConstant(2),
+                                        AstHelper.NumberConstant(3));
+      executor.Visit(comparison, result);
+      result.Value.Should().Be(new VMValue(false));
+    }
+
+    [Fact]
+    public void TestDict() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+
+      var dict = AstHelper.Dict(
+        AstHelper.KeyValue(AstHelper.StringConstant("a"), AstHelper.NumberConstant(1)),
+        AstHelper.KeyValue(AstHelper.StringConstant("b"), AstHelper.NumberConstant(2)),
+        AstHelper.KeyValue(AstHelper.StringConstant("c"), AstHelper.NumberConstant(3))
+      );
+      executor.Visit(dict, result);
+      result.Value.Should().Be(new VMValue(new Dictionary<VMValue, VMValue> {
+        [new VMValue("a")] = new VMValue(1),
+        [new VMValue("b")] = new VMValue(2),
+        [new VMValue("c")] = new VMValue(3),
+      }));
+    }
+
+    [Fact]
+    public void TestIdentifier() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+      var identifier = AstHelper.Id("a");
+      executor.Visit(identifier, result);
+      result.Value.Should().Be(new VMValue(1));
+
+      identifier = AstHelper.Id("b");
+      Action action = () => executor.Visit(identifier, result);
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorVariableNotDefined);
+    }
+
+    [Fact]
     public void TestList() {
       var executor = new ExpressionExecutor(new MockupEnvironment());
       var result = new ExpressionExecutor.Result();
@@ -99,6 +225,24 @@ namespace SeedLang.Ast {
         new VMValue(2),
         new VMValue(3),
       }));
+    }
+
+    [Fact]
+    public void TestNilConstant() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+      var numberConstant = AstHelper.NilConstant();
+      executor.Visit(numberConstant, result);
+      result.Value.Should().Be(new VMValue());
+    }
+
+    [Fact]
+    public void TestNumberConstant() {
+      var executor = new ExpressionExecutor(new MockupEnvironment());
+      var result = new ExpressionExecutor.Result();
+      var numberConstant = AstHelper.NumberConstant(1);
+      executor.Visit(numberConstant, result);
+      result.Value.Should().Be(new VMValue(1));
     }
 
     [Fact]

@@ -110,7 +110,7 @@ namespace SeedLang.Runtime.HeapObjects {
     }
 
     private static double? ToNumber(VMValue value) {
-      return value.IsNumber ? value.AsNumber() : null;
+      return value.IsNumber ? value.AsNumber() : default(double?);
     }
   }
 }

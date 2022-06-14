@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using SeedLang.Common;
+
 namespace SeedLang.Ast {
   using Result = ExpressionExecutor.Result;
 
+  // The class to execute statement AST nodes. Supports expression statements execution only.
   internal class StatementExecutor : StatementWalker<Result> {
     private readonly IEnvironment _variables;
 
@@ -23,19 +26,23 @@ namespace SeedLang.Ast {
     }
 
     protected override void VisitAssignment(AssignmentStatement assignment, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitBlock(BlockStatement block, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitBreak(BreakStatement @break, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitContinue(ContinueStatement @continue, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitExpression(ExpressionStatement expr, Result result) {
@@ -43,31 +50,38 @@ namespace SeedLang.Ast {
     }
 
     protected override void VisitForIn(ForInStatement forIn, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitFuncDef(FuncDefStatement funcDef, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitIf(IfStatement @if, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitPass(PassStatement pass, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitReturn(ReturnStatement @return, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitVTag(VTagStatement vTag, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitWhile(WhileStatement @while, Result result) {
-      throw new System.NotImplementedException();
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
   }
 }

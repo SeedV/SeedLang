@@ -53,11 +53,13 @@ namespace SeedLang.Visualization {
       }
     }
 
-    public bool IsVariableTrackingEnabled { get; set; } = false;
-
     private readonly Dictionary<Type, object> _publishers = new Dictionary<Type, object>();
 
+    // The function to make a VM proxy object which is used as a parameter of visualization
+    // notifications.
     private readonly Func<IVMProxy> _makeVMProxy;
+
+    public bool IsVariableTrackingEnabled { get; set; } = false;
 
     internal VisualizerCenter(Func<IVMProxy> makeVMProxy) {
       Type[] eventTypes = typeof(Event).GetNestedTypes();

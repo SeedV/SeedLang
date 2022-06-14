@@ -94,7 +94,7 @@ namespace SeedLang.Ast {
       }
 
       protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant,
-                                                    int level) {
+                                                   int level) {
         _builder.Append($" ({booleanConstant.Value})");
       }
 
@@ -114,7 +114,7 @@ namespace SeedLang.Ast {
       }
 
       protected override void VisitDict(DictExpression dict, int level) {
-        foreach (var item in dict.Items) {
+        foreach (var item in dict.KeyValues) {
           Visit(item.Key, level + 1);
           Visit(item.Value, level + 1);
         }
@@ -133,7 +133,7 @@ namespace SeedLang.Ast {
       protected override void VisitNilConstant(NilConstantExpression nilConstant, int level) { }
 
       protected override void VisitNumberConstant(NumberConstantExpression numberConstant,
-                                                   int level) {
+                                                  int level) {
         _builder.Append($" ({numberConstant.Value})");
       }
 
@@ -153,7 +153,7 @@ namespace SeedLang.Ast {
       }
 
       protected override void VisitStringConstant(StringConstantExpression stringConstant,
-                                                   int level) {
+                                                  int level) {
         _builder.Append($" ({stringConstant.Value})");
       }
 

@@ -22,7 +22,10 @@ using SeedLang.Visualization;
 using SeedLang.X;
 
 namespace SeedLang {
+  // The proxy class of SeedVM to implement IVM interface.
   internal class VMProxy : IVMProxy {
+    // The environment class to extract global and local variables information from SeedVM and
+    // provide to statement and expression executors.
     private class Environment : IEnvironment {
       private readonly IImmutableDictionary<string, VMValue> _globals;
       private readonly IImmutableDictionary<string, VMValue> _locals;
@@ -34,7 +37,7 @@ namespace SeedLang {
         _locals = locals.ToImmutableDictionary(info => info.Name, info => info.Value.GetRawValue());
       }
 
-      public bool GetValueOfVariable(string name, out VMValue value) {
+      public bool TryGetValueOfVariable(string name, out VMValue value) {
         if (_locals.TryGetValue(name, out value) || _globals.TryGetValue(name, out value)) {
           return true;
         }
@@ -75,19 +78,24 @@ namespace SeedLang {
     }
 
     public bool Eval(string source, out Value result, DiagnosticCollection collection = null) {
-      if (!string.IsNullOrEmpty(source)) {
-        BaseParser parser = Engine.MakeParser(_language);
-        if (parser.Parse(source, "", collection ?? new DiagnosticCollection(),
-                         out Statement statement, out _)) {
-          if (statement is ExpressionStatement expr) {
-            if (GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) &&
-                GetLocals(out IReadOnlyList<IVM.VariableInfo> locals)) {
-              var executorResult = new ExpressionExecutor.Result();
-              new StatementExecutor(new Environment(globals, locals)).Visit(expr, executorResult);
-              result = new Value(executorResult.Value);
-              return true;
-            }
+      if (string.IsNullOrEmpty(source)) {
+        result = default;
+        return false;
+      }
+      BaseParser parser = Engine.MakeParser(_language);
+      if (parser.Parse(source, "", collection ?? new DiagnosticCollection(),
+                       out Statement statement, out _)) {
+        try {
+          if (GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) &&
+              GetLocals(out IReadOnlyList<IVM.VariableInfo> locals)) {
+            var executorResult = new ExpressionExecutor.Result();
+            var env = new Environment(globals, locals);
+            new StatementExecutor(env).Visit(statement, executorResult);
+            result = new Value(executorResult.Value);
+            return true;
           }
+        } catch (DiagnosticException ex) {
+          collection?.Report(ex.Diagnostic);
         }
       }
       result = default;

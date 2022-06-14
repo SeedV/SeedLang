@@ -70,8 +70,8 @@ namespace SeedLang.Tests.Helper {
       return Statement.Continue(TextRange);
     }
 
-    internal static DictExpression Dict(params KeyValuePair<Expression, Expression>[] items) {
-      return Expression.Dict(items, TextRange);
+    internal static DictExpression Dict(params KeyValuePair<Expression, Expression>[] keyValues) {
+      return Expression.Dict(keyValues, TextRange);
     }
 
     internal static KeyValuePair<Expression, Expression> KeyValue(Expression key,

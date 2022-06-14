@@ -82,6 +82,8 @@ namespace SeedLang.Common {
     SyntaxErrorMissingToken2,               // Missing token syntax error.
     SyntaxErrorNoViableAlternative1,        // No viable alternative path syntax error.
     SyntaxErrorUnwantedToken2,              // Unwanted token syntax error.
+    UnsupportedEvalSyntax,                  // The input string cannot be evaluated. Only supports
+                                            // expressions without side effects.
   }
 
   public static class MessageHelper {

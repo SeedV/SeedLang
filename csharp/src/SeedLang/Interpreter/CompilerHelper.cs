@@ -309,16 +309,12 @@ namespace SeedLang.Interpreter {
               valueIds[j] = id;
             } else {
               valueIds[j] = DefineTempVariable();
-              exprCompiler.RegisterForSubExpr = valueIds[j].Value;
-              exprCompiler.Visit(vTagInfo.Args[j].Expr, 0);
+              exprCompiler.Visit(vTagInfo.Args[j].Expr, new ExprCompiler.Context {
+                TargetRegister = valueIds[j].Value,
+              });
             }
           } catch (DiagnosticException ex) {
             if (ex.Diagnostic.MessageId == Message.RuntimeErrorVariableNotDefined) {
-              // Ignores variable not defined exception for variables in VTags and resets
-              // RegisterForSubExpr.
-              // TODO: The state of RegisterForSubExpr is error-prone. Consider using an IR to
-              // optimize expression compilation algorithms.
-              _ = exprCompiler.RegisterForSubExpr;
               valueIds[j] = null;
             } else {
               throw ex;

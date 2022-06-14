@@ -70,9 +70,9 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create a dictionary expression.
-    internal static DictExpression Dict(KeyValuePair<Expression, Expression>[] items,
+    internal static DictExpression Dict(KeyValuePair<Expression, Expression>[] keyValues,
                                         TextRange range) {
-      return new DictExpression(items, range);
+      return new DictExpression(keyValues, range);
     }
 
     // The factory method to create a list expression.
@@ -197,11 +197,11 @@ namespace SeedLang.Ast {
   }
 
   internal class DictExpression : Expression {
-    public KeyValuePair<Expression, Expression>[] Items { get; }
+    public KeyValuePair<Expression, Expression>[] KeyValues { get; }
 
-    internal DictExpression(KeyValuePair<Expression, Expression>[] items, TextRange range) :
+    internal DictExpression(KeyValuePair<Expression, Expression>[] keyValues, TextRange range) :
         base(range) {
-      Items = items;
+      KeyValues = keyValues;
     }
   }
 

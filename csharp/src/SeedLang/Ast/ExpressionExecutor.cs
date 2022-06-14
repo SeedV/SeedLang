@@ -15,14 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using SeedLang.Common;
 using SeedLang.Runtime;
 using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Ast {
-  internal interface IEnvironment {
-    bool GetValueOfVariable(string name, out VMValue value);
-  }
-
+  // The class to execute expression AST nodes.
   internal class ExpressionExecutor : ExpressionWalker<ExpressionExecutor.Result> {
     internal class Result {
       public VMValue Value;
@@ -35,18 +33,18 @@ namespace SeedLang.Ast {
     }
 
     protected override void VisitBinary(BinaryExpression binary, Result result) {
-      var left = new Result();
-      Visit(binary.Left, left);
-      var right = new Result();
-      Visit(binary.Right, right);
+      var leftResult = new Result();
+      Visit(binary.Left, leftResult);
+      var rightResult = new Result();
+      Visit(binary.Right, rightResult);
       result.Value = binary.Op switch {
-        BinaryOperator.Add => ValueHelper.Add(left.Value, right.Value),
-        BinaryOperator.Subtract => ValueHelper.Subtract(left.Value, right.Value),
-        BinaryOperator.Multiply => ValueHelper.Multiply(left.Value, right.Value),
-        BinaryOperator.Divide => ValueHelper.Divide(left.Value, right.Value),
-        BinaryOperator.FloorDivide => ValueHelper.FloorDivide(left.Value, right.Value),
-        BinaryOperator.Power => ValueHelper.Power(left.Value, right.Value),
-        BinaryOperator.Modulo => ValueHelper.Modulo(left.Value, right.Value),
+        BinaryOperator.Add => ValueHelper.Add(leftResult.Value, rightResult.Value),
+        BinaryOperator.Subtract => ValueHelper.Subtract(leftResult.Value, rightResult.Value),
+        BinaryOperator.Multiply => ValueHelper.Multiply(leftResult.Value, rightResult.Value),
+        BinaryOperator.Divide => ValueHelper.Divide(leftResult.Value, rightResult.Value),
+        BinaryOperator.FloorDivide => ValueHelper.FloorDivide(leftResult.Value, rightResult.Value),
+        BinaryOperator.Power => ValueHelper.Power(leftResult.Value, rightResult.Value),
+        BinaryOperator.Modulo => ValueHelper.Modulo(leftResult.Value, rightResult.Value),
         _ => throw new NotImplementedException($"Unsupported binary operator: {binary.Op}."),
       };
     }
@@ -69,32 +67,68 @@ namespace SeedLang.Ast {
     }
 
     protected override void VisitCall(CallExpression call, Result result) {
-      throw new NotImplementedException();
+      // Doesn't support function call expressions during AST trees execution.
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
     }
 
     protected override void VisitComparison(ComparisonExpression comparison, Result result) {
-      throw new NotImplementedException();
+      var firstResult = new Result();
+      Visit(comparison.First, firstResult);
+      for (int i = 0; i < comparison.Exprs.Length; i++) {
+        var exprResult = new Result();
+        Visit(comparison.Exprs[i], exprResult);
+        bool boolResult = comparison.Ops[i] switch {
+          ComparisonOperator.Less => ValueHelper.Less(firstResult.Value, exprResult.Value),
+          ComparisonOperator.Greater => !ValueHelper.LessEqual(firstResult.Value, exprResult.Value),
+          ComparisonOperator.LessEqual =>
+              ValueHelper.LessEqual(firstResult.Value, exprResult.Value),
+          ComparisonOperator.GreaterEqual => !ValueHelper.Less(firstResult.Value, exprResult.Value),
+          ComparisonOperator.EqEqual => firstResult.Value == exprResult.Value,
+          ComparisonOperator.NotEqual => firstResult.Value != exprResult.Value,
+          ComparisonOperator.In => ValueHelper.Contains(firstResult.Value, exprResult.Value),
+          _ => throw new NotImplementedException(
+              $"Unsupported comparison operator {comparison.Ops[i]}."),
+        };
+        if (!boolResult) {
+          result.Value = new VMValue(false);
+          return;
+        }
+        firstResult = exprResult;
+      }
+      result.Value = new VMValue(true);
     }
 
     protected override void VisitDict(DictExpression dict, Result result) {
-      throw new NotImplementedException();
+      var rawDict = new Dictionary<VMValue, VMValue>(dict.KeyValues.Length);
+      foreach (var keyValue in dict.KeyValues) {
+        var keyResult = new Result();
+        Visit(keyValue.Key, keyResult);
+        var valueResult = new Result();
+        Visit(keyValue.Value, valueResult);
+        rawDict[keyResult.Value] = valueResult.Value;
+      }
+      result.Value = new VMValue(rawDict);
     }
 
     protected override void VisitIdentifier(IdentifierExpression identifier, Result result) {
-      _env.GetValueOfVariable(identifier.Name, out result.Value);
+      if (!_env.TryGetValueOfVariable(identifier.Name, out result.Value)) {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                      Message.RuntimeErrorVariableNotDefined);
+      }
     }
 
     protected override void VisitList(ListExpression list, Result result) {
-      var resultList = new List<VMValue>(list.Exprs.Length);
+      var rawList = new List<VMValue>(list.Exprs.Length);
       foreach (Expression expr in list.Exprs) {
         Visit(expr, result);
-        resultList.Add(result.Value);
+        rawList.Add(result.Value);
       }
-      result.Value = new VMValue(resultList);
+      result.Value = new VMValue(rawList);
     }
 
     protected override void VisitNilConstant(NilConstantExpression nilConstant, Result result) {
-      throw new NotImplementedException();
+      result.Value = new VMValue();
     }
 
     protected override void VisitNumberConstant(NumberConstantExpression numberConstant,

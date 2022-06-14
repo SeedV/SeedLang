@@ -42,8 +42,7 @@ namespace SeedLang.Visualization {
     bool GetGlobals(out IReadOnlyList<VariableInfo> globals);
     // Gets the list of local variables. Returns false if variable tracking is not enabled.
     //
-    // Only includes local variables in current executing functions, and the returned variable name
-    // is not the chained name.
+    // Only includes local variables in the current executing function.
     bool GetLocals(out IReadOnlyList<VariableInfo> locals);
 
     // Pauses execution.
@@ -51,9 +50,11 @@ namespace SeedLang.Visualization {
     // Stops execution.
     void Stop();
 
+    // Evaluates expressions during visualization notification.
     bool Eval(string source, out Value result, DiagnosticCollection collection = null);
   }
 
+  // The internal interface to invalidate the VM proxy.
   internal interface IVMProxy : IVM {
     void Invalid();
   }

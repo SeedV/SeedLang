@@ -13,17 +13,27 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using SeedLang.Common;
 
 namespace SeedLang.Visualization {
   // The interface of SeedLang VM. The methods of it can only be called during visualization
   // notification.
   public interface IVM {
     public class VariableInfo {
-      public string Name { get; }
+      public string Name {
+        get {
+          var names = ChainedName.Split(".");
+          Debug.Assert(names.Length > 0);
+          return names[^1];
+        }
+      }
+
+      public string ChainedName { get; }
       public Value Value { get; }
 
-      public VariableInfo(string name, Value value) {
-        Name = name;
+      public VariableInfo(string chainedName, Value value) {
+        ChainedName = chainedName;
         Value = value;
       }
     }
@@ -31,11 +41,21 @@ namespace SeedLang.Visualization {
     // Gets the list of global variables. Returns false if variable tracking is not enabled.
     bool GetGlobals(out IReadOnlyList<VariableInfo> globals);
     // Gets the list of local variables. Returns false if variable tracking is not enabled.
+    //
+    // Only includes local variables in the current executing function.
     bool GetLocals(out IReadOnlyList<VariableInfo> locals);
 
     // Pauses execution.
     void Pause();
     // Stops execution.
     void Stop();
+
+    // Evaluates expressions during visualization notification.
+    bool Eval(string source, out Value result, DiagnosticCollection collection = null);
+  }
+
+  // The internal interface to invalidate the VM proxy.
+  internal interface IVMProxy : IVM {
+    void Invalid();
   }
 }

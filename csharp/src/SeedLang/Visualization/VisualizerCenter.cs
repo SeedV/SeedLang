@@ -53,24 +53,31 @@ namespace SeedLang.Visualization {
       }
     }
 
-    public bool IsVariableTrackingEnabled { get; set; } = false;
-
     private readonly Dictionary<Type, object> _publishers = new Dictionary<Type, object>();
 
-    internal VisualizerCenter() {
+    // The function to make a VM proxy object which is used as a parameter of visualization
+    // notifications.
+    private readonly Func<IVMProxy> _makeVMProxy;
+
+    public bool IsVariableTrackingEnabled { get; set; } = false;
+
+    internal VisualizerCenter(Func<IVMProxy> makeVMProxy) {
       Type[] eventTypes = typeof(Event).GetNestedTypes();
       foreach (Type type in eventTypes) {
         Type publisherType = typeof(Publisher<>).MakeGenericType(new Type[] { type });
         _publishers[type] = Activator.CreateInstance(publisherType);
       }
+      _makeVMProxy = makeVMProxy;
     }
 
     internal bool HasVisualizer<Event>() {
       return !(_publishers[typeof(Event)] as Publisher<Event>).IsEmpty();
     }
 
-    internal void Notify<Event>(Event e, IVM vm) {
+    internal void Notify<Event>(Event e) {
+      var vm = _makeVMProxy();
       (_publishers[typeof(Event)] as Publisher<Event>).Notify(e, vm);
+      vm.Invalid();
     }
 
     // Registers a visualizer into this visualizer center.

@@ -138,13 +138,14 @@ print(a)
                                                      IReadOnlyList<Type> eventTypes) {
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
                              out IReadOnlyList<TokenInfo> _).Should().Be(true);
-      var vm = new VM();
+      var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));
+      var vm = new VM(vc);
       var vh = new VisualizerHelper(eventTypes);
-      vh.RegisterToVisualizerCenter(vm.VisualizerCenter);
+      vh.RegisterToVisualizerCenter(vc);
       var stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, vm.VisualizerCenter, RunMode.Interactive);
+      Function func = compiler.Compile(program, vm.Env, vc, RunMode.Interactive);
       vm.Run(func);
       var events = vh.EventsToString().Split(Environment.NewLine).Where(str => str != string.Empty);
       return (stringWriter.ToString(), events);

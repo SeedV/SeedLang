@@ -22,51 +22,49 @@ using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   // The compiler to convert an AST tree to bytecode.
-  internal class ExprCompiler : ExpressionWalker {
-    // The register allocated for the result of sub-expressions. The getter resets the storage to
-    // null after getting the value to make sure the result register is set before visiting each
-    // sub-expression.
-    public uint RegisterForSubExpr {
-      get {
-        Debug.Assert(_registerForSubExprStorage.HasValue,
-                     "The result register must be set before visiting sub-expressions.");
-        uint value = _registerForSubExprStorage.Value;
-        _registerForSubExprStorage = null;
-        return value;
+  internal class ExprCompiler : ExpressionWalker<ExprCompiler.Context> {
+    // The context class to encapsulate the target register id and next boolean operator for
+    // expression compilation functions.
+    internal class Context {
+      public bool HasTargetRegister => _targetRegister.HasValue;
+      public uint TargetRegister {
+        get {
+          return (uint)_targetRegister;
+        }
+        set {
+          _targetRegister = value;
+        }
       }
-      set {
-        _registerForSubExprStorage = value;
-      }
+      // The next boolean operator. A true condition check instruction is emitted if the next
+      // boolean operator is "And", otherwise a false condition instruction check is emitted.
+      public BooleanOperator NextBooleanOp;
+
+      private uint? _targetRegister;
     }
-    private uint? _registerForSubExprStorage;
 
     private readonly CompilerHelper _helper;
-
-    // The next boolean operator. A true condition check instruction is emitted if the next boolean
-    // operator is "And", otherwise a false condition instruction check is emitted.
-    private BooleanOperator _nextBooleanOp;
 
     internal ExprCompiler(CompilerHelper helper) {
       _helper = helper;
     }
 
-    protected override void VisitBinary(BinaryExpression binary) {
+    protected override void VisitBinary(BinaryExpression binary, Context context) {
       _helper.BeginExprScope();
-      uint register = RegisterForSubExpr;
       uint left = VisitExpressionForRKId(binary.Left);
       uint right = VisitExpressionForRKId(binary.Right);
-      _helper.Emit(CompilerHelper.OpcodeOfBinaryOperator(binary.Op), register, left, right,
-                   binary.Range);
-      _helper.EmitBinaryNotification(left, binary.Op, right, register, binary.Range);
+      _helper.Emit(CompilerHelper.OpcodeOfBinaryOperator(binary.Op), context.TargetRegister, left,
+                   right, binary.Range);
+      _helper.EmitBinaryNotification(left, binary.Op, right, context.TargetRegister, binary.Range);
       _helper.EndExprScope();
     }
 
-    protected override void VisitBoolean(BooleanExpression boolean) {
+    protected override void VisitBoolean(BooleanExpression boolean, Context context) {
       VisitBooleanOrComparisonExpression(() => {
-        BooleanOperator nextBooleanOp = _nextBooleanOp;
+        BooleanOperator nextBooleanOp = context.NextBooleanOp;
         for (int i = 0; i < boolean.Exprs.Length; i++) {
-          _nextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : nextBooleanOp;
-          Visit(boolean.Exprs[i]);
+          Visit(boolean.Exprs[i], new Context {
+            NextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : context.NextBooleanOp,
+          });
           if (i < boolean.Exprs.Length - 1) {
             switch (boolean.Op) {
               case BooleanOperator.And:
@@ -78,22 +76,22 @@ namespace SeedLang.Interpreter {
             }
           }
         }
-      }, boolean.Range);
+      }, boolean.Range, context);
     }
 
-    protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant) {
-      _helper.Emit(Opcode.LOADBOOL, RegisterForSubExpr, booleanConstant.Value ? 1u : 0, 0,
+    protected override void VisitBooleanConstant(BooleanConstantExpression booleanConstant,
+                                                 Context context) {
+      _helper.Emit(Opcode.LOADBOOL, context.TargetRegister, booleanConstant.Value ? 1u : 0, 0,
                    booleanConstant.Range);
     }
 
-    protected override void VisitCall(CallExpression call) {
+    protected override void VisitCall(CallExpression call, Context context) {
       _helper.BeginExprScope();
       // TODO: should call.Func always be IdentifierExpression?
       if (call.Func is IdentifierExpression identifier) {
         if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
-          uint resultRegister = RegisterForSubExpr;
-          bool needRegister = resultRegister != _helper.LastRegister;
-          uint funcRegister = needRegister ? _helper.DefineTempVariable() : resultRegister;
+          bool needRegister = context.TargetRegister != _helper.LastRegister;
+          uint funcRegister = needRegister ? _helper.DefineTempVariable() : context.TargetRegister;
           switch (info.Type) {
             case VariableType.Global:
               _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
@@ -106,12 +104,11 @@ namespace SeedLang.Interpreter {
               break;
           }
           foreach (Expression expr in call.Arguments) {
-            RegisterForSubExpr = _helper.DefineTempVariable();
-            Visit(expr);
+            Visit(expr, new Context { TargetRegister = _helper.DefineTempVariable() });
           }
           _helper.EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
           if (needRegister) {
-            _helper.Emit(Opcode.MOVE, resultRegister, funcRegister, 0, call.Range);
+            _helper.Emit(Opcode.MOVE, context.TargetRegister, funcRegister, 0, call.Range);
           }
         } else {
           throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Error, "",
@@ -121,48 +118,45 @@ namespace SeedLang.Interpreter {
       _helper.EndExprScope();
     }
 
-    protected override void VisitComparison(ComparisonExpression comparison) {
+    protected override void VisitComparison(ComparisonExpression comparison, Context context) {
       Debug.Assert(comparison.Ops.Length > 0 && comparison.Exprs.Length > 0);
       VisitBooleanOrComparisonExpression(() => {
-        BooleanOperator nextBooleanOp = _nextBooleanOp;
         Expression left = comparison.First;
         for (int i = 0; i < comparison.Exprs.Length; i++) {
-          _nextBooleanOp = i < comparison.Exprs.Length - 1 ? BooleanOperator.And : nextBooleanOp;
-          VisitSingleComparison(left, comparison.Ops[i], comparison.Exprs[i], comparison.Range);
+          var nextBooleanOp = i < comparison.Exprs.Length - 1 ? BooleanOperator.And :
+                                                                context.NextBooleanOp;
+          VisitSingleComparison(left, comparison.Ops[i], comparison.Exprs[i], comparison.Range,
+                                nextBooleanOp);
           left = comparison.Exprs[i];
         }
-      }, comparison.Range);
+      }, comparison.Range, context);
     }
 
-    protected override void VisitDict(DictExpression dict) {
+    protected override void VisitDict(DictExpression dict, Context context) {
       _helper.BeginExprScope();
-      uint target = RegisterForSubExpr;
       uint? first = null;
-      foreach (var item in dict.Items) {
+      foreach (var item in dict.KeyValues) {
         uint register = _helper.DefineTempVariable();
         if (!first.HasValue) {
           first = register;
         }
-        RegisterForSubExpr = register;
-        Visit(item.Key);
-        RegisterForSubExpr = _helper.DefineTempVariable();
-        Visit(item.Value);
+        Visit(item.Key, new Context { TargetRegister = register });
+        Visit(item.Value, new Context { TargetRegister = _helper.DefineTempVariable() });
       }
-      _helper.Emit(Opcode.NEWDICT, target, first ?? 0, (uint)dict.Items.Length * 2,
+      _helper.Emit(Opcode.NEWDICT, context.TargetRegister, first ?? 0, (uint)dict.KeyValues.Length * 2,
                    dict.Range);
       _helper.EndExprScope();
     }
 
-    protected override void VisitIdentifier(IdentifierExpression identifier) {
+    protected override void VisitIdentifier(IdentifierExpression identifier, Context context) {
       if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
         switch (info.Type) {
           case VariableType.Global:
-            var targetId = RegisterForSubExpr;
-            _helper.Emit(Opcode.GETGLOB, targetId, info.Id, identifier.Range);
-            _helper.EmitGetGlobalNotification(targetId, info.Name, identifier.Range);
+            _helper.Emit(Opcode.GETGLOB, context.TargetRegister, info.Id, identifier.Range);
+            _helper.EmitGetGlobalNotification(context.TargetRegister, info.Name, identifier.Range);
             break;
           case VariableType.Local:
-            _helper.Emit(Opcode.MOVE, RegisterForSubExpr, info.Id, 0, identifier.Range);
+            _helper.Emit(Opcode.MOVE, context.TargetRegister, info.Id, 0, identifier.Range);
             break;
           case VariableType.Upvalue:
             // TODO: handle upvalues.
@@ -174,89 +168,89 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    protected override void VisitList(ListExpression list) {
-      CreateTupleOrList(Opcode.NEWLIST, list.Exprs, list.Range);
+    protected override void VisitList(ListExpression list, Context context) {
+      CreateTupleOrList(Opcode.NEWLIST, list.Exprs, list.Range, context.TargetRegister);
     }
 
-    protected override void VisitNilConstant(NilConstantExpression nilConstant) {
-      _helper.Emit(Opcode.LOADNIL, RegisterForSubExpr, 1, 0, nilConstant.Range);
+    protected override void VisitNilConstant(NilConstantExpression nilConstant, Context context) {
+      _helper.Emit(Opcode.LOADNIL, context.TargetRegister, 1, 0, nilConstant.Range);
     }
 
-    protected override void VisitNumberConstant(NumberConstantExpression numberConstant) {
+    protected override void VisitNumberConstant(NumberConstantExpression numberConstant,
+                                                Context context) {
       uint id = _helper.Cache.IdOfConstant(numberConstant.Value);
-      _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, numberConstant.Range);
+      _helper.Emit(Opcode.LOADK, context.TargetRegister, id, numberConstant.Range);
     }
 
-    protected override void VisitSlice(SliceExpression slice) {
+    protected override void VisitSlice(SliceExpression slice, Context context) {
       Expression sliceFunc = Expression.Identifier(NativeFunctions.Slice, slice.Range);
       Visit(Expression.Call(sliceFunc, new Expression[] {
         slice.Start ?? Expression.NilConstant(slice.Range),
         slice.Stop ?? Expression.NilConstant(slice.Range),
         slice.Step ?? Expression.NilConstant(slice.Range),
-      }, slice.Range));
+      }, slice.Range), context);
     }
 
-    protected override void VisitStringConstant(StringConstantExpression stringConstant) {
+    protected override void VisitStringConstant(StringConstantExpression stringConstant,
+                                                Context context) {
       uint id = _helper.Cache.IdOfConstant(stringConstant.Value);
-      _helper.Emit(Opcode.LOADK, RegisterForSubExpr, id, stringConstant.Range);
+      _helper.Emit(Opcode.LOADK, context.TargetRegister, id, stringConstant.Range);
     }
 
-    protected override void VisitSubscript(SubscriptExpression subscript) {
+    protected override void VisitSubscript(SubscriptExpression subscript, Context context) {
       _helper.BeginExprScope();
-      uint targetId = RegisterForSubExpr;
       uint containerId = VisitExpressionForRegisterId(subscript.Container);
       uint keyId = VisitExpressionForRKId(subscript.Key);
-      _helper.Emit(Opcode.GETELEM, targetId, containerId, keyId, subscript.Range);
-      _helper.EmitGetElementNotification(targetId, containerId, keyId, subscript.Range);
+      _helper.Emit(Opcode.GETELEM, context.TargetRegister, containerId, keyId, subscript.Range);
+      _helper.EmitGetElementNotification(context.TargetRegister, containerId, keyId,
+                                         subscript.Range);
       _helper.EndExprScope();
     }
 
-    protected override void VisitTuple(TupleExpression tuple) {
-      CreateTupleOrList(Opcode.NEWTUPLE, tuple.Exprs, tuple.Range);
+    protected override void VisitTuple(TupleExpression tuple, Context context) {
+      CreateTupleOrList(Opcode.NEWTUPLE, tuple.Exprs, tuple.Range, context.TargetRegister);
     }
 
-    protected override void VisitUnary(UnaryExpression unary) {
+    protected override void VisitUnary(UnaryExpression unary, Context context) {
       _helper.BeginExprScope();
-      uint register = RegisterForSubExpr;
       uint exprId = VisitExpressionForRKId(unary.Expr);
-      _helper.Emit(Opcode.UNM, register, exprId, 0, unary.Range);
-      _helper.EmitUnaryNotification(unary.Op, exprId, register, unary.Range);
+      _helper.Emit(Opcode.UNM, context.TargetRegister, exprId, 0, unary.Range);
+      _helper.EmitUnaryNotification(unary.Op, exprId, context.TargetRegister, unary.Range);
       _helper.EndExprScope();
     }
 
-    private void VisitBooleanOrComparisonExpression(Action action, TextRange range) {
+    private void VisitBooleanOrComparisonExpression(Action action, TextRange range,
+                                                    Context context) {
       // Generates LOADBOOL opcodes if _registerForSubExprStorage is not null, which means the
       // boolean or comparison expression is a sub-expression of other expressions, otherwise it is
       // part of the test condition of if or while statements.
-      uint? register = null;
-      if (!(_registerForSubExprStorage is null)) {
-        register = RegisterForSubExpr;
+      if (context.HasTargetRegister) {
         _helper.ExprJumpStack.PushFrame();
       }
       action();
-      if (register.HasValue) {
+      if (context.HasTargetRegister) {
         _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.TrueJumps);
         // Loads True into the register, and increases PC.
-        _helper.Emit(Opcode.LOADBOOL, (uint)register, 1, 1, range);
+        _helper.Emit(Opcode.LOADBOOL, context.TargetRegister, 1, 1, range);
         _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
         // Loads False into the register.
-        _helper.Emit(Opcode.LOADBOOL, (uint)register, 0, 0, range);
+        _helper.Emit(Opcode.LOADBOOL, context.TargetRegister, 0, 0, range);
         _helper.ExprJumpStack.PopFrame();
       }
     }
 
     private void VisitSingleComparison(Expression left, ComparisonOperator op, Expression right,
-                                       TextRange range) {
+                                       TextRange range, BooleanOperator nextBooleanOp) {
       _helper.BeginExprScope();
       uint leftRegister = VisitExpressionForRKId(left);
       uint rightRegister = VisitExpressionForRKId(right);
       (Opcode opcode, bool checkFlag) = CompilerHelper.OpcodeAndCheckFlagOfComparisonOperator(op);
-      if (_nextBooleanOp == BooleanOperator.Or) {
+      if (nextBooleanOp == BooleanOperator.Or) {
         checkFlag = !checkFlag;
       }
       _helper.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
       _helper.Emit(Opcode.JMP, 0, 0, range);
-      switch (_nextBooleanOp) {
+      switch (nextBooleanOp) {
         case BooleanOperator.And:
           _helper.ExprJumpStack.AddFalseJump(_helper.Chunk.LatestCodePos);
           break;
@@ -267,28 +261,25 @@ namespace SeedLang.Interpreter {
       _helper.EndExprScope();
     }
 
-    private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs,
-                                   TextRange range) {
+    private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs, TextRange range,
+                                   uint targetRegister) {
       _helper.BeginExprScope();
-      uint target = RegisterForSubExpr;
       uint? first = null;
       foreach (var expr in exprs) {
         uint register = _helper.DefineTempVariable();
         if (!first.HasValue) {
           first = register;
         }
-        RegisterForSubExpr = register;
-        Visit(expr);
+        Visit(expr, new Context { TargetRegister = register });
       }
-      _helper.Emit(opcode, target, first ?? 0, (uint)exprs.Count, range);
+      _helper.Emit(opcode, targetRegister, first ?? 0, (uint)exprs.Count, range);
       _helper.EndExprScope();
     }
 
     private uint VisitExpressionForRegisterId(Expression expr) {
       if (!(_helper.GetRegisterId(expr) is uint exprId)) {
         exprId = _helper.DefineTempVariable();
-        RegisterForSubExpr = exprId;
-        Visit(expr);
+        Visit(expr, new Context { TargetRegister = exprId });
       }
       return exprId;
     }
@@ -296,8 +287,7 @@ namespace SeedLang.Interpreter {
     private uint VisitExpressionForRKId(Expression expr) {
       if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
         exprId = _helper.DefineTempVariable();
-        RegisterForSubExpr = exprId;
-        Visit(expr);
+        Visit(expr, new Context { TargetRegister = exprId });
       }
       return exprId;
     }

@@ -51,28 +51,10 @@ namespace SeedLang.Visualization.Tests {
     }
   }
 
-  internal class MockupVM : IVM {
-    public void Pause() {
-      throw new NotImplementedException();
-    }
-
-    public void Stop() {
-      throw new NotImplementedException();
-    }
-
-    public bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
-      throw new NotImplementedException();
-    }
-
-    public bool GetLocals(out IReadOnlyList<IVM.VariableInfo> locals) {
-      throw new NotImplementedException();
-    }
-  }
-
   public class VisualizerCenterTests {
     [Fact]
     public void TestIsVariableTrackingEnabled() {
-      var vc = new VisualizerCenter();
+      var vc = new VisualizerCenter(() => null);
       vc.IsVariableTrackingEnabled.Should().Be(false);
       vc.IsVariableTrackingEnabled = true;
       vc.IsVariableTrackingEnabled.Should().Be(true);
@@ -89,7 +71,7 @@ namespace SeedLang.Visualization.Tests {
     public void TestRegisterVisualizer() {
       (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
       Assert.Null(binaryVisualizer.BinaryEvent);
-      visualizerCenter.Notify(NewBinaryEvent(), new MockupVM());
+      visualizerCenter.Notify(NewBinaryEvent());
       Assert.NotNull(binaryVisualizer.BinaryEvent);
     }
 
@@ -99,7 +81,7 @@ namespace SeedLang.Visualization.Tests {
           NewMultipleVisualizerCenter();
       Assert.Null(binaryVisualizer.BinaryEvent);
       Assert.Null(multipleVisualizer.BinaryEvent);
-      visualizerCenter.Notify(NewBinaryEvent(), new MockupVM());
+      visualizerCenter.Notify(NewBinaryEvent());
       Assert.NotNull(binaryVisualizer.BinaryEvent);
       Assert.NotNull(multipleVisualizer.BinaryEvent);
     }
@@ -108,25 +90,25 @@ namespace SeedLang.Visualization.Tests {
     public void TestUnregisterVisualizer() {
       (var visualizerCenter, var binaryVisualizer) = NewBinaryVisualizerCenter();
       visualizerCenter.Unregister(binaryVisualizer);
-      visualizerCenter.Notify(NewBinaryEvent(), new MockupVM());
+      visualizerCenter.Notify(NewBinaryEvent());
       Assert.Null(binaryVisualizer.BinaryEvent);
     }
 
     private static (VisualizerCenter, MockupBinaryVisualizer) NewBinaryVisualizerCenter() {
       var binaryVisualizer = new MockupBinaryVisualizer();
-      var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Register(binaryVisualizer);
-      return (visualizerCenter, binaryVisualizer);
+      var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));
+      vc.Register(binaryVisualizer);
+      return (vc, binaryVisualizer);
     }
 
     private static (VisualizerCenter, MockupBinaryVisualizer, AnotherMockupBinaryVisualizer)
         NewMultipleVisualizerCenter() {
       var binaryVisualizer = new MockupBinaryVisualizer();
       var anotherBinaryVisualizer = new AnotherMockupBinaryVisualizer();
-      var visualizerCenter = new VisualizerCenter();
-      visualizerCenter.Register(binaryVisualizer);
-      visualizerCenter.Register(anotherBinaryVisualizer);
-      return (visualizerCenter, binaryVisualizer, anotherBinaryVisualizer);
+      var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));
+      vc.Register(binaryVisualizer);
+      vc.Register(anotherBinaryVisualizer);
+      return (vc, binaryVisualizer, anotherBinaryVisualizer);
     }
 
     private static Event.Binary NewBinaryEvent() {

@@ -18,6 +18,7 @@ using System.IO;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Interpreter;
+using SeedLang.Visualization;
 using SeedLang.X;
 
 namespace SeedLang {
@@ -25,15 +26,20 @@ namespace SeedLang {
   // and executing SeedX programs, registering visualizers, and inspecting the execution status of
   // programs.
   public class Engine {
+    private readonly SeedXLanguage _language;
+    private readonly RunMode _runMode;
+    private readonly VisualizerCenter _visualizerCenter;
+    private readonly VM _vm;
+
     // The flag to indicate if variable tracking is enabled. The SeedVM will track information of
     // all global and local variables if It is set to true explicitly or any variable related
     // visualizers like "VariableDefined", "VariableDeleted" etc. are registered.
     public bool IsVariableTrackingEnabled {
       get {
-        return _vm.VisualizerCenter.IsVariableTrackingEnabled;
+        return _visualizerCenter.IsVariableTrackingEnabled;
       }
       set {
-        _vm.VisualizerCenter.IsVariableTrackingEnabled = value;
+        _visualizerCenter.IsVariableTrackingEnabled = value;
       }
     }
 
@@ -46,10 +52,6 @@ namespace SeedLang {
     // or compiling errors.
     public IReadOnlyList<TokenInfo> SemanticTokens => _semanticTokens;
 
-    private readonly SeedXLanguage _language;
-    private readonly RunMode _runMode;
-    private readonly VM _vm = new VM();
-
     // The AST tree of the program.
     private Statement _astTree;
     // The semantic tokens of the source code.
@@ -60,6 +62,8 @@ namespace SeedLang {
     public Engine(SeedXLanguage language, RunMode runMode) {
       _language = language;
       _runMode = runMode;
+      _visualizerCenter = new VisualizerCenter(MakeVMProxy);
+      _vm = new VM(_visualizerCenter);
     }
 
     // Redirects standard output to the given text writer.
@@ -69,12 +73,12 @@ namespace SeedLang {
 
     // Registers a visualizer into the visualizer center.
     public void Register<Visualizer>(Visualizer visualizer) {
-      _vm.VisualizerCenter.Register(visualizer);
+      _visualizerCenter.Register(visualizer);
     }
 
     // Un-registers a visualizer from the visualizer center.
     public void Unregister<Visualizer>(Visualizer visualizer) {
-      _vm.VisualizerCenter.Unregister(visualizer);
+      _visualizerCenter.Unregister(visualizer);
     }
 
     // Parses SeedX source code into a list of syntax tokens. Incomplete or invalid source code can
@@ -103,7 +107,7 @@ namespace SeedLang {
                           out _semanticTokens)) {
           return false;
         }
-        _func = new Compiler().Compile(_astTree, _vm.Env, _vm.VisualizerCenter, _runMode);
+        _func = new Compiler().Compile(_astTree, _vm.Env, _visualizerCenter, _runMode);
         return true;
       } catch (DiagnosticException exception) {
         collection?.Report(exception.Diagnostic);
@@ -183,12 +187,16 @@ namespace SeedLang {
       return true;
     }
 
-    private static BaseParser MakeParser(SeedXLanguage language) {
+    internal static BaseParser MakeParser(SeedXLanguage language) {
       return language switch {
         SeedXLanguage.SeedCalc => new SeedCalc(),
         SeedXLanguage.SeedPython => new SeedPython(),
         _ => throw new NotImplementedException($"Unsupported SeedX language: {language}."),
       };
+    }
+
+    private IVMProxy MakeVMProxy() {
+      return new VMProxy(_language, _vm);
     }
   }
 }

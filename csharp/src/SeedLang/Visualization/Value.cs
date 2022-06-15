@@ -87,5 +87,9 @@ namespace SeedLang.Visualization {
     public override string ToString() {
       return _value.ToString();
     }
+
+    internal ref readonly VMValue GetRawValue() {
+      return ref _value;
+    }
   }
 }

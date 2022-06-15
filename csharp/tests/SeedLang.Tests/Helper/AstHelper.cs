@@ -70,8 +70,8 @@ namespace SeedLang.Tests.Helper {
       return Statement.Continue(TextRange);
     }
 
-    internal static DictExpression Dict(params KeyValuePair<Expression, Expression>[] items) {
-      return Expression.Dict(items, TextRange);
+    internal static DictExpression Dict(params KeyValuePair<Expression, Expression>[] keyValues) {
+      return Expression.Dict(keyValues, TextRange);
     }
 
     internal static KeyValuePair<Expression, Expression> KeyValue(Expression key,
@@ -132,8 +132,8 @@ namespace SeedLang.Tests.Helper {
       return Expression.Slice(start, stop, step, TextRange);
     }
 
-    internal static SubscriptExpression Subscript(Expression expr, Expression index) {
-      return Expression.Subscript(expr, index, TextRange);
+    internal static SubscriptExpression Subscript(Expression container, Expression key) {
+      return Expression.Subscript(container, key, TextRange);
     }
 
     internal static TupleExpression Tuple(params Expression[] exprs) {

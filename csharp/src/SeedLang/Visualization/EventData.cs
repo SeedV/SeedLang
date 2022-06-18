@@ -25,19 +25,23 @@ namespace SeedLang.Visualization {
 
   public class Operand {
     public bool IsVariable => !(Variable is null);
-    public bool IsValue => !(Value is null);
 
     public Variable Variable { get; }
     public Value Value { get; }
 
-    public Operand(Variable variable) {
+    public Operand(Variable variable, Value value) {
       Variable = variable;
-      Value = null;
+      Value = value;
     }
 
     public Operand(Value value) {
       Variable = null;
       Value = value;
+    }
+
+    public override string ToString() {
+      string variableString = IsVariable ? $"{Variable} " : "";
+      return $"{variableString}{Value}";
     }
   }
 
@@ -55,7 +59,13 @@ namespace SeedLang.Visualization {
     }
 
     public override string ToString() {
-      return "";
+      var sb = new StringBuilder();
+      sb.Append($"{Name}:{Type}");
+      if (IsElementOfContainer) {
+        var keys = string.Join("][", Keys);
+        sb.Append($"[{keys}]");
+      }
+      return sb.ToString();
     }
   }
 

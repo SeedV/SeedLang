@@ -73,30 +73,38 @@ add(1, 2)
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
-        $"  2    SETGLOB   0 {_firstGlob}" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  2    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  3    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
-        $"  3    GETGLOB   0 {_printValFunc}" +
+        $"  4    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  4    GETGLOB   1 {_firstGlob}" +
+        $"  5    GETGLOB   1 {_firstGlob}" +
         $"                                  [Ln 4, Col 0 - Ln 4, Col 2]\n" +
-        $"  5    LOADK     2 -2             ; 1                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  6    LOADK     3 -3             ; 2                 [Ln 4, Col 7 - Ln 4, Col 7]\n" +
-        $"  7    VISNOTIFY 0 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  8    CALL      1 2 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  9    VISNOTIFY 1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  10   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  11   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  6    LOADK     2 -2             ; 1                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
+        $"  7    LOADK     3 -3             ; 2                 [Ln 4, Col 7 - Ln 4, Col 7]\n" +
+        $"  8    VISNOTIFY 0 1                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  9    CALL      1 2 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  10   VISNOTIFY 1 1                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  11   VISNOTIFY 0 2                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  12   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  13   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"Notifications\n" +
-        $"  0    Notification.Function: add 1 2\n" +
+        $"  0    Notification.VariableDefined: 'add' Global 7\n" +
+        $"  1    Notification.Function: add 1 2\n" +
+        $"  2    Notification.VariableDeleted: 0\n" +
         $"\n" +
         $"Function <add>\n" +
-        $"  1    ADD       2 0 1                                [Ln 3, Col 9 - Ln 3, Col 13]\n" +
-        $"  2    VISNOTIFY 0 0                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
-        $"  3    RETURN    2 1                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
-        $"  4    RETURN    0 0                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 8 - Ln 2, Col 8]\n" +
+        $"  2    VISNOTIFY 0 1                                  [Ln 2, Col 11 - Ln 2, Col 11]\n" +
+        $"  3    ADD       2 0 1                                [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  4    VISNOTIFY 0 2                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  5    RETURN    2 1                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"  6    RETURN    0 0                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
         $"Notifications\n" +
-        $"  0    Notification.Binary: 0 Add 1 2\n"
+        $"  0    Notification.VariableDefined: 'add.a' Local 0\n" +
+        $"  1    Notification.VariableDefined: 'add.b' Local 1\n" +
+        $"  2    Notification.Binary: 0 Add 1 2\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.Binary),

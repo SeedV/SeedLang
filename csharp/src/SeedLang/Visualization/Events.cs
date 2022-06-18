@@ -42,29 +42,18 @@ namespace SeedLang.Visualization {
       }
 
       public override string ToString() {
-        var sb = new StringBuilder();
-        sb.Append($"{Range} ");
-        if (Variable.IsElementOfContainer) {
-          sb.Append('(');
-        }
-        sb.Append($"{Variable.Name}: {Variable.Type}");
-        if (Variable.IsElementOfContainer) {
-          var keys = string.Join("][", Variable.Keys);
-          sb.Append($")[{keys}]");
-        }
-        sb.Append($" = {Value}");
-        return sb.ToString();
+        return $"{Range} {Variable} = {Value}";
       }
     }
 
     // An event which is triggered when a binary expression is evaluated.
     public class Binary : AbstractEvent {
-      public Value Left { get; }
+      public Operand Left { get; }
       public BinaryOperator Op { get; }
-      public Value Right { get; }
+      public Operand Right { get; }
       public Value Result { get; }
 
-      public Binary(Value left, BinaryOperator op, Value right, Value result, TextRange range) :
+      public Binary(Operand left, BinaryOperator op, Operand right, Value result, TextRange range) :
           base(range) {
         Left = left;
         Op = op;
@@ -174,7 +163,7 @@ namespace SeedLang.Visualization {
       }
 
       public override string ToString() {
-        return $"{Range} VariableDefined: {Name}: {Type}";
+        return $"{Range} VariableDefined: {Name} ({Type})";
       }
     }
 
@@ -189,7 +178,7 @@ namespace SeedLang.Visualization {
       }
 
       public override string ToString() {
-        return $"{Range} VariableDeleted: {Name}: {Type}";
+        return $"{Range} VariableDeleted: {Name} ({Type})";
       }
     }
 

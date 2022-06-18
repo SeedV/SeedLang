@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
 using FluentAssertions;
 using SeedLang.Common;
 using SeedLang.Runtime;
@@ -112,7 +110,9 @@ namespace SeedLang.Visualization.Tests {
     }
 
     private static Event.Binary NewBinaryEvent() {
-      return new Event.Binary(new Value(1), BinaryOperator.Add, new Value(2), new Value(3),
+      var left = new Operand(null, new Value(1));
+      var right = new Operand(null, new Value(1));
+      return new Event.Binary(left, BinaryOperator.Add, right, new Value(3),
                               new TextRange(0, 1, 2, 3));
     }
   }

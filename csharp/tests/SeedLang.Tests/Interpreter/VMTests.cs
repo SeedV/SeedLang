@@ -102,7 +102,7 @@ namespace SeedLang.Interpreter.Tests {
       (string output, VisualizerHelper vh) = Run(program, eventTypes);
       output.Should().Be("3" + Environment.NewLine);
       var expected = new string[] {
-        $"{AstHelper.TextRange} 1 Add 2 = 3",
+        $"{AstHelper.TextRange} add.a:Local 1 Add add.b:Local 2 = 3",
         $"{AstHelper.TextRange} FuncCalled: add(1, 2)",
         $"{AstHelper.TextRange} FuncReturned: add 3",
       };
@@ -166,8 +166,8 @@ namespace SeedLang.Interpreter.Tests {
       (string output, VisualizerHelper vh) = Run(program, new Type[] { typeof(Event.Assignment) });
       output.Should().Be("5" + Environment.NewLine);
       var expected = new string[] {
-        $"{AstHelper.TextRange} (a: Global)[1] = 5",
-        $"{AstHelper.TextRange} a: Global = [1, 2, 3]",
+        $"{AstHelper.TextRange} a:Global[1] = 5",
+        $"{AstHelper.TextRange} a:Global = [1, 2, 3]",
       };
       vh.EventStrings.Should().BeEquivalentTo(expected);
     }
@@ -206,7 +206,7 @@ namespace SeedLang.Interpreter.Tests {
       (string output, VisualizerHelper vh) = Run(program, new Type[] { typeof(Event.Assignment) });
       output.Should().Be("1" + Environment.NewLine);
       var expected = new string[] {
-        $"{AstHelper.TextRange} {name}: Global = 1",
+        $"{AstHelper.TextRange} {name}:Global = 1",
       };
       vh.EventStrings.Should().BeEquivalentTo(expected);
     }
@@ -231,8 +231,8 @@ namespace SeedLang.Interpreter.Tests {
       ).Replace("\n", Environment.NewLine);
       output.Should().Be(expectedOutput);
       var expected = new string[] {
-        $"{AstHelper.TextRange} {a}: Global = 1",
-        $"{AstHelper.TextRange} {b}: Global = 2",
+        $"{AstHelper.TextRange} {a}:Global = 1",
+        $"{AstHelper.TextRange} {b}:Global = 2",
       };
       vh.EventStrings.Should().BeEquivalentTo(expected);
     }
@@ -249,7 +249,7 @@ namespace SeedLang.Interpreter.Tests {
       (string output, VisualizerHelper vh) = Run(block, new Type[] { typeof(Event.Assignment) });
       output.Should().Be("(1, 2)" + Environment.NewLine);
       var expected = new string[] {
-        $"{AstHelper.TextRange} {name}: Global = (1, 2)",
+        $"{AstHelper.TextRange} {name}:Global = (1, 2)",
       };
       vh.EventStrings.Should().BeEquivalentTo(expected);
     }

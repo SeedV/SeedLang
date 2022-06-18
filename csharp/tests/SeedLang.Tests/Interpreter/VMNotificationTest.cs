@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -61,14 +60,14 @@ x = add(1, 2)
             typeof(Event.VariableDeleted),
           });
       var expected = new string[] {
-        "[Ln 2, Col 0 - Ln 4, Col 9] VariableDefined: add: Global",
-        "[Ln 6, Col 0 - Ln 6, Col 0] VariableDefined: x: Global",
-        "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: add.a: Local",
-        "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: add.b: Local",
-        "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: add.c: Local",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.c: Local",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.b: Local",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.a: Local",
+        "[Ln 2, Col 0 - Ln 4, Col 9] VariableDefined: add (Global)",
+        "[Ln 6, Col 0 - Ln 6, Col 0] VariableDefined: x (Global)",
+        "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: add.a (Local)",
+        "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: add.b (Local)",
+        "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: add.c (Local)",
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.c (Local)",
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.b (Local)",
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.a (Local)",
       };
       events.Should().BeEquivalentTo(expected);
     }
@@ -85,9 +84,9 @@ a[0][1] = 10
         typeof(Event.VariableDeleted),
       });
       var expected = new string[] {
-        "[Ln 2, Col 0 - Ln 2, Col 22] a: Global = [[1, 2, 3], [1, 2]]",
-        "[Ln 3, Col 0 - Ln 3, Col 11] (a: Global)[0][1] = 10",
-        "[Ln 2, Col 0 - Ln 2, Col 0] VariableDefined: a: Global",
+        "[Ln 2, Col 0 - Ln 2, Col 22] a:Global = [[1, 2, 3], [1, 2]]",
+        "[Ln 3, Col 0 - Ln 3, Col 11] a:Global[0][1] = 10",
+        "[Ln 2, Col 0 - Ln 2, Col 0] VariableDefined: a (Global)",
       };
       events.Should().BeEquivalentTo(expected);
     }

@@ -124,8 +124,9 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleBinary(Notification.Binary binary) {
-      _visualizerCenter.Notify(new Event.Binary(new Value(ValueOfRK(binary.LeftId)), binary.Op,
-                                                new Value(ValueOfRK(binary.RightId)),
+      var left = MakeOperand(binary.LeftId);
+      var right = MakeOperand(binary.RightId);
+      _visualizerCenter.Notify(new Event.Binary(left, binary.Op, right,
                                                 new Value(ValueOfRK(binary.ResultId)),
                                                 _chunk.Ranges[_pc]));
     }
@@ -476,13 +477,29 @@ namespace SeedLang.Interpreter {
       _pc = _callStack.CurrentPC();
     }
 
+    private Operand MakeOperand(uint operandId) {
+      Variable variable = null;
+      if (IsRegisterId(operandId)) {
+        Registers.RegisterInfo info = _registers.GetRegisterInfo(operandId);
+        if (!info.IsTemporary) {
+          VariableType type = info.IsLocal ? VariableType.Local : info.RefVariableType;
+          variable = new Variable(info.Name, type, info.Keys);
+        }
+      }
+      return new Operand(variable, new Value(ValueOfRK(operandId)));
+    }
+
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to
     // avoid copying.
-    private ref readonly VMValue ValueOfRK(uint rkPos) {
-      if (rkPos < Chunk.MaxRegisterCount) {
-        return ref _registers.GetValueAt(rkPos);
+    private ref readonly VMValue ValueOfRK(uint rkId) {
+      if (IsRegisterId(rkId)) {
+        return ref _registers.GetValueAt(rkId);
       }
-      return ref _chunk.ValueOfConstId(rkPos);
+      return ref _chunk.ValueOfConstId(rkId);
+    }
+
+    private static bool IsRegisterId(uint rkId) {
+      return rkId < Chunk.MaxRegisterCount;
     }
   }
 }

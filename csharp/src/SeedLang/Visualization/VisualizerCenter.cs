@@ -109,6 +109,7 @@ namespace SeedLang.Visualization {
 
     private void EnableVariableTrackingForVariableVisualizers<Visualizer>(Visualizer visualizer) {
       if (visualizer is IVisualizer<Event.Assignment> ||
+          visualizer is IVisualizer<Event.Binary> ||
           visualizer is IVisualizer<Event.VariableDefined> ||
           visualizer is IVisualizer<Event.VariableDeleted>) {
         IsVariableTrackingEnabled = true;

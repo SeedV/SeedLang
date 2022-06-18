@@ -258,6 +258,7 @@ namespace SeedLang.Interpreter {
           _helper.ExprJumpStack.AddTrueJump(_helper.Chunk.LatestCodePos);
           break;
       }
+      _helper.EmitComparisonNotification(leftRegister, op, rightRegister, 0, range);
       _helper.EndExprScope();
     }
 

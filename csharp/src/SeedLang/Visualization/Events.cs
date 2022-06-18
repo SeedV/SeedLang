@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
@@ -71,28 +69,21 @@ namespace SeedLang.Visualization {
     // The count of values is as same as Ops. But not all the expressions are evaluated due to short
     // circuit. The values without evaluated are filled as null.
     public class Comparison : AbstractEvent {
-      public Value First { get; }
-      public IReadOnlyList<ComparisonOperator> Ops { get; }
-      public IReadOnlyList<Value> Values { get; }
+      public Operand Left { get; }
+      public ComparisonOperator Op { get; }
+      public Operand Right { get; }
       public Value Result { get; }
 
-      public Comparison(Value first, IReadOnlyList<ComparisonOperator> ops,
-                        IReadOnlyList<Value> values, Value result, TextRange range) : base(range) {
-        Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
-        First = first;
-        Values = values;
-        Ops = ops;
+      public Comparison(Operand left, ComparisonOperator op, Operand right, Value result,
+                        TextRange range) : base(range) {
+        Left = left;
+        Op = op;
+        Right = right;
         Result = result;
       }
 
       public override string ToString() {
-        var sb = new StringBuilder();
-        sb.Append($"{Range} {First} ");
-        for (int i = 0; i < Ops.Count; ++i) {
-          sb.Append($"{Ops[i]} {Values[i]} ");
-        }
-        sb.Append($"= {Result}");
-        return sb.ToString();
+        return $"{Range} {Left} {Op} {Right} = {Result}";
       }
     }
 

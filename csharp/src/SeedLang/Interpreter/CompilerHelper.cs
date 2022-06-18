@@ -178,6 +178,14 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal void EmitComparisonNotification(uint leftId, ComparisonOperator op, uint rightId,
+                                             uint resultId, TextRange range) {
+      if (!_suspendNotificationEmitting && _visualizerCenter.HasVisualizer<Event.Comparison>()) {
+        var n = new Notification.Comparison(leftId, op, rightId, resultId);
+        Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
+      }
+    }
+
     internal void EmitGetElementNotification(uint targetId, uint containerId, uint keyId,
                                              TextRange range) {
       if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {

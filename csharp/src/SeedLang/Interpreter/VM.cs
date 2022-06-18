@@ -131,6 +131,14 @@ namespace SeedLang.Interpreter {
                                                 _chunk.Ranges[_pc]));
     }
 
+    internal void HandleComparison(Notification.Comparison comparison) {
+      var left = MakeOperand(comparison.LeftId);
+      var right = MakeOperand(comparison.RightId);
+      _visualizerCenter.Notify(new Event.Comparison(left, comparison.Op, right,
+                                                    new Value(ValueOfRK(comparison.ResultId)),
+                                                    _chunk.Ranges[_pc]));
+    }
+
     internal void HandleElementLoaded(Notification.ElementLoaded elemLoaded) {
       if (!_registers.GetRegisterInfo(elemLoaded.TargetId).IsLocal) {
         var key = new Value(ValueOfRK(elemLoaded.KeyId));

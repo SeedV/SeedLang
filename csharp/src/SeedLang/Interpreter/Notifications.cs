@@ -124,6 +124,55 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal sealed class Comparison : AbstractNotification, IEquatable<Comparison> {
+      public uint LeftId { get; }
+      public ComparisonOperator Op { get; }
+      public uint RightId { get; }
+      public uint ResultId { get; }
+
+      internal Comparison(uint leftId, ComparisonOperator op, uint rightId, uint resultId) {
+        LeftId = leftId;
+        Op = op;
+        RightId = rightId;
+        ResultId = resultId;
+      }
+
+      public static bool operator ==(Comparison lhs, Comparison rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(Comparison lhs, Comparison rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(Comparison other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return LeftId == other.LeftId && Op == other.Op &&
+               RightId == other.RightId && ResultId == other.ResultId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Comparison);
+      }
+
+      public override int GetHashCode() {
+        return new { LeftId, Op, RightId, ResultId, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {LeftId} {Op} {RightId} {ResultId}";
+      }
+
+      internal override void Accept(VM vm) {
+        vm.HandleComparison(this);
+      }
+    }
+
     internal sealed class ElementLoaded : AbstractNotification, IEquatable<ElementLoaded> {
       public uint TargetId { get; }
       public uint ContainerId { get; }

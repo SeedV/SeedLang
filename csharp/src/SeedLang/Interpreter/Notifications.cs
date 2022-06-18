@@ -67,7 +67,7 @@ namespace SeedLang.Interpreter {
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: '{Name}': {Type} {ValueId}";
+        return $"Notification.{GetType().Name}: '{Name}' {Type} {ValueId}";
       }
 
       internal override void Accept(VM vm) {

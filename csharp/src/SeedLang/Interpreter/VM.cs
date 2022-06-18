@@ -118,8 +118,8 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleAssignment(Notification.Assignment assign) {
-      _visualizerCenter.Notify(new Event.Assignment(assign.Name, assign.Type,
-                                                    new Value(ValueOfRK(assign.ValueId)),
+      var variable = new Variable(assign.Name, assign.Type, new List<Value>());
+      _visualizerCenter.Notify(new Event.Assignment(variable, new Value(ValueOfRK(assign.ValueId)),
                                                     _chunk.Ranges[_pc]));
     }
 
@@ -180,11 +180,10 @@ namespace SeedLang.Interpreter {
       if (!container.IsTemporary) {
         var keys = container.Keys.ToList();
         keys.Add(new Value(ValueOfRK(assign.KeyId)));
-        _visualizerCenter.Notify(new Event.SubscriptAssignment(container.Name,
-                                                               container.RefVariableType,
-                                                               keys,
-                                                               new Value(ValueOfRK(assign.ValueId)),
-                                                               _chunk.Ranges[_pc]));
+        var variable = new Variable(container.Name, container.RefVariableType, keys);
+        _visualizerCenter.Notify(new Event.Assignment(variable,
+                                                      new Value(ValueOfRK(assign.ValueId)),
+                                                      _chunk.Ranges[_pc]));
       }
     }
 

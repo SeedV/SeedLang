@@ -195,8 +195,7 @@ namespace SeedLang.Interpreter {
 
     internal void EmitSubscriptAssignNotification(uint containerId, uint keyId, uint valueId,
                                                   TextRange range) {
-      if (!_suspendNotificationEmitting &&
-          _visualizerCenter.HasVisualizer<Event.SubscriptAssignment>()) {
+      if (!_suspendNotificationEmitting && _visualizerCenter.HasVisualizer<Event.Assignment>()) {
         var n = new Notification.SubscriptAssignment(containerId, keyId, valueId);
         Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }

@@ -14,28 +14,32 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using SeedLang.Visualization;
 
 namespace SeedLang.Tests.Helper {
   // A helper class to manage visualizers.
   internal class VisualizerHelper {
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
-      private readonly List<Event> _events = new List<Event>();
+      public IReadOnlyList<string> EventStrings => _eventStrings;
+
+      private readonly List<string> _eventStrings = new List<string>();
 
       public void On(Event e, IVM vm) {
-        _events.Add(e);
-      }
-
-      internal string ToString(StringBuilder sb) {
-        foreach (var e in _events) {
-          EventToString(e, sb);
-        }
-        return sb.ToString();
+        _eventStrings.Add(e.ToString());
       }
     }
 
     private readonly Dictionary<string, dynamic> _visualizers = new Dictionary<string, dynamic>();
+
+    public IReadOnlyList<string> EventStrings {
+      get {
+        var eventStrings = new List<string>();
+        foreach (var visualizer in _visualizers.Values) {
+          eventStrings.AddRange(visualizer.EventStrings);
+        }
+        return eventStrings;
+      }
+    }
 
     internal VisualizerHelper(IReadOnlyList<Type> eventTypes = null) {
       var visualizerType = typeof(Visualizer<>);
@@ -54,69 +58,6 @@ namespace SeedLang.Tests.Helper {
     internal void UnregisterFromVisualizerCenter(VisualizerCenter vc) {
       foreach (var visualizer in _visualizers.Values) {
         vc.Unregister(visualizer);
-      }
-    }
-
-    internal string EventsToString() {
-      var sb = new StringBuilder();
-      foreach (var visualizer in _visualizers.Values) {
-        visualizer.ToString(sb);
-      }
-      return sb.ToString();
-    }
-
-    private static void EventToString<E>(E e, StringBuilder sb) {
-      switch (e) {
-        case Event.Assignment ae:
-          sb.AppendLine($"{ae.Range} {ae.Name}: {ae.Type} = {ae.Value}");
-          break;
-        case Event.Binary be:
-          sb.AppendLine($"{be.Range} {be.Left} {be.Op} {be.Right} = {be.Result}");
-          break;
-        case Event.Boolean be:
-          sb.Append($"{be.Range} {be.Values[0]} ");
-          for (int i = 1; i < be.Values.Count; ++i) {
-            sb.Append($"{be.Op} {be.Values[i]} ");
-          }
-          sb.AppendLine($"= {be.Result}");
-          break;
-        case Event.Comparison ce:
-          sb.Append($"{ce.Range} {ce.First} ");
-          for (int i = 0; i < ce.Ops.Count; ++i) {
-            sb.Append($"{ce.Ops[i]} {ce.Values[i]} ");
-          }
-          sb.AppendLine($"= {ce.Result}");
-          break;
-        case Event.FuncCalled fce:
-          sb.AppendLine($"{fce.Range} FuncCalled: {fce.Name}({string.Join(", ", fce.Args)})");
-          break;
-        case Event.FuncReturned fre:
-          sb.AppendLine($"{fre.Range} FuncReturned: {fre.Name} {fre.Result}");
-          break;
-        case Event.SingleStep sse:
-          sb.AppendLine($"{sse.Range} SingleStep");
-          break;
-        case Event.SubscriptAssignment sae:
-          var keys = string.Join("][", sae.Keys);
-          sb.AppendLine($"{sae.Range} ({sae.Name}: {sae.Type})[{keys}] = {sae.Value}");
-          break;
-        case Event.Unary ue:
-          sb.AppendLine($"{ue.Range} {ue.Op} {ue.Value} = {ue.Result}");
-          break;
-        case Event.VariableDefined vde:
-          sb.AppendLine($"{vde.Range} VariableDefined: {vde.Name}: {vde.Type}");
-          break;
-        case Event.VariableDeleted vde:
-          sb.AppendLine($"{vde.Range} VariableDeleted: {vde.Name}: {vde.Type}");
-          break;
-        case Event.VTagEntered vee:
-          sb.AppendLine($"{vee.Range} VTagEntered: {string.Join(", ", vee.VTags)}");
-          break;
-        case Event.VTagExited vee:
-          sb.AppendLine($"{vee.Range} VTagExited: {string.Join(", ", vee.VTags)}");
-          break;
-        default:
-          throw new NotImplementedException($"Unsupported event: {e.GetType()}");
       }
     }
   }

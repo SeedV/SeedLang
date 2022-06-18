@@ -33,9 +33,11 @@ namespace SeedLang.Interpreter.Tests {
                                                            AstHelper.NumberConstant(2)));
 
       (string output, VisualizerHelper vh) = Run(expr, new Type[] { typeof(Event.Binary) });
-      Assert.Equal("3" + Environment.NewLine, output);
-      var expectedOutput = $"{AstHelper.TextRange} 1 Add 2 = 3" + Environment.NewLine;
-      Assert.Equal(expectedOutput, vh.EventsToString());
+      output.Should().Be("3" + Environment.NewLine);
+      var expected = new string[] {
+        $"{AstHelper.TextRange} 1 Add 2 = 3",
+      };
+      vh.EventStrings.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -47,9 +49,8 @@ namespace SeedLang.Interpreter.Tests {
                                              AstHelper.NumberConstant(2)))
       );
 
-      (string output, VisualizerHelper vh) = Run(expr, Array.Empty<Type>());
-      Assert.Equal("True" + Environment.NewLine, output);
-      Assert.Equal("", vh.EventsToString());
+      (string output, VisualizerHelper _) = Run(expr, Array.Empty<Type>());
+      output.Should().Be("True" + Environment.NewLine);
     }
 
     [Fact]
@@ -58,9 +59,11 @@ namespace SeedLang.Interpreter.Tests {
                                                           AstHelper.NumberConstant(1)));
       var eventTypes = new Type[] { typeof(Event.Binary), typeof(Event.Unary) };
       (string output, VisualizerHelper vh) = Run(expr, eventTypes);
-      Assert.Equal("-1" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} Negative 1 = -1" + Environment.NewLine;
-      Assert.Equal(expected, vh.EventsToString());
+      output.Should().Be("-1" + Environment.NewLine);
+      var expected = new string[] {
+        $"{AstHelper.TextRange} Negative 1 = -1",
+      };
+      vh.EventStrings.Should().BeEquivalentTo(expected);
 
       expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
         AstHelper.Binary(AstHelper.NumberConstant(1),
@@ -68,12 +71,12 @@ namespace SeedLang.Interpreter.Tests {
                          AstHelper.NumberConstant(2))
       ));
       (output, vh) = Run(expr, eventTypes);
-      Assert.Equal("-3" + Environment.NewLine, output);
-      expected = (
-        $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
-        $"{AstHelper.TextRange} Negative 3 = -3\n"
-      ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, vh.EventsToString());
+      output.Should().Be("-3" + Environment.NewLine);
+      expected = new string[] {
+        $"{AstHelper.TextRange} 1 Add 2 = 3",
+        $"{AstHelper.TextRange} Negative 3 = -3",
+      };
+      vh.EventStrings.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -97,13 +100,13 @@ namespace SeedLang.Interpreter.Tests {
         typeof(Event.FuncReturned),
       };
       (string output, VisualizerHelper vh) = Run(program, eventTypes);
-      Assert.Equal("3" + Environment.NewLine, output);
-      var expectedOutput = (
-        $"{AstHelper.TextRange} 1 Add 2 = 3\n" +
-        $"{AstHelper.TextRange} FuncCalled: add(1, 2)\n" +
-        $"{AstHelper.TextRange} FuncReturned: add 3\n"
-      ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expectedOutput, vh.EventsToString());
+      output.Should().Be("3" + Environment.NewLine);
+      var expected = new string[] {
+        $"{AstHelper.TextRange} 1 Add 2 = 3",
+        $"{AstHelper.TextRange} FuncCalled: add(1, 2)",
+        $"{AstHelper.TextRange} FuncReturned: add 3",
+      };
+      vh.EventStrings.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -131,7 +134,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(fib), AstHelper.NumberConstant(10)))
       );
       (string output, VisualizerHelper _) = Run(program, Array.Empty<Type>());
-      Assert.Equal("55" + Environment.NewLine, output);
+      output.Should().Be("55" + Environment.NewLine);
     }
 
     [Fact]
@@ -142,7 +145,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.NumberConstant(1)
       ));
       (string output, VisualizerHelper _) = Run(program, Array.Empty<Type>());
-      Assert.Equal("2" + Environment.NewLine, output);
+      output.Should().Be("2" + Environment.NewLine);
     }
 
     [Fact]
@@ -160,11 +163,13 @@ namespace SeedLang.Interpreter.Tests {
         ),
         AstHelper.ExpressionStmt(AstHelper.Subscript(AstHelper.Id(a), AstHelper.NumberConstant(1)))
       );
-      (string output, VisualizerHelper vh) = Run(program,
-                                                 new Type[] { typeof(Event.SubscriptAssignment) });
-      Assert.Equal("5" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} (a: Global)[1] = 5" + Environment.NewLine;
-      Assert.Equal(expected, vh.EventsToString());
+      (string output, VisualizerHelper vh) = Run(program, new Type[] { typeof(Event.Assignment) });
+      output.Should().Be("5" + Environment.NewLine);
+      var expected = new string[] {
+        $"{AstHelper.TextRange} (a: Global)[1] = 5",
+        $"{AstHelper.TextRange} a: Global = [1, 2, 3]",
+      };
+      vh.EventStrings.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -176,7 +181,7 @@ namespace SeedLang.Interpreter.Tests {
         )
       );
       (string output, VisualizerHelper _) = Run(program, Array.Empty<Type>());
-      Assert.Equal("{1: 1, 'a': 2}" + Environment.NewLine, output);
+      output.Should().Be("{1: 1, 'a': 2}" + Environment.NewLine);
     }
 
     [Fact]
@@ -187,7 +192,7 @@ namespace SeedLang.Interpreter.Tests {
                         AstHelper.NumberConstant(3))
       );
       (string output, VisualizerHelper _) = Run(program, Array.Empty<Type>());
-      Assert.Equal("(1, 2, 3)" + Environment.NewLine, output);
+      output.Should().Be("(1, 2, 3)" + Environment.NewLine);
     }
 
     [Fact]
@@ -199,9 +204,11 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(name))
       );
       (string output, VisualizerHelper vh) = Run(program, new Type[] { typeof(Event.Assignment) });
-      Assert.Equal("1" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} {name}: Global = 1" + Environment.NewLine;
-      Assert.Equal(expected, vh.EventsToString());
+      output.Should().Be("1" + Environment.NewLine);
+      var expected = new string[] {
+        $"{AstHelper.TextRange} {name}: Global = 1",
+      };
+      vh.EventStrings.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -222,12 +229,12 @@ namespace SeedLang.Interpreter.Tests {
         $"1\n" +
         $"2\n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expectedOutput, output);
-      var expected = (
-        $"{AstHelper.TextRange} {a}: Global = 1\n" +
-        $"{AstHelper.TextRange} {b}: Global = 2\n"
-      ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expected, vh.EventsToString());
+      output.Should().Be(expectedOutput);
+      var expected = new string[] {
+        $"{AstHelper.TextRange} {a}: Global = 1",
+        $"{AstHelper.TextRange} {b}: Global = 2",
+      };
+      vh.EventStrings.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -240,9 +247,11 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(AstHelper.Id(name))
       );
       (string output, VisualizerHelper vh) = Run(block, new Type[] { typeof(Event.Assignment) });
-      Assert.Equal("(1, 2)" + Environment.NewLine, output);
-      var expected = $"{AstHelper.TextRange} {name}: Global = (1, 2)" + Environment.NewLine;
-      Assert.Equal(expected, vh.EventsToString());
+      output.Should().Be("(1, 2)" + Environment.NewLine);
+      var expected = new string[] {
+        $"{AstHelper.TextRange} {name}: Global = (1, 2)",
+      };
+      vh.EventStrings.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -262,7 +271,7 @@ namespace SeedLang.Interpreter.Tests {
         $"1\n" +
         $"2\n"
       ).Replace("\n", Environment.NewLine);
-      Assert.Equal(expectedOutput, output);
+      output.Should().Be(expectedOutput);
     }
 
     [Fact]
@@ -274,7 +283,7 @@ print(a, x, y, z)
 ";
       (string output, VisualizerHelper _) = Run(Parse(source), Array.Empty<Type>());
       var expectedOutput = $"[1, [...], 3] 1 2 (1, 2)" + Environment.NewLine;
-      Assert.Equal(expectedOutput, output);
+      output.Should().Be(expectedOutput);
     }
 
     [Fact]

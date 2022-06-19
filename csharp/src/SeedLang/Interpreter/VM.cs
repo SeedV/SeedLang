@@ -134,8 +134,23 @@ namespace SeedLang.Interpreter {
     internal void HandleComparison(Notification.Comparison comparison) {
       var left = MakeOperand(comparison.LeftId);
       var right = MakeOperand(comparison.RightId);
+      bool result = comparison.Op switch {
+        ComparisonOperator.Less =>
+            ValueHelper.Less(left.Value.GetRawValue(), right.Value.GetRawValue()),
+        ComparisonOperator.Greater =>
+            !ValueHelper.LessEqual(left.Value.GetRawValue(), right.Value.GetRawValue()),
+        ComparisonOperator.LessEqual =>
+            ValueHelper.LessEqual(left.Value.GetRawValue(), right.Value.GetRawValue()),
+        ComparisonOperator.GreaterEqual =>
+            !ValueHelper.Less(left.Value.GetRawValue(), right.Value.GetRawValue()),
+        ComparisonOperator.EqEqual => left.Value.GetRawValue() == right.Value.GetRawValue(),
+        ComparisonOperator.NotEqual => left.Value.GetRawValue() != right.Value.GetRawValue(),
+        ComparisonOperator.In =>
+            ValueHelper.Contains(right.Value.GetRawValue(), left.Value.GetRawValue()),
+        _ => throw new NotImplementedException($"Unsupported comparison operator {comparison.Op}"),
+      };
       _visualizerCenter.Notify(new Event.Comparison(left, comparison.Op, right,
-                                                    new Value(ValueOfRK(comparison.ResultId)),
+                                                    new Value(new VMValue(result)),
                                                     _chunk.Ranges[_pc]));
     }
 

@@ -67,49 +67,50 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestComparison() {
       string source = @"
-a = 1
-b = 2
-a < b < 3
+1 < 2 > 3
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
-        $"  2    LOADK     0 -1             ; 1                 [Ln 2, Col 4 - Ln 2, Col 4]\n" +
-        $"  3    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 2, Col 4]\n" +
-        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  5    LOADK     0 -2             ; 2                 [Ln 3, Col 4 - Ln 3, Col 4]\n" +
-        $"  6    SETGLOB   0 {_firstGlob + 1}" +
-        $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  7    GETGLOB   0 {_printValFunc}" +
-        $"                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  8    GETGLOB   2 {_firstGlob}" +
-        $"                                  [Ln 4, Col 0 - Ln 4, Col 0]\n" +
-        $"  9    VISNOTIFY 0 2                                  [Ln 4, Col 0 - Ln 4, Col 0]\n" +
-        $"  10   GETGLOB   3 {_firstGlob + 1}" +
-        $"                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  11   VISNOTIFY 0 3                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  12   LT        1 2 3                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  13   JMP       0 7              ; to 21             [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  14   VISNOTIFY 0 4                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  15   GETGLOB   2 {_firstGlob + 1}" +
-        $"                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  16   VISNOTIFY 0 5                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  17   LT        1 2 -3           ; 3                 [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  18   JMP       0 2              ; to 21             [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  19   VISNOTIFY 0 6                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  20   LOADBOOL  1 1 1                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  21   LOADBOOL  1 0 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  22   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  23   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  1    GETGLOB   0 {_printValFunc}" +
+        $"                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  3    LT        1 -1 -2          ; 1 2               [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  4    JMP       0 4              ; to 9              [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  6    LE        0 -2 -3          ; 2 3               [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  7    JMP       0 1              ; to 9              [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  8    LOADBOOL  1 1 1                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  9    LOADBOOL  1 0 0                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  10   CALL      0 1 0                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  11   HALT      1 0                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VariableDefined: 'a' Global 7\n" +
-        $"  1    Notification.VariableDefined: 'b' Global 8\n" +
-        $"  2    Notification.GlobalLoaded: 2 'a'\n" +
-        $"  3    Notification.GlobalLoaded: 3 'b'\n" +
-        $"  4    Notification.Comparison: 2 Less 3 0\n" +
-        $"  5    Notification.GlobalLoaded: 2 'b'\n" +
-        $"  6    Notification.Comparison: 2 Less 252 0\n"
+        $"  0    Notification.Comparison: 250 Less 251\n" +
+        $"  1    Notification.Comparison: 251 Greater 252\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(source, expected, new Type[] { typeof(Event.Comparison) }, RunMode.Interactive);
+    }
+
+    [Fact]
+    public void TestIfComparison() {
+      string source = @"
+if 1 <= 2 >= 3:
+  pass
+else:
+  pass
+";
+      string expected = (
+        $"Function <main>\n" +
+        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 3 - Ln 2, Col 13]\n" +
+        $"  2    LE        1 -1 -2          ; 1 2               [Ln 2, Col 3 - Ln 2, Col 13]\n" +
+        $"  3    JMP       0 4              ; to 8              [Ln 2, Col 3 - Ln 2, Col 13]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 2, Col 3 - Ln 2, Col 13]\n" +
+        $"  5    LT        0 -2 -3          ; 2 3               [Ln 2, Col 3 - Ln 2, Col 13]\n" +
+        $"  6    JMP       0 1              ; to 8              [Ln 2, Col 3 - Ln 2, Col 13]\n" +
+        $"  7    JMP       0 0              ; to 8              [Ln 2, Col 0 - Ln 5, Col 5]\n" +
+        $"  8    HALT      1 0                                  [Ln 5, Col 2 - Ln 5, Col 5]\n" +
+        $"Notifications\n" +
+        $"  0    Notification.Comparison: 250 LessEqual 251\n" +
+        $"  1    Notification.Comparison: 251 GreaterEqual 252\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Comparison) }, RunMode.Interactive);
     }

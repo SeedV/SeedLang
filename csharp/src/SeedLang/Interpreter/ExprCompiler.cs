@@ -248,6 +248,9 @@ namespace SeedLang.Interpreter {
       if (nextBooleanOp == BooleanOperator.Or) {
         checkFlag = !checkFlag;
       }
+      // Emits the comparison notification before the actual comparison, otherwise two notifications
+      // have to be emitted in two different execution paths.
+      _helper.EmitComparisonNotification(leftRegister, op, rightRegister, range);
       _helper.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
       _helper.Emit(Opcode.JMP, 0, 0, range);
       switch (nextBooleanOp) {
@@ -258,7 +261,6 @@ namespace SeedLang.Interpreter {
           _helper.ExprJumpStack.AddTrueJump(_helper.Chunk.LatestCodePos);
           break;
       }
-      _helper.EmitComparisonNotification(leftRegister, op, rightRegister, 0, range);
       _helper.EndExprScope();
     }
 

@@ -130,13 +130,11 @@ namespace SeedLang.Shell {
             Console.Write($"Binary: {be.Left} {op} {be.Right} = {be.Result}");
             break;
           }
-        case Event.Comparison ce:
-          Console.Write($"Comparison: {ce.First} ");
-          for (int i = 0; i < ce.Ops.Count; i++) {
-            Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {ce.Values[i]} ");
+        case Event.Comparison ce: {
+            var op = _comparisonOperatorStrings[ce.Op];
+            Console.Write($"Comparison: {ce.Left} {op} {ce.Right} = {ce.Result}");
+            break;
           }
-          Console.Write($"= {ce.Result}");
-          break;
         case Event.FuncCalled fce:
           Console.Write($"FuncCalled: {fce.Name} {string.Join(", ", fce.Args)}");
           break;

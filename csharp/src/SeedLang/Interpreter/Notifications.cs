@@ -128,13 +128,11 @@ namespace SeedLang.Interpreter {
       public uint LeftId { get; }
       public ComparisonOperator Op { get; }
       public uint RightId { get; }
-      public uint ResultId { get; }
 
-      internal Comparison(uint leftId, ComparisonOperator op, uint rightId, uint resultId) {
+      internal Comparison(uint leftId, ComparisonOperator op, uint rightId) {
         LeftId = leftId;
         Op = op;
         RightId = rightId;
-        ResultId = resultId;
       }
 
       public static bool operator ==(Comparison lhs, Comparison rhs) {
@@ -152,8 +150,7 @@ namespace SeedLang.Interpreter {
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return LeftId == other.LeftId && Op == other.Op &&
-               RightId == other.RightId && ResultId == other.ResultId;
+        return LeftId == other.LeftId && Op == other.Op && RightId == other.RightId;
       }
 
       public override bool Equals(object obj) {
@@ -161,11 +158,11 @@ namespace SeedLang.Interpreter {
       }
 
       public override int GetHashCode() {
-        return new { LeftId, Op, RightId, ResultId, }.GetHashCode();
+        return new { LeftId, Op, RightId, }.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {LeftId} {Op} {RightId} {ResultId}";
+        return $"Notification.{GetType().Name}: {LeftId} {Op} {RightId}";
       }
 
       internal override void Accept(VM vm) {

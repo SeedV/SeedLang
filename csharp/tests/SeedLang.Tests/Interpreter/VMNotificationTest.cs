@@ -26,6 +26,41 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class VMNotificationTests {
     [Fact]
+    public void TestComparison() {
+      string source = @"
+str = 'string'
+if str == 'string' and str != 'str' and 'i' in str:
+  print(str)
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] { typeof(Event.Comparison) });
+      var expected = new string[] {
+        "[Ln 3, Col 3 - Ln 3, Col 17] str:Global 'string' EqEqual 'string' = True",
+        "[Ln 3, Col 23 - Ln 3, Col 34] str:Global 'string' NotEqual 'str' = True",
+        "[Ln 3, Col 40 - Ln 3, Col 49] 'i' In str:Global 'string' = True",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void TestMultipleListAssignment() {
+      string source = @"
+a = [[1, 2, 3], [1, 2]]
+a[0][1] = 10
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] {
+        typeof(Event.Assignment),
+        typeof(Event.VariableDefined),
+        typeof(Event.VariableDeleted),
+      });
+      var expected = new string[] {
+        "[Ln 2, Col 0 - Ln 2, Col 22] a:Global = [[1, 2, 3], [1, 2]]",
+        "[Ln 3, Col 0 - Ln 3, Col 11] a:Global[0][1] = 10",
+        "[Ln 2, Col 0 - Ln 2, Col 0] VariableDefined: a (Global)",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
     public void TestSingleStep() {
       string source = @"
 # [[ Assign(a) ]]
@@ -68,25 +103,6 @@ x = add(1, 2)
         "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.c (Local)",
         "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.b (Local)",
         "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.a (Local)",
-      };
-      events.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
-    public void TestMultipleListAssignment() {
-      string source = @"
-a = [[1, 2, 3], [1, 2]]
-a[0][1] = 10
-";
-      (string _, IEnumerable<string> events) = Run(source, new Type[] {
-        typeof(Event.Assignment),
-        typeof(Event.VariableDefined),
-        typeof(Event.VariableDeleted),
-      });
-      var expected = new string[] {
-        "[Ln 2, Col 0 - Ln 2, Col 22] a:Global = [[1, 2, 3], [1, 2]]",
-        "[Ln 3, Col 0 - Ln 3, Col 11] a:Global[0][1] = 10",
-        "[Ln 2, Col 0 - Ln 2, Col 0] VariableDefined: a (Global)",
       };
       events.Should().BeEquivalentTo(expected);
     }

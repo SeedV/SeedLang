@@ -179,9 +179,9 @@ namespace SeedLang.Interpreter {
     }
 
     internal void EmitComparisonNotification(uint leftId, ComparisonOperator op, uint rightId,
-                                             uint resultId, TextRange range) {
+                                             TextRange range) {
       if (!_suspendNotificationEmitting && _visualizerCenter.HasVisualizer<Event.Comparison>()) {
-        var n = new Notification.Comparison(leftId, op, rightId, resultId);
+        var n = new Notification.Comparison(leftId, op, rightId);
         Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }
     }

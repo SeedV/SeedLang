@@ -144,9 +144,6 @@ namespace SeedLang.Shell {
         case Event.SingleStep sse:
           Console.Write($"SingleStep: {sse.Range.Start.Line}");
           break;
-        case Event.Unary ue:
-          Console.Write($"Unary: {_unaryOperatorStrings[ue.Op]} {ue.Value} = {ue.Result}");
-          break;
         case Event.VariableDefined vde:
           Console.Write($"VariableDefined: {vde.Name}");
           break;

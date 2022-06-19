@@ -28,8 +28,8 @@ namespace SeedLang.Visualization {
   }
 
   public static class Event {
-    // An event which is triggered when a value is assigned to a variable or an element of a
-    // container.
+    // An event which is triggered when a value is assigned to a variable or an element of
+    // containers.
     public class Assignment : AbstractEvent {
       public Variable Variable { get; }
       public Value Value { get; }
@@ -65,9 +65,6 @@ namespace SeedLang.Visualization {
     }
 
     // An event which is triggered when a comparison expression is evaluated.
-    //
-    // The count of values is as same as Ops. But not all the expressions are evaluated due to short
-    // circuit. The values without evaluated are filled as null.
     public class Comparison : AbstractEvent {
       public Operand Left { get; }
       public ComparisonOperator Op { get; }
@@ -123,23 +120,6 @@ namespace SeedLang.Visualization {
 
       public override string ToString() {
         return $"{Range} SingleStep";
-      }
-    }
-
-    // An event which is triggered when an unary expression is executed.
-    public class Unary : AbstractEvent {
-      public UnaryOperator Op { get; }
-      public Value Value { get; }
-      public Value Result { get; }
-
-      public Unary(UnaryOperator op, Value value, Value result, TextRange range) : base(range) {
-        Op = op;
-        Value = value;
-        Result = result;
-      }
-
-      public override string ToString() {
-        return $"{Range} {Op} {Value} = {Result}";
       }
     }
 

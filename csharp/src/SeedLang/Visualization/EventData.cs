@@ -23,6 +23,9 @@ namespace SeedLang.Visualization {
     Upvalue,
   }
 
+  // The class that is used as operands of binary and comparison events. It could be a variable,
+  // an element of containers or a temporary value. The Variable field is null if it's a temporary
+  // value.
   public class Operand {
     public bool IsVariable => !(Variable is null);
 
@@ -45,6 +48,8 @@ namespace SeedLang.Visualization {
     }
   }
 
+  // The variable class for events. It could be a variable or an element of containers. The Keys
+  // field is empty if it's a variable.
   public class Variable {
     public bool IsElementOfContainer => Keys.Count > 0;
 

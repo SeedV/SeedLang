@@ -40,8 +40,7 @@ namespace SeedLang.Interpreter {
       public string Name { get; }
       // The referenced variable type.
       public VariableType RefVariableType { get; }
-      // The keys of the container elements, e.g. for a[0][1], 0 and 1 are stored in the keys. It's
-      // empty for local variables.
+      // The keys of the container elements, e.g. for a[0][1], 0 and 1 are stored in the keys.
       public IReadOnlyList<Value> Keys { get; }
 
       private readonly Type _type;

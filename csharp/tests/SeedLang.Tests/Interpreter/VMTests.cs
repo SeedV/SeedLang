@@ -54,32 +54,6 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
-    public void TestUnary() {
-      var expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
-                                                          AstHelper.NumberConstant(1)));
-      var eventTypes = new Type[] { typeof(Event.Binary), typeof(Event.Unary) };
-      (string output, VisualizerHelper vh) = Run(expr, eventTypes);
-      output.Should().Be("-1" + Environment.NewLine);
-      var expected = new string[] {
-        $"{AstHelper.TextRange} Negative 1 = -1",
-      };
-      vh.EventStrings.Should().BeEquivalentTo(expected);
-
-      expr = AstHelper.ExpressionStmt(AstHelper.Unary(UnaryOperator.Negative,
-        AstHelper.Binary(AstHelper.NumberConstant(1),
-                         BinaryOperator.Add,
-                         AstHelper.NumberConstant(2))
-      ));
-      (output, vh) = Run(expr, eventTypes);
-      output.Should().Be("-3" + Environment.NewLine);
-      expected = new string[] {
-        $"{AstHelper.TextRange} 1 Add 2 = 3",
-        $"{AstHelper.TextRange} Negative 3 = -3",
-      };
-      vh.EventStrings.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
     public void TestFunctionCall() {
       string name = "add";
       string a = "a";

@@ -215,7 +215,6 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       uint exprId = VisitExpressionForRKId(unary.Expr);
       _helper.Emit(Opcode.UNM, context.TargetRegister, exprId, 0, unary.Range);
-      _helper.EmitUnaryNotification(unary.Op, exprId, context.TargetRegister, unary.Range);
       _helper.EndExprScope();
     }
 
@@ -248,8 +247,9 @@ namespace SeedLang.Interpreter {
       if (nextBooleanOp == BooleanOperator.Or) {
         checkFlag = !checkFlag;
       }
-      // Emits the comparison notification before the actual comparison, otherwise two notifications
-      // have to be emitted in two different execution paths.
+      // Emits a comparison notification for each single comparison before the actual comparison.
+      // Two notifications have to be emitted in two different execution paths if emitting after the
+      // actual comparison.
       _helper.EmitComparisonNotification(leftRegister, op, rightRegister, range);
       _helper.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
       _helper.Emit(Opcode.JMP, 0, 0, range);

@@ -211,13 +211,6 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal void HandleUnary(Notification.Unary unary) {
-      _visualizerCenter.Notify(new Event.Unary(unary.Op,
-                                               new Value(ValueOfRK(unary.ValueId)),
-                                               new Value(ValueOfRK(unary.ResultId)),
-                                               _chunk.Ranges[_pc]));
-    }
-
     internal void HandleVariableDefined(Notification.VariableDefined variableDefined) {
       bool isFirstTimeDefined = false;
       switch (variableDefined.Info.Type) {

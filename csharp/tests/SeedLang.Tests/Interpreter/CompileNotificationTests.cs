@@ -449,23 +449,6 @@ a[0][1] = 1
     }
 
     [Fact]
-    public void TestUnary() {
-      string source = "-1";
-      string expected = (
-        $"Function <main>\n" +
-        $"  1    GETGLOB   0 {_printValFunc}" +
-        $"                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
-        $"  2    UNM       1 -1             ; 1                 [Ln 1, Col 0 - Ln 1, Col 1]\n" +
-        $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
-        $"  4    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 1]\n" +
-        $"  5    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 1]\n" +
-        $"Notifications\n" +
-        $"  0    Notification.Unary: Negative 250 1\n"
-      ).Replace("\n", Environment.NewLine);
-      TestCompiler(source, expected, new Type[] { typeof(Event.Unary) }, RunMode.Interactive);
-    }
-
-    [Fact]
     public void TestVariables() {
       string source = @"
 def add(a, b):

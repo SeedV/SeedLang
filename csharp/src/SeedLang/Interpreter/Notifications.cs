@@ -392,52 +392,6 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal sealed class Unary : AbstractNotification, IEquatable<Unary> {
-      public UnaryOperator Op { get; }
-      public uint ValueId { get; }
-      public uint ResultId { get; }
-
-      internal Unary(UnaryOperator op, uint valueId, uint resultId) {
-        Op = op;
-        ValueId = valueId;
-        ResultId = resultId;
-      }
-
-      public static bool operator ==(Unary lhs, Unary rhs) {
-        return lhs.Equals(rhs);
-      }
-
-      public static bool operator !=(Unary lhs, Unary rhs) {
-        return !(lhs == rhs);
-      }
-
-      public bool Equals(Unary other) {
-        if (other is null) {
-          return false;
-        }
-        if (ReferenceEquals(this, other)) {
-          return true;
-        }
-        return Op == other.Op && ValueId == other.ValueId && ResultId == other.ResultId;
-      }
-
-      public override bool Equals(object obj) {
-        return Equals(obj as Unary);
-      }
-
-      public override int GetHashCode() {
-        return new { Op, ValueId, ResultId, }.GetHashCode();
-      }
-
-      public override string ToString() {
-        return $"Notification.{GetType().Name}: {Op} {ValueId} {ResultId}";
-      }
-
-      internal override void Accept(VM vm) {
-        vm.HandleUnary(this);
-      }
-    }
-
     internal sealed class VariableDefined : AbstractNotification, IEquatable<VariableDefined> {
       public VariableInfo Info { get; }
 

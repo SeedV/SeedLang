@@ -31,27 +31,27 @@ namespace SeedLang.Visualization {
     // An event which is triggered when a value is assigned to a variable or an element of
     // containers.
     public class Assignment : AbstractEvent {
-      public Variable Variable { get; }
-      public Value Value { get; }
+      public LValue Target { get; }
+      public RValue Value { get; }
 
-      public Assignment(Variable variable, Value value, TextRange range) : base(range) {
-        Variable = variable;
+      public Assignment(LValue target, RValue value, TextRange range) : base(range) {
+        Target = target;
         Value = value;
       }
 
       public override string ToString() {
-        return $"{Range} {Variable} = {Value}";
+        return $"{Range} {Target} = {Value}";
       }
     }
 
     // An event which is triggered when a binary expression is evaluated.
     public class Binary : AbstractEvent {
-      public Operand Left { get; }
+      public RValue Left { get; }
       public BinaryOperator Op { get; }
-      public Operand Right { get; }
+      public RValue Right { get; }
       public Value Result { get; }
 
-      public Binary(Operand left, BinaryOperator op, Operand right, Value result, TextRange range) :
+      public Binary(RValue left, BinaryOperator op, RValue right, Value result, TextRange range) :
           base(range) {
         Left = left;
         Op = op;
@@ -66,12 +66,12 @@ namespace SeedLang.Visualization {
 
     // An event which is triggered when a comparison expression is evaluated.
     public class Comparison : AbstractEvent {
-      public Operand Left { get; }
+      public RValue Left { get; }
       public ComparisonOperator Op { get; }
-      public Operand Right { get; }
+      public RValue Right { get; }
       public Value Result { get; }
 
-      public Comparison(Operand left, ComparisonOperator op, Operand right, Value result,
+      public Comparison(RValue left, ComparisonOperator op, RValue right, Value result,
                         TextRange range) : base(range) {
         Left = left;
         Op = op;

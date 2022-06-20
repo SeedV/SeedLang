@@ -203,7 +203,7 @@ namespace SeedLang.Interpreter {
 
     internal void EmitSubscriptAssignNotification(uint containerId, uint keyId, uint valueId,
                                                   TextRange range) {
-      // Check if there are assignment events registered in the visualizer center, because SeedVM
+      // Checks if there are assignment events registered in the visualizer center, because SeedVM
       // will send assignment events for subscript assignments as well.
       if (!_suspendNotificationEmitting && _visualizerCenter.HasVisualizer<Event.Assignment>()) {
         var n = new Notification.SubscriptAssignment(containerId, keyId, valueId);

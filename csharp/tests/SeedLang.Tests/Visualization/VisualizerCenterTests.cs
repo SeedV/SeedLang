@@ -110,8 +110,8 @@ namespace SeedLang.Visualization.Tests {
     }
 
     private static Event.Binary NewBinaryEvent() {
-      var left = new Operand(null, new Value(1));
-      var right = new Operand(null, new Value(1));
+      var left = new RValue(null, new Value(1));
+      var right = new RValue(null, new Value(1));
       return new Event.Binary(left, BinaryOperator.Add, right, new Value(3),
                               new TextRange(0, 1, 2, 3));
     }

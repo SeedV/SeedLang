@@ -26,6 +26,62 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class VMNotificationTests {
     [Fact]
+    public void TestAssignment() {
+      string source = @"
+a = 1
+b = a
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] { typeof(Event.Assignment) });
+      var expected = new string[] {
+        "[Ln 2, Col 0 - Ln 2, Col 4] a:Global = 1",
+        "[Ln 3, Col 0 - Ln 3, Col 4] b:Global = a:Global 1",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void TestAssignment1() {
+      string source = @"
+a, b = 1, 2
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] { typeof(Event.Assignment) });
+      var expected = new string[] {
+        "[Ln 2, Col 0 - Ln 2, Col 10] a:Global = 1",
+        "[Ln 2, Col 0 - Ln 2, Col 10] b:Global = 2",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void TestAssignment2() {
+      string source = @"
+a = 1
+a += 1
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] { typeof(Event.Assignment) });
+      var expected = new string[] {
+        "[Ln 2, Col 0 - Ln 2, Col 4] a:Global = 1",
+        "[Ln 3, Col 0 - Ln 3, Col 5] a:Global = 2",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void TestAssignment3() {
+      string source = @"
+for i in range(3):
+  pass
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] { typeof(Event.Assignment) });
+      var expected = new string[] {
+        "[Ln 2, Col 4 - Ln 2, Col 4] i:Global = 0",
+        "[Ln 2, Col 4 - Ln 2, Col 4] i:Global = 1",
+        "[Ln 2, Col 4 - Ln 2, Col 4] i:Global = 2",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
     public void TestComparison() {
       string source = @"
 str = 'string'

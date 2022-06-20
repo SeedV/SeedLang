@@ -118,22 +118,22 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleAssignment(Notification.Assignment assign) {
-      var variable = new Variable(assign.Name, assign.Type, new List<Value>());
-      _visualizerCenter.Notify(new Event.Assignment(variable, new Value(ValueOfRK(assign.ValueId)),
+      var target = new LValue(new Variable(assign.Name, assign.Type));
+      _visualizerCenter.Notify(new Event.Assignment(target, MakeRValue(assign.ValueId),
                                                     _chunk.Ranges[_pc]));
     }
 
     internal void HandleBinary(Notification.Binary binary) {
-      var left = MakeOperand(binary.LeftId);
-      var right = MakeOperand(binary.RightId);
+      var left = MakeRValue(binary.LeftId);
+      var right = MakeRValue(binary.RightId);
       _visualizerCenter.Notify(new Event.Binary(left, binary.Op, right,
                                                 new Value(ValueOfRK(binary.ResultId)),
                                                 _chunk.Ranges[_pc]));
     }
 
     internal void HandleComparison(Notification.Comparison comparison) {
-      var left = MakeOperand(comparison.LeftId);
-      var right = MakeOperand(comparison.RightId);
+      var left = MakeRValue(comparison.LeftId);
+      var right = MakeRValue(comparison.RightId);
       bool result = comparison.Op switch {
         ComparisonOperator.Less =>
             ValueHelper.Less(left.Value.GetRawValue(), right.Value.GetRawValue()),
@@ -204,9 +204,8 @@ namespace SeedLang.Interpreter {
       if (!container.IsTemporary) {
         var keys = container.Keys.ToList();
         keys.Add(new Value(ValueOfRK(assign.KeyId)));
-        var variable = new Variable(container.Name, container.RefVariableType, keys);
-        _visualizerCenter.Notify(new Event.Assignment(variable,
-                                                      new Value(ValueOfRK(assign.ValueId)),
+        var variable = new LValue(new Variable(container.Name, container.RefVariableType), keys);
+        _visualizerCenter.Notify(new Event.Assignment(variable, MakeRValue(assign.ValueId),
                                                       _chunk.Ranges[_pc]));
       }
     }
@@ -493,16 +492,21 @@ namespace SeedLang.Interpreter {
       _pc = _callStack.CurrentPC();
     }
 
-    private Operand MakeOperand(uint operandId) {
-      Variable variable = null;
+    private RValue MakeRValue(uint operandId) {
+      var value = new Value(ValueOfRK(operandId));
       if (IsRegisterId(operandId)) {
         Registers.RegisterInfo info = _registers.GetRegisterInfo(operandId);
         if (!info.IsTemporary) {
           VariableType type = info.IsLocal ? VariableType.Local : info.RefVariableType;
-          variable = new Variable(info.Name, type, info.Keys);
+          var variable = new Variable(info.Name, type);
+          if (info.Keys.Count > 0) {
+            return new RValue(variable, info.Keys, value);
+          } else {
+            return new RValue(variable, value);
+          }
         }
       }
-      return new Operand(variable, new Value(ValueOfRK(operandId)));
+      return new RValue(value);
     }
 
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to

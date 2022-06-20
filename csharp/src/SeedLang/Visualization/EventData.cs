@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -23,54 +24,96 @@ namespace SeedLang.Visualization {
     Upvalue,
   }
 
-  // The class that is used as operands of binary and comparison events. It could be a variable,
-  // an element of containers or a temporary value. The Variable field is null if it's a temporary
-  // value.
-  public class Operand {
-    public bool IsVariable => !(Variable is null);
-
-    public Variable Variable { get; }
-    public Value Value { get; }
-
-    public Operand(Variable variable, Value value) {
-      Variable = variable;
-      Value = value;
-    }
-
-    public Operand(Value value) {
-      Variable = null;
-      Value = value;
-    }
-
-    public override string ToString() {
-      string variableString = IsVariable ? $"{Variable} " : "";
-      return $"{variableString}{Value}";
-    }
+  public enum LValueType {
+    ElementOfContainer,
+    Variable,
   }
 
-  // The variable class for events. It could be a variable or an element of containers. The Keys
-  // field is empty if it's a variable.
-  public class Variable {
-    public bool IsElementOfContainer => Keys.Count > 0;
+  public enum RValueType {
+    ElementOfContainer,
+    TemporaryValue,
+    Variable,
+  }
 
-    public string Name { get; }
-    public VariableType Type { get; }
+  // The LValue class. It could be a variable or an element of containers. The Keys
+  // field is empty if it's a variable.
+  public class LValue {
+    public LValueType Type { get; }
+    public Variable Variable { get; }
     public IReadOnlyList<Value> Keys { get; }
 
-    public Variable(string name, VariableType type, IReadOnlyList<Value> keys) {
-      Name = name;
-      Type = type;
+    public LValue(Variable variable, IReadOnlyList<Value> keys) {
+      Type = LValueType.ElementOfContainer;
+      Variable = variable;
       Keys = keys;
     }
 
+    public LValue(Variable variable) {
+      Type = LValueType.Variable;
+      Variable = variable;
+      Keys = null;
+    }
+
     public override string ToString() {
-      var sb = new StringBuilder();
-      sb.Append($"{Name}:{Type}");
-      if (IsElementOfContainer) {
-        var keys = string.Join("][", Keys);
-        sb.Append($"[{keys}]");
-      }
-      return sb.ToString();
+      return Type switch {
+        LValueType.ElementOfContainer => $"{Variable}[{string.Join("][", Keys)}]",
+        LValueType.Variable => $"{Variable}",
+        _ => throw new NotImplementedException($"Unsupported LValue type: {Type}"),
+      };
+    }
+  }
+
+  // The class that is used as operands of binary and comparison events. It could be a variable,
+  // an element of containers or a temporary value. The Variable field is null if it's a temporary
+  // value.
+  public class RValue {
+    public RValueType Type { get; }
+    public Variable Variable { get; }
+    public IReadOnlyList<Value> Keys { get; }
+    public Value Value { get; }
+
+    public RValue(Variable variable, IReadOnlyList<Value> keys, Value value) {
+      Type = RValueType.ElementOfContainer;
+      Variable = variable;
+      Keys = keys;
+      Value = value;
+    }
+
+    public RValue(Value value) {
+      Type = RValueType.TemporaryValue;
+      Variable = null;
+      Keys = null;
+      Value = value;
+    }
+
+    public RValue(Variable variable, Value value) {
+      Type = RValueType.Variable;
+      Variable = variable;
+      Keys = null;
+      Value = value;
+    }
+
+    public override string ToString() {
+      return Type switch {
+        RValueType.ElementOfContainer => $"{Variable}[{string.Join("][", Keys)}] {Value}",
+        RValueType.TemporaryValue => $"{Value}",
+        RValueType.Variable => $"{Variable} {Value}",
+        _ => throw new NotImplementedException($"Unsupported LValue type: {Type}."),
+      };
+    }
+  }
+
+  public class Variable {
+    public string Name { get; }
+    public VariableType Type { get; }
+
+    public Variable(string name, VariableType type) {
+      Name = name;
+      Type = type;
+    }
+
+    public override string ToString() {
+      return $"{Name}:{Type}";
     }
   }
 

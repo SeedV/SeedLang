@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SeedLang.Runtime;
 using SeedLang.Visualization;
 
@@ -23,18 +24,18 @@ namespace SeedLang.Interpreter {
     // The class to store variable information of registers.
     internal class RegisterInfo {
       private enum Type {
-        Temporary,
         Local,
         Reference,
+        Temporary,
       }
 
-      // The flag to indicate a temporary variable is stored in the register.
-      public bool IsTemporary => _type == Type.Temporary;
       // The flag to indicate a local variable is stored in the register.
       public bool IsLocal => _type == Type.Local;
       // The flag to indicate a reference of a global variable, or an element of a container is
       // stored in the register.
       public bool IsReference => _type == Type.Reference;
+      // The flag to indicate a temporary variable is stored in the register.
+      public bool IsTemporary => _type == Type.Temporary;
 
       // The name of the local or referenced variable.
       public string Name { get; }
@@ -52,17 +53,17 @@ namespace SeedLang.Interpreter {
 
       // Constructs a local register information.
       internal RegisterInfo(string name) {
+        _type = Type.Local;
         Name = name;
         Keys = new List<Value>();
-        _type = Type.Local;
       }
 
       // Constructs a reference register information.
       internal RegisterInfo(string name, VariableType refVariableType, IReadOnlyList<Value> keys) {
+        _type = Type.Reference;
         Name = name;
         RefVariableType = refVariableType;
         Keys = keys;
-        _type = Type.Reference;
       }
     }
 
@@ -122,7 +123,7 @@ namespace SeedLang.Interpreter {
       return index < _registerInfos.Count ? _registerInfos[index] : new RegisterInfo();
     }
 
-    internal void SetTempRegisterAt(uint registerId) {
+    internal void SetTempRegisterInfoAt(uint registerId) {
       SetRegisterInfoAt(registerId, new RegisterInfo());
     }
 
@@ -137,6 +138,7 @@ namespace SeedLang.Interpreter {
 
     internal void DeleteRegisterInfoFrom(uint startId, Action<RegisterInfo> notifyAction) {
       var index = (int)(Base + startId);
+      Debug.Assert(index < _registerInfos.Count);
       for (int i = _registerInfos.Count - 1; i >= index; i--) {
         // Calls the notify action for registers that hold local variables.
         if (_registerInfos[i].IsLocal) {
@@ -148,17 +150,11 @@ namespace SeedLang.Interpreter {
 
     private void SetRegisterInfoAt(uint registerId, RegisterInfo info) {
       int index = (int)(Base + registerId);
+      Debug.Assert(index <= _registerInfos.Count);
       if (index < _registerInfos.Count) {
         _registerInfos[index] = info;
       } else {
-        AddTemporaryInfoTo(index);
         _registerInfos.Add(info);
-      }
-    }
-
-    private void AddTemporaryInfoTo(int index) {
-      for (int i = _registerInfos.Count; i < index; i++) {
-        _registerInfos.Add(new RegisterInfo());
       }
     }
   }

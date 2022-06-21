@@ -118,7 +118,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleAssignment(Notification.Assignment assign) {
-      var target = new LValue(new Variable(assign.Name, assign.Type));
+      var target = new LValue(new Variable(assign.Name, ToVariableType(assign.Type)));
       _visualizerCenter.Notify(new Event.Assignment(target, MakeRValue(assign.ValueId),
                                                     _chunk.Ranges[_pc]));
     }
@@ -204,10 +204,15 @@ namespace SeedLang.Interpreter {
       if (!container.IsTemporary) {
         var keys = container.Keys.ToList();
         keys.Add(new Value(ValueOfRK(assign.KeyId)));
-        var variable = new LValue(new Variable(container.Name, container.RefVariableType), keys);
-        _visualizerCenter.Notify(new Event.Assignment(variable, MakeRValue(assign.ValueId),
+        var type = ToVariableType(container.RefVariableType);
+        var target = new LValue(new Variable(container.Name, type), keys);
+        _visualizerCenter.Notify(new Event.Assignment(target, MakeRValue(assign.ValueId),
                                                       _chunk.Ranges[_pc]));
       }
+    }
+
+    internal void HandleTempRegisterAllocated(Notification.TempRegisterAllocated temp) {
+      _registers.SetTempRegisterInfoAt(temp.Id);
     }
 
     internal void HandleVariableDefined(Notification.VariableDefined variableDefined) {
@@ -232,7 +237,7 @@ namespace SeedLang.Interpreter {
       }
       if (isFirstTimeDefined && _visualizerCenter.HasVisualizer<Event.VariableDefined>()) {
         _visualizerCenter.Notify(new Event.VariableDefined(variableDefined.Info.Name,
-                                                           variableDefined.Info.Type,
+                                                           ToVariableType(variableDefined.Info.Type),
                                                            _chunk.Ranges[_pc]));
       }
     }
@@ -240,7 +245,8 @@ namespace SeedLang.Interpreter {
     internal void HandleVariableDeleted(Notification.VariableDeleted variableDeleted) {
       _registers.DeleteRegisterInfoFrom(variableDeleted.StartId, localInfo => {
         if (_visualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
-          _visualizerCenter.Notify(new Event.VariableDeleted(localInfo.Name, VariableType.Local,
+          _visualizerCenter.Notify(new Event.VariableDeleted(localInfo.Name,
+                                                             Visualization.VariableType.Local,
                                                              _chunk.Ranges[_pc]));
         }
       });
@@ -498,7 +504,7 @@ namespace SeedLang.Interpreter {
         Registers.RegisterInfo info = _registers.GetRegisterInfo(operandId);
         if (!info.IsTemporary) {
           VariableType type = info.IsLocal ? VariableType.Local : info.RefVariableType;
-          var variable = new Variable(info.Name, type);
+          var variable = new Variable(info.Name, ToVariableType(type));
           if (info.Keys.Count > 0) {
             return new RValue(variable, info.Keys, value);
           } else {
@@ -520,6 +526,14 @@ namespace SeedLang.Interpreter {
 
     private static bool IsRegisterId(uint rkId) {
       return rkId < Chunk.MaxRegisterCount;
+    }
+
+    private static Visualization.VariableType ToVariableType(VariableType type) {
+      return type switch {
+        VariableType.Global => Visualization.VariableType.Global,
+        VariableType.Local => Visualization.VariableType.Local,
+        _ => throw new NotImplementedException($"Unsupported variable type {type}."),
+      };
     }
   }
 }

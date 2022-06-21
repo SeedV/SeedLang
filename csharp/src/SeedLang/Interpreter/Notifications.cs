@@ -392,6 +392,49 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal sealed class TempRegisterAllocated :
+        AbstractNotification, IEquatable<TempRegisterAllocated> {
+      public uint Id { get; }
+
+      internal TempRegisterAllocated(uint id) {
+        Id = id;
+      }
+
+      public static bool operator ==(TempRegisterAllocated lhs, TempRegisterAllocated rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(TempRegisterAllocated lhs, TempRegisterAllocated rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(TempRegisterAllocated other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return Id == other.Id;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as TempRegisterAllocated);
+      }
+
+      public override int GetHashCode() {
+        return Id.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {Id}";
+      }
+
+      internal override void Accept(VM vm) {
+        vm.HandleTempRegisterAllocated(this);
+      }
+    }
+
     internal sealed class VariableDefined : AbstractNotification, IEquatable<VariableDefined> {
       public VariableInfo Info { get; }
 

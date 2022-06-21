@@ -64,13 +64,13 @@ namespace SeedLang.Interpreter {
   // global environment, and allocates register slots for local and temporary variables.
   internal class VariableResolver {
     private class Registers {
-      public int Count => _variableInfos.Count;
-
       private readonly List<VariableInfo> _variableInfos = new List<VariableInfo>();
+
+      public int Count => _variableInfos.Count;
 
       internal uint AllocateRegister(string name = null) {
         var id = (uint)_variableInfos.Count;
-        var info = name is null ? null : new VariableInfo(name, VariableType.Local, id);
+        var info = name == null ? null : new VariableInfo(name, VariableType.Local, id);
         _variableInfos.Add(info);
         return id;
       }
@@ -78,7 +78,6 @@ namespace SeedLang.Interpreter {
       internal VariableInfo this[int index] {
         get {
           Debug.Assert(index >= 0 && index < _variableInfos.Count);
-          Debug.Assert(!(_variableInfos[index] is null));
           return _variableInfos[index];
         }
       }
@@ -97,37 +96,36 @@ namespace SeedLang.Interpreter {
     }
 
     private class GlobalScope : IScope {
+      private readonly GlobalEnvironment _env;
+
       public string Path => null;
       public Registers Registers { get; } = new Registers();
-
-      private readonly GlobalEnvironment _env;
 
       public GlobalScope(GlobalEnvironment env) {
         _env = env;
       }
 
       public VariableInfo DefineVariable(string name) {
-        return VariableInfoOf(name, _env.DefineVariable(name));
+        return new VariableInfo(name, VariableType.Global, _env.DefineVariable(name));
       }
 
       public VariableInfo FindVariable(string name) {
-        return _env.FindVariable(name) is uint id ? VariableInfoOf(name, id) : null;
+        if (_env.FindVariable(name) is uint id) {
+          return new VariableInfo(name, VariableType.Global, id);
+        }
+        return null;
       }
 
       public uint DefineTempVariable() {
         return Registers.AllocateRegister();
       }
-
-      private static VariableInfo VariableInfoOf(string name, uint id) {
-        return new VariableInfo($"{name}", VariableType.Global, id);
-      }
     }
 
     private class ExprScope : IScope {
+      private readonly int _start;
+
       public string Path => null;
       public Registers Registers { get; }
-
-      private readonly int _start;
 
       internal ExprScope(IScope parent) {
         Registers = parent.Registers;
@@ -152,10 +150,10 @@ namespace SeedLang.Interpreter {
     }
 
     private class FuncScope : IScope {
+      private readonly Dictionary<string, uint> _variables = new Dictionary<string, uint>();
+
       public string Path { get; }
       public Registers Registers { get; } = new Registers();
-
-      private readonly Dictionary<string, uint> _variables = new Dictionary<string, uint>();
 
       internal FuncScope(IScope parent, string name) {
         Path = !(parent.Path is null) ? $"{parent.Path}.{name}" : $"{name}";

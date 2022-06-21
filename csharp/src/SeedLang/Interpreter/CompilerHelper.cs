@@ -84,8 +84,10 @@ namespace SeedLang.Interpreter {
       return _variableResolver.FindVariable(name);
     }
 
-    internal uint DefineTempVariable() {
-      return _variableResolver.DefineTempVariable();
+    internal uint DefineTempVariable(TextRange range) {
+      uint id = _variableResolver.DefineTempVariable();
+      EmitTempRegisterAllocatedNotification(id, range);
+      return id;
     }
 
     internal uint? GetRegisterOrConstantId(Expression expr) {
@@ -153,12 +155,8 @@ namespace SeedLang.Interpreter {
         var nId = Cache.IdOfNotification(new Notification.Function(name, funcRegister, argLength));
         Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
       }
-      bool notifyVariableDeleted = !_suspendNotificationEmitting &&
-                                   !NativeFunctions.IsNativeFunc(name) &&
-                                   _visualizerCenter.IsVariableTrackingEnabled;
-      if (notifyVariableDeleted) {
-        var nId = Cache.IdOfNotification(new Notification.VariableDeleted(0));
-        Emit(Opcode.VISNOTIFY, 0, nId, range);
+      if (!NativeFunctions.IsNativeFunc(name)) {
+        EmitVariableDeletedNotification(0, range);
       }
     }
 
@@ -211,9 +209,23 @@ namespace SeedLang.Interpreter {
       }
     }
 
+    internal void EmitTempRegisterAllocatedNotification(uint id, TextRange range) {
+      if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
+        var n = new Notification.TempRegisterAllocated(id);
+        Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
+      }
+    }
+
     internal void EmitVariableDefinedNotification(VariableInfo info, TextRange range) {
       if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
         var n = new Notification.VariableDefined(info);
+        Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
+      }
+    }
+
+    internal void EmitVariableDeletedNotification(uint startRegister, TextRange range) {
+      if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
+        var n = new Notification.VariableDeleted(startRegister);
         Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }
     }
@@ -309,7 +321,7 @@ namespace SeedLang.Interpreter {
             if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
               valueIds[j] = id;
             } else {
-              valueIds[j] = DefineTempVariable();
+              valueIds[j] = DefineTempVariable(vTag.Range);
               exprCompiler.Visit(vTagInfo.Args[j].Expr, new ExprCompiler.Context {
                 TargetRegister = valueIds[j].Value,
               });

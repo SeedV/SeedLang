@@ -52,16 +52,11 @@ namespace SeedLang.Interpreter.Tests {
       );
       string expected = (
           $"Function <main>\n" +
-          $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
-          $"  2    LOADK     2 -2             ; 2                 {_range}\n" +
-          $"  3    NEWTUPLE  0 1 2                                {_range}\n" +
-          $"  4    LOADK     2 -3             ; 0                 {_range}\n" +
-          $"  5    GETELEM   1 0 2                                {_range}\n" +
-          $"  6    SETGLOB   1 {_firstGlob}                                  {_range}\n" +
-          $"  7    LOADK     2 -1             ; 1                 {_range}\n" +
-          $"  8    GETELEM   1 0 2                                {_range}\n" +
-          $"  9    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
-          $"  10   HALT      1 0                                  {_range}\n"
+          $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
+          $"  2    LOADK     1 -2             ; 2                 {_range}\n" +
+          $"  3    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  4    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  5    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -190,17 +185,15 @@ namespace SeedLang.Interpreter.Tests {
       );
       string expected = (
           $"Function <main>\n" +
-          $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
-          $"  2    LOADK     2 -2             ; 2                 {_range}\n" +
-          $"  3    NEWTUPLE  0 1 2                                {_range}\n" +
-          $"  4    LOADK     2 -3             ; 0                 {_range}\n" +
-          $"  5    GETELEM   1 0 2                                {_range}\n" +
-          $"  6    SETGLOB   1 {_firstGlob}                                  {_range}\n" +
-          $"  7    LOADK     2 -1             ; 1                 {_range}\n" +
-          $"  8    GETELEM   1 0 2                                {_range}\n" +
-          $"  9    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
-          $"  10   SETGLOB   0 {_firstGlob + 2}                                  {_range}\n" +
-          $"  11   HALT      1 0                                  {_range}\n"
+          $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
+          $"  2    LOADK     1 -2             ; 2                 {_range}\n" +
+          $"  3    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  4    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  5    LOADK     3 -1             ; 1                 {_range}\n" +
+          $"  6    LOADK     4 -2             ; 2                 {_range}\n" +
+          $"  7    NEWTUPLE  2 3 2                                {_range}\n" +
+          $"  8    SETGLOB   2 {_firstGlob + 2}                                  {_range}\n" +
+          $"  9    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }
@@ -646,20 +639,15 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    LOADK     3 -3             ; 3                 {_range}\n" +
           $"  4    NEWLIST   0 1 3                                {_range}\n" +
           $"  5    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  6    GETGLOB   2 {_firstGlob}                                  {_range}\n" +
-          $"  7    GETELEM   1 2 -1           ; 1                 {_range}\n" +
-          $"  8    GETGLOB   3 {_firstGlob}                                  {_range}\n" +
-          $"  9    GETELEM   2 3 -4           ; 0                 {_range}\n" +
-          $"  10   NEWTUPLE  0 1 2                                {_range}\n" +
-          $"  11   LOADK     2 -4             ; 0                 {_range}\n" +
-          $"  12   GETELEM   1 0 2                                {_range}\n" +
-          $"  13   GETGLOB   3 {_firstGlob}                                  {_range}\n" +
-          $"  14   SETELEM   3 -4 1           ; 0                 {_range}\n" +
-          $"  15   LOADK     2 -1             ; 1                 {_range}\n" +
-          $"  16   GETELEM   1 0 2                                {_range}\n" +
-          $"  17   GETGLOB   3 {_firstGlob}                                  {_range}\n" +
-          $"  18   SETELEM   3 -1 1           ; 1                 {_range}\n" +
-          $"  19   HALT      1 0                                  {_range}\n"
+          $"  6    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  7    GETELEM   0 1 -1           ; 1                 {_range}\n" +
+          $"  8    GETGLOB   2 {_firstGlob}                                  {_range}\n" +
+          $"  9    GETELEM   1 2 -4           ; 0                 {_range}\n" +
+          $"  10   GETGLOB   2 {_firstGlob}                                  {_range}\n" +
+          $"  11   SETELEM   2 -4 0           ; 0                 {_range}\n" +
+          $"  12   GETGLOB   3 {_firstGlob}                                  {_range}\n" +
+          $"  13   SETELEM   3 -1 1           ; 1                 {_range}\n" +
+          $"  14   HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

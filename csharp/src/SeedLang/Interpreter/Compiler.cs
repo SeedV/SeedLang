@@ -258,15 +258,12 @@ namespace SeedLang.Interpreter {
     }
 
     private void Pack(Expression[][] chainedTargets, Expression[] values, TextRange range) {
-      uint tupleId = VisitExpressionForRegisterId(Expression.Tuple(values, range));
       foreach (Expression[] targets in chainedTargets) {
         if (targets.Length == 1) {
+          uint tupleId = VisitExpressionForRegisterId(Expression.Tuple(values, range));
           Assign(targets[0], null, tupleId, range);
-        } else if (targets.Length == values.Length) {
-          UnpackTuple(targets, tupleId, range);
         } else {
-          throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
-                                        Message.RuntimeErrorIncorrectUnpackCount);
+          MultipleAssign(targets, values, range);
         }
       }
     }
@@ -304,6 +301,21 @@ namespace SeedLang.Interpreter {
         _helper.Emit(Opcode.GETELEM, elemId, tupleId, indexId, range);
         Assign(targets[i], null, elemId, range);
         _helper.EndExprScope();
+      }
+    }
+
+    private void MultipleAssign(Expression[] targets, Expression[] values, TextRange range) {
+      if (targets.Length == values.Length) {
+        var valueIds = new uint[values.Length];
+        for (int i = 0; i < values.Length; i++) {
+          valueIds[i] = VisitExpressionForRegisterId(values[i]);
+        }
+        for (int i = 0; i < targets.Length; i++) {
+          Assign(targets[i], null, valueIds[i], range);
+        }
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedAst, Severity.Fatal, "", range,
+                                      Message.RuntimeErrorIncorrectUnpackCount);
       }
     }
 

@@ -35,8 +35,8 @@ namespace SeedLang.Visualization {
     Variable,
   }
 
-  // The LValue class. It could be a variable or an element of containers. The Keys
-  // field is empty if it's a variable.
+  // The LValue class. It could be a variable or an element of containers. The Keys field is null if
+  // it's a variable.
   public class LValue {
     public LValueType Type { get; }
     public Variable Variable { get; }
@@ -63,8 +63,8 @@ namespace SeedLang.Visualization {
     }
   }
 
-  // The class that is used as operands of binary and comparison events. It could be a variable,
-  // an element of containers or a temporary value. The Variable field is null if it's a temporary
+  // The RValue class. It could be a variable, an element of containers or a temporary value. The
+  // Keys field is null if it's a variable. The Variable and Keys field is null if it's a temporary
   // value.
   public class RValue {
     public RValueType Type { get; }

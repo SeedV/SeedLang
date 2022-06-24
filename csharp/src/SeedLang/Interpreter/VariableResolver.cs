@@ -64,13 +64,13 @@ namespace SeedLang.Interpreter {
   // global environment, and allocates register slots for local and temporary variables.
   internal class VariableResolver {
     private class Registers {
-      private readonly List<VariableInfo> _variableInfos = new List<VariableInfo>();
-
       public int Count => _variableInfos.Count;
+
+      private readonly List<VariableInfo> _variableInfos = new List<VariableInfo>();
 
       internal uint AllocateRegister(string name = null) {
         var id = (uint)_variableInfos.Count;
-        var info = name == null ? null : new VariableInfo(name, VariableType.Local, id);
+        var info = name is null ? null : new VariableInfo(name, VariableType.Local, id);
         _variableInfos.Add(info);
         return id;
       }
@@ -96,10 +96,10 @@ namespace SeedLang.Interpreter {
     }
 
     private class GlobalScope : IScope {
-      private readonly GlobalEnvironment _env;
-
       public string Path => null;
       public Registers Registers { get; } = new Registers();
+
+      private readonly GlobalEnvironment _env;
 
       public GlobalScope(GlobalEnvironment env) {
         _env = env;
@@ -122,10 +122,10 @@ namespace SeedLang.Interpreter {
     }
 
     private class ExprScope : IScope {
-      private readonly int _start;
-
       public string Path => null;
       public Registers Registers { get; }
+
+      private readonly int _start;
 
       internal ExprScope(IScope parent) {
         Registers = parent.Registers;
@@ -150,10 +150,10 @@ namespace SeedLang.Interpreter {
     }
 
     private class FuncScope : IScope {
-      private readonly Dictionary<string, uint> _variables = new Dictionary<string, uint>();
-
       public string Path { get; }
       public Registers Registers { get; } = new Registers();
+
+      private readonly Dictionary<string, uint> _variables = new Dictionary<string, uint>();
 
       internal FuncScope(IScope parent, string name) {
         Path = !(parent.Path is null) ? $"{parent.Path}.{name}" : $"{name}";

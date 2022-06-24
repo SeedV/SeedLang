@@ -118,7 +118,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleAssignment(Notification.Assignment assign) {
-      var target = new LValue(new Variable(assign.Name, ToVariableType(assign.Type)));
+      var target = new LValue(new Variable(assign.Name, assign.Type));
       _visualizerCenter.Notify(new Event.Assignment(target, MakeRValue(assign.ValueId),
                                                     _chunk.Ranges[_pc]));
     }
@@ -204,7 +204,7 @@ namespace SeedLang.Interpreter {
       if (!container.IsTemporary) {
         var keys = container.Keys.ToList();
         keys.Add(new Value(ValueOfRK(assign.KeyId)));
-        var type = ToVariableType(container.RefVariableType);
+        var type = container.RefVariableType;
         var target = new LValue(new Variable(container.Name, type), keys);
         _visualizerCenter.Notify(new Event.Assignment(target, MakeRValue(assign.ValueId),
                                                       _chunk.Ranges[_pc]));
@@ -237,7 +237,7 @@ namespace SeedLang.Interpreter {
       }
       if (isFirstTimeDefined && _visualizerCenter.HasVisualizer<Event.VariableDefined>()) {
         _visualizerCenter.Notify(new Event.VariableDefined(variableDefined.Info.Name,
-                                                           ToVariableType(variableDefined.Info.Type),
+                                                           variableDefined.Info.Type,
                                                            _chunk.Ranges[_pc]));
       }
     }
@@ -504,7 +504,7 @@ namespace SeedLang.Interpreter {
         Registers.RegisterInfo info = _registers.GetRegisterInfo(operandId);
         if (!info.IsTemporary) {
           VariableType type = info.IsLocal ? VariableType.Local : info.RefVariableType;
-          var variable = new Variable(info.Name, ToVariableType(type));
+          var variable = new Variable(info.Name, type);
           if (info.Keys.Count > 0) {
             return new RValue(variable, info.Keys, value);
           } else {
@@ -526,14 +526,6 @@ namespace SeedLang.Interpreter {
 
     private static bool IsRegisterId(uint rkId) {
       return rkId < Chunk.MaxRegisterCount;
-    }
-
-    private static Visualization.VariableType ToVariableType(VariableType type) {
-      return type switch {
-        VariableType.Global => Visualization.VariableType.Global,
-        VariableType.Local => Visualization.VariableType.Local,
-        _ => throw new NotImplementedException($"Unsupported variable type {type}."),
-      };
     }
   }
 }

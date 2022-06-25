@@ -24,82 +24,63 @@ namespace SeedLang.Visualization {
     Upvalue,
   }
 
-  public enum LValueType {
-    ElementOfContainer,
-    Variable,
-  }
-
-  public enum RValueType {
-    ElementOfContainer,
-    TemporaryValue,
-    Variable,
-  }
-
   // The LValue class. It could be a variable or an element of containers. The Keys field is null if
   // it's a variable.
   public class LValue {
-    public LValueType Type { get; }
+    public bool IsElement => !IsVariable;
+    public bool IsVariable => Keys is null;
+
     public Variable Variable { get; }
     public IReadOnlyList<Value> Keys { get; }
 
     public LValue(Variable variable, IReadOnlyList<Value> keys) {
-      Type = LValueType.ElementOfContainer;
       Variable = variable;
       Keys = keys;
     }
 
     public LValue(Variable variable) {
-      Type = LValueType.Variable;
       Variable = variable;
       Keys = null;
     }
 
     public override string ToString() {
-      return Type switch {
-        LValueType.ElementOfContainer => $"{Variable}[{string.Join("][", Keys)}]",
-        LValueType.Variable => $"{Variable}",
-        _ => throw new NotImplementedException($"Unsupported LValue type: {Type}"),
-      };
+      return IsElement ? $"{Variable}[{string.Join("][", Keys)}]" : $"{Variable}";
     }
   }
 
   // The RValue class. It could be a variable, an element of containers or a temporary value. The
-  // Keys field is null if it's a variable. The Variable and Keys field is null if it's a temporary
-  // value.
+  // Keys field is null if it's a variable. The Variable and Keys fields are null if it's a
+  // temporary value.
   public class RValue {
-    public RValueType Type { get; }
+    public bool IsElement => !(Variable is null) && !(Keys is null);
+    public bool IsTemporary => Variable is null && Keys is null;
+    public bool IsVariable => !(Variable is null) && Keys is null;
+
     public Variable Variable { get; }
     public IReadOnlyList<Value> Keys { get; }
     public Value Value { get; }
 
     public RValue(Variable variable, IReadOnlyList<Value> keys, Value value) {
-      Type = RValueType.ElementOfContainer;
       Variable = variable;
       Keys = keys;
       Value = value;
     }
 
     public RValue(Value value) {
-      Type = RValueType.TemporaryValue;
       Variable = null;
       Keys = null;
       Value = value;
     }
 
     public RValue(Variable variable, Value value) {
-      Type = RValueType.Variable;
       Variable = variable;
       Keys = null;
       Value = value;
     }
 
     public override string ToString() {
-      return Type switch {
-        RValueType.ElementOfContainer => $"{Variable}[{string.Join("][", Keys)}] {Value}",
-        RValueType.TemporaryValue => $"{Value}",
-        RValueType.Variable => $"{Variable} {Value}",
-        _ => throw new NotImplementedException($"Unsupported LValue type: {Type}."),
-      };
+      return IsElement ? $"{Variable}[{string.Join("][", Keys)}] {Value}" :
+                         (IsTemporary ? $"{Value}" : $"{Variable} {Value}");
     }
   }
 

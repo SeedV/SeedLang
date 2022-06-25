@@ -289,6 +289,39 @@ namespace SeedLang.X.Tests {
       TestScanTokens(source, expectedTokens);
     }
 
+    [Fact]
+    public void TestAdditionalTab() {
+      string source = "a = 0\n" +
+                      "for i in range(10):\n" +
+                      "\ta = a + i\n" +
+                      "\t";
+      var expectedTokens = new string[] {
+          $"[@-1,0:0='a',<{SeedPythonParser.NAME}>,1:0]",
+          $"[@-1,2:2='=',<{SeedPythonParser.EQUAL}>,1:2]",
+          $"[@-1,4:4='0',<{SeedPythonParser.NUMBER}>,1:4]",
+          $"[@-1,5:5='\\n',<{SeedPythonParser.NEWLINE}>,1:5]",
+          $"[@-1,6:8='for',<{SeedPythonParser.FOR}>,2:0]",
+          $"[@-1,10:10='i',<{SeedPythonParser.NAME}>,2:4]",
+          $"[@-1,12:13='in',<{SeedPythonParser.IN}>,2:6]",
+          $"[@-1,15:19='range',<{SeedPythonParser.NAME}>,2:9]",
+          $"[@-1,20:20='(',<{SeedPythonParser.OPEN_PAREN}>,2:14]",
+          $"[@-1,21:22='10',<{SeedPythonParser.NUMBER}>,2:15]",
+          $"[@-1,23:23=')',<{SeedPythonParser.CLOSE_PAREN}>,2:17]",
+          $"[@-1,24:24=':',<{SeedPythonParser.COLON}>,2:18]",
+          $"[@-1,25:25='\\n',<{SeedPythonParser.NEWLINE}>,2:19]",
+          $"[@-1,26:26='\\t',<{SeedPythonParser.INDENT}>,3:0]",
+          $"[@-1,27:27='a',<{SeedPythonParser.NAME}>,3:1]",
+          $"[@-1,29:29='=',<{SeedPythonParser.EQUAL}>,3:3]",
+          $"[@-1,31:31='a',<{SeedPythonParser.NAME}>,3:5]",
+          $"[@-1,33:33='+',<{SeedPythonParser.ADD}>,3:7]",
+          $"[@-1,35:35='i',<{SeedPythonParser.NAME}>,3:9]",
+          $"[@-1,36:37='\\n\\t',<{SeedPythonParser.NEWLINE}>,3:10]",
+          $"[@-1,38:38='\\n',<{SeedPythonParser.NEWLINE}>,4:1]",
+          $"[@-1,38:38='',<{SeedPythonParser.DEDENT}>,5:0]",
+      };
+      TestScanTokens(source, expectedTokens);
+    }
+
     private static void TestScanTokens(string source, string[] expectedTokens) {
       var inputStream = new AntlrInputStream(source);
       var lexer = new SeedPythonDentLexer(inputStream);

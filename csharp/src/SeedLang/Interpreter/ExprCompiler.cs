@@ -91,7 +91,8 @@ namespace SeedLang.Interpreter {
       if (call.Func is IdentifierExpression identifier) {
         if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
           bool needRegister = context.TargetRegister != _helper.LastRegister;
-          uint funcRegister = needRegister ? _helper.DefineTempVariable() : context.TargetRegister;
+          uint funcRegister = needRegister ? _helper.DefineTempVariable(identifier.Range) :
+                                             context.TargetRegister;
           switch (info.Type) {
             case VariableType.Global:
               _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
@@ -104,7 +105,7 @@ namespace SeedLang.Interpreter {
               break;
           }
           foreach (Expression expr in call.Arguments) {
-            Visit(expr, new Context { TargetRegister = _helper.DefineTempVariable() });
+            Visit(expr, new Context { TargetRegister = _helper.DefineTempVariable(expr.Range) });
           }
           _helper.EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
           if (needRegister) {
@@ -136,15 +137,15 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       uint? first = null;
       foreach (var item in dict.KeyValues) {
-        uint register = _helper.DefineTempVariable();
+        uint register = _helper.DefineTempVariable(dict.Range);
         if (!first.HasValue) {
           first = register;
         }
         Visit(item.Key, new Context { TargetRegister = register });
-        Visit(item.Value, new Context { TargetRegister = _helper.DefineTempVariable() });
+        Visit(item.Value, new Context { TargetRegister = _helper.DefineTempVariable(dict.Range) });
       }
-      _helper.Emit(Opcode.NEWDICT, context.TargetRegister, first ?? 0, (uint)dict.KeyValues.Length * 2,
-                   dict.Range);
+      _helper.Emit(Opcode.NEWDICT, context.TargetRegister, first ?? 0,
+                   (uint)dict.KeyValues.Length * 2, dict.Range);
       _helper.EndExprScope();
     }
 
@@ -215,7 +216,6 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       uint exprId = VisitExpressionForRKId(unary.Expr);
       _helper.Emit(Opcode.UNM, context.TargetRegister, exprId, 0, unary.Range);
-      _helper.EmitUnaryNotification(unary.Op, exprId, context.TargetRegister, unary.Range);
       _helper.EndExprScope();
     }
 
@@ -248,6 +248,10 @@ namespace SeedLang.Interpreter {
       if (nextBooleanOp == BooleanOperator.Or) {
         checkFlag = !checkFlag;
       }
+      // Emits a comparison notification for each single comparison before the actual comparison.
+      // Two notifications have to be emitted in two different execution paths if emitting after the
+      // actual comparison.
+      _helper.EmitComparisonNotification(leftRegister, op, rightRegister, range);
       _helper.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
       _helper.Emit(Opcode.JMP, 0, 0, range);
       switch (nextBooleanOp) {
@@ -266,7 +270,7 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       uint? first = null;
       foreach (var expr in exprs) {
-        uint register = _helper.DefineTempVariable();
+        uint register = _helper.DefineTempVariable(range);
         if (!first.HasValue) {
           first = register;
         }
@@ -278,7 +282,7 @@ namespace SeedLang.Interpreter {
 
     private uint VisitExpressionForRegisterId(Expression expr) {
       if (!(_helper.GetRegisterId(expr) is uint exprId)) {
-        exprId = _helper.DefineTempVariable();
+        exprId = _helper.DefineTempVariable(expr.Range);
         Visit(expr, new Context { TargetRegister = exprId });
       }
       return exprId;
@@ -286,7 +290,7 @@ namespace SeedLang.Interpreter {
 
     private uint VisitExpressionForRKId(Expression expr) {
       if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
-        exprId = _helper.DefineTempVariable();
+        exprId = _helper.DefineTempVariable(expr.Range);
         Visit(expr, new Context { TargetRegister = exprId });
       }
       return exprId;

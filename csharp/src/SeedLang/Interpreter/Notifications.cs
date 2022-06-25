@@ -67,7 +67,7 @@ namespace SeedLang.Interpreter {
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: '{Name}': {Type} {ValueId}";
+        return $"Notification.{GetType().Name}: '{Name}' {Type} {ValueId}";
       }
 
       internal override void Accept(VM vm) {
@@ -121,6 +121,52 @@ namespace SeedLang.Interpreter {
 
       internal override void Accept(VM vm) {
         vm.HandleBinary(this);
+      }
+    }
+
+    internal sealed class Comparison : AbstractNotification, IEquatable<Comparison> {
+      public uint LeftId { get; }
+      public ComparisonOperator Op { get; }
+      public uint RightId { get; }
+
+      internal Comparison(uint leftId, ComparisonOperator op, uint rightId) {
+        LeftId = leftId;
+        Op = op;
+        RightId = rightId;
+      }
+
+      public static bool operator ==(Comparison lhs, Comparison rhs) {
+        return lhs.Equals(rhs);
+      }
+
+      public static bool operator !=(Comparison lhs, Comparison rhs) {
+        return !(lhs == rhs);
+      }
+
+      public bool Equals(Comparison other) {
+        if (other is null) {
+          return false;
+        }
+        if (ReferenceEquals(this, other)) {
+          return true;
+        }
+        return LeftId == other.LeftId && Op == other.Op && RightId == other.RightId;
+      }
+
+      public override bool Equals(object obj) {
+        return Equals(obj as Comparison);
+      }
+
+      public override int GetHashCode() {
+        return new { LeftId, Op, RightId, }.GetHashCode();
+      }
+
+      public override string ToString() {
+        return $"Notification.{GetType().Name}: {LeftId} {Op} {RightId}";
+      }
+
+      internal override void Accept(VM vm) {
+        vm.HandleComparison(this);
       }
     }
 
@@ -346,49 +392,46 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal sealed class Unary : AbstractNotification, IEquatable<Unary> {
-      public UnaryOperator Op { get; }
-      public uint ValueId { get; }
-      public uint ResultId { get; }
+    internal sealed class TempRegisterAllocated :
+        AbstractNotification, IEquatable<TempRegisterAllocated> {
+      public uint Id { get; }
 
-      internal Unary(UnaryOperator op, uint valueId, uint resultId) {
-        Op = op;
-        ValueId = valueId;
-        ResultId = resultId;
+      internal TempRegisterAllocated(uint id) {
+        Id = id;
       }
 
-      public static bool operator ==(Unary lhs, Unary rhs) {
+      public static bool operator ==(TempRegisterAllocated lhs, TempRegisterAllocated rhs) {
         return lhs.Equals(rhs);
       }
 
-      public static bool operator !=(Unary lhs, Unary rhs) {
+      public static bool operator !=(TempRegisterAllocated lhs, TempRegisterAllocated rhs) {
         return !(lhs == rhs);
       }
 
-      public bool Equals(Unary other) {
+      public bool Equals(TempRegisterAllocated other) {
         if (other is null) {
           return false;
         }
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return Op == other.Op && ValueId == other.ValueId && ResultId == other.ResultId;
+        return Id == other.Id;
       }
 
       public override bool Equals(object obj) {
-        return Equals(obj as Unary);
+        return Equals(obj as TempRegisterAllocated);
       }
 
       public override int GetHashCode() {
-        return new { Op, ValueId, ResultId, }.GetHashCode();
+        return Id.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {Op} {ValueId} {ResultId}";
+        return $"Notification.{GetType().Name}: {Id}";
       }
 
       internal override void Accept(VM vm) {
-        vm.HandleUnary(this);
+        vm.HandleTempRegisterAllocated(this);
       }
     }
 

@@ -13,43 +13,10 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using SeedLang.Common;
 using SeedLang.Runtime;
 
 namespace SeedLang.Visualization {
-  // The type of variables.
-  public enum VariableType {
-    Global,
-    Local,
-    Upvalue,
-  }
-
-  public class VTagInfo {
-    public string Name { get; }
-    public IReadOnlyList<string> Args { get; }
-    public IReadOnlyList<Value> Values { get; }
-
-    public VTagInfo(string name, IReadOnlyList<string> args, IReadOnlyList<Value> values) {
-      Debug.Assert(args.Count == values.Count);
-      Name = name;
-      Args = args;
-      Values = values;
-    }
-
-    public override string ToString() {
-      var sb = new StringBuilder();
-      sb.Append(Name);
-      sb.Append('(');
-      for (int i = 0; i < Args.Count; i++) {
-        sb.Append(i > 0 ? ", " : "");
-        sb.Append($"{Args[i]}: {Values[i]}");
-      }
-      sb.Append(')');
-      return sb.ToString();
-    }
-  }
 
   public abstract class AbstractEvent {
     // The range of source code.
@@ -61,73 +28,59 @@ namespace SeedLang.Visualization {
   }
 
   public static class Event {
-    // An event which is triggered when a value is assigned to a variable.
+    // An event which is triggered when a value is assigned to a variable or an element of
+    // containers.
     public class Assignment : AbstractEvent {
-      // The name of the assigned variable.
-      public string Name { get; }
-      // The type of the assigned variable.
-      public VariableType Type { get; }
-      public Value Value { get; }
+      public LValue Target { get; }
+      public RValue Value { get; }
 
-      public Assignment(string name, VariableType type, Value value, TextRange range) :
-          base(range) {
-        Name = name;
-        Type = type;
+      public Assignment(LValue target, RValue value, TextRange range) : base(range) {
+        Target = target;
         Value = value;
+      }
+
+      public override string ToString() {
+        return $"{Range} {Target} = {Value}";
       }
     }
 
     // An event which is triggered when a binary expression is evaluated.
     public class Binary : AbstractEvent {
-      public Value Left { get; }
+      public RValue Left { get; }
       public BinaryOperator Op { get; }
-      public Value Right { get; }
+      public RValue Right { get; }
       public Value Result { get; }
 
-      public Binary(Value left, BinaryOperator op, Value right, Value result, TextRange range) :
+      public Binary(RValue left, BinaryOperator op, RValue right, Value result, TextRange range) :
           base(range) {
         Left = left;
         Op = op;
         Right = right;
         Result = result;
       }
-    }
 
-    // An event which is triggered when a boolean expression is evaluated.
-    //
-    // Not all the expressions are evaluated due to short circuit. The values without evaluated are
-    // filled as null.
-    public class Boolean : AbstractEvent {
-      public BooleanOperator Op { get; }
-      public IReadOnlyList<Value> Values { get; }
-      public Value Result { get; }
-
-      public Boolean(BooleanOperator op, IReadOnlyList<Value> values, Value result, TextRange range)
-          : base(range) {
-        Debug.Assert(values.Count > 1);
-        Op = op;
-        Values = values;
-        Result = result;
+      public override string ToString() {
+        return $"{Range} {Left} {Op} {Right} = {Result}";
       }
     }
 
     // An event which is triggered when a comparison expression is evaluated.
-    //
-    // The count of values is as same as Ops. But not all the expressions are evaluated due to short
-    // circuit. The values without evaluated are filled as null.
     public class Comparison : AbstractEvent {
-      public Value First { get; }
-      public IReadOnlyList<ComparisonOperator> Ops { get; }
-      public IReadOnlyList<Value> Values { get; }
+      public RValue Left { get; }
+      public ComparisonOperator Op { get; }
+      public RValue Right { get; }
       public Value Result { get; }
 
-      public Comparison(Value first, IReadOnlyList<ComparisonOperator> ops,
-                        IReadOnlyList<Value> values, Value result, TextRange range) : base(range) {
-        Debug.Assert(ops.Count > 0 && ops.Count == values.Count);
-        First = first;
-        Values = values;
-        Ops = ops;
+      public Comparison(RValue left, ComparisonOperator op, RValue right, Value result,
+                        TextRange range) : base(range) {
+        Left = left;
+        Op = op;
+        Right = right;
         Result = result;
+      }
+
+      public override string ToString() {
+        return $"{Range} {Left} {Op} {Right} = {Result}";
       }
     }
 
@@ -140,6 +93,10 @@ namespace SeedLang.Visualization {
         Name = name;
         Args = args;
       }
+
+      public override string ToString() {
+        return $"{Range} FuncCalled: {Name}({string.Join(", ", Args)})";
+      }
     }
 
     // An event which is triggered when a function is returned.
@@ -151,40 +108,18 @@ namespace SeedLang.Visualization {
         Name = name;
         Result = result;
       }
+
+      public override string ToString() {
+        return $"{Range} FuncReturned: {Name} {Result}";
+      }
     }
 
     // An event which is triggered when each statement is starting to execute.
     public class SingleStep : AbstractEvent {
       public SingleStep(TextRange range) : base(range) { }
-    }
 
-    // An event which is triggered when a value is assigned to an element of a container.
-    public class SubscriptAssignment : AbstractEvent {
-      public string Name { get; }
-      // The variable type of the container.
-      public VariableType Type { get; }
-      public IReadOnlyList<Value> Keys { get; }
-      public Value Value { get; }
-
-      public SubscriptAssignment(string name, VariableType type, IReadOnlyList<Value> keys,
-                                 Value value, TextRange range) : base(range) {
-        Name = name;
-        Type = type;
-        Keys = keys;
-        Value = value;
-      }
-    }
-
-    // An event which is triggered when an unary expression is executed.
-    public class Unary : AbstractEvent {
-      public UnaryOperator Op { get; }
-      public Value Value { get; }
-      public Value Result { get; }
-
-      public Unary(UnaryOperator op, Value value, Value result, TextRange range) : base(range) {
-        Op = op;
-        Value = value;
-        Result = result;
+      public override string ToString() {
+        return $"{Range} SingleStep";
       }
     }
 
@@ -197,6 +132,10 @@ namespace SeedLang.Visualization {
         Name = name;
         Type = type;
       }
+
+      public override string ToString() {
+        return $"{Range} VariableDefined: {Name} ({Type})";
+      }
     }
 
     // An event which is triggered when a variable is deleted.
@@ -208,6 +147,10 @@ namespace SeedLang.Visualization {
         Name = name;
         Type = type;
       }
+
+      public override string ToString() {
+        return $"{Range} VariableDeleted: {Name} ({Type})";
+      }
     }
 
     // An event which is triggered when a VTag scope is entered.
@@ -217,6 +160,10 @@ namespace SeedLang.Visualization {
       public VTagEntered(IReadOnlyList<VTagInfo> vTags, TextRange range) : base(range) {
         VTags = vTags;
       }
+
+      public override string ToString() {
+        return $"{Range} VTagEntered: {string.Join(", ", VTags)}";
+      }
     }
 
     // An event which is triggered when a VTag scope is exited.
@@ -225,6 +172,10 @@ namespace SeedLang.Visualization {
 
       public VTagExited(IReadOnlyList<VTagInfo> vTags, TextRange range) : base(range) {
         VTags = vTags;
+      }
+
+      public override string ToString() {
+        return $"{Range} VTagExited: {string.Join(", ", VTags)}";
       }
     }
   }

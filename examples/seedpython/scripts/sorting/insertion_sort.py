@@ -5,7 +5,6 @@ for i in range(1, len(a)):
     # [[ Save(key, i) ]]
     key = a[i]
     j = i - 1
-    # [[ Compare(key, j) ]]
     while j >= 0 and key < a[j]:
         a[j + 1] = a[j]
         j -= 1

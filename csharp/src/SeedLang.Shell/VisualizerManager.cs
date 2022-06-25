@@ -123,28 +123,18 @@ namespace SeedLang.Shell {
       Console.ForegroundColor = ConsoleColor.Black;
       switch (e) {
         case Event.Assignment ae:
-          Console.Write($"Assign: {ae.Name} = {ae.Value}");
+          Console.Write($"Assign: {ae.Target} = {ae.Value}");
           break;
         case Event.Binary be: {
             var op = _binaryOperatorStrings[be.Op];
             Console.Write($"Binary: {be.Left} {op} {be.Right} = {be.Result}");
             break;
           }
-        case Event.Boolean be: {
-            var op = _booleanOperatorStrings[be.Op];
-            foreach (Value value in be.Values) {
-              Console.Write($"{op} {value} ");
-            }
-            Console.Write($"= {be.Result}");
+        case Event.Comparison ce: {
+            var op = _comparisonOperatorStrings[ce.Op];
+            Console.Write($"Comparison: {ce.Left} {op} {ce.Right} = {ce.Result}");
             break;
           }
-        case Event.Comparison ce:
-          Console.Write($"Comparison: {ce.First} ");
-          for (int i = 0; i < ce.Ops.Count; i++) {
-            Console.Write($"{_comparisonOperatorStrings[ce.Ops[i]]} {ce.Values[i]} ");
-          }
-          Console.Write($"= {ce.Result}");
-          break;
         case Event.FuncCalled fce:
           Console.Write($"FuncCalled: {fce.Name} {string.Join(", ", fce.Args)}");
           break;
@@ -153,13 +143,6 @@ namespace SeedLang.Shell {
           break;
         case Event.SingleStep sse:
           Console.Write($"SingleStep: {sse.Range.Start.Line}");
-          break;
-        case Event.SubscriptAssignment sae:
-          var keys = string.Join("][", sae.Keys);
-          Console.Write($"SubscriptAssign: {sae.Name}[{keys}] = {sae.Value}");
-          break;
-        case Event.Unary ue:
-          Console.Write($"Unary: {_unaryOperatorStrings[ue.Op]} {ue.Value} = {ue.Result}");
           break;
         case Event.VariableDefined vde:
           Console.Write($"VariableDefined: {vde.Name}");

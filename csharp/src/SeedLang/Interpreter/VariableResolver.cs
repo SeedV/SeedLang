@@ -78,7 +78,6 @@ namespace SeedLang.Interpreter {
       internal VariableInfo this[int index] {
         get {
           Debug.Assert(index >= 0 && index < _variableInfos.Count);
-          Debug.Assert(!(_variableInfos[index] is null));
           return _variableInfos[index];
         }
       }
@@ -107,19 +106,18 @@ namespace SeedLang.Interpreter {
       }
 
       public VariableInfo DefineVariable(string name) {
-        return VariableInfoOf(name, _env.DefineVariable(name));
+        return new VariableInfo(name, VariableType.Global, _env.DefineVariable(name));
       }
 
       public VariableInfo FindVariable(string name) {
-        return _env.FindVariable(name) is uint id ? VariableInfoOf(name, id) : null;
+        if (_env.FindVariable(name) is uint id) {
+          return new VariableInfo(name, VariableType.Global, id);
+        }
+        return null;
       }
 
       public uint DefineTempVariable() {
         return Registers.AllocateRegister();
-      }
-
-      private static VariableInfo VariableInfoOf(string name, uint id) {
-        return new VariableInfo($"{name}", VariableType.Global, id);
       }
     }
 

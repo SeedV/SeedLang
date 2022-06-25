@@ -25,7 +25,7 @@ namespace SeedLang.Interpreter.Tests {
       var assignment = new Notification.Assignment("a", VariableType.Global, 1);
       (assignment == new Notification.Assignment("a", VariableType.Global, 1)).Should().Be(true);
       (assignment != null).Should().Be(true);
-      assignment.ToString().Should().Be($"Notification.Assignment: 'a': Global 1");
+      assignment.ToString().Should().Be($"Notification.Assignment: 'a' Global 1");
 
       var binary = new Notification.Binary(1, BinaryOperator.Add, 2, 3);
       (binary == new Notification.Binary(1, BinaryOperator.Add, 2, 3)).Should().Be(true);
@@ -57,11 +57,6 @@ namespace SeedLang.Interpreter.Tests {
       (subscriptAssign != null).Should().Be(true);
       subscriptAssign.ToString().Should().Be("Notification.SubscriptAssignment: 0 1 2");
 
-      var unary = new Notification.Unary(UnaryOperator.Positive, 1, 2);
-      (unary == new Notification.Unary(UnaryOperator.Positive, 1, 2)).Should().Be(true);
-      (unary != null).Should().Be(true);
-      unary.ToString().Should().Be("Notification.Unary: Positive 1 2");
-
       var info = new VariableInfo("a", VariableType.Global, 1);
       var variableDefined = new Notification.VariableDefined(info);
       (variableDefined == new Notification.VariableDefined(info)).Should().Be(true);
@@ -89,7 +84,6 @@ namespace SeedLang.Interpreter.Tests {
         [globalLoaded] = "globalLoaded",
         [singleStep] = "singleStep",
         [subscriptAssign] = "subscriptAssign",
-        [unary] = "unary",
         [variableDefined] = "variableDefined",
         [variableDeleted] = "variableDeleted",
         [vTag] = "vTag",
@@ -115,9 +109,6 @@ namespace SeedLang.Interpreter.Tests {
 
       dict[subscriptAssign].Should().Be("subscriptAssign");
       dict[new Notification.SubscriptAssignment(0, 1, 2)].Should().Be("subscriptAssign");
-
-      dict[unary].Should().Be("unary");
-      dict[new Notification.Unary(UnaryOperator.Positive, 1, 2)].Should().Be("unary");
 
       dict[variableDefined].Should().Be("variableDefined");
       info = new VariableInfo("a", VariableType.Global, 1);

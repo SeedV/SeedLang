@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -26,6 +25,59 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class VMNotificationTests {
+    [Fact]
+    public void TestAssignment() {
+      string source = @"
+a = [1, 2]
+for i in range(2):
+  a[i] = 5
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] { typeof(Event.Assignment) });
+      var expected = new string[] {
+        "[Ln 2, Col 0 - Ln 2, Col 9] a:Global = [1, 2]",
+        "[Ln 3, Col 4 - Ln 3, Col 4] i:Global = 0",
+        "[Ln 4, Col 2 - Ln 4, Col 9] a:Global[0] = 5",
+        "[Ln 3, Col 4 - Ln 3, Col 4] i:Global = 1",
+        "[Ln 4, Col 2 - Ln 4, Col 9] a:Global[1] = 5",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void TestComparison() {
+      string source = @"
+str = 'string'
+if str == 'string' and str != 'str' and 'i' in str:
+  print(str)
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] { typeof(Event.Comparison) });
+      var expected = new string[] {
+        "[Ln 3, Col 3 - Ln 3, Col 17] str:Global 'string' EqEqual 'string' = True",
+        "[Ln 3, Col 23 - Ln 3, Col 34] str:Global 'string' NotEqual 'str' = True",
+        "[Ln 3, Col 40 - Ln 3, Col 49] 'i' In str:Global 'string' = True",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void TestMultipleListAssignment() {
+      string source = @"
+a = [[1, 2, 3], [1, 2]]
+a[0][1] = 10
+";
+      (string _, IEnumerable<string> events) = Run(source, new Type[] {
+        typeof(Event.Assignment),
+        typeof(Event.VariableDefined),
+        typeof(Event.VariableDeleted),
+      });
+      var expected = new string[] {
+        "[Ln 2, Col 0 - Ln 2, Col 22] a:Global = [[1, 2, 3], [1, 2]]",
+        "[Ln 3, Col 0 - Ln 3, Col 11] a:Global[0][1] = 10",
+        "[Ln 2, Col 0 - Ln 2, Col 0] VariableDefined: a (Global)",
+      };
+      events.Should().BeEquivalentTo(expected);
+    }
+
     [Fact]
     public void TestSingleStep() {
       string source = @"
@@ -61,77 +113,16 @@ x = add(1, 2)
             typeof(Event.VariableDeleted),
           });
       var expected = new string[] {
-        "[Ln 2, Col 0 - Ln 4, Col 9] VariableDefined: add: Global",
-        "[Ln 6, Col 0 - Ln 6, Col 0] VariableDefined: x: Global",
-        "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: add.a: Local",
-        "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: add.b: Local",
-        "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: add.c: Local",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.c: Local",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.b: Local",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.a: Local",
+        "[Ln 2, Col 0 - Ln 4, Col 9] VariableDefined: add (Global)",
+        "[Ln 6, Col 0 - Ln 6, Col 0] VariableDefined: x (Global)",
+        "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: add.a (Local)",
+        "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: add.b (Local)",
+        "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: add.c (Local)",
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.c (Local)",
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.b (Local)",
+        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.a (Local)",
       };
       events.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
-    public void TestMultipleListAssignment() {
-      string source = @"
-a = [[1, 2, 3], [1, 2]]
-a[0][1] = 10
-";
-      (string _, IEnumerable<string> events) = Run(source, new Type[] {
-        typeof(Event.SubscriptAssignment),
-        typeof(Event.VariableDefined),
-        typeof(Event.VariableDeleted),
-      });
-      var expected = new string[] {
-        "[Ln 3, Col 0 - Ln 3, Col 11] (a: Global)[0][1] = 10",
-        "[Ln 2, Col 0 - Ln 2, Col 0] VariableDefined: a: Global",
-      };
-      events.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
-    public void TestQuickSort() {
-      string source = @"
-# [[ Data ]]
-a = [8, 1, 0, 5, 6, 3, 2, 4, 7, 1]
-
-# [[ Index(start, end) ]]
-def partition(start, end, a):
-  # [[ Index ]]
-  pivot_index = start
-  # [[ Save ]]
-  pivot = a[pivot_index]
-  while start < end:
-    while start < len(a) and a[start] <= pivot:
-      start += 1
-    while a[end] > pivot:
-      end -= 1
-    if (start < end):
-      # [[ Swap(start, end) ]]
-      a[start], a[end] = a[end], a[start]
-    # [[ Swap(end, pivot_index) ]]
-    a[end], a[pivot_index] = a[pivot_index], a[end]
-  return end
-
-
-# [[ Bounds(start, end) ]]
-def quick_sort(start, end, a):
-  if start < end:
-    mid = partition(start, end, a)
-    quick_sort(start, mid - 1, a)
-    quick_sort(mid + 1, end, a)
-
-
-quick_sort(0, len(a) - 1, a)
-print(a)
-";
-      (string output, IEnumerable<string> _) = Run(source, new Type[] {
-        typeof(Event.VTagEntered),
-        typeof(Event.VTagExited),
-      });
-      output.Should().Be("[0, 1, 1, 2, 3, 4, 5, 6, 7, 8]" + Environment.NewLine);
     }
 
     private static (string, IEnumerable<string>) Run(string source,
@@ -147,8 +138,7 @@ print(a)
       var compiler = new Compiler();
       Function func = compiler.Compile(program, vm.Env, vc, RunMode.Interactive);
       vm.Run(func);
-      var events = vh.EventsToString().Split(Environment.NewLine).Where(str => str != string.Empty);
-      return (stringWriter.ToString(), events);
+      return (stringWriter.ToString(), vh.EventStrings);
     }
   }
 }

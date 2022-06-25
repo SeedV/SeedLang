@@ -118,16 +118,40 @@ namespace SeedLang.Interpreter {
     }
 
     internal void HandleAssignment(Notification.Assignment assign) {
-      _visualizerCenter.Notify(new Event.Assignment(assign.Name, assign.Type,
-                                                    new Value(ValueOfRK(assign.ValueId)),
+      var target = new LValue(new Variable(assign.Name, assign.Type));
+      _visualizerCenter.Notify(new Event.Assignment(target, MakeRValue(assign.ValueId),
                                                     _chunk.Ranges[_pc]));
     }
 
     internal void HandleBinary(Notification.Binary binary) {
-      _visualizerCenter.Notify(new Event.Binary(new Value(ValueOfRK(binary.LeftId)), binary.Op,
-                                                new Value(ValueOfRK(binary.RightId)),
+      var left = MakeRValue(binary.LeftId);
+      var right = MakeRValue(binary.RightId);
+      _visualizerCenter.Notify(new Event.Binary(left, binary.Op, right,
                                                 new Value(ValueOfRK(binary.ResultId)),
                                                 _chunk.Ranges[_pc]));
+    }
+
+    internal void HandleComparison(Notification.Comparison comparison) {
+      var left = MakeRValue(comparison.LeftId);
+      var right = MakeRValue(comparison.RightId);
+      bool result = comparison.Op switch {
+        ComparisonOperator.Less =>
+            ValueHelper.Less(left.Value.GetRawValue(), right.Value.GetRawValue()),
+        ComparisonOperator.Greater =>
+            !ValueHelper.LessEqual(left.Value.GetRawValue(), right.Value.GetRawValue()),
+        ComparisonOperator.LessEqual =>
+            ValueHelper.LessEqual(left.Value.GetRawValue(), right.Value.GetRawValue()),
+        ComparisonOperator.GreaterEqual =>
+            !ValueHelper.Less(left.Value.GetRawValue(), right.Value.GetRawValue()),
+        ComparisonOperator.EqEqual => left.Value.GetRawValue() == right.Value.GetRawValue(),
+        ComparisonOperator.NotEqual => left.Value.GetRawValue() != right.Value.GetRawValue(),
+        ComparisonOperator.In =>
+            ValueHelper.Contains(right.Value.GetRawValue(), left.Value.GetRawValue()),
+        _ => throw new NotImplementedException($"Unsupported comparison operator {comparison.Op}"),
+      };
+      _visualizerCenter.Notify(new Event.Comparison(left, comparison.Op, right,
+                                                    new Value(new VMValue(result)),
+                                                    _chunk.Ranges[_pc]));
     }
 
     internal void HandleElementLoaded(Notification.ElementLoaded elemLoaded) {
@@ -180,19 +204,15 @@ namespace SeedLang.Interpreter {
       if (!container.IsTemporary) {
         var keys = container.Keys.ToList();
         keys.Add(new Value(ValueOfRK(assign.KeyId)));
-        _visualizerCenter.Notify(new Event.SubscriptAssignment(container.Name,
-                                                               container.RefVariableType,
-                                                               keys,
-                                                               new Value(ValueOfRK(assign.ValueId)),
-                                                               _chunk.Ranges[_pc]));
+        var type = container.RefVariableType;
+        var target = new LValue(new Variable(container.Name, type), keys);
+        _visualizerCenter.Notify(new Event.Assignment(target, MakeRValue(assign.ValueId),
+                                                      _chunk.Ranges[_pc]));
       }
     }
 
-    internal void HandleUnary(Notification.Unary unary) {
-      _visualizerCenter.Notify(new Event.Unary(unary.Op,
-                                               new Value(ValueOfRK(unary.ValueId)),
-                                               new Value(ValueOfRK(unary.ResultId)),
-                                               _chunk.Ranges[_pc]));
+    internal void HandleTempRegisterAllocated(Notification.TempRegisterAllocated temp) {
+      _registers.SetTempRegisterInfoAt(temp.Id);
     }
 
     internal void HandleVariableDefined(Notification.VariableDefined variableDefined) {
@@ -225,7 +245,8 @@ namespace SeedLang.Interpreter {
     internal void HandleVariableDeleted(Notification.VariableDeleted variableDeleted) {
       _registers.DeleteRegisterInfoFrom(variableDeleted.StartId, localInfo => {
         if (_visualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
-          _visualizerCenter.Notify(new Event.VariableDeleted(localInfo.Name, VariableType.Local,
+          _visualizerCenter.Notify(new Event.VariableDeleted(localInfo.Name,
+                                                             Visualization.VariableType.Local,
                                                              _chunk.Ranges[_pc]));
         }
       });
@@ -477,13 +498,34 @@ namespace SeedLang.Interpreter {
       _pc = _callStack.CurrentPC();
     }
 
+    private RValue MakeRValue(uint operandId) {
+      var value = new Value(ValueOfRK(operandId));
+      if (IsRegisterId(operandId)) {
+        Registers.RegisterInfo info = _registers.GetRegisterInfo(operandId);
+        if (!info.IsTemporary) {
+          VariableType type = info.IsLocal ? VariableType.Local : info.RefVariableType;
+          var variable = new Variable(info.Name, type);
+          if (info.Keys.Count > 0) {
+            return new RValue(variable, info.Keys, value);
+          } else {
+            return new RValue(variable, value);
+          }
+        }
+      }
+      return new RValue(value);
+    }
+
     // Gets the register value or constant value according to rkPos. Returns a readonly reference to
     // avoid copying.
-    private ref readonly VMValue ValueOfRK(uint rkPos) {
-      if (rkPos < Chunk.MaxRegisterCount) {
-        return ref _registers.GetValueAt(rkPos);
+    private ref readonly VMValue ValueOfRK(uint rkId) {
+      if (IsRegisterId(rkId)) {
+        return ref _registers.GetValueAt(rkId);
       }
-      return ref _chunk.ValueOfConstId(rkPos);
+      return ref _chunk.ValueOfConstId(rkId);
+    }
+
+    private static bool IsRegisterId(uint rkId) {
+      return rkId < Chunk.MaxRegisterCount;
     }
   }
 }

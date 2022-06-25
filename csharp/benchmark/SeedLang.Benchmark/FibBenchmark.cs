@@ -43,17 +43,17 @@ fib(35)
 ";
 
     [Benchmark]
-    public void BenchmarkBytecodeFib() {
+    public void BenchmarkFib() {
       Run(_fibSource);
     }
 
     [Benchmark]
-    public void BenchmarkBytecodeForFib() {
+    public void BenchmarkForFib() {
       Run(_forFibSource);
     }
 
     [Benchmark]
-    public void BenchmarkBytecodeRecursiveFib() {
+    public void BenchmarkRecursiveFib() {
       Run(_recursiveFibSource);
     }
 

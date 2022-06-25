@@ -138,12 +138,12 @@ namespace SeedLang.X {
         // Emits an extra line break that serves as the end of the statement.
         EmitToken(CommonToken(SeedPythonParser.NEWLINE, eofToken.StartIndex, eofToken.StartIndex,
                               Environment.NewLine));
-        // Emits as many dedent tokens as needed.
-        while (_indents.Count != 0) {
-          EmitToken(CommonToken(SeedPythonParser.DEDENT, eofToken.StartIndex, eofToken.StartIndex,
-                                eofToken.Line + 1, 0, ""));
-          _indents.Pop();
-        }
+      }
+      // Emits as many dedent tokens as needed.
+      while (_indents.Count != 0) {
+        EmitToken(CommonToken(SeedPythonParser.DEDENT, eofToken.StartIndex, eofToken.StartIndex,
+                              eofToken.Line + 1, 0, ""));
+        _indents.Pop();
       }
       EmitToken(eofToken);
     }

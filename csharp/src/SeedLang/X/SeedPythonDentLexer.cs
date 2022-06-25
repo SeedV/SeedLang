@@ -104,7 +104,7 @@ namespace SeedLang.X {
         spacesStart++;
       }
       int next = InputStream.LA(1);
-      if (spacesStart == Text.Length && next == SeedPythonParser.Eof) {
+      if (next == SeedPythonParser.Eof) {
         _addTrailingNewline = false;
       }
       // Ignores all indents, dedents and line breaks when inside brackets or on a blank line.

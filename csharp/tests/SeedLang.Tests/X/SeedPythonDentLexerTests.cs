@@ -290,7 +290,7 @@ namespace SeedLang.X.Tests {
     }
 
     [Fact]
-    public void TestAdditionalTab() {
+    public void TestExtraTabInLastLine() {
       string source = "a = 0\n" +
                       "for i in range(10):\n" +
                       "\ta = a + i\n" +
@@ -316,7 +316,6 @@ namespace SeedLang.X.Tests {
           $"[@-1,33:33='+',<{SeedPythonParser.ADD}>,3:7]",
           $"[@-1,35:35='i',<{SeedPythonParser.NAME}>,3:9]",
           $"[@-1,36:37='\\n\\t',<{SeedPythonParser.NEWLINE}>,3:10]",
-          $"[@-1,38:38='\\n',<{SeedPythonParser.NEWLINE}>,4:1]",
           $"[@-1,38:38='',<{SeedPythonParser.DEDENT}>,5:0]",
       };
       TestScanTokens(source, expectedTokens);

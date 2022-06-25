@@ -270,6 +270,17 @@ print(a[1:3])
       output.Should().Be("[2, 3]" + Environment.NewLine);
     }
 
+    [Fact]
+    public void TestExtraTabInLastLine() {
+      string source = "for n in range(2):\n\tprint(n)\n\t";
+      (string output, VisualizerHelper _) = Run(Parse(source), Array.Empty<Type>());
+      var expectedOutput = (
+        $"0\n" +
+        $"1\n"
+      ).Replace("\n", Environment.NewLine);
+      output.Should().Be(expectedOutput);
+    }
+
     private static (string, VisualizerHelper) Run(Statement program,
                                                   IReadOnlyList<Type> eventTypes) {
       var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));

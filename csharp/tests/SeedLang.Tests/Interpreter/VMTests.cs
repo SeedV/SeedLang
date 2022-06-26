@@ -281,6 +281,25 @@ print(a[1:3])
       output.Should().Be(expectedOutput);
     }
 
+    [Fact]
+    public void TestExtraIfWithComparisonAndExpression() {
+      string source = @"
+def is_even(n):
+  return n % 2 == 0
+
+for n in range(10):
+  if n < 5 and is_even(n):
+    print(n)
+";
+      (string output, VisualizerHelper _) = Run(Parse(source), Array.Empty<Type>());
+      var expectedOutput = (
+        $"0\n" +
+        $"2\n" +
+        $"4\n"
+      ).Replace("\n", Environment.NewLine);
+      output.Should().Be(expectedOutput);
+    }
+
     private static (string, VisualizerHelper) Run(Statement program,
                                                   IReadOnlyList<Type> eventTypes) {
       var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));

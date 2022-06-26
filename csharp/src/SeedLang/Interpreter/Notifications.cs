@@ -515,7 +515,7 @@ namespace SeedLang.Interpreter {
       }
 
       internal override void Accept(VM vm) {
-        vm.HandleVariableDeleted(this);
+        // vm.HandleVariableDeleted(this);
       }
     }
 

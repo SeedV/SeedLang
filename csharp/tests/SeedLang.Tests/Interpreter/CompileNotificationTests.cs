@@ -201,9 +201,8 @@ add(1, 2)
         $"  13   VISNOTIFY 0 5                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  14   CALL      1 2 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  15   VISNOTIFY 1 5                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  16   VISNOTIFY 0 6                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  17   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  18   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  16   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  17   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'add' Global 7\n" +
         $"  1    Notification.TempRegisterAllocated: 0\n" +
@@ -211,7 +210,6 @@ add(1, 2)
         $"  3    Notification.TempRegisterAllocated: 2\n" +
         $"  4    Notification.TempRegisterAllocated: 3\n" +
         $"  5    Notification.Function: add 1 2\n" +
-        $"  6    Notification.VariableDeleted: 0\n" +
         $"\n" +
         $"Function <add>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 8 - Ln 2, Col 8]\n" +
@@ -575,10 +573,9 @@ x = add(1, 2)
         $"  12   VISNOTIFY 0 5                                  [Ln 6, Col 11 - Ln 6, Col 11]\n" +
         $"  13   LOADK     2 -3             ; 2                 [Ln 6, Col 11 - Ln 6, Col 11]\n" +
         $"  14   CALL      0 2 0                                [Ln 6, Col 4 - Ln 6, Col 12]\n" +
-        $"  15   VISNOTIFY 0 6                                  [Ln 6, Col 4 - Ln 6, Col 12]\n" +
-        $"  16   SETGLOB   0 {_firstGlob + 1}" +
+        $"  15   SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
-        $"  17   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
+        $"  16   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'add' Global {_firstGlob}\n" +
         $"  1    Notification.SingleStep\n" +
@@ -586,7 +583,6 @@ x = add(1, 2)
         $"  3    Notification.VariableDefined: 'x' Global {_firstGlob + 1}\n" +
         $"  4    Notification.TempRegisterAllocated: 1\n" +
         $"  5    Notification.TempRegisterAllocated: 2\n" +
-        $"  6    Notification.VariableDeleted: 0\n" +
         $"\n" +
         $"Function <add>\n" +
         $"  1    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +

@@ -242,16 +242,6 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal void HandleVariableDeleted(Notification.VariableDeleted variableDeleted) {
-      _registers.DeleteRegisterInfoFrom(variableDeleted.StartId, localInfo => {
-        if (_visualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
-          _visualizerCenter.Notify(new Event.VariableDeleted(localInfo.Name,
-                                                             Visualization.VariableType.Local,
-                                                             _chunk.Ranges[_pc]));
-        }
-      });
-    }
-
     internal void HandleVTag(Notification.VTag vTag) {
       var vTags = Array.ConvertAll(vTag.VTagInfos, vTagInfo => {
         var values = Array.ConvertAll(vTagInfo.ValueIds, valueId =>
@@ -491,6 +481,14 @@ namespace SeedLang.Interpreter {
     private void ReturnFromFunc(Instruction instr) {
       // TODO: only support one return value now.
       _registers.SetReturnValue(instr.B > 0 ? _registers.GetValueAt(instr.A) : new VMValue());
+      if (_visualizerCenter.IsVariableTrackingEnabled) {
+        _registers.DeleteRegisterInfoFrom(0, localInfo => {
+          if (_visualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
+            _visualizerCenter.Notify(new Event.VariableDeleted(localInfo.Name, VariableType.Local,
+                                                               _chunk.Ranges[_pc]));
+          }
+        });
+      }
       _callStack.PopFunc();
       Debug.Assert(!_callStack.IsEmpty);
       _chunk = _callStack.CurrentChunk();

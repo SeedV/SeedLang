@@ -155,9 +155,6 @@ namespace SeedLang.Interpreter {
         var nId = Cache.IdOfNotification(new Notification.Function(name, funcRegister, argLength));
         Emit(Opcode.VISNOTIFY, (uint)Notification.Function.Status.Returned, nId, range);
       }
-      if (!NativeFunctions.IsNativeFunc(name)) {
-        EmitVariableDeletedNotification(0, range);
-      }
     }
 
     internal void EmitAssignNotification(string name, VariableType type, uint valueId,
@@ -219,13 +216,6 @@ namespace SeedLang.Interpreter {
     internal void EmitVariableDefinedNotification(VariableInfo info, TextRange range) {
       if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
         var n = new Notification.VariableDefined(info);
-        Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
-      }
-    }
-
-    internal void EmitVariableDeletedNotification(uint startRegister, TextRange range) {
-      if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
-        var n = new Notification.VariableDeleted(startRegister);
         Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }
     }

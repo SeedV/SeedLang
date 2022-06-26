@@ -57,7 +57,7 @@ namespace SeedLang.Interpreter {
       } else {
         Pack(assignment.Targets, assignment.Values, assignment.Range);
       }
-      _helper.EndExprScope();
+      _helper.EndExprScope(assignment.Range);
     }
 
     protected override void VisitBlock(BlockStatement block, NestedLoopStack loopStack) {
@@ -84,16 +84,16 @@ namespace SeedLang.Interpreter {
           Expression eval = Expression.Identifier(NativeFunctions.PrintVal, expr.Range);
           _exprCompiler.Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range),
                               new ExprCompiler.Context {
-                                TargetRegister = _helper.DefineTempVariable(expr.Range)
+                                TargetRegister = _helper.DefineTempVariable(),
                               });
           break;
         case RunMode.Script:
           _exprCompiler.Visit(expr.Expr, new ExprCompiler.Context {
-            TargetRegister = _helper.DefineTempVariable(expr.Range)
+            TargetRegister = _helper.DefineTempVariable(),
           });
           break;
       }
-      _helper.EndExprScope();
+      _helper.EndExprScope(expr.Range);
     }
 
     protected override void VisitForIn(ForInStatement forIn, NestedLoopStack loopStack) {
@@ -101,26 +101,26 @@ namespace SeedLang.Interpreter {
       VariableInfo loopVar = DefineVariableIfNeeded(forIn.Id.Name, forIn.Id.Range);
 
       if (!(_helper.GetRegisterId(forIn.Expr) is uint sequence)) {
-        sequence = _helper.DefineTempVariable(forIn.Range);
+        sequence = _helper.DefineTempVariable();
         _exprCompiler.Visit(forIn.Expr, new ExprCompiler.Context { TargetRegister = sequence });
       }
-      uint index = _helper.DefineTempVariable(forIn.Range);
+      uint index = _helper.DefineTempVariable();
       _helper.Emit(Opcode.LOADK, index, _helper.Cache.IdOfConstant(0), forIn.Range);
-      uint limit = _helper.DefineTempVariable(forIn.Range);
+      uint limit = _helper.DefineTempVariable();
       _helper.Emit(Opcode.LEN, limit, sequence, 0, forIn.Range);
-      uint step = _helper.DefineTempVariable(forIn.Range);
+      uint step = _helper.DefineTempVariable();
       _helper.Emit(Opcode.LOADK, step, _helper.Cache.IdOfConstant(1), forIn.Range);
       _helper.Emit(Opcode.FORPREP, index, 0, forIn.Range);
       int bodyStart = _helper.Chunk.Bytecode.Count;
       switch (loopVar.Type) {
         case VariableType.Global:
           _helper.BeginExprScope();
-          uint targetId = _helper.DefineTempVariable(forIn.Range);
+          uint targetId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.GETELEM, targetId, sequence, index, forIn.Range);
           _helper.Emit(Opcode.SETGLOB, targetId, loopVar.Id, forIn.Range);
           _helper.EmitAssignNotification(loopVar.Name, VariableType.Global, targetId,
                                          forIn.Id.Range);
-          _helper.EndExprScope();
+          _helper.EndExprScope(forIn.Id.Range);
           break;
         case VariableType.Local:
           _helper.Emit(Opcode.GETELEM, loopVar.Id, sequence, index, forIn.Range);
@@ -157,10 +157,10 @@ namespace SeedLang.Interpreter {
       switch (info.Type) {
         case VariableType.Global:
           _helper.BeginExprScope();
-          uint registerId = _helper.DefineTempVariable(funcDef.Range);
+          uint registerId = _helper.DefineTempVariable();
           _helper.Emit(Opcode.LOADK, registerId, funcId, funcDef.Range);
           _helper.Emit(Opcode.SETGLOB, registerId, info.Id, funcDef.Range);
-          _helper.EndExprScope();
+          _helper.EndExprScope(funcDef.Range);
           break;
         case VariableType.Local:
           _helper.Emit(Opcode.LOADK, info.Id, funcId, funcDef.Range);
@@ -194,22 +194,22 @@ namespace SeedLang.Interpreter {
       if (@return.Exprs.Length == 0) {
         _helper.Emit(Opcode.RETURN, 0, 0, 0, @return.Range);
       } else if (@return.Exprs.Length == 1) {
+        _helper.BeginExprScope();
         if (!(_helper.GetRegisterId(@return.Exprs[0]) is uint result)) {
-          _helper.BeginExprScope();
-          result = _helper.DefineTempVariable(@return.Range);
+          result = _helper.DefineTempVariable();
           _exprCompiler.Visit(@return.Exprs[0], new ExprCompiler.Context {
             TargetRegister = result,
           });
-          _helper.EndExprScope();
         }
         _helper.Emit(Opcode.RETURN, result, 1, 0, @return.Range);
+        _helper.EndExprScope(@return.Range);
       } else {
         _helper.BeginExprScope();
-        uint targetRegister = _helper.DefineTempVariable(@return.Range);
+        uint targetRegister = _helper.DefineTempVariable();
         _exprCompiler.Visit(Expression.Tuple(@return.Exprs, @return.Range),
                             new ExprCompiler.Context { TargetRegister = targetRegister });
         _helper.Emit(Opcode.RETURN, targetRegister, 1, 0, @return.Range);
-        _helper.EndExprScope();
+        _helper.EndExprScope(@return.Range);
       }
     }
 
@@ -282,15 +282,15 @@ namespace SeedLang.Interpreter {
     // count exception for both situations.
     // TODO: Add a build-in function to check the length of the unpacked values.
     private void UnpackTuple(Expression[] targets, uint tupleId, TextRange range) {
-      uint elemId = _helper.DefineTempVariable(range);
+      uint elemId = _helper.DefineTempVariable();
       for (int i = 0; i < targets.Length; i++) {
         _helper.BeginExprScope();
         uint constId = _helper.Cache.IdOfConstant(i);
-        uint indexId = _helper.DefineTempVariable(range);
+        uint indexId = _helper.DefineTempVariable();
         _helper.Emit(Opcode.LOADK, indexId, constId, range);
         _helper.Emit(Opcode.GETELEM, elemId, tupleId, indexId, range);
         Assign(targets[i], null, elemId, range);
-        _helper.EndExprScope();
+        _helper.EndExprScope(range);
       }
     }
 

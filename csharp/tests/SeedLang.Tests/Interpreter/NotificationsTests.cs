@@ -63,11 +63,6 @@ namespace SeedLang.Interpreter.Tests {
       (variableDefined != null).Should().Be(true);
       variableDefined.ToString().Should().Be("Notification.VariableDefined: 'a' Global 1");
 
-      var variableDeleted = new Notification.VariableDeleted(1);
-      (variableDeleted == new Notification.VariableDeleted(1)).Should().Be(true);
-      (variableDeleted != new Notification.VariableDeleted(2)).Should().Be(true);
-      variableDeleted.ToString().Should().Be("Notification.VariableDeleted: 1");
-
       var vTagInfos = new Notification.VTagInfo[] {
         new Notification.VTagInfo("VTag", new string[] {"a", "b", "c"}, new uint?[] {1, null, 2}),
       };
@@ -85,7 +80,6 @@ namespace SeedLang.Interpreter.Tests {
         [singleStep] = "singleStep",
         [subscriptAssign] = "subscriptAssign",
         [variableDefined] = "variableDefined",
-        [variableDeleted] = "variableDeleted",
         [vTag] = "vTag",
       };
 
@@ -113,9 +107,6 @@ namespace SeedLang.Interpreter.Tests {
       dict[variableDefined].Should().Be("variableDefined");
       info = new VariableInfo("a", VariableType.Global, 1);
       dict[new Notification.VariableDefined(info)].Should().Be("variableDefined");
-
-      dict[variableDeleted].Should().Be("variableDeleted");
-      dict[new Notification.VariableDeleted(1)].Should().Be("variableDeleted");
 
       dict[vTag].Should().Be("vTag");
       vTagInfos = new Notification.VTagInfo[] {

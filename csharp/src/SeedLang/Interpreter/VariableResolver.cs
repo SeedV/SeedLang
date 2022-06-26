@@ -175,12 +175,7 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    public uint LastRegister {
-      get {
-        Debug.Assert(_currentScope.Registers.Count > 0);
-        return (uint)_currentScope.Registers.Count - 1;
-      }
-    }
+    public uint RegisterCount => (uint)_currentScope.Registers.Count;
 
     private readonly List<IScope> _scopes = new List<IScope>();
     private IScope _currentScope => _scopes[^1];

@@ -211,8 +211,8 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal void HandleTempRegisterAllocated(Notification.TempRegisterAllocated temp) {
-      _registers.SetTempRegisterInfoAt(temp.Id);
+    internal void HandleTempRegisterFreed(Notification.TempRegisterFreed temp) {
+      _registers.DeleteRegisterInfoFrom(temp.FromId);
     }
 
     internal void HandleVariableDefined(Notification.VariableDefined variableDefined) {
@@ -482,12 +482,14 @@ namespace SeedLang.Interpreter {
       // TODO: only support one return value now.
       _registers.SetReturnValue(instr.B > 0 ? _registers.GetValueAt(instr.A) : new VMValue());
       if (_visualizerCenter.IsVariableTrackingEnabled) {
-        _registers.DeleteRegisterInfoFrom(0, localInfo => {
-          if (_visualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
-            _visualizerCenter.Notify(new Event.VariableDeleted(localInfo.Name, VariableType.Local,
+        var locals = _registers.NamesOfLocalVariableFrom(0);
+        _registers.DeleteRegisterInfoFrom(0);
+        if (_visualizerCenter.HasVisualizer<Event.VariableDeleted>()) {
+          foreach (string name in locals) {
+            _visualizerCenter.Notify(new Event.VariableDeleted(name, VariableType.Local,
                                                                _chunk.Ranges[_pc]));
           }
-        });
+        }
       }
       _callStack.PopFunc();
       Debug.Assert(!_callStack.IsEmpty);

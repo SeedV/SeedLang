@@ -22,7 +22,7 @@ using SeedLang.Visualization;
 namespace SeedLang.Interpreter {
   // A helper class to encapsulate common functions of Compiler and ExprCompiler classes.
   internal class CompilerHelper {
-    public uint LastRegister => _variableResolver.LastRegister;
+    public uint RegisterCount => _variableResolver.RegisterCount;
 
     // The stack to collect positions of nested true and false jump bytecode for comparison and
     // boolean expressions.
@@ -70,8 +70,12 @@ namespace SeedLang.Interpreter {
       _variableResolver.BeginExprScope();
     }
 
-    internal void EndExprScope() {
+    internal void EndExprScope(TextRange range) {
+      uint registerCount = _variableResolver.RegisterCount;
       _variableResolver.EndExprScope();
+      if (registerCount > _variableResolver.RegisterCount) {
+        EmitTempRegisterFreedNotification(_variableResolver.RegisterCount, range);
+      }
     }
 
     internal VariableInfo DefineVariable(string name, TextRange range) {
@@ -84,10 +88,8 @@ namespace SeedLang.Interpreter {
       return _variableResolver.FindVariable(name);
     }
 
-    internal uint DefineTempVariable(TextRange range) {
-      uint id = _variableResolver.DefineTempVariable();
-      EmitTempRegisterAllocatedNotification(id, range);
-      return id;
+    internal uint DefineTempVariable() {
+      return _variableResolver.DefineTempVariable();
     }
 
     internal uint? GetRegisterOrConstantId(Expression expr) {
@@ -206,9 +208,9 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal void EmitTempRegisterAllocatedNotification(uint id, TextRange range) {
+    internal void EmitTempRegisterFreedNotification(uint id, TextRange range) {
       if (!_suspendNotificationEmitting && _visualizerCenter.IsVariableTrackingEnabled) {
-        var n = new Notification.TempRegisterAllocated(id);
+        var n = new Notification.TempRegisterFreed(id);
         Emit(Opcode.VISNOTIFY, 0, Cache.IdOfNotification(n), range);
       }
     }
@@ -311,7 +313,7 @@ namespace SeedLang.Interpreter {
             if (GetRegisterOrConstantId(vTagInfo.Args[j].Expr) is uint id) {
               valueIds[j] = id;
             } else {
-              valueIds[j] = DefineTempVariable(vTag.Range);
+              valueIds[j] = DefineTempVariable();
               exprCompiler.Visit(vTagInfo.Args[j].Expr, new ExprCompiler.Context {
                 TargetRegister = valueIds[j].Value,
               });
@@ -326,7 +328,7 @@ namespace SeedLang.Interpreter {
         }
         return new Notification.VTagInfo(vTagInfo.Name, args, valueIds);
       });
-      EndExprScope();
+      EndExprScope(vTag.Range);
       return vTagInfos;
     }
   }

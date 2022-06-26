@@ -48,6 +48,38 @@ namespace SeedLang.Interpreter {
       _helper = helper;
     }
 
+    // Visits an expression and returns the register id of the result.
+    internal uint VisitExpressionForRegisterId(Expression expr) {
+      if (!(_helper.GetRegisterId(expr) is uint exprId)) {
+        exprId = _helper.DefineTempVariable(expr.Range);
+        Visit(expr, new Context { TargetRegister = exprId });
+      }
+      return exprId;
+    }
+
+    // Visits an expression and returns the register and constant id of the result.
+    internal uint VisitExpressionForRKId(Expression expr) {
+      if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
+        exprId = _helper.DefineTempVariable(expr.Range);
+        Visit(expr, new Context { TargetRegister = exprId });
+      }
+      return exprId;
+    }
+
+    // Visits a non-comparison or non-boolean expression and evaluates the boolean result of it.
+    internal void VisitExpressionWithBooleanResult(Expression expr, BooleanOperator nextBooleanOp) {
+      if (_helper.GetRegisterId(expr) is uint targetRegister) {
+        _helper.Emit(Opcode.TEST, targetRegister, 0, 1, expr.Range);
+      } else {
+        _helper.BeginExprScope();
+        targetRegister = _helper.DefineTempVariable(expr.Range);
+        Visit(expr, new Context { TargetRegister = targetRegister });
+        _helper.Emit(Opcode.TEST, targetRegister, 0, 1, expr.Range);
+        _helper.EndExprScope();
+      }
+      EmitJump(nextBooleanOp, expr.Range);
+    }
+
     protected override void VisitBinary(BinaryExpression binary, Context context) {
       _helper.BeginExprScope();
       uint left = VisitExpressionForRKId(binary.Left);
@@ -60,20 +92,22 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitBoolean(BooleanExpression boolean, Context context) {
       VisitBooleanOrComparisonExpression(() => {
-        BooleanOperator nextBooleanOp = context.NextBooleanOp;
         for (int i = 0; i < boolean.Exprs.Length; i++) {
-          Visit(boolean.Exprs[i], new Context {
-            NextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : context.NextBooleanOp,
-          });
-          if (i < boolean.Exprs.Length - 1) {
-            switch (boolean.Op) {
-              case BooleanOperator.And:
-                _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.TrueJumps);
-                break;
-              case BooleanOperator.Or:
-                _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
-                break;
+          var nextBooleanOp = i < boolean.Exprs.Length - 1 ? boolean.Op : context.NextBooleanOp;
+          if (boolean.Exprs[i] is ComparisonExpression comparison) {
+            Visit(comparison, new Context { NextBooleanOp = nextBooleanOp, });
+            if (i < boolean.Exprs.Length - 1) {
+              switch (boolean.Op) {
+                case BooleanOperator.And:
+                  _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.TrueJumps);
+                  break;
+                case BooleanOperator.Or:
+                  _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
+                  break;
+              }
             }
+          } else {
+            VisitExpressionWithBooleanResult(boolean.Exprs[i], nextBooleanOp);
           }
         }
       }, boolean.Range, context);
@@ -253,15 +287,7 @@ namespace SeedLang.Interpreter {
       // actual comparison.
       _helper.EmitComparisonNotification(leftRegister, op, rightRegister, range);
       _helper.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
-      _helper.Emit(Opcode.JMP, 0, 0, range);
-      switch (nextBooleanOp) {
-        case BooleanOperator.And:
-          _helper.ExprJumpStack.AddFalseJump(_helper.Chunk.LatestCodePos);
-          break;
-        case BooleanOperator.Or:
-          _helper.ExprJumpStack.AddTrueJump(_helper.Chunk.LatestCodePos);
-          break;
-      }
+      EmitJump(nextBooleanOp, range);
       _helper.EndExprScope();
     }
 
@@ -280,20 +306,16 @@ namespace SeedLang.Interpreter {
       _helper.EndExprScope();
     }
 
-    private uint VisitExpressionForRegisterId(Expression expr) {
-      if (!(_helper.GetRegisterId(expr) is uint exprId)) {
-        exprId = _helper.DefineTempVariable(expr.Range);
-        Visit(expr, new Context { TargetRegister = exprId });
+    private void EmitJump(BooleanOperator nextBooleanOp, TextRange range) {
+      _helper.Emit(Opcode.JMP, 0, 0, range);
+      switch (nextBooleanOp) {
+        case BooleanOperator.And:
+          _helper.ExprJumpStack.AddFalseJump(_helper.Chunk.LatestCodePos);
+          break;
+        case BooleanOperator.Or:
+          _helper.ExprJumpStack.AddTrueJump(_helper.Chunk.LatestCodePos);
+          break;
       }
-      return exprId;
-    }
-
-    private uint VisitExpressionForRKId(Expression expr) {
-      if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
-        exprId = _helper.DefineTempVariable(expr.Range);
-        Visit(expr, new Context { TargetRegister = exprId });
-      }
-      return exprId;
     }
   }
 }

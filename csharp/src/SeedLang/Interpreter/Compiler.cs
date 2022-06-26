@@ -243,25 +243,15 @@ namespace SeedLang.Interpreter {
       if (test is ComparisonExpression || test is BooleanExpression) {
         _exprCompiler.Visit(test, new ExprCompiler.Context());
       } else {
-        if (_helper.GetRegisterId(test) is uint targetRegister) {
-          _helper.Emit(Opcode.TEST, targetRegister, 0, 1, test.Range);
-        } else {
-          _helper.BeginExprScope();
-          targetRegister = _helper.DefineTempVariable(test.Range);
-          _exprCompiler.Visit(test, new ExprCompiler.Context { TargetRegister = targetRegister });
-          _helper.Emit(Opcode.TEST, targetRegister, 0, 1, test.Range);
-          _helper.EndExprScope();
-        }
-        _helper.Emit(Opcode.JMP, 0, 0, test.Range);
-        _helper.ExprJumpStack.AddFalseJump(_helper.Chunk.LatestCodePos);
+        _exprCompiler.VisitExpressionWithBooleanResult(test, BooleanOperator.And);
       }
     }
 
     private void Pack(Expression[][] chainedTargets, Expression[] values, TextRange range) {
       foreach (Expression[] targets in chainedTargets) {
         if (targets.Length == 1) {
-          uint tupleId = VisitExpressionForRegisterId(Expression.Tuple(values, range));
-          Assign(targets[0], null, tupleId, range);
+          var tuple = Expression.Tuple(values, range);
+          Assign(targets[0], null, _exprCompiler.VisitExpressionForRegisterId(tuple), range);
         } else {
           MultipleAssign(targets, values, range);
         }
@@ -272,7 +262,7 @@ namespace SeedLang.Interpreter {
       if (chainedTargets.Length == 1 && chainedTargets[0].Length == 1) {
         Assign(chainedTargets[0][0], value, 0, range);
       } else {
-        uint registerId = VisitExpressionForRegisterId(value);
+        uint registerId = _exprCompiler.VisitExpressionForRegisterId(value);
         foreach (Expression[] targets in chainedTargets) {
           if (targets.Length == 1) {
             Assign(targets[0], null, registerId, range);
@@ -308,7 +298,7 @@ namespace SeedLang.Interpreter {
       if (targets.Length == values.Length) {
         var valueIds = new uint[values.Length];
         for (int i = 0; i < values.Length; i++) {
-          valueIds[i] = VisitExpressionForRegisterId(values[i]);
+          valueIds[i] = _exprCompiler.VisitExpressionForRegisterId(values[i]);
         }
         for (int i = 0; i < targets.Length; i++) {
           Assign(targets[i], null, valueIds[i], range);
@@ -329,7 +319,7 @@ namespace SeedLang.Interpreter {
           switch (info.Type) {
             case VariableType.Global:
               if (!(value is null)) {
-                registerId = VisitExpressionForRegisterId(value);
+                registerId = _exprCompiler.VisitExpressionForRegisterId(value);
               }
               _helper.Emit(Opcode.SETGLOB, registerId, info.Id, range);
               _helper.EmitAssignNotification(info.Name, VariableType.Global, registerId, range);
@@ -350,10 +340,10 @@ namespace SeedLang.Interpreter {
           break;
         case SubscriptExpression subscript:
           if (!(value is null)) {
-            registerId = VisitExpressionForRKId(value);
+            registerId = _exprCompiler.VisitExpressionForRKId(value);
           }
-          uint containerId = VisitExpressionForRegisterId(subscript.Container);
-          uint keyId = VisitExpressionForRKId(subscript.Key);
+          uint containerId = _exprCompiler.VisitExpressionForRegisterId(subscript.Container);
+          uint keyId = _exprCompiler.VisitExpressionForRKId(subscript.Key);
           _helper.Emit(Opcode.SETELEM, containerId, keyId, registerId, range);
           _helper.EmitSubscriptAssignNotification(containerId, keyId, registerId, range);
           break;
@@ -365,22 +355,6 @@ namespace SeedLang.Interpreter {
         return info;
       }
       return _helper.DefineVariable(name, range);
-    }
-
-    private uint VisitExpressionForRegisterId(Expression expr) {
-      if (!(_helper.GetRegisterId(expr) is uint exprId)) {
-        exprId = _helper.DefineTempVariable(expr.Range);
-        _exprCompiler.Visit(expr, new ExprCompiler.Context { TargetRegister = exprId });
-      }
-      return exprId;
-    }
-
-    private uint VisitExpressionForRKId(Expression expr) {
-      if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
-        exprId = _helper.DefineTempVariable(expr.Range);
-        _exprCompiler.Visit(expr, new ExprCompiler.Context { TargetRegister = exprId });
-      }
-      return exprId;
     }
   }
 }

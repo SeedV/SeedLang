@@ -1,4 +1,3 @@
-using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +14,7 @@ using System.Linq;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
@@ -40,60 +40,51 @@ for i in range(2):
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  3    VISNOTIFY 0 2                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  4    LOADK     1 -1             ; 1                 [Ln 2, Col 5 - Ln 2, Col 5]\n" +
-        $"  5    VISNOTIFY 0 3                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  6    LOADK     2 -2             ; 2                 [Ln 2, Col 8 - Ln 2, Col 8]\n" +
-        $"  7    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  8    SETGLOB   0 {_firstGlob}" +
+        $"  2    LOADK     1 -1             ; 1                 [Ln 2, Col 5 - Ln 2, Col 5]\n" +
+        $"  3    LOADK     2 -2             ; 2                 [Ln 2, Col 8 - Ln 2, Col 8]\n" +
+        $"  4    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 9]\n" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
+        $"  6    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
-        $"  9    VISNOTIFY 0 4                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
-        $"  10   VISNOTIFY 0 5                                  [Ln 3, Col 4 - Ln 3, Col 4]\n" +
-        $"  11   VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  12   GETGLOB   0 {_rangeFunc}" +
+        $"  7    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
+        $"  8    VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
+        $"  9    VISNOTIFY 0 4                                  [Ln 3, Col 4 - Ln 3, Col 4]\n" +
+        $"  10   GETGLOB   0 {_rangeFunc}" +
         $"                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
-        $"  13   VISNOTIFY 0 2                                  [Ln 3, Col 15 - Ln 3, Col 15]\n" +
-        $"  14   LOADK     1 -2             ; 2                 [Ln 3, Col 15 - Ln 3, Col 15]\n" +
-        $"  15   CALL      0 1 0                                [Ln 3, Col 9 - Ln 3, Col 16]\n" +
-        $"  16   VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  17   LOADK     1 -3             ; 0                 [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  18   VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  19   LEN       2 0 0                                [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  20   VISNOTIFY 0 6                                  [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  21   LOADK     3 -1             ; 1                 [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  22   FORPREP   1 12             ; to 35             [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  23   VISNOTIFY 0 7                                  [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  24   GETELEM   4 0 1                                [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  25   SETGLOB   4 {_firstGlob + 1}" +
+        $"  11   LOADK     1 -2             ; 2                 [Ln 3, Col 15 - Ln 3, Col 15]\n" +
+        $"  12   CALL      0 1 0                                [Ln 3, Col 9 - Ln 3, Col 16]\n" +
+        $"  13   VISNOTIFY 0 1                                  [Ln 3, Col 9 - Ln 3, Col 16]\n" +
+        $"  14   LOADK     1 -3             ; 0                 [Ln 3, Col 0 - Ln 4, Col 9]\n" +
+        $"  15   LEN       2 0 0                                [Ln 3, Col 0 - Ln 4, Col 9]\n" +
+        $"  16   LOADK     3 -1             ; 1                 [Ln 3, Col 0 - Ln 4, Col 9]\n" +
+        $"  17   FORPREP   1 11             ; to 29             [Ln 3, Col 0 - Ln 4, Col 9]\n" +
+        $"  18   GETELEM   4 0 1                                [Ln 3, Col 0 - Ln 4, Col 9]\n" +
+        $"  19   SETGLOB   4 {_firstGlob + 1}" +
         $"                                  [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  26   VISNOTIFY 0 8                                  [Ln 3, Col 4 - Ln 3, Col 4]\n" +
-        $"  27   VISNOTIFY 0 7                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
-        $"  28   GETGLOB   4 {_firstGlob}" +
+        $"  20   VISNOTIFY 0 5                                  [Ln 3, Col 4 - Ln 3, Col 4]\n" +
+        $"  21   VISNOTIFY 0 6                                  [Ln 3, Col 4 - Ln 3, Col 4]\n" +
+        $"  22   GETGLOB   4 {_firstGlob}" +
         $"                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
-        $"  29   VISNOTIFY 0 9                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
-        $"  30   VISNOTIFY 0 10                                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  31   GETGLOB   5 {_firstGlob + 1}" +
+        $"  23   VISNOTIFY 0 7                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
+        $"  24   GETGLOB   5 {_firstGlob + 1}" +
         $"                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  32   VISNOTIFY 0 11                                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  33   SETELEM   4 5 -4           ; 5                 [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  34   VISNOTIFY 0 12                                 [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  35   FORLOOP   1 -13            ; to 23             [Ln 3, Col 0 - Ln 4, Col 9]\n" +
-        $"  36   HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  25   VISNOTIFY 0 8                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
+        $"  26   SETELEM   4 5 -4           ; 5                 [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  27   VISNOTIFY 0 9                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  28   VISNOTIFY 0 6                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  29   FORLOOP   1 -12            ; to 18             [Ln 3, Col 0 - Ln 4, Col 9]\n" +
+        $"  30   HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'a' Global 7\n" +
-        $"  1    Notification.TempRegisterAllocated: 0\n" +
-        $"  2    Notification.TempRegisterAllocated: 1\n" +
-        $"  3    Notification.TempRegisterAllocated: 2\n" +
-        $"  4    Notification.Assignment: 'a' Global 0\n" +
-        $"  5    Notification.VariableDefined: 'i' Global 8\n" +
-        $"  6    Notification.TempRegisterAllocated: 3\n" +
-        $"  7    Notification.TempRegisterAllocated: 4\n" +
-        $"  8    Notification.Assignment: 'i' Global 4\n" +
-        $"  9    Notification.GlobalLoaded: 4 'a'\n" +
-        $"  10   Notification.TempRegisterAllocated: 5\n" +
-        $"  11   Notification.GlobalLoaded: 5 'i'\n" +
-        $"  12   Notification.SubscriptAssignment: 4 5 253\n"
+        $"  1    Notification.TempRegisterFreed: 1\n" +
+        $"  2    Notification.Assignment: 'a' Global 0\n" +
+        $"  3    Notification.TempRegisterFreed: 0\n" +
+        $"  4    Notification.VariableDefined: 'i' Global 8\n" +
+        $"  5    Notification.Assignment: 'i' Global 4\n" +
+        $"  6    Notification.TempRegisterFreed: 4\n" +
+        $"  7    Notification.GlobalLoaded: 4 'a'\n" +
+        $"  8    Notification.GlobalLoaded: 5 'i'\n" +
+        $"  9    Notification.SubscriptAssignment: 4 5 253\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
@@ -103,18 +94,18 @@ for i in range(2):
       string source = "1 + 2";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
-        $"  2    GETGLOB   0 {_printValFunc}" +
+        $"  1    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
-        $"  3    VISNOTIFY 0 1                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
-        $"  4    ADD       1 -1 -2          ; 1 2               [Ln 1, Col 0 - Ln 1, Col 4]\n" +
-        $"  5    VISNOTIFY 0 2                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
-        $"  6    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  2    ADD       1 -1 -2          ; 1 2               [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  3    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  4    CALL      0 1 0                                [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"  7    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 4]\n" +
         $"Notifications\n" +
-        $"  0    Notification.TempRegisterAllocated: 0\n" +
-        $"  1    Notification.TempRegisterAllocated: 1\n" +
-        $"  2    Notification.Binary: 250 Add 251 1\n"
+        $"  0    Notification.Binary: 250 Add 251 1\n" +
+        $"  1    Notification.TempRegisterFreed: 1\n" +
+        $"  2    Notification.TempRegisterFreed: 0\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Binary) }, RunMode.Interactive);
     }
@@ -126,25 +117,25 @@ for i in range(2):
 ";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  2    GETGLOB   0 {_printValFunc}" +
+        $"  1    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  3    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  4    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  5    LT        1 -1 -2          ; 1 2               [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  6    JMP       0 4              ; to 11             [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  7    VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  8    LE        0 -2 -3          ; 2 3               [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  9    JMP       0 1              ; to 11             [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  10   LOADBOOL  1 1 1                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  11   LOADBOOL  1 0 0                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
-        $"  12   CALL      0 1 0                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  3    LT        1 -1 -2          ; 1 2               [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  4    JMP       0 4              ; to 9              [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  6    LE        0 -2 -3          ; 2 3               [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  7    JMP       0 1              ; to 9              [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  8    LOADBOOL  1 1 1                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  9    LOADBOOL  1 0 0                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  10   CALL      0 1 0                                [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  11   VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
+        $"  12   VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
         $"  13   HALT      1 0                                  [Ln 2, Col 0 - Ln 2, Col 8]\n" +
         $"Notifications\n" +
-        $"  0    Notification.TempRegisterAllocated: 0\n" +
-        $"  1    Notification.TempRegisterAllocated: 1\n" +
-        $"  2    Notification.Comparison: 250 Less 251\n" +
-        $"  3    Notification.Comparison: 251 Greater 252\n"
+        $"  0    Notification.Comparison: 250 Less 251\n" +
+        $"  1    Notification.Comparison: 251 Greater 252\n" +
+        $"  2    Notification.TempRegisterFreed: 1\n" +
+        $"  3    Notification.TempRegisterFreed: 0\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Comparison) }, RunMode.Interactive);
     }
@@ -184,48 +175,44 @@ add(1, 2)
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
-        $"  3    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
-        $"  4    SETGLOB   0 {_firstGlob}" +
+        $"  2    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  3    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
-        $"  5    VISNOTIFY 0 1                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  6    GETGLOB   0 {_printValFunc}" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"  5    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  7    VISNOTIFY 0 2                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  8    GETGLOB   1 {_firstGlob}" +
+        $"  6    GETGLOB   1 {_firstGlob}" +
         $"                                  [Ln 4, Col 0 - Ln 4, Col 2]\n" +
-        $"  9    VISNOTIFY 0 3                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  10   LOADK     2 -2             ; 1                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
-        $"  11   VISNOTIFY 0 4                                  [Ln 4, Col 7 - Ln 4, Col 7]\n" +
-        $"  12   LOADK     3 -3             ; 2                 [Ln 4, Col 7 - Ln 4, Col 7]\n" +
-        $"  13   VISNOTIFY 0 5                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  14   CALL      1 2 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  15   VISNOTIFY 1 5                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  16   VISNOTIFY 0 6                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  17   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
-        $"  18   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  7    LOADK     2 -2             ; 1                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
+        $"  8    LOADK     3 -3             ; 2                 [Ln 4, Col 7 - Ln 4, Col 7]\n" +
+        $"  9    VISNOTIFY 0 2                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  10   CALL      1 2 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  11   VISNOTIFY 1 2                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  12   VISNOTIFY 0 3                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  13   CALL      0 1 0                                [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  14   VISNOTIFY 0 4                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  15   VISNOTIFY 0 1                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
+        $"  16   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'add' Global 7\n" +
-        $"  1    Notification.TempRegisterAllocated: 0\n" +
-        $"  2    Notification.TempRegisterAllocated: 1\n" +
-        $"  3    Notification.TempRegisterAllocated: 2\n" +
-        $"  4    Notification.TempRegisterAllocated: 3\n" +
-        $"  5    Notification.Function: add 1 2\n" +
-        $"  6    Notification.VariableDeleted: 0\n" +
+        $"  1    Notification.TempRegisterFreed: 0\n" +
+        $"  2    Notification.Function: add 1 2\n" +
+        $"  3    Notification.TempRegisterFreed: 2\n" +
+        $"  4    Notification.TempRegisterFreed: 1\n" +
         $"\n" +
         $"Function <add>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 8 - Ln 2, Col 8]\n" +
         $"  2    VISNOTIFY 0 1                                  [Ln 2, Col 11 - Ln 2, Col 11]\n" +
-        $"  3    VISNOTIFY 0 2                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
-        $"  4    ADD       2 0 1                                [Ln 3, Col 9 - Ln 3, Col 13]\n" +
-        $"  5    VISNOTIFY 0 3                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
-        $"  6    RETURN    2 1                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"  3    ADD       2 0 1                                [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  4    VISNOTIFY 0 2                                  [Ln 3, Col 9 - Ln 3, Col 13]\n" +
+        $"  5    RETURN    2 1                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
+        $"  6    VISNOTIFY 0 3                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
         $"  7    RETURN    0 0                                  [Ln 3, Col 2 - Ln 3, Col 13]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'add.a' Local 0\n" +
         $"  1    Notification.VariableDefined: 'add.b' Local 1\n" +
-        $"  2    Notification.TempRegisterAllocated: 2\n" +
-        $"  3    Notification.Binary: 0 Add 1 2\n"
+        $"  2    Notification.Binary: 0 Add 1 2\n" +
+        $"  3    Notification.TempRegisterFreed: 2\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.Binary),
@@ -407,20 +394,18 @@ x = 1
       string source = "[1, 2][1] = 1";
       string expected = (
         $"Function <main>\n" +
-        $"  1    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 5]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 1, Col 0 - Ln 1, Col 5]\n" +
-        $"  3    LOADK     1 -1             ; 1                 [Ln 1, Col 1 - Ln 1, Col 1]\n" +
-        $"  4    VISNOTIFY 0 2                                  [Ln 1, Col 0 - Ln 1, Col 5]\n" +
-        $"  5    LOADK     2 -2             ; 2                 [Ln 1, Col 4 - Ln 1, Col 4]\n" +
-        $"  6    NEWLIST   0 1 2                                [Ln 1, Col 0 - Ln 1, Col 5]\n" +
-        $"  7    SETELEM   0 -1 -1          ; 1 1               [Ln 1, Col 0 - Ln 1, Col 12]\n" +
-        $"  8    VISNOTIFY 0 3                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
-        $"  9    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
+        $"  1    LOADK     1 -1             ; 1                 [Ln 1, Col 1 - Ln 1, Col 1]\n" +
+        $"  2    LOADK     2 -2             ; 2                 [Ln 1, Col 4 - Ln 1, Col 4]\n" +
+        $"  3    NEWLIST   0 1 2                                [Ln 1, Col 0 - Ln 1, Col 5]\n" +
+        $"  4    VISNOTIFY 0 0                                  [Ln 1, Col 0 - Ln 1, Col 5]\n" +
+        $"  5    SETELEM   0 -1 -1          ; 1 1               [Ln 1, Col 0 - Ln 1, Col 12]\n" +
+        $"  6    VISNOTIFY 0 1                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
+        $"  7    VISNOTIFY 0 2                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
+        $"  8    HALT      1 0                                  [Ln 1, Col 0 - Ln 1, Col 12]\n" +
         $"Notifications\n" +
-        $"  0    Notification.TempRegisterAllocated: 0\n" +
-        $"  1    Notification.TempRegisterAllocated: 1\n" +
-        $"  2    Notification.TempRegisterAllocated: 2\n" +
-        $"  3    Notification.SubscriptAssignment: 0 250 250\n"
+        $"  0    Notification.TempRegisterFreed: 1\n" +
+        $"  1    Notification.SubscriptAssignment: 0 250 250\n" +
+        $"  2    Notification.TempRegisterFreed: 0\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
@@ -434,30 +419,28 @@ a[1] = 1
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  3    VISNOTIFY 0 2                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  4    LOADK     1 -1             ; 1                 [Ln 2, Col 5 - Ln 2, Col 5]\n" +
-        $"  5    VISNOTIFY 0 3                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  6    LOADK     2 -2             ; 2                 [Ln 2, Col 8 - Ln 2, Col 8]\n" +
-        $"  7    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 9]\n" +
-        $"  8    SETGLOB   0 {_firstGlob}" +
+        $"  2    LOADK     1 -1             ; 1                 [Ln 2, Col 5 - Ln 2, Col 5]\n" +
+        $"  3    LOADK     2 -2             ; 2                 [Ln 2, Col 8 - Ln 2, Col 8]\n" +
+        $"  4    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 9]\n" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
+        $"  6    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
-        $"  9    VISNOTIFY 0 4                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
-        $"  10   VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  11   GETGLOB   0 {_firstGlob}" +
+        $"  7    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
+        $"  8    VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
+        $"  9    GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  12   VISNOTIFY 0 5                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  13   SETELEM   0 -1 -1          ; 1 1               [Ln 3, Col 0 - Ln 3, Col 7]\n" +
-        $"  14   VISNOTIFY 0 6                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
-        $"  15   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
+        $"  10   VISNOTIFY 0 4                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"  11   SETELEM   0 -1 -1          ; 1 1               [Ln 3, Col 0 - Ln 3, Col 7]\n" +
+        $"  12   VISNOTIFY 0 5                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
+        $"  13   VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
+        $"  14   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'a' Global 7\n" +
-        $"  1    Notification.TempRegisterAllocated: 0\n" +
-        $"  2    Notification.TempRegisterAllocated: 1\n" +
-        $"  3    Notification.TempRegisterAllocated: 2\n" +
-        $"  4    Notification.Assignment: 'a' Global 0\n" +
-        $"  5    Notification.GlobalLoaded: 0 'a'\n" +
-        $"  6    Notification.SubscriptAssignment: 0 250 250\n"
+        $"  1    Notification.TempRegisterFreed: 1\n" +
+        $"  2    Notification.Assignment: 'a' Global 0\n" +
+        $"  3    Notification.TempRegisterFreed: 0\n" +
+        $"  4    Notification.GlobalLoaded: 0 'a'\n" +
+        $"  5    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
@@ -472,32 +455,30 @@ def func():
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  3    LOADK     0 -1             ; Func <func>       [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  4    SETGLOB   0 {_firstGlob}" +
+        $"  2    LOADK     0 -1             ; Func <func>       [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"  3    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  5    HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'func' Global 7\n" +
-        $"  1    Notification.TempRegisterAllocated: 0\n" +
+        $"  1    Notification.TempRegisterFreed: 0\n" +
         $"\n" +
         $"Function <func>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 3, Col 2 - Ln 3, Col 2]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 3, Col 6 - Ln 3, Col 11]\n" +
-        $"  3    LOADK     1 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
-        $"  4    VISNOTIFY 0 2                                  [Ln 3, Col 6 - Ln 3, Col 11]\n" +
-        $"  5    LOADK     2 -2             ; 2                 [Ln 3, Col 10 - Ln 3, Col 10]\n" +
-        $"  6    NEWLIST   0 1 2                                [Ln 3, Col 6 - Ln 3, Col 11]\n" +
-        $"  7    VISNOTIFY 0 3                                  [Ln 3, Col 2 - Ln 3, Col 11]\n" +
-        $"  8    SETELEM   0 -1 -1          ; 1 1               [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  9    VISNOTIFY 0 4                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
-        $"  10   RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  2    LOADK     1 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
+        $"  3    LOADK     2 -2             ; 2                 [Ln 3, Col 10 - Ln 3, Col 10]\n" +
+        $"  4    NEWLIST   0 1 2                                [Ln 3, Col 6 - Ln 3, Col 11]\n" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 3, Col 6 - Ln 3, Col 11]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 3, Col 2 - Ln 3, Col 11]\n" +
+        $"  7    SETELEM   0 -1 -1          ; 1 1               [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  8    VISNOTIFY 0 3                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
+        $"  9    RETURN    0 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'func.a' Local 0\n" +
-        $"  1    Notification.TempRegisterAllocated: 1\n" +
-        $"  2    Notification.TempRegisterAllocated: 2\n" +
-        $"  3    Notification.Assignment: 'func.a' Local 0\n" +
-        $"  4    Notification.SubscriptAssignment: 0 250 250\n"
+        $"  1    Notification.TempRegisterFreed: 1\n" +
+        $"  2    Notification.Assignment: 'func.a' Local 0\n" +
+        $"  3    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
@@ -511,39 +492,36 @@ a[0][1] = 1
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 2, Col 4 - Ln 2, Col 14]\n" +
-        $"  3    VISNOTIFY 0 2                                  [Ln 2, Col 4 - Ln 2, Col 14]\n" +
-        $"  4    VISNOTIFY 0 3                                  [Ln 2, Col 5 - Ln 2, Col 10]\n" +
-        $"  5    LOADK     2 -1             ; 1                 [Ln 2, Col 6 - Ln 2, Col 6]\n" +
-        $"  6    VISNOTIFY 0 4                                  [Ln 2, Col 5 - Ln 2, Col 10]\n" +
-        $"  7    LOADK     3 -2             ; 2                 [Ln 2, Col 9 - Ln 2, Col 9]\n" +
-        $"  8    NEWLIST   1 2 2                                [Ln 2, Col 5 - Ln 2, Col 10]\n" +
-        $"  9    VISNOTIFY 0 3                                  [Ln 2, Col 4 - Ln 2, Col 14]\n" +
-        $"  10   LOADK     2 -3             ; 3                 [Ln 2, Col 13 - Ln 2, Col 13]\n" +
-        $"  11   NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 14]\n" +
-        $"  12   SETGLOB   0 {_firstGlob}" +
+        $"  2    LOADK     2 -1             ; 1                 [Ln 2, Col 6 - Ln 2, Col 6]\n" +
+        $"  3    LOADK     3 -2             ; 2                 [Ln 2, Col 9 - Ln 2, Col 9]\n" +
+        $"  4    NEWLIST   1 2 2                                [Ln 2, Col 5 - Ln 2, Col 10]\n" +
+        $"  5    VISNOTIFY 0 1                                  [Ln 2, Col 5 - Ln 2, Col 10]\n" +
+        $"  6    LOADK     2 -3             ; 3                 [Ln 2, Col 13 - Ln 2, Col 13]\n" +
+        $"  7    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 14]\n" +
+        $"  8    VISNOTIFY 0 2                                  [Ln 2, Col 4 - Ln 2, Col 14]\n" +
+        $"  9    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 2, Col 14]\n" +
-        $"  13   VISNOTIFY 0 5                                  [Ln 2, Col 0 - Ln 2, Col 14]\n" +
-        $"  14   VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 3]\n" +
-        $"  15   VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  16   GETGLOB   1 {_firstGlob}" +
+        $"  10   VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 2, Col 14]\n" +
+        $"  11   VISNOTIFY 0 4                                  [Ln 2, Col 0 - Ln 2, Col 14]\n" +
+        $"  12   GETGLOB   1 {_firstGlob}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  17   VISNOTIFY 0 6                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
-        $"  18   GETELEM   0 1 -4           ; 0                 [Ln 3, Col 0 - Ln 3, Col 3]\n" +
-        $"  19   VISNOTIFY 0 7                                  [Ln 3, Col 0 - Ln 3, Col 3]\n" +
-        $"  20   SETELEM   0 -1 -1          ; 1 1               [Ln 3, Col 0 - Ln 3, Col 10]\n" +
-        $"  21   VISNOTIFY 0 8                                  [Ln 3, Col 0 - Ln 3, Col 10]\n" +
-        $"  22   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 10]\n" +
+        $"  13   VISNOTIFY 0 5                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"  14   GETELEM   0 1 -4           ; 0                 [Ln 3, Col 0 - Ln 3, Col 3]\n" +
+        $"  15   VISNOTIFY 0 6                                  [Ln 3, Col 0 - Ln 3, Col 3]\n" +
+        $"  16   VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 3]\n" +
+        $"  17   SETELEM   0 -1 -1          ; 1 1               [Ln 3, Col 0 - Ln 3, Col 10]\n" +
+        $"  18   VISNOTIFY 0 7                                  [Ln 3, Col 0 - Ln 3, Col 10]\n" +
+        $"  19   VISNOTIFY 0 4                                  [Ln 3, Col 0 - Ln 3, Col 10]\n" +
+        $"  20   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 10]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'a' Global 7\n" +
-        $"  1    Notification.TempRegisterAllocated: 0\n" +
-        $"  2    Notification.TempRegisterAllocated: 1\n" +
-        $"  3    Notification.TempRegisterAllocated: 2\n" +
-        $"  4    Notification.TempRegisterAllocated: 3\n" +
-        $"  5    Notification.Assignment: 'a' Global 0\n" +
-        $"  6    Notification.GlobalLoaded: 1 'a'\n" +
-        $"  7    Notification.ElementLoaded: 0 1 253\n" +
-        $"  8    Notification.SubscriptAssignment: 0 250 250\n"
+        $"  1    Notification.TempRegisterFreed: 2\n" +
+        $"  2    Notification.TempRegisterFreed: 1\n" +
+        $"  3    Notification.Assignment: 'a' Global 0\n" +
+        $"  4    Notification.TempRegisterFreed: 0\n" +
+        $"  5    Notification.GlobalLoaded: 1 'a'\n" +
+        $"  6    Notification.ElementLoaded: 0 1 253\n" +
+        $"  7    Notification.SubscriptAssignment: 0 250 250\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] { typeof(Event.Assignment) }, RunMode.Interactive);
     }
@@ -561,32 +539,28 @@ x = add(1, 2)
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
         $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  3    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  4    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 4, Col 9]\n" +
-        $"  5    SETGLOB   0 {_firstGlob}" +
+        $"  3    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"  4    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"  5    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  6    VISNOTIFY 0 1                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
         $"  7    VISNOTIFY 0 3                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
-        $"  8    VISNOTIFY 0 2                                  [Ln 6, Col 4 - Ln 6, Col 12]\n" +
-        $"  9    GETGLOB   0 {_firstGlob}" +
+        $"  8    GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 6, Col 4 - Ln 6, Col 6]\n" +
-        $"  10   VISNOTIFY 0 4                                  [Ln 6, Col 8 - Ln 6, Col 8]\n" +
-        $"  11   LOADK     1 -2             ; 1                 [Ln 6, Col 8 - Ln 6, Col 8]\n" +
-        $"  12   VISNOTIFY 0 5                                  [Ln 6, Col 11 - Ln 6, Col 11]\n" +
-        $"  13   LOADK     2 -3             ; 2                 [Ln 6, Col 11 - Ln 6, Col 11]\n" +
-        $"  14   CALL      0 2 0                                [Ln 6, Col 4 - Ln 6, Col 12]\n" +
-        $"  15   VISNOTIFY 0 6                                  [Ln 6, Col 4 - Ln 6, Col 12]\n" +
-        $"  16   SETGLOB   0 {_firstGlob + 1}" +
+        $"  9    LOADK     1 -2             ; 1                 [Ln 6, Col 8 - Ln 6, Col 8]\n" +
+        $"  10   LOADK     2 -3             ; 2                 [Ln 6, Col 11 - Ln 6, Col 11]\n" +
+        $"  11   CALL      0 2 0                                [Ln 6, Col 4 - Ln 6, Col 12]\n" +
+        $"  12   VISNOTIFY 0 4                                  [Ln 6, Col 4 - Ln 6, Col 12]\n" +
+        $"  13   SETGLOB   0 {_firstGlob + 1}" +
         $"                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
-        $"  17   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
+        $"  14   VISNOTIFY 0 2                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
+        $"  15   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"Notifications\n" +
         $"  0    Notification.VariableDefined: 'add' Global {_firstGlob}\n" +
         $"  1    Notification.SingleStep\n" +
-        $"  2    Notification.TempRegisterAllocated: 0\n" +
+        $"  2    Notification.TempRegisterFreed: 0\n" +
         $"  3    Notification.VariableDefined: 'x' Global {_firstGlob + 1}\n" +
-        $"  4    Notification.TempRegisterAllocated: 1\n" +
-        $"  5    Notification.TempRegisterAllocated: 2\n" +
-        $"  6    Notification.VariableDeleted: 0\n" +
+        $"  4    Notification.TempRegisterFreed: 1\n" +
         $"\n" +
         $"Function <add>\n" +
         $"  1    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
@@ -620,20 +594,20 @@ x = add(1, 2)
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  3    GETGLOB   0 {_printValFunc}" +
+        $"  2    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  4    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  5    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  6    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  7    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  3    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  5    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  7    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  8    VISNOTIFY 1 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  9    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTag: Add\n" +
-        $"  1    Notification.TempRegisterAllocated: 0\n" +
-        $"  2    Notification.TempRegisterAllocated: 1\n" +
-        $"  3    Notification.Binary: 250 Add 251 1\n"
+        $"  1    Notification.Binary: 250 Add 251 1\n" +
+        $"  2    Notification.TempRegisterFreed: 1\n" +
+        $"  3    Notification.TempRegisterFreed: 0\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.Binary),
@@ -651,20 +625,20 @@ x = add(1, 2)
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
-        $"  2    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  3    GETGLOB   0 {_printValFunc}" +
+        $"  2    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  4    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  5    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  6    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
-        $"  7    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  3    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  4    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  5    CALL      0 1 0                                [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  6    VISNOTIFY 0 2                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"  7    VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  8    VISNOTIFY 1 0                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  9    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTag: Add(1: 250, 2: 251)\n" +
-        $"  1    Notification.TempRegisterAllocated: 0\n" +
-        $"  2    Notification.TempRegisterAllocated: 1\n" +
-        $"  3    Notification.Binary: 250 Add 251 1\n"
+        $"  1    Notification.Binary: 250 Add 251 1\n" +
+        $"  2    Notification.TempRegisterFreed: 1\n" +
+        $"  3    Notification.TempRegisterFreed: 0\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.Binary),
@@ -686,34 +660,32 @@ x, y = 1, 1 + 2
         $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
         $"  3    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  4    VISNOTIFY 0 2                                  [Ln 3, Col 3 - Ln 3, Col 3]\n" +
-        $"  5    VISNOTIFY 0 3                                  [Ln 3, Col 7 - Ln 3, Col 7]\n" +
-        $"  6    LOADK     0 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
-        $"  7    VISNOTIFY 0 4                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
-        $"  8    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
-        $"  9    VISNOTIFY 0 5                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
-        $"  10   SETGLOB   0 {_firstGlob}" +
+        $"  5    LOADK     0 -1             ; 1                 [Ln 3, Col 7 - Ln 3, Col 7]\n" +
+        $"  6    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  7    VISNOTIFY 0 3                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
+        $"  8    SETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  11   VISNOTIFY 0 6                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  12   SETGLOB   1 {_firstGlob + 1}" +
+        $"  9    VISNOTIFY 0 4                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  10   SETGLOB   1 {_firstGlob + 1}" +
         $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  13   VISNOTIFY 0 7                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
-        $"  14   GETGLOB   0 {_firstGlob}" +
+        $"  11   VISNOTIFY 0 5                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  12   VISNOTIFY 0 6                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  13   GETGLOB   0 {_firstGlob}" +
         $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
-        $"  15   GETGLOB   1 {_firstGlob + 1}" +
+        $"  14   GETGLOB   1 {_firstGlob + 1}" +
         $"                                  [Ln 2, Col 18 - Ln 2, Col 18]\n" +
-        $"  16   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
-        $"  17   VISNOTIFY 1 8                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
-        $"  18   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"  15   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
+        $"  16   VISNOTIFY 1 7                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
+        $"  17   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"Notifications\n" +
         $"  0    Notification.VTag: Assign(x: null, 1: 250, y: null, 1+2: 2)\n" +
         $"  1    Notification.VariableDefined: 'x' Global {_firstGlob}\n" +
         $"  2    Notification.VariableDefined: 'y' Global {_firstGlob + 1}\n" +
-        $"  3    Notification.TempRegisterAllocated: 0\n" +
-        $"  4    Notification.TempRegisterAllocated: 1\n" +
-        $"  5    Notification.Binary: 250 Add 251 1\n" +
-        $"  6    Notification.Assignment: 'x' Global 0\n" +
-        $"  7    Notification.Assignment: 'y' Global 1\n" +
-        $"  8    Notification.VTag: Assign(x: 0, 1: 250, y: 1, 1+2: 2)\n"
+        $"  3    Notification.Binary: 250 Add 251 1\n" +
+        $"  4    Notification.Assignment: 'x' Global 0\n" +
+        $"  5    Notification.Assignment: 'y' Global 1\n" +
+        $"  6    Notification.TempRegisterFreed: 0\n" +
+        $"  7    Notification.VTag: Assign(x: 0, 1: 250, y: 1, 1+2: 2)\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(source, expected, new Type[] {
         typeof(Event.Assignment),

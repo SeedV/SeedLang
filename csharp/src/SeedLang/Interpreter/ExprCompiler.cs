@@ -51,7 +51,7 @@ namespace SeedLang.Interpreter {
     // Visits an expression and returns the register id of the result.
     internal uint VisitExpressionForRegisterId(Expression expr) {
       if (!(_helper.GetRegisterId(expr) is uint exprId)) {
-        exprId = _helper.DefineTempVariable(expr.Range);
+        exprId = _helper.DefineTempVariable();
         Visit(expr, new Context { TargetRegister = exprId });
       }
       return exprId;
@@ -60,7 +60,7 @@ namespace SeedLang.Interpreter {
     // Visits an expression and returns the register and constant id of the result.
     internal uint VisitExpressionForRKId(Expression expr) {
       if (!(_helper.GetRegisterOrConstantId(expr) is uint exprId)) {
-        exprId = _helper.DefineTempVariable(expr.Range);
+        exprId = _helper.DefineTempVariable();
         Visit(expr, new Context { TargetRegister = exprId });
       }
       return exprId;
@@ -72,10 +72,10 @@ namespace SeedLang.Interpreter {
         _helper.Emit(Opcode.TEST, targetRegister, 0, 1, expr.Range);
       } else {
         _helper.BeginExprScope();
-        targetRegister = _helper.DefineTempVariable(expr.Range);
+        targetRegister = _helper.DefineTempVariable();
         Visit(expr, new Context { TargetRegister = targetRegister });
         _helper.Emit(Opcode.TEST, targetRegister, 0, 1, expr.Range);
-        _helper.EndExprScope();
+        _helper.EndExprScope(expr.Range);
       }
       EmitJump(nextBooleanOp, expr.Range);
     }
@@ -87,7 +87,7 @@ namespace SeedLang.Interpreter {
       _helper.Emit(CompilerHelper.OpcodeOfBinaryOperator(binary.Op), context.TargetRegister, left,
                    right, binary.Range);
       _helper.EmitBinaryNotification(left, binary.Op, right, context.TargetRegister, binary.Range);
-      _helper.EndExprScope();
+      _helper.EndExprScope(binary.Range);
     }
 
     protected override void VisitBoolean(BooleanExpression boolean, Context context) {
@@ -124,9 +124,8 @@ namespace SeedLang.Interpreter {
       // TODO: should call.Func always be IdentifierExpression?
       if (call.Func is IdentifierExpression identifier) {
         if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
-          bool needRegister = context.TargetRegister != _helper.LastRegister;
-          uint funcRegister = needRegister ? _helper.DefineTempVariable(identifier.Range) :
-                                             context.TargetRegister;
+          bool targetIsLast = context.TargetRegister + 1 == _helper.RegisterCount;
+          uint funcRegister = targetIsLast ? context.TargetRegister : _helper.DefineTempVariable();
           switch (info.Type) {
             case VariableType.Global:
               _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
@@ -139,10 +138,10 @@ namespace SeedLang.Interpreter {
               break;
           }
           foreach (Expression expr in call.Arguments) {
-            Visit(expr, new Context { TargetRegister = _helper.DefineTempVariable(expr.Range) });
+            Visit(expr, new Context { TargetRegister = _helper.DefineTempVariable() });
           }
           _helper.EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
-          if (needRegister) {
+          if (!targetIsLast) {
             _helper.Emit(Opcode.MOVE, context.TargetRegister, funcRegister, 0, call.Range);
           }
         } else {
@@ -150,7 +149,7 @@ namespace SeedLang.Interpreter {
                                         call.Range, Message.RuntimeErrorVariableNotDefined);
         }
       }
-      _helper.EndExprScope();
+      _helper.EndExprScope(call.Range);
     }
 
     protected override void VisitComparison(ComparisonExpression comparison, Context context) {
@@ -171,16 +170,16 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       uint? first = null;
       foreach (var item in dict.KeyValues) {
-        uint register = _helper.DefineTempVariable(dict.Range);
+        uint register = _helper.DefineTempVariable();
         if (!first.HasValue) {
           first = register;
         }
         Visit(item.Key, new Context { TargetRegister = register });
-        Visit(item.Value, new Context { TargetRegister = _helper.DefineTempVariable(dict.Range) });
+        Visit(item.Value, new Context { TargetRegister = _helper.DefineTempVariable() });
       }
       _helper.Emit(Opcode.NEWDICT, context.TargetRegister, first ?? 0,
                    (uint)dict.KeyValues.Length * 2, dict.Range);
-      _helper.EndExprScope();
+      _helper.EndExprScope(dict.Range);
     }
 
     protected override void VisitIdentifier(IdentifierExpression identifier, Context context) {
@@ -239,7 +238,7 @@ namespace SeedLang.Interpreter {
       _helper.Emit(Opcode.GETELEM, context.TargetRegister, containerId, keyId, subscript.Range);
       _helper.EmitGetElementNotification(context.TargetRegister, containerId, keyId,
                                          subscript.Range);
-      _helper.EndExprScope();
+      _helper.EndExprScope(subscript.Range);
     }
 
     protected override void VisitTuple(TupleExpression tuple, Context context) {
@@ -250,7 +249,7 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       uint exprId = VisitExpressionForRKId(unary.Expr);
       _helper.Emit(Opcode.UNM, context.TargetRegister, exprId, 0, unary.Range);
-      _helper.EndExprScope();
+      _helper.EndExprScope(unary.Range);
     }
 
     private void VisitBooleanOrComparisonExpression(Action action, TextRange range,
@@ -288,7 +287,7 @@ namespace SeedLang.Interpreter {
       _helper.EmitComparisonNotification(leftRegister, op, rightRegister, range);
       _helper.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
       EmitJump(nextBooleanOp, range);
-      _helper.EndExprScope();
+      _helper.EndExprScope(range);
     }
 
     private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs, TextRange range,
@@ -296,14 +295,14 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       uint? first = null;
       foreach (var expr in exprs) {
-        uint register = _helper.DefineTempVariable(range);
+        uint register = _helper.DefineTempVariable();
         if (!first.HasValue) {
           first = register;
         }
         Visit(expr, new Context { TargetRegister = register });
       }
       _helper.Emit(opcode, targetRegister, first ?? 0, (uint)exprs.Count, range);
-      _helper.EndExprScope();
+      _helper.EndExprScope(range);
     }
 
     private void EmitJump(BooleanOperator nextBooleanOp, TextRange range) {

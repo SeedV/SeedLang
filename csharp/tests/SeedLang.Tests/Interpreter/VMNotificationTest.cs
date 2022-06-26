@@ -118,9 +118,9 @@ x = add(1, 2)
         "[Ln 2, Col 8 - Ln 2, Col 8] VariableDefined: add.a (Local)",
         "[Ln 2, Col 11 - Ln 2, Col 11] VariableDefined: add.b (Local)",
         "[Ln 3, Col 2 - Ln 3, Col 2] VariableDefined: add.c (Local)",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.c (Local)",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.b (Local)",
-        "[Ln 6, Col 4 - Ln 6, Col 12] VariableDeleted: add.a (Local)",
+        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: add.c (Local)",
+        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: add.b (Local)",
+        "[Ln 4, Col 2 - Ln 4, Col 9] VariableDeleted: add.a (Local)",
       };
       events.Should().BeEquivalentTo(expected);
     }

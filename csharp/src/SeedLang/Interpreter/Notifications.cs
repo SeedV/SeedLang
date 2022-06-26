@@ -392,46 +392,45 @@ namespace SeedLang.Interpreter {
       }
     }
 
-    internal sealed class TempRegisterAllocated :
-        AbstractNotification, IEquatable<TempRegisterAllocated> {
-      public uint Id { get; }
+    internal sealed class TempRegisterFreed : AbstractNotification, IEquatable<TempRegisterFreed> {
+      public uint FromId { get; }
 
-      internal TempRegisterAllocated(uint id) {
-        Id = id;
+      internal TempRegisterFreed(uint fromId) {
+        FromId = fromId;
       }
 
-      public static bool operator ==(TempRegisterAllocated lhs, TempRegisterAllocated rhs) {
+      public static bool operator ==(TempRegisterFreed lhs, TempRegisterFreed rhs) {
         return lhs.Equals(rhs);
       }
 
-      public static bool operator !=(TempRegisterAllocated lhs, TempRegisterAllocated rhs) {
+      public static bool operator !=(TempRegisterFreed lhs, TempRegisterFreed rhs) {
         return !(lhs == rhs);
       }
 
-      public bool Equals(TempRegisterAllocated other) {
+      public bool Equals(TempRegisterFreed other) {
         if (other is null) {
           return false;
         }
         if (ReferenceEquals(this, other)) {
           return true;
         }
-        return Id == other.Id;
+        return FromId == other.FromId;
       }
 
       public override bool Equals(object obj) {
-        return Equals(obj as TempRegisterAllocated);
+        return Equals(obj as TempRegisterFreed);
       }
 
       public override int GetHashCode() {
-        return Id.GetHashCode();
+        return FromId.GetHashCode();
       }
 
       public override string ToString() {
-        return $"Notification.{GetType().Name}: {Id}";
+        return $"Notification.{GetType().Name}: {FromId}";
       }
 
       internal override void Accept(VM vm) {
-        vm.HandleTempRegisterAllocated(this);
+        vm.HandleTempRegisterFreed(this);
       }
     }
 
@@ -474,48 +473,6 @@ namespace SeedLang.Interpreter {
 
       internal override void Accept(VM vm) {
         vm.HandleVariableDefined(this);
-      }
-    }
-
-    internal sealed class VariableDeleted : AbstractNotification, IEquatable<VariableDeleted> {
-      public uint StartId { get; }
-
-      internal VariableDeleted(uint startId) {
-        StartId = startId;
-      }
-
-      public static bool operator ==(VariableDeleted lhs, VariableDeleted rhs) {
-        return lhs.Equals(rhs);
-      }
-
-      public static bool operator !=(VariableDeleted lhs, VariableDeleted rhs) {
-        return !(lhs == rhs);
-      }
-
-      public bool Equals(VariableDeleted other) {
-        if (other is null) {
-          return false;
-        }
-        if (ReferenceEquals(this, other)) {
-          return true;
-        }
-        return StartId == other.StartId;
-      }
-
-      public override bool Equals(object obj) {
-        return Equals(obj as VariableDeleted);
-      }
-
-      public override int GetHashCode() {
-        return StartId.GetHashCode();
-      }
-
-      public override string ToString() {
-        return $"Notification.{GetType().Name}: {StartId}";
-      }
-
-      internal override void Accept(VM vm) {
-        vm.HandleVariableDeleted(this);
       }
     }
 

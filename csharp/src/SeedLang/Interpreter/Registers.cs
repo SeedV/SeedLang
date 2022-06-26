@@ -123,10 +123,6 @@ namespace SeedLang.Interpreter {
       return index < _registerInfos.Count ? _registerInfos[index] : new RegisterInfo();
     }
 
-    internal void SetTempRegisterInfoAt(uint registerId) {
-      SetRegisterInfoAt(registerId, new RegisterInfo());
-    }
-
     internal void SetLocalRegisterInfoAt(uint registerId, string name) {
       SetRegisterInfoAt(registerId, new RegisterInfo(name));
     }
@@ -136,26 +132,32 @@ namespace SeedLang.Interpreter {
       SetRegisterInfoAt(registerId, new RegisterInfo(name, refVariableType, keys));
     }
 
-    internal void DeleteRegisterInfoFrom(uint startId, Action<RegisterInfo> notifyAction) {
+    internal void DeleteRegisterInfoFrom(uint startId) {
       var index = (int)(Base + startId);
-      Debug.Assert(index < _registerInfos.Count);
-      for (int i = _registerInfos.Count - 1; i >= index; i--) {
-        // Calls the notify action for registers that hold local variables.
+      if (index < _registerInfos.Count) {
+        _registerInfos.RemoveRange(index, _registerInfos.Count - index);
+      }
+    }
+
+    internal IReadOnlyList<string> NamesOfLocalVariableFrom(uint startId) {
+      var index = (int)(Base + startId);
+      var locals = new List<string>();
+      for (int i = index; i < _registerInfos.Count; i++) {
         if (_registerInfos[i].IsLocal) {
-          notifyAction(_registerInfos[i]);
+          locals.Add(_registerInfos[i].Name);
         }
       }
-      _registerInfos.RemoveRange(index, _registerInfos.Count - index);
+      return locals;
     }
 
     private void SetRegisterInfoAt(uint registerId, RegisterInfo info) {
       int index = (int)(Base + registerId);
-      // TODO: This assert fails in the merge sort example. It means there are bugs in the variable
-      // tracking logic. Check and fix it later.
-      // Debug.Assert(index <= _registerInfos.Count);
       if (index < _registerInfos.Count) {
         _registerInfos[index] = info;
       } else {
+        while (index > _registerInfos.Count) {
+          _registerInfos.Add(new RegisterInfo());
+        }
         _registerInfos.Add(info);
       }
     }

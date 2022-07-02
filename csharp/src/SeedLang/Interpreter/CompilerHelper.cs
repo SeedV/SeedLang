@@ -43,8 +43,8 @@ namespace SeedLang.Interpreter {
     // The flag to suspend emitting of notifications.
     private bool _suspendNotificationEmitting = false;
 
-    internal CompilerHelper(VisualizerCenter visualizerCenter, GlobalEnvironment env) {
-      _variableResolver = new VariableResolver(env);
+    internal CompilerHelper(VisualizerCenter visualizerCenter, Module module) {
+      _variableResolver = new VariableResolver(module);
       _visualizerCenter = visualizerCenter;
     }
 

@@ -33,10 +33,8 @@ namespace SeedLang.Interpreter {
     }
 
     private readonly Sys _sys = new Sys();
-    private readonly Registers _registers = new Registers();
     private readonly VisualizerCenter _visualizerCenter;
-
-    public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
+    private readonly Registers _registers = new Registers();
 
     public bool IsRunning => _state == State.Running;
     public bool IsPaused => _state == State.Paused;
@@ -44,6 +42,7 @@ namespace SeedLang.Interpreter {
 
     private State _state = State.Stopped;
 
+    private Module _module;
     private CallStack _callStack;
     private Chunk _chunk;
     private int _pc;
@@ -66,8 +65,8 @@ namespace SeedLang.Interpreter {
       }
       var globalList = new List<IVM.VariableInfo>();
       foreach (string name in _globals) {
-        if (Env.FindVariable(name) is uint id) {
-          globalList.Add(new IVM.VariableInfo(name, new Value(Env.GetVariable(id))));
+        if (_module.FindVariable(name) is uint id) {
+          globalList.Add(new IVM.VariableInfo(name, new Value(_module.Globals[id])));
         }
       }
       globals = globalList;
@@ -83,13 +82,14 @@ namespace SeedLang.Interpreter {
       return true;
     }
 
-    internal void Run(Function func) {
+    internal void Run(Module module, Function func) {
       Debug.Assert(!IsRunning, "VM shall not be running.");
       if (!IsStopped) {
         Stop();
       }
       _state = State.Running;
 
+      _module = module;
       _callStack = new CallStack();
       _registers.Reset();
       _callStack.PushFunc(func, _registers.Base, 0);
@@ -307,10 +307,10 @@ namespace SeedLang.Interpreter {
               _registers.SetValueAt(instr.A, new VMValue(dict));
               break;
             case Opcode.GETGLOB:
-              _registers.SetValueAt(instr.A, Env.GetVariable(instr.Bx));
+              _registers.SetValueAt(instr.A, _module.Globals[instr.Bx]);
               break;
             case Opcode.SETGLOB:
-              Env.SetVariable(instr.Bx, _registers.GetValueAt(instr.A));
+              _module.Globals[instr.Bx] = _registers.GetValueAt(instr.A);
               break;
             case Opcode.GETELEM:
               GetElement(instr);

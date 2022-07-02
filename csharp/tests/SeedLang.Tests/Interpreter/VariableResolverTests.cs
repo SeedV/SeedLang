@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using FluentAssertions;
-using SeedLang.Runtime.HeapObjects;
+using SeedLang.Runtime;
 using SeedLang.Visualization;
 using Xunit;
 
@@ -22,12 +21,12 @@ namespace SeedLang.Interpreter.Tests {
   public class VariableResolverTests {
     [Fact]
     public void TestScopes() {
-      var env = new GlobalEnvironment(Array.Empty<NativeFunction>());
+      var module = new Module("test", new GlobalRegisters());
       string a = "a";
       string b = "b";
-      env.DefineVariable(a).Should().Be(0);
+      module.DefineVariable(a, new VMValue()).Should().Be(0);
 
-      var resolver = new VariableResolver(env);
+      var resolver = new VariableResolver(module);
       var expectedA = new VariableInfo("a", VariableType.Global, 0);
       var expectedB = new VariableInfo("b", VariableType.Global, 1);
       resolver.FindVariable(a).Should().BeEquivalentTo(expectedA);

@@ -136,8 +136,9 @@ x = add(1, 2)
       var stringWriter = new StringWriter();
       vm.RedirectStdout(stringWriter);
       var compiler = new Compiler();
-      Function func = compiler.Compile(program, vm.Env, vc, RunMode.Interactive);
-      vm.Run(func);
+      var module = Module.Create("test");
+      Function func = compiler.Compile(program, module, vc, RunMode.Interactive);
+      vm.Run(module, func);
       return (stringWriter.ToString(), vh.EventStrings);
     }
   }

@@ -801,10 +801,9 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private static void TestCompiler(Statement statement, string expected, RunMode mode) {
-      var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
       var visualizerCenter = new VisualizerCenter(() => null);
       var compiler = new Compiler();
-      var func = compiler.Compile(statement, env, visualizerCenter, mode);
+      var func = compiler.Compile(statement, Module.Create("test"), visualizerCenter, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
     }
 

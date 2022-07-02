@@ -27,10 +27,10 @@ namespace SeedLang.Interpreter {
     // The range of the statement that is just compiled.
     private TextRange _rangeOfPrevStatement = null;
 
-    internal Function Compile(Statement program, GlobalEnvironment env,
-                              VisualizerCenter visualizerCenter, RunMode runMode) {
+    internal Function Compile(Statement program, Module module, VisualizerCenter visualizerCenter,
+                              RunMode runMode) {
       _runMode = runMode;
-      _helper = new CompilerHelper(visualizerCenter, env);
+      _helper = new CompilerHelper(visualizerCenter, module);
       _exprCompiler = new ExprCompiler(_helper);
       _helper.PushMainFunc();
       Visit(program, new NestedLoopStack());

@@ -236,6 +236,10 @@ namespace SeedLang.Ast {
         }
       }
 
+      protected override void VisitImport(ImportStatement import, int level) {
+        _builder.Append($" ({import.Name})");
+      }
+
       protected override void VisitPass(PassStatement pass, int level) { }
 
       protected override void VisitReturn(ReturnStatement @return, int level) {

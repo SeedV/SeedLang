@@ -24,8 +24,8 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static readonly int _printValFunc = NativeFunctionIdOf(NativeFunctions.PrintVal);
-    private static readonly int _firstGlob = NativeFunctions.Funcs.Count;
+    private static readonly int _printValFunc = NativeFunctionIdOf(BuiltinFunctions.PrintVal);
+    private static readonly int _firstGlob = BuiltinFunctions.Funcs.Count;
     private static readonly TextRange _range = AstHelper.TextRange;
 
     [Fact]
@@ -808,7 +808,9 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private static int NativeFunctionIdOf(string name) {
-      return NativeFunctions.Funcs.Values.ToList().FindIndex(func => { return func.Name == name; });
+      return BuiltinFunctions.Funcs.Values.ToList().FindIndex(func => {
+        return func.Name == name;
+      });
     }
   }
 }

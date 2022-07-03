@@ -81,7 +81,7 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       switch (_runMode) {
         case RunMode.Interactive:
-          Expression eval = Expression.Identifier(NativeFunctions.PrintVal, expr.Range);
+          Expression eval = Expression.Identifier(BuiltinFunctions.PrintVal, expr.Range);
           _exprCompiler.Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range),
                               new ExprCompiler.Context {
                                 TargetRegister = _helper.DefineTempVariable(),
@@ -186,6 +186,10 @@ namespace SeedLang.Interpreter {
         _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
       }
       _helper.ExprJumpStack.PopFrame();
+    }
+
+    protected override void VisitImport(ImportStatement import, NestedLoopStack _) {
+      throw new System.NotImplementedException();
     }
 
     protected override void VisitPass(PassStatement pass, NestedLoopStack _) { }

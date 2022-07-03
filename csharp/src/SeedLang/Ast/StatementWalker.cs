@@ -48,6 +48,9 @@ namespace SeedLang.Ast {
         case IfStatement @if:
           VisitIf(@if, param);
           break;
+        case ImportStatement import:
+          VisitImport(import, param);
+          break;
         case PassStatement pass:
           VisitPass(pass, param);
           break;
@@ -78,6 +81,7 @@ namespace SeedLang.Ast {
     protected abstract void VisitForIn(ForInStatement forIn, Param param);
     protected abstract void VisitFuncDef(FuncDefStatement funcDef, Param param);
     protected abstract void VisitIf(IfStatement @if, Param param);
+    protected abstract void VisitImport(ImportStatement import, Param param);
     protected abstract void VisitPass(PassStatement pass, Param param);
     protected abstract void VisitReturn(ReturnStatement @return, Param param);
     protected abstract void VisitVTag(VTagStatement vTag, Param param);

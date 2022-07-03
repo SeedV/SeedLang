@@ -48,7 +48,8 @@ simple_stmt:
   | return_stmt # return_stmt_placeholder
   | PASS        # pass
   | BREAK       # break
-  | CONTINUE    # continue;
+  | CONTINUE    # continue
+  | import_stmt # import_stmt_placeholder;
 
 compound_stmt:
   function_def
@@ -94,6 +95,8 @@ parameters: NAME (COMMA NAME)*;
 
 return_stmt: RETURN expressions?;
 
+import_stmt: IMPORT NAME;
+
 block:
   NEWLINE INDENT statements DEDENT # statements_as_block
   | simple_stmts                   # simple_stmts_as_block;
@@ -113,6 +116,7 @@ RETURN: 'return';
 PASS: 'pass';
 BREAK: 'break';
 CONTINUE: 'continue';
+IMPORT: 'import';
 
 SEMICOLON: ';';
 

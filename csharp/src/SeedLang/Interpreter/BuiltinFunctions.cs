@@ -44,7 +44,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal static bool IsInternalFunction(string name) {
-      return name.StartsWith("__") && name.EndsWith("__");
+      return name.StartsWith("_");
     }
 
     // Prints a value when it's not nil. It's used in interactive mode to print the result of an

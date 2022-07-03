@@ -190,6 +190,11 @@ namespace SeedLang.X {
                                  context.expressions()?.COMMA(), this);
     }
 
+    public override AstNode VisitImport_stmt(
+        [NotNull] SeedPythonParser.Import_stmtContext context) {
+      return _helper.BuildImport(context.IMPORT().Symbol, context.NAME().Symbol);
+    }
+
     public override AstNode VisitStatements_as_block(
         [NotNull] SeedPythonParser.Statements_as_blockContext context) {
       return Visit(context.statements());

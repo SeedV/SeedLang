@@ -81,7 +81,7 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       switch (_runMode) {
         case RunMode.Interactive:
-          Expression eval = Expression.Identifier(BuiltinFunctions.PrintVal, expr.Range);
+          Expression eval = Expression.Identifier(BuiltinsDefinition.PrintVal, expr.Range);
           _exprCompiler.Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range),
                               new ExprCompiler.Context {
                                 TargetRegister = _helper.DefineTempVariable(),

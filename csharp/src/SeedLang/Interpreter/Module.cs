@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Runtime;
@@ -27,7 +28,16 @@ namespace SeedLang.Interpreter {
     internal static Module Create(string name) {
       var globals = new GlobalRegisters();
       var module = new Module(name, globals);
-      module.Import("__builtins__", BuiltinModules.Create("builtins", globals));
+      module.Import("__builtins__", CreateFrom("builtins", BuiltinsDefinition.Variables, globals));
+      return module;
+    }
+
+    internal static Module CreateFrom(string name, Dictionary<string, VMValue> variables,
+                                      GlobalRegisters globals) {
+      var module = new Module(name, globals);
+      foreach (var v in variables) {
+        module.DefineVariable(v.Key, v.Value);
+      }
       return module;
     }
 
@@ -56,21 +66,9 @@ namespace SeedLang.Interpreter {
         return null;
       }
     }
-  }
 
-  internal static class BuiltinModules {
-    internal static Module Create(string name, GlobalRegisters globals) {
-      var module = new Module(name, globals);
-      switch (name) {
-        case "builtins":
-          foreach (var item in BuiltinFunctions.Funcs) {
-            module.DefineVariable(item.Key, new VMValue(item.Value));
-          }
-          break;
-        default:
-          return null;
-      }
-      return module;
+    internal static bool IsInternalFunction(string name) {
+      return name.StartsWith("_");
     }
   }
 }

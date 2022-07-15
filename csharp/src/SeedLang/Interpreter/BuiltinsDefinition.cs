@@ -19,7 +19,7 @@ using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Interpreter {
   // The static class to define all the build-in native functions.
-  internal static class BuiltinFunctions {
+  internal static class BuiltinsDefinition {
     public const string PrintVal = "__printval__";
     public const string Append = "append";
     public const string Len = "len";
@@ -28,23 +28,18 @@ namespace SeedLang.Interpreter {
     public const string Range = "range";
     public const string Slice = "slice";
 
-    public static Dictionary<string, NativeFunction> Funcs =
-        new Dictionary<string, NativeFunction> {
-          [PrintVal] = new NativeFunction(PrintVal, PrintValFunc),
-          [Append] = new NativeFunction(Append, AppendFunc),
-          [Len] = new NativeFunction(Len, LenFunc),
-          [List] = new NativeFunction(List, ListFunc),
-          [Print] = new NativeFunction(Print, PrintFunc),
-          [Range] = new NativeFunction(Range, RangeFunc),
-          [Slice] = new NativeFunction(Slice, SliceFunc),
-        };
+    public static Dictionary<string, VMValue> Variables = new Dictionary<string, VMValue> {
+      [PrintVal] = new VMValue(new NativeFunction(PrintVal, PrintValFunc)),
+      [Append] = new VMValue(new NativeFunction(Append, AppendFunc)),
+      [Len] = new VMValue(new NativeFunction(Len, LenFunc)),
+      [List] = new VMValue(new NativeFunction(List, ListFunc)),
+      [Print] = new VMValue(new NativeFunction(Print, PrintFunc)),
+      [Range] = new VMValue(new NativeFunction(Range, RangeFunc)),
+      [Slice] = new VMValue(new NativeFunction(Slice, SliceFunc)),
+    };
 
     internal static bool IsNativeFunc(string name) {
-      return Funcs.ContainsKey(name);
-    }
-
-    internal static bool IsInternalFunction(string name) {
-      return name.StartsWith("_");
+      return Variables.ContainsKey(name);
     }
 
     // Prints a value when it's not nil. It's used in interactive mode to print the result of an

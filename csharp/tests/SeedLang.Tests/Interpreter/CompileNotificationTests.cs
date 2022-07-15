@@ -14,11 +14,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
-using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using SeedLang.X;
@@ -26,9 +24,16 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompileNotificationTests {
-    private static readonly int _printValFunc = NativeFunctionIdOf(BuiltinFunctions.PrintVal);
-    private static readonly int _rangeFunc = NativeFunctionIdOf(BuiltinFunctions.Range);
-    private static readonly int _firstGlob = BuiltinFunctions.Funcs.Count;
+    private static readonly int _firstGlob = BuiltinsDefinition.Variables.Count;
+    private readonly Module _module;
+    private readonly uint _printValFunc;
+    private readonly uint _rangeFunc;
+
+    public CompileNotificationTests() {
+      _module = Module.Create("test");
+      _printValFunc = (uint)_module.FindVariable(BuiltinsDefinition.PrintVal);
+      _rangeFunc = (uint)_module.FindVariable(BuiltinsDefinition.Range);
+    }
 
     [Fact]
     public void TestAssignment() {
@@ -695,7 +700,7 @@ x, y = 1, 1 + 2
       }, RunMode.Interactive);
     }
 
-    private static void TestCompiler(string source, string expected, IReadOnlyList<Type> eventTypes,
+    private void TestCompiler(string source, string expected, IReadOnlyList<Type> eventTypes,
                                      RunMode mode) {
       new SeedPython().Parse(source, "", new DiagnosticCollection(), out Statement program,
                              out IReadOnlyList<TokenInfo> _).Should().Be(true);
@@ -703,14 +708,8 @@ x, y = 1, 1 + 2
       var visualizerHelper = new VisualizerHelper(eventTypes);
       visualizerHelper.RegisterToVisualizerCenter(visualizerCenter);
       var compiler = new Compiler();
-      var func = compiler.Compile(program, Module.Create("test"), visualizerCenter, mode);
+      var func = compiler.Compile(program, _module, visualizerCenter, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
-    }
-
-    private static int NativeFunctionIdOf(string name) {
-      return BuiltinFunctions.Funcs.Values.ToList().FindIndex(func => {
-        return func.Name == name;
-      });
     }
   }
 }

@@ -217,7 +217,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitSlice(SliceExpression slice, Context context) {
-      Expression sliceFunc = Expression.Identifier(BuiltinFunctions.Slice, slice.Range);
+      Expression sliceFunc = Expression.Identifier(BuiltinsDefinition.Slice, slice.Range);
       Visit(Expression.Call(sliceFunc, new Expression[] {
         slice.Start ?? Expression.NilConstant(slice.Range),
         slice.Stop ?? Expression.NilConstant(slice.Range),

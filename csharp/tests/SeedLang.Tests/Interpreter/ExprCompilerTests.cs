@@ -24,9 +24,18 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class ExprCompilerTests {
-    private static int _printValFunc => NativeFunctionIdOf(BuiltinFunctions.PrintVal);
-    private static int _sliceFunc => NativeFunctionIdOf(BuiltinFunctions.Slice);
     private readonly TextRange _range = AstHelper.TextRange;
+    private static readonly int _firstGlob = BuiltinsDefinition.Variables.Count;
+    private readonly Module _module;
+    private readonly uint _printValFunc;
+    private readonly uint _sliceFunc;
+
+    public ExprCompilerTests() {
+      _module = Module.Create("test");
+      _printValFunc = (uint)_module.FindVariable(BuiltinsDefinition.PrintVal);
+      _sliceFunc = (uint)_module.FindVariable(BuiltinsDefinition.Slice);
+    }
+
 
     [Fact]
     public void TestCompileNilConstant() {
@@ -350,17 +359,11 @@ namespace SeedLang.Interpreter.Tests {
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorVariableNotDefined);
     }
 
-    private static void TestCompiler(Statement statement, string expected, RunMode mode) {
+    private void TestCompiler(Statement statement, string expected, RunMode mode) {
       var visualizerCenter = new VisualizerCenter(() => null);
       var compiler = new Compiler();
-      var func = compiler.Compile(statement, Module.Create("test"), visualizerCenter, mode);
+      var func = compiler.Compile(statement, _module, visualizerCenter, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
-    }
-
-    private static int NativeFunctionIdOf(string name) {
-      return BuiltinFunctions.Funcs.Values.ToList().FindIndex(func => {
-        return func.Name == name;
-      });
     }
   }
 }

@@ -24,9 +24,15 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static readonly int _printValFunc = NativeFunctionIdOf(BuiltinFunctions.PrintVal);
-    private static readonly int _firstGlob = BuiltinFunctions.Funcs.Count;
     private static readonly TextRange _range = AstHelper.TextRange;
+    private static readonly int _firstGlob = BuiltinsDefinition.Variables.Count;
+    private readonly Module _module;
+    private readonly uint _printValFunc;
+
+    public CompilerTests() {
+      _module = Module.Create("test");
+      _printValFunc = (uint)_module.FindVariable(BuiltinsDefinition.PrintVal);
+    }
 
     [Fact]
     public void TestCompileAssignment() {
@@ -800,17 +806,11 @@ namespace SeedLang.Interpreter.Tests {
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorContinueOutsideLoop);
     }
 
-    private static void TestCompiler(Statement statement, string expected, RunMode mode) {
+    private void TestCompiler(Statement statement, string expected, RunMode mode) {
       var visualizerCenter = new VisualizerCenter(() => null);
       var compiler = new Compiler();
-      var func = compiler.Compile(statement, Module.Create("test"), visualizerCenter, mode);
+      var func = compiler.Compile(statement, _module, visualizerCenter, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
-    }
-
-    private static int NativeFunctionIdOf(string name) {
-      return BuiltinFunctions.Funcs.Values.ToList().FindIndex(func => {
-        return func.Name == name;
-      });
     }
   }
 }

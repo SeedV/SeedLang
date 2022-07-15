@@ -143,7 +143,7 @@ namespace SeedLang.Interpreter {
     // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
     // for the FuncCalled event.
     internal void EmitCall(string name, uint funcRegister, uint argLength, TextRange range) {
-      bool isNormalFunc = !BuiltinFunctions.IsInternalFunction(name);
+      bool isNormalFunc = !Module.IsInternalFunction(name);
       bool notifyCalled = !_suspendNotificationEmitting && isNormalFunc &&
                           _visualizerCenter.HasVisualizer<Event.FuncCalled>();
       if (notifyCalled) {

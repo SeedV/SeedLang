@@ -25,16 +25,16 @@ using SeedLang.Runtime.HeapObjects;
 namespace SeedLang.Interpreter.Tests {
   using Range = Runtime.HeapObjects.Range;
 
-  public class BuiltinFunctionsTests {
+  public class BuiltinsDefinitionTests {
     [Fact]
     public void TestIsInternalFunction() {
-      BuiltinFunctions.IsInternalFunction(BuiltinFunctions.PrintVal).Should().Be(true);
-      BuiltinFunctions.IsInternalFunction(BuiltinFunctions.Append).Should().Be(false);
+      Module.IsInternalFunction(BuiltinsDefinition.PrintVal).Should().Be(true);
+      Module.IsInternalFunction(BuiltinsDefinition.Append).Should().Be(false);
     }
 
     [Fact]
     public void TestPrintValFunc() {
-      var printValFunc = FindFunc(BuiltinFunctions.PrintVal);
+      var printValFunc = FindFunc(BuiltinsDefinition.PrintVal);
       var sys = new Sys() { Stdout = new StringWriter() };
       var args = new ValueSpan(new VMValue[] { new VMValue(), }, 0, 1);
       printValFunc.Call(args, sys).Should().Be(new VMValue());
@@ -50,7 +50,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestAppendFunc() {
-      var appendFunc = FindFunc(BuiltinFunctions.Append);
+      var appendFunc = FindFunc(BuiltinsDefinition.Append);
       var args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> { new VMValue(1), new VMValue(2) }),
         new VMValue(3),
@@ -67,7 +67,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestLenFunc() {
-      var lenFunc = FindFunc(BuiltinFunctions.Len);
+      var lenFunc = FindFunc(BuiltinsDefinition.Len);
       var args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> { new VMValue(1), new VMValue(2) }),
       }, 0, 1);
@@ -80,7 +80,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestListFunc() {
-      var listFunc = FindFunc(BuiltinFunctions.List);
+      var listFunc = FindFunc(BuiltinsDefinition.List);
 
       VMValue list = listFunc.Call(new ValueSpan(Array.Empty<VMValue>(), 0, 0), null);
       list.IsList.Should().Be(true);
@@ -112,7 +112,7 @@ namespace SeedLang.Interpreter.Tests {
     [Fact]
     public void TestPrintFunc() {
       var sys = new Sys() { Stdout = new StringWriter() };
-      var printFunc = FindFunc(BuiltinFunctions.Print);
+      var printFunc = FindFunc(BuiltinsDefinition.Print);
       var args = new ValueSpan(new VMValue[] {
         new VMValue(1),
         new VMValue(2),
@@ -124,7 +124,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestRangFunc() {
-      var rangeFunc = FindFunc(BuiltinFunctions.Range);
+      var rangeFunc = FindFunc(BuiltinsDefinition.Range);
       var args = new ValueSpan(new VMValue[] { new VMValue(10) }, 0, 1);
       rangeFunc.Call(args, null).ToString().Should().Be("range(0, 10, 1)");
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(10) }, 0, 2);
@@ -143,7 +143,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestSlice() {
-      var sliceFunc = FindFunc(BuiltinFunctions.Slice);
+      var sliceFunc = FindFunc(BuiltinsDefinition.Slice);
       var args = new ValueSpan(new VMValue[] {
         new VMValue(1),
         new VMValue(2),
@@ -169,9 +169,9 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     private static NativeFunction FindFunc(string name) {
-      var func = BuiltinFunctions.Funcs.Values.ToList().Find(func => func.Name == name);
-      func.Should().NotBeNull();
-      return func;
+      var value = BuiltinsDefinition.Variables[name];
+      value.IsFunction.Should().BeTrue();
+      return value.AsFunction() as NativeFunction;
     }
   }
 }

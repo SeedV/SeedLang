@@ -1,3 +1,4 @@
+using System;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +14,7 @@
 // limitations under the License.
 
 using FluentAssertions;
+using SeedLang.Runtime;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
@@ -22,6 +24,16 @@ namespace SeedLang.Interpreter.Tests {
       var registers = new GlobalRegisters();
       var module = new Module("root", registers);
       module.Name.Should().Be("root");
+    }
+
+    [Fact]
+    public void TestMathModule() {
+      var registers = new GlobalRegisters();
+      var module = Module.CreateFrom("math", MathDefinition.Variables, registers);
+      registers[(uint)module.FindVariable("pi")].Should().Be(new VMValue(Math.PI));
+      registers[(uint)module.FindVariable("e")].Should().Be(new VMValue(Math.E));
+      registers[(uint)module.FindVariable("fabs")].ToString().Should().Be("NativeFunction <fabs>");
+      registers[(uint)module.FindVariable("sin")].ToString().Should().Be("NativeFunction <sin>");
     }
   }
 }

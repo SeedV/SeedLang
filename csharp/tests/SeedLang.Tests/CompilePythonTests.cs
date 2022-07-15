@@ -14,14 +14,14 @@ using System.Linq;
 // limitations under the License.
 
 using System;
-using SeedLang.Runtime;
 using Xunit;
 using SeedLang.Interpreter;
+using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Tests {
   public class CompilePythonTests {
-    private static readonly int _rangeFunc = NativeFunctionIdOf(BuiltinFunctions.Range);
-    private static readonly int _firstGlob = BuiltinFunctions.Funcs.Count;
+    private static readonly int _rangeFunc = NativeFunctionIdOf(BuiltinsDefinition.Range);
+    private static readonly int _firstGlob = BuiltinsDefinition.Variables.Count;
 
     [Fact]
     public void TestCompileBreak() {
@@ -153,8 +153,8 @@ for i in range(10):
     }
 
     private static int NativeFunctionIdOf(string name) {
-      return BuiltinFunctions.Funcs.Values.ToList().FindIndex(func => {
-        return func.Name == name;
+      return BuiltinsDefinition.Variables.Values.ToList().FindIndex(value => {
+        return value.IsFunction && (value.AsFunction() as NativeFunction).Name == name;
       });
     }
   }

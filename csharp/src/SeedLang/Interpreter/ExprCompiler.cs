@@ -81,7 +81,13 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitAttribute(AttributeExpression attribute, Context context) {
-      throw new NotImplementedException();
+      if (attribute.Value is IdentifierExpression module) {
+        VisitVariable($"{module.Name}.{attribute.Attr.Name}", context.TargetRegister,
+                      attribute.Range);
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Fatal, "",
+                                      attribute.Range, Message.RuntimeErrorVariableNotDefined);
+      }
     }
 
     protected override void VisitBinary(BinaryExpression binary, Context context) {
@@ -204,23 +210,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitIdentifier(IdentifierExpression identifier, Context context) {
-      if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
-        switch (info.Type) {
-          case VariableType.Global:
-            _helper.Emit(Opcode.GETGLOB, context.TargetRegister, info.Id, identifier.Range);
-            _helper.EmitGetGlobalNotification(context.TargetRegister, info.Name, identifier.Range);
-            break;
-          case VariableType.Local:
-            _helper.Emit(Opcode.MOVE, context.TargetRegister, info.Id, 0, identifier.Range);
-            break;
-          case VariableType.Upvalue:
-            // TODO: handle upvalues.
-            break;
-        }
-      } else {
-        throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Fatal, "",
-                                      identifier.Range, Message.RuntimeErrorVariableNotDefined);
-      }
+      VisitVariable(identifier.Name, context.TargetRegister, identifier.Range);
     }
 
     protected override void VisitList(ListExpression list, Context context) {
@@ -309,6 +299,26 @@ namespace SeedLang.Interpreter {
       _helper.Emit(opcode, checkFlag ? 1u : 0u, leftRegister, rightRegister, range);
       EmitJump(nextBooleanOp, range);
       _helper.EndExprScope(range);
+    }
+
+    private void VisitVariable(string name, uint targetRegister, TextRange range) {
+      if (_helper.FindVariable(name) is VariableInfo info) {
+        switch (info.Type) {
+          case VariableType.Global:
+            _helper.Emit(Opcode.GETGLOB, targetRegister, info.Id, range);
+            _helper.EmitGetGlobalNotification(targetRegister, info.Name, range);
+            break;
+          case VariableType.Local:
+            _helper.Emit(Opcode.MOVE, targetRegister, info.Id, 0, range);
+            break;
+          case VariableType.Upvalue:
+            // TODO: handle upvalues.
+            break;
+        }
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Fatal, "", range,
+                                      Message.RuntimeErrorVariableNotDefined);
+      }
     }
 
     private void CreateTupleOrList(Opcode opcode, IReadOnlyList<Expression> exprs, TextRange range,

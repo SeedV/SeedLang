@@ -797,15 +797,15 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.ExpressionStmt(
           AstHelper.Call(
             AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("sin")),
-            AstHelper.NumberConstant(1)
+            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("pi"))
           )
         )
       );
       string expected = (
           $"Function <main>\n" +
-          $"  1    GETGLOB   0 0                                  {_range}\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
           $"  2    GETGLOB   1 10                                 {_range}\n" +
-          $"  3    LOADK     2 -1             ; 1                 {_range}\n" +
+          $"  3    GETGLOB   2 7                                  {_range}\n" +
           $"  4    CALL      1 1 0                                {_range}\n" +
           $"  5    CALL      0 1 0                                {_range}\n" +
           $"  6    HALT      1 0                                  {_range}\n"

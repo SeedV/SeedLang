@@ -24,6 +24,9 @@ namespace SeedLang.Ast {
     internal void Visit(Expression expression, Param param) {
       Enter(expression, param);
       switch (expression) {
+        case AttributeExpression attribute:
+          VisitAttribute(attribute, param);
+          break;
         case BinaryExpression binary:
           VisitBinary(binary, param);
           break;
@@ -79,6 +82,7 @@ namespace SeedLang.Ast {
     protected virtual void Enter(Expression expr, Param param) { }
     protected virtual void Exit(Expression expr, Param param) { }
 
+    protected abstract void VisitAttribute(AttributeExpression attribute, Param param);
     protected abstract void VisitBinary(BinaryExpression binary, Param param);
     protected abstract void VisitBoolean(BooleanExpression boolean, Param param);
     protected abstract void VisitBooleanConstant(BooleanConstantExpression booleanConstant,

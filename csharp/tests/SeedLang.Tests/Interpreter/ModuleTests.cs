@@ -1,4 +1,3 @@
-using System;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,7 @@ using System;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using FluentAssertions;
 using SeedLang.Runtime;
 using Xunit;
@@ -20,20 +20,36 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class ModuleTests {
     [Fact]
-    public void TestModule() {
-      var registers = new GlobalRegisters();
-      var module = new Module("root", registers);
+    public void TestCreateRootModule() {
+      var module = Module.Create("root");
       module.Name.Should().Be("root");
+      module.Globals[(uint)module.FindVariable(BuiltinsDefinition.PrintVal)].ToString().
+          Should().Be("NativeFunction <__printval__>");
+      module.Globals[(uint)module.FindVariable(BuiltinsDefinition.Append)].ToString().
+          Should().Be("NativeFunction <append>");
+      module.Globals[(uint)module.FindVariable(BuiltinsDefinition.Len)].ToString().
+          Should().Be("NativeFunction <len>");
     }
 
     [Fact]
-    public void TestMathModule() {
-      var registers = new GlobalRegisters();
-      var module = Module.CreateFrom("math", MathDefinition.Variables, registers);
-      registers[(uint)module.FindVariable("pi")].Should().Be(new VMValue(Math.PI));
-      registers[(uint)module.FindVariable("e")].Should().Be(new VMValue(Math.E));
-      registers[(uint)module.FindVariable("fabs")].ToString().Should().Be("NativeFunction <fabs>");
-      registers[(uint)module.FindVariable("sin")].ToString().Should().Be("NativeFunction <sin>");
+    public void TestIsInternalFunction() {
+      Module.IsInternalFunction(BuiltinsDefinition.PrintVal).Should().Be(true);
+      Module.IsInternalFunction(BuiltinsDefinition.Append).Should().Be(false);
+    }
+
+    [Fact]
+    public void TestImportModule() {
+      var module = Module.Create("root");
+      var submoduleName = "math";
+      module.ImportBuiltinModule(submoduleName);
+      module.Globals[(uint)module.FindVariable(MathDefinition.PI, submoduleName)].
+          Should().Be(new VMValue(Math.PI));
+      module.Globals[(uint)module.FindVariable(MathDefinition.E, submoduleName)].
+          Should().Be(new VMValue(Math.E));
+      module.Globals[(uint)module.FindVariable(MathDefinition.FAbs, submoduleName)].ToString().
+          Should().Be("NativeFunction <fabs>");
+      module.Globals[(uint)module.FindVariable(MathDefinition.Sin, submoduleName)].ToString().
+          Should().Be("NativeFunction <sin>");
     }
   }
 }

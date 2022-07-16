@@ -32,6 +32,12 @@ namespace SeedLang.Ast {
       _env = env;
     }
 
+    protected override void VisitAttribute(AttributeExpression attribute, Result result) {
+      // Doesn't support attribute expressions during AST trees execution.
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
+    }
+
     protected override void VisitBinary(BinaryExpression binary, Result result) {
       var leftResult = new Result();
       Visit(binary.Left, leftResult);

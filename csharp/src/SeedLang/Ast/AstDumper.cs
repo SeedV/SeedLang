@@ -80,6 +80,11 @@ namespace SeedLang.Ast {
         AppendHeader(_builder, expr, level);
       }
 
+      protected override void VisitAttribute(AttributeExpression attribute, int level) {
+        Visit(attribute.Value, level + 1);
+        Visit(attribute.Attr, level + 1);
+      }
+
       protected override void VisitBinary(BinaryExpression binary, int level) {
         _builder.Append($" ({binary.Op.Symbol()})");
         Visit(binary.Left, level + 1);
@@ -237,7 +242,7 @@ namespace SeedLang.Ast {
       }
 
       protected override void VisitImport(ImportStatement import, int level) {
-        _builder.Append($" ({import.Name})");
+        _builder.Append($" ({import.ModuleName})");
       }
 
       protected override void VisitPass(PassStatement pass, int level) { }

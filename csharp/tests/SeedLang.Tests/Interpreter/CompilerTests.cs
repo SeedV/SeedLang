@@ -1,4 +1,3 @@
-using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -786,6 +785,27 @@ namespace SeedLang.Interpreter.Tests {
           $"  12   CALL      5 1 0                                {_range}\n" +
           $"  13   FORLOOP   2 -5             ; to 9              {_range}\n" +
           $"  14   RETURN    0 0                                  {_range}\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
+    public void TestCompileImport() {
+      string moduleName = "math";
+      var program = AstHelper.Block(
+        AstHelper.Import(moduleName),
+        AstHelper.ExpressionStmt(
+          AstHelper.Call(
+            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("Sin")),
+            AstHelper.NumberConstant(1)
+          )
+        )
+      );
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 0                                  {_range}\n" +
+          $"  2    CALL      0 1 0                                {_range}\n" +
+          $"  3    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

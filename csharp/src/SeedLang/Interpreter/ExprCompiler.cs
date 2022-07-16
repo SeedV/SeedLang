@@ -80,6 +80,10 @@ namespace SeedLang.Interpreter {
       EmitJump(nextBooleanOp, expr.Range);
     }
 
+    protected override void VisitAttribute(AttributeExpression attribute, Context context) {
+      throw new NotImplementedException();
+    }
+
     protected override void VisitBinary(BinaryExpression binary, Context context) {
       _helper.BeginExprScope();
       uint left = VisitExpressionForRKId(binary.Left);

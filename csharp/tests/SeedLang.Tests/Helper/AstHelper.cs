@@ -33,6 +33,10 @@ namespace SeedLang.Tests.Helper {
       return targets;
     }
 
+    internal static AttributeExpression Attribute(Expression expr, IdentifierExpression attr) {
+      return Expression.Attribute(expr, attr, TextRange);
+    }
+
     internal static BinaryExpression Binary(Expression left, BinaryOperator op, Expression right) {
       return Expression.Binary(left, op, right, TextRange);
     }
@@ -102,6 +106,10 @@ namespace SeedLang.Tests.Helper {
 
     internal static IfStatement If(Expression test, Statement thenBody, Statement elseBody) {
       return Statement.If(test, thenBody, elseBody, TextRange);
+    }
+
+    internal static ImportStatement Import(string moduleName) {
+      return Statement.Import(moduleName, TextRange);
     }
 
     internal static ListExpression List(params Expression[] exprs) {

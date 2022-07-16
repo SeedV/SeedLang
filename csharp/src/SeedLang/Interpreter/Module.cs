@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Runtime;
@@ -22,23 +21,21 @@ namespace SeedLang.Interpreter {
     public string Name { get; }
     public GlobalRegisters Globals { get; }
 
+    private const string _builtinsAliasName = "__builtins__";
+    private const string _builtinsModuleName = "builtins";
+
     private readonly Dictionary<string, Module> _submodules = new Dictionary<string, Module>();
     private readonly Dictionary<string, uint> _nameToIdMap = new Dictionary<string, uint>();
 
     internal static Module Create(string name) {
-      var globals = new GlobalRegisters();
-      var module = new Module(name, globals);
-      module.Import("__builtins__", CreateFrom("builtins", BuiltinsDefinition.Variables, globals));
+      var module = new Module(name, new GlobalRegisters());
+      module.ImportBuiltinModule(_builtinsAliasName, _builtinsModuleName,
+                                 BuiltinsDefinition.Variables);
       return module;
     }
 
-    internal static Module CreateFrom(string name, Dictionary<string, VMValue> variables,
-                                      GlobalRegisters globals) {
-      var module = new Module(name, globals);
-      foreach (var v in variables) {
-        module.DefineVariable(v.Key, v.Value);
-      }
-      return module;
+    internal static bool IsInternalFunction(string name) {
+      return name.StartsWith("_");
     }
 
     internal Module(string name, GlobalRegisters globals) {
@@ -46,8 +43,15 @@ namespace SeedLang.Interpreter {
       Globals = globals;
     }
 
-    internal void Import(string name, Module module) {
-      _submodules[name] = module;
+    internal void ImportBuiltinModule(string name) {
+      switch (name) {
+        case _builtinsAliasName:
+          ImportBuiltinModule(name, name, BuiltinsDefinition.Variables);
+          break;
+        case "math":
+          ImportBuiltinModule(name, name, MathDefinition.Variables);
+          break;
+      };
     }
 
     internal uint DefineVariable(string name, in VMValue initialValue) {
@@ -56,19 +60,30 @@ namespace SeedLang.Interpreter {
       return _nameToIdMap[name];
     }
 
-    internal uint? FindVariable(string name) {
-      if (_nameToIdMap.ContainsKey(name)) {
+    internal uint? FindVariable(string name, string submoduleName = null) {
+      if (!(submoduleName is null)) {
+        if (_submodules.ContainsKey(submoduleName) &&
+            _submodules[submoduleName].FindVariable(name) is uint id) {
+          return id;
+        }
+      } else if (_nameToIdMap.ContainsKey(name)) {
         return _nameToIdMap[name];
-      } else if (_submodules.ContainsKey("__builtins__") &&
-                 _submodules["__builtins__"].FindVariable(name) is uint id) {
+      } else if (_submodules.ContainsKey(_builtinsAliasName) &&
+                 _submodules[_builtinsAliasName].FindVariable(name) is uint id) {
         return id;
-      } else {
-        return null;
       }
+      return null;
     }
 
-    internal static bool IsInternalFunction(string name) {
-      return name.StartsWith("_");
+    private void ImportBuiltinModule(string aliasName, string name,
+                                     Dictionary<string, VMValue> variables) {
+      if (!_submodules.ContainsKey(aliasName)) {
+        var module = new Module(name, Globals);
+        foreach (var v in variables) {
+          module.DefineVariable(v.Key, v.Value);
+        }
+        _submodules[aliasName] = module;
+      }
     }
   }
 }

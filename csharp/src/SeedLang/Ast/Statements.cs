@@ -64,8 +64,8 @@ namespace SeedLang.Ast {
     }
 
     // The factory method to create import statements.
-    internal static ImportStatement Import(string name, TextRange range) {
-      return new ImportStatement(name, range);
+    internal static ImportStatement Import(string moduleName, TextRange range) {
+      return new ImportStatement(moduleName, range);
     }
 
     // The factory method to create pass statements.
@@ -175,10 +175,10 @@ namespace SeedLang.Ast {
   }
 
   internal class ImportStatement : Statement {
-    public string Name { get; }
+    public string ModuleName { get; }
 
-    internal ImportStatement(string name, TextRange range) : base(range) {
-      Name = name;
+    internal ImportStatement(string moduleName, TextRange range) : base(range) {
+      ModuleName = moduleName;
     }
   }
 

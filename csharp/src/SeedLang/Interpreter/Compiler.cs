@@ -23,12 +23,14 @@ namespace SeedLang.Interpreter {
     private RunMode _runMode;
     private CompilerHelper _helper;
     private ExprCompiler _exprCompiler;
+    private Module _module;
 
     // The range of the statement that is just compiled.
     private TextRange _rangeOfPrevStatement = null;
 
     internal Function Compile(Statement program, Module module, VisualizerCenter visualizerCenter,
                               RunMode runMode) {
+      _module = module;
       _runMode = runMode;
       _helper = new CompilerHelper(visualizerCenter, module);
       _exprCompiler = new ExprCompiler(_helper);
@@ -189,7 +191,7 @@ namespace SeedLang.Interpreter {
     }
 
     protected override void VisitImport(ImportStatement import, NestedLoopStack _) {
-      throw new System.NotImplementedException();
+      _module.ImportBuiltinModule(import.ModuleName);
     }
 
     protected override void VisitPass(PassStatement pass, NestedLoopStack _) { }

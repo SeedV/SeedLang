@@ -27,12 +27,6 @@ namespace SeedLang.Interpreter.Tests {
 
   public class BuiltinsDefinitionTests {
     [Fact]
-    public void TestIsInternalFunction() {
-      Module.IsInternalFunction(BuiltinsDefinition.PrintVal).Should().Be(true);
-      Module.IsInternalFunction(BuiltinsDefinition.Append).Should().Be(false);
-    }
-
-    [Fact]
     public void TestPrintValFunc() {
       var printValFunc = FindFunc(BuiltinsDefinition.PrintVal);
       var sys = new Sys() { Stdout = new StringWriter() };

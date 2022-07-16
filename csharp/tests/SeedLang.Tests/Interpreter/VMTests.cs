@@ -300,6 +300,23 @@ for n in range(10):
       output.Should().Be(expectedOutput);
     }
 
+    [Fact]
+    public void TestImport() {
+      string source = @"
+import builtins
+import math
+
+print(math.sin(math.pi))
+print(builtins.range(10))
+";
+      (string output, VisualizerHelper _) = Run(Parse(source), Array.Empty<Type>());
+      var expectedOutput = (
+        $"1.2246467991473532E-16\n" +
+        $"range(0, 10, 1)\n"
+      ).Replace("\n", Environment.NewLine);
+      output.Should().Be(expectedOutput);
+    }
+
     private static (string, VisualizerHelper) Run(Statement program,
                                                   IReadOnlyList<Type> eventTypes) {
       var vc = new VisualizerCenter(() => new VMProxy(SeedXLanguage.SeedPython, null));

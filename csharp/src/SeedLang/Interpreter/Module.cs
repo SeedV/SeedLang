@@ -15,11 +15,18 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using SeedLang.Runtime;
+using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
   internal class Module {
     public string Name { get; }
-    public GlobalRegisters Globals { get; }
+    public GlobalRegisters Registers { get; }
+
+    public IReadOnlyList<IVM.VariableInfo> Globals {
+      get {
+        return Registers.GetGlobals(this);
+      }
+    }
 
     private const string _builtinsAliasName = "__builtins__";
     private const string _builtinsModuleName = "builtins";
@@ -40,12 +47,12 @@ namespace SeedLang.Interpreter {
 
     internal Module(string name, GlobalRegisters globals) {
       Name = name;
-      Globals = globals;
+      Registers = globals;
     }
 
     internal void ImportBuiltinModule(string name) {
       switch (name) {
-        case _builtinsAliasName:
+        case _builtinsModuleName:
           ImportBuiltinModule(name, name, BuiltinsDefinition.Variables);
           break;
         case "math":
@@ -56,7 +63,7 @@ namespace SeedLang.Interpreter {
 
     internal uint DefineVariable(string name, in VMValue initialValue) {
       Debug.Assert(!_nameToIdMap.ContainsKey(name));
-      _nameToIdMap[name] = Globals.AllocateRegister(initialValue);
+      _nameToIdMap[name] = Registers.AllocateRegister(initialValue);
       return _nameToIdMap[name];
     }
 
@@ -78,7 +85,7 @@ namespace SeedLang.Interpreter {
     private void ImportBuiltinModule(string aliasName, string name,
                                      Dictionary<string, VMValue> variables) {
       if (!_submodules.ContainsKey(aliasName)) {
-        var module = new Module(name, Globals);
+        var module = new Module(name, Registers);
         foreach (var v in variables) {
           module.DefineVariable(v.Key, v.Value);
         }

@@ -23,11 +23,11 @@ namespace SeedLang.Interpreter.Tests {
     public void TestCreateRootModule() {
       var module = Module.Create("root");
       module.Name.Should().Be("root");
-      module.Globals[(uint)module.FindVariable(BuiltinsDefinition.PrintVal)].ToString().
+      module.Registers[(uint)module.FindVariable(BuiltinsDefinition.PrintVal)].ToString().
           Should().Be("NativeFunction <__printval__>");
-      module.Globals[(uint)module.FindVariable(BuiltinsDefinition.Append)].ToString().
+      module.Registers[(uint)module.FindVariable(BuiltinsDefinition.Append)].ToString().
           Should().Be("NativeFunction <append>");
-      module.Globals[(uint)module.FindVariable(BuiltinsDefinition.Len)].ToString().
+      module.Registers[(uint)module.FindVariable(BuiltinsDefinition.Len)].ToString().
           Should().Be("NativeFunction <len>");
     }
 
@@ -42,13 +42,13 @@ namespace SeedLang.Interpreter.Tests {
       var module = Module.Create("root");
       var submoduleName = "math";
       module.ImportBuiltinModule(submoduleName);
-      module.Globals[(uint)module.FindVariable(MathDefinition.PI, submoduleName)].
+      module.Registers[(uint)module.FindVariable(MathDefinition.PI, submoduleName)].
           Should().Be(new VMValue(Math.PI));
-      module.Globals[(uint)module.FindVariable(MathDefinition.E, submoduleName)].
+      module.Registers[(uint)module.FindVariable(MathDefinition.E, submoduleName)].
           Should().Be(new VMValue(Math.E));
-      module.Globals[(uint)module.FindVariable(MathDefinition.FAbs, submoduleName)].ToString().
+      module.Registers[(uint)module.FindVariable(MathDefinition.FAbs, submoduleName)].ToString().
           Should().Be("NativeFunction <fabs>");
-      module.Globals[(uint)module.FindVariable(MathDefinition.Sin, submoduleName)].ToString().
+      module.Registers[(uint)module.FindVariable(MathDefinition.Sin, submoduleName)].ToString().
           Should().Be("NativeFunction <sin>");
     }
   }

@@ -47,9 +47,6 @@ namespace SeedLang.Interpreter {
     private Chunk _chunk;
     private int _pc;
 
-    // The hash table to store defined global variable names.
-    private HashSet<string> _globals;
-
     internal VM(VisualizerCenter visualizerCenter) {
       _visualizerCenter = visualizerCenter;
     }
@@ -63,13 +60,7 @@ namespace SeedLang.Interpreter {
         globals = new List<IVM.VariableInfo>();
         return false;
       }
-      var globalList = new List<IVM.VariableInfo>();
-      foreach (string name in _globals) {
-        if (_module.FindVariable(name) is uint id) {
-          globalList.Add(new IVM.VariableInfo(name, new Value(_module.Globals[id])));
-        }
-      }
-      globals = globalList;
+      globals = _module.Globals;
       return true;
     }
 
@@ -95,7 +86,6 @@ namespace SeedLang.Interpreter {
       _callStack.PushFunc(func, _registers.Base, 0);
       _chunk = func.Chunk;
       _pc = 0;
-      _globals = new HashSet<string>();
       RunLoop();
     }
 
@@ -223,9 +213,8 @@ namespace SeedLang.Interpreter {
           //   for j in range(5):
           //     ...
           // Global variable j will be defined for several times. Only adds it in the first time.
-          if (!_globals.Contains(variableDefined.Info.Name)) {
+          if (_module.Registers.DefineVariable(variableDefined.Info.Name)) {
             isFirstTimeDefined = true;
-            _globals.Add(variableDefined.Info.Name);
           }
           break;
         case VariableType.Local:
@@ -307,10 +296,10 @@ namespace SeedLang.Interpreter {
               _registers.SetValueAt(instr.A, new VMValue(dict));
               break;
             case Opcode.GETGLOB:
-              _registers.SetValueAt(instr.A, _module.Globals[instr.Bx]);
+              _registers.SetValueAt(instr.A, _module.Registers[instr.Bx]);
               break;
             case Opcode.SETGLOB:
-              _module.Globals[instr.Bx] = _registers.GetValueAt(instr.A);
+              _module.Registers[instr.Bx] = _registers.GetValueAt(instr.A);
               break;
             case Opcode.GETELEM:
               GetElement(instr);

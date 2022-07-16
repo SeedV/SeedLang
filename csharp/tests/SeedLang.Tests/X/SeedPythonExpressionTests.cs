@@ -306,21 +306,6 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 7 - Ln 1, Col 7]," +
                 "CloseParenthesis [Ln 1, Col 8 - Ln 1, Col 8]")]
 
-    [InlineData("a.append(1)",
-
-                "[Ln 1, Col 0 - Ln 1, Col 10] ExpressionStatement\n" +
-                "  [Ln 1, Col 0 - Ln 1, Col 10] CallExpression\n" +
-                "    [Ln 1, Col 2 - Ln 1, Col 7] IdentifierExpression (append)\n" +
-                "    [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
-                "    [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (1)",
-
-                "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
-                "Symbol [Ln 1, Col 1 - Ln 1, Col 1]," +
-                "Variable [Ln 1, Col 2 - Ln 1, Col 7]," +
-                "OpenParenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
-                "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
-                "CloseParenthesis [Ln 1, Col 10 - Ln 1, Col 10]")]
-
     [InlineData("()",
 
                 "[Ln 1, Col 0 - Ln 1, Col 1] ExpressionStatement\n" +
@@ -374,6 +359,34 @@ namespace SeedLang.X.Tests {
                                 out IReadOnlyList<TokenInfo> tokens));
       Assert.NotNull(statement);
       Assert.Empty(_collection.Diagnostics);
+      Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), statement.ToString());
+      Assert.Equal(expectedTokens, string.Join(",", tokens));
+    }
+
+    [Fact]
+    public void TestAttribute() {
+      var source = "a.append(1)";
+      var expectedAst = "[Ln 1, Col 0 - Ln 1, Col 10] ExpressionStatement\n" +
+                        "  [Ln 1, Col 0 - Ln 1, Col 10] CallExpression\n" +
+                        "    [Ln 1, Col 0 - Ln 1, Col 7] AttributeExpression\n" +
+                        "      [Ln 1, Col 0 - Ln 1, Col 0] IdentifierExpression (a)\n" +
+                        "      [Ln 1, Col 2 - Ln 1, Col 7] IdentifierExpression (append)\n" +
+                        "    [Ln 1, Col 9 - Ln 1, Col 9] NumberConstantExpression (1)";
+      var expectedTokens = "Variable [Ln 1, Col 0 - Ln 1, Col 0]," +
+                           "Symbol [Ln 1, Col 1 - Ln 1, Col 1]," +
+                           "Variable [Ln 1, Col 2 - Ln 1, Col 7]," +
+                           "OpenParenthesis [Ln 1, Col 8 - Ln 1, Col 8]," +
+                           "Number [Ln 1, Col 9 - Ln 1, Col 9]," +
+                           "CloseParenthesis [Ln 1, Col 10 - Ln 1, Col 10]";
+      TestParser(source, expectedAst, expectedTokens);
+    }
+
+    private static void TestParser(string source, string expectedAst, string expectedTokens) {
+      var collection = new DiagnosticCollection();
+      Assert.True(new SeedPython().Parse(source, "", collection, out Statement statement,
+                                         out IReadOnlyList<TokenInfo> tokens));
+      Assert.NotNull(statement);
+      Assert.Empty(collection.Diagnostics);
       Assert.Equal(expectedAst.Replace("\n", Environment.NewLine), statement.ToString());
       Assert.Equal(expectedTokens, string.Join(",", tokens));
     }

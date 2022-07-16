@@ -125,33 +125,50 @@ namespace SeedLang.Interpreter {
 
     protected override void VisitCall(CallExpression call, Context context) {
       _helper.BeginExprScope();
-      // TODO: should call.Func always be IdentifierExpression?
-      if (call.Func is IdentifierExpression identifier) {
-        if (_helper.FindVariable(identifier.Name) is VariableInfo info) {
-          bool targetIsLast = context.TargetRegister + 1 == _helper.RegisterCount;
-          uint funcRegister = targetIsLast ? context.TargetRegister : _helper.DefineTempVariable();
-          switch (info.Type) {
-            case VariableType.Global:
-              _helper.Emit(Opcode.GETGLOB, funcRegister, info.Id, identifier.Range);
-              break;
-            case VariableType.Local:
-              _helper.Emit(Opcode.MOVE, funcRegister, info.Id, 0, identifier.Range);
-              break;
-            case VariableType.Upvalue:
-              // TODO: handle upvalues.
-              break;
-          }
-          foreach (Expression expr in call.Arguments) {
-            Visit(expr, new Context { TargetRegister = _helper.DefineTempVariable() });
-          }
-          _helper.EmitCall(identifier.Name, funcRegister, (uint)call.Arguments.Length, call.Range);
-          if (!targetIsLast) {
-            _helper.Emit(Opcode.MOVE, context.TargetRegister, funcRegister, 0, call.Range);
-          }
-        } else {
-          throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Error, "",
-                                        call.Range, Message.RuntimeErrorVariableNotDefined);
+      string funcName = "";
+      VariableInfo funcInfo = null;
+      Expression receiver = null;
+      if (call.Func is IdentifierExpression id) {
+        funcName = id.Name;
+        funcInfo = _helper.FindVariable(funcName);
+      } else if (call.Func is AttributeExpression attr &&
+                 attr.Value is IdentifierExpression module) {
+        funcName = $"{module.Name}.{attr.Attr.Name}";
+        funcInfo = _helper.FindVariable(funcName);
+        if (funcInfo is null) {
+          funcName = attr.Attr.Name;
+          funcInfo = _helper.FindVariable(funcName);
+          receiver = attr.Value;
         }
+      }
+      if (!(funcInfo is null)) {
+        bool targetIsLast = context.TargetRegister + 1 == _helper.RegisterCount;
+        uint funcRegister = targetIsLast ? context.TargetRegister : _helper.DefineTempVariable();
+        switch (funcInfo.Type) {
+          case VariableType.Global:
+            _helper.Emit(Opcode.GETGLOB, funcRegister, funcInfo.Id, call.Func.Range);
+            break;
+          case VariableType.Local:
+            _helper.Emit(Opcode.MOVE, funcRegister, funcInfo.Id, 0, call.Func.Range);
+            break;
+          case VariableType.Upvalue:
+            // TODO: handle upvalues.
+            break;
+        }
+        if (!(receiver is null)) {
+          Visit(receiver, new Context { TargetRegister = _helper.DefineTempVariable() });
+        }
+        foreach (Expression expr in call.Arguments) {
+          Visit(expr, new Context { TargetRegister = _helper.DefineTempVariable() });
+        }
+        uint length = (uint)call.Arguments.Length + (receiver is null ? 0u : 1u);
+        _helper.EmitCall(funcName, funcRegister, length, call.Range);
+        if (!targetIsLast) {
+          _helper.Emit(Opcode.MOVE, context.TargetRegister, funcRegister, 0, call.Range);
+        }
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedInterpreter, Severity.Error, "",
+                                      call.Range, Message.RuntimeErrorVariableNotDefined);
       }
       _helper.EndExprScope(call.Range);
     }

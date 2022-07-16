@@ -331,29 +331,14 @@ namespace SeedLang.X {
                                       ParserRuleContext[] exprContexts, ITerminalNode[] commaNodes,
                                       IToken closeParenToken,
                                       AbstractParseTreeVisitor<AstNode> visitor) {
-      AstNode callee = visitor.Visit(primaryContext);
-      Expression func = null;
-      Expression firstParam = null;
-      if (callee is AttributeExpression attr) {
-        func = attr.Attr;
-        firstParam = attr.Value;
-      } else if (callee is Expression expr) {
-        func = expr;
-      }
-      if (!(func is null)) {
+      if (visitor.Visit(primaryContext) is Expression func) {
         AddSemanticToken(TokenType.OpenParenthesis,
                          CodeReferenceUtils.RangeOfToken(openParenToken));
         Debug.Assert(exprContexts.Length == 0 && commaNodes.Length == 0 ||
                      exprContexts.Length == commaNodes.Length + 1);
-        int additionalParam = firstParam is null ? 0 : 1;
-        var exprs = new Expression[exprContexts.Length + additionalParam];
-        if (!(firstParam is null)) {
-          exprs[0] = firstParam;
-        }
+        var exprs = new Expression[exprContexts.Length];
         for (int i = 0; i < exprContexts.Length; i++) {
-          if (visitor.Visit(exprContexts[i]) is Expression expr) {
-            exprs[i + additionalParam] = expr;
-          }
+          exprs[i] = visitor.Visit(exprContexts[i]) as Expression;
           if (i < commaNodes.Length) {
             AddSemanticToken(TokenType.Symbol,
                              CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
@@ -361,7 +346,7 @@ namespace SeedLang.X {
         }
         TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
         AddSemanticToken(TokenType.CloseParenthesis, closeParenRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(callee.Range, closeParenRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(func.Range, closeParenRange);
         return Expression.Call(func, exprs, range);
       }
       return null;

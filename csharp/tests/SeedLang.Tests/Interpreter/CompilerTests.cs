@@ -796,7 +796,7 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.Import(moduleName),
         AstHelper.ExpressionStmt(
           AstHelper.Call(
-            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("Sin")),
+            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("sin")),
             AstHelper.NumberConstant(1)
           )
         )
@@ -804,8 +804,11 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 0                                  {_range}\n" +
-          $"  2    CALL      0 1 0                                {_range}\n" +
-          $"  3    HALT      1 0                                  {_range}\n"
+          $"  2    GETGLOB   1 10                                 {_range}\n" +
+          $"  3    LOADK     2 -1             ; 1                 {_range}\n" +
+          $"  4    CALL      1 1 0                                {_range}\n" +
+          $"  5    CALL      0 1 0                                {_range}\n" +
+          $"  6    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
     }

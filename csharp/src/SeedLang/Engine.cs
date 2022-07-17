@@ -57,6 +57,7 @@ namespace SeedLang {
     private Statement _astTree;
     // The semantic tokens of the source code.
     private IReadOnlyList<TokenInfo> _semanticTokens;
+    // The module of the source code.
     private Module _module;
     // The compiled bytecode function of the source code.
     private Function _func;

@@ -16,6 +16,7 @@ using System.IO;
 using SeedLang.Runtime;
 
 namespace SeedLang.Interpreter {
+  // The class to provide context information to native functions.
   internal class NativeContext : INativeContext {
     public TextWriter Stdout => _vm.Stdout;
 

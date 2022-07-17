@@ -18,6 +18,7 @@ using SeedLang.Common;
 using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Runtime {
+  // The static class to define all constants and functions for the builtin math library.
   internal static class MathDefinition {
     public const string E = "e";
     public const string PI = "pi";

@@ -17,7 +17,8 @@ using System.Diagnostics;
 using SeedLang.Visualization;
 
 namespace SeedLang.Runtime {
-  // The environment to store names and values of build-in and global variables.
+  // The registers to store all global variables. All imported modules share a same object to
+  // allocate and store global variables.
   internal class GlobalRegisters {
     public int Count => _values.Count;
 

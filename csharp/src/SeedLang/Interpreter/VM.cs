@@ -32,6 +32,7 @@ namespace SeedLang.Interpreter {
       Stopped,
     }
 
+    // The standard output that is used for print() and expression statements.
     public TextWriter Stdout { get; private set; } = Console.Out;
 
     public bool IsRunning => _state == State.Running;
@@ -48,6 +49,8 @@ namespace SeedLang.Interpreter {
     private Chunk _chunk;
     private int _pc;
 
+    // Returns the names in the module namespace, if the given value is a module object. Otherwise
+    // returns an empty list.
     internal static VMValue Dir(VMValue value) {
       if (value.IsModule) {
         return value.AsModule().Dir;
@@ -63,6 +66,7 @@ namespace SeedLang.Interpreter {
       Stdout = stdout;
     }
 
+    // Returns the names in current module namespace.
     internal VMValue Dir() {
       return _module.Dir;
     }

@@ -20,7 +20,7 @@ using SeedLang.Runtime.HeapObjects;
 namespace SeedLang.Runtime {
   using Range = HeapObjects.Range;
 
-  // The static class to define all the build-in native functions.
+  // The static class to define all builtin functions.
   internal static class BuiltinsDefinition {
     public const string PrintVal = "__printval__";
     public const string Abs = "abs";
@@ -52,12 +52,8 @@ namespace SeedLang.Runtime {
       [Sum] = new VMValue(new NativeFunction(Sum, SumFunc)),
     };
 
-    internal static bool IsNativeFunc(string name) {
-      return Variables.ContainsKey(name);
-    }
-
-    // Prints a value when it's not nil. It's used in interactive mode to print the result of an
-    // expression statement.
+    // Prints a value when it's not nil. It's used in interactive mode to print the result of
+    // expression statements.
     private static VMValue PrintValFunc(ValueSpan args, INativeContext context) {
       if (args.Count != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,

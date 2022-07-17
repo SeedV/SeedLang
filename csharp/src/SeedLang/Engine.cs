@@ -18,6 +18,7 @@ using System.IO;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Interpreter;
+using SeedLang.Runtime;
 using SeedLang.Visualization;
 using SeedLang.X;
 

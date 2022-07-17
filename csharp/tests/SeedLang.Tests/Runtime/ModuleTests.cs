@@ -14,10 +14,9 @@
 
 using System;
 using FluentAssertions;
-using SeedLang.Runtime;
 using Xunit;
 
-namespace SeedLang.Interpreter.Tests {
+namespace SeedLang.Runtime.Tests {
   public class ModuleTests {
     [Fact]
     public void TestCreateRootModule() {
@@ -42,14 +41,26 @@ namespace SeedLang.Interpreter.Tests {
       var module = Module.Create("root");
       var submoduleName = "math";
       module.ImportBuiltinModule(submoduleName);
-      module.Registers[(uint)module.FindVariable(MathDefinition.PI, submoduleName)].
-          Should().Be(new VMValue(Math.PI));
-      module.Registers[(uint)module.FindVariable(MathDefinition.E, submoduleName)].
-          Should().Be(new VMValue(Math.E));
-      module.Registers[(uint)module.FindVariable(MathDefinition.FAbs, submoduleName)].ToString().
-          Should().Be("NativeFunction <fabs>");
-      module.Registers[(uint)module.FindVariable(MathDefinition.Sin, submoduleName)].ToString().
-          Should().Be("NativeFunction <sin>");
+
+      module.Registers[(uint)module.FindVariable(new string[] {
+        submoduleName,
+        MathDefinition.PI,
+      })].Should().Be(new VMValue(Math.PI));
+
+      module.Registers[(uint)module.FindVariable(new string[] {
+        submoduleName,
+        MathDefinition.E,
+      })].Should().Be(new VMValue(Math.E));
+
+      module.Registers[(uint)module.FindVariable(new string[] {
+        submoduleName,
+        MathDefinition.FAbs,
+      })].ToString().Should().Be("NativeFunction <fabs>");
+
+      module.Registers[(uint)module.FindVariable(new string[] {
+        submoduleName,
+        MathDefinition.Sin,
+      })].ToString().Should().Be("NativeFunction <sin>");
     }
   }
 }

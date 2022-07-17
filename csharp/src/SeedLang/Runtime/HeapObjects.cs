@@ -103,7 +103,7 @@ namespace SeedLang.Runtime.HeapObjects {
           return (int)doubleValue;
         } else {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidIntIndex);
+                                        Message.RuntimeErrorInvalidInteger);
         }
       }
       return null;

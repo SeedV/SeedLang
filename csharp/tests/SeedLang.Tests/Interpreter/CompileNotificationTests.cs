@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
+using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using SeedLang.X;
@@ -24,14 +25,17 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompileNotificationTests {
-    private static readonly int _firstGlob = BuiltinsDefinition.Variables.Count;
     private readonly Module _module;
+    private readonly int _firstGlob;
     private readonly uint _printValFunc;
+    private readonly uint _printFunc;
     private readonly uint _rangeFunc;
 
     public CompileNotificationTests() {
       _module = Module.Create("test");
+      _firstGlob = _module.Registers.Count;
       _printValFunc = (uint)_module.FindVariable(BuiltinsDefinition.PrintVal);
+      _printFunc = (uint)_module.FindVariable(BuiltinsDefinition.Print);
       _rangeFunc = (uint)_module.FindVariable(BuiltinsDefinition.Range);
     }
 
@@ -50,7 +54,7 @@ for i in range(2):
         $"  4    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 9]\n" +
         $"  5    VISNOTIFY 0 1                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
         $"  6    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
+        $"                                 [Ln 2, Col 0 - Ln 2, Col 9]\n" +
         $"  7    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
         $"  8    VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
         $"  9    VISNOTIFY 0 4                                  [Ln 3, Col 4 - Ln 3, Col 4]\n" +
@@ -65,14 +69,14 @@ for i in range(2):
         $"  17   FORPREP   1 11             ; to 29             [Ln 3, Col 0 - Ln 4, Col 9]\n" +
         $"  18   GETELEM   4 0 1                                [Ln 3, Col 0 - Ln 4, Col 9]\n" +
         $"  19   SETGLOB   4 {_firstGlob + 1}" +
-        $"                                  [Ln 3, Col 0 - Ln 4, Col 9]\n" +
+        $"                                 [Ln 3, Col 0 - Ln 4, Col 9]\n" +
         $"  20   VISNOTIFY 0 5                                  [Ln 3, Col 4 - Ln 3, Col 4]\n" +
         $"  21   VISNOTIFY 0 6                                  [Ln 3, Col 4 - Ln 3, Col 4]\n" +
         $"  22   GETGLOB   4 {_firstGlob}" +
-        $"                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
+        $"                                 [Ln 4, Col 2 - Ln 4, Col 2]\n" +
         $"  23   VISNOTIFY 0 7                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
         $"  24   GETGLOB   5 {_firstGlob + 1}" +
-        $"                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
+        $"                                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
         $"  25   VISNOTIFY 0 8                                  [Ln 4, Col 4 - Ln 4, Col 4]\n" +
         $"  26   SETELEM   4 5 -4           ; 5                 [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"  27   VISNOTIFY 0 9                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
@@ -80,11 +84,11 @@ for i in range(2):
         $"  29   FORLOOP   1 -12            ; to 18             [Ln 3, Col 0 - Ln 4, Col 9]\n" +
         $"  30   HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VariableDefined: 'a' Global 7\n" +
+        $"  0    Notification.VariableDefined: 'a' Global {_firstGlob}\n" +
         $"  1    Notification.TempRegisterFreed: 1\n" +
         $"  2    Notification.Assignment: 'a' Global 0\n" +
         $"  3    Notification.TempRegisterFreed: 0\n" +
-        $"  4    Notification.VariableDefined: 'i' Global 8\n" +
+        $"  4    Notification.VariableDefined: 'i' Global {_firstGlob + 1}\n" +
         $"  5    Notification.Assignment: 'i' Global 4\n" +
         $"  6    Notification.TempRegisterFreed: 4\n" +
         $"  7    Notification.GlobalLoaded: 4 'a'\n" +
@@ -182,12 +186,12 @@ add(1, 2)
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
         $"  2    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
         $"  3    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"                                 [Ln 2, Col 0 - Ln 3, Col 13]\n" +
         $"  4    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
         $"  5    GETGLOB   0 {_printValFunc}" +
         $"                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  6    GETGLOB   1 {_firstGlob}" +
-        $"                                  [Ln 4, Col 0 - Ln 4, Col 2]\n" +
+        $"                                 [Ln 4, Col 0 - Ln 4, Col 2]\n" +
         $"  7    LOADK     2 -2             ; 1                 [Ln 4, Col 4 - Ln 4, Col 4]\n" +
         $"  8    LOADK     3 -3             ; 2                 [Ln 4, Col 7 - Ln 4, Col 7]\n" +
         $"  9    VISNOTIFY 0 2                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
@@ -199,7 +203,7 @@ add(1, 2)
         $"  15   VISNOTIFY 0 1                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"  16   HALT      1 0                                  [Ln 4, Col 0 - Ln 4, Col 8]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VariableDefined: 'add' Global 7\n" +
+        $"  0    Notification.VariableDefined: 'add' Global {_firstGlob}\n" +
         $"  1    Notification.TempRegisterFreed: 0\n" +
         $"  2    Notification.Function: add 1 2\n" +
         $"  3    Notification.TempRegisterFreed: 2\n" +
@@ -232,38 +236,39 @@ add(1, 2)
 def inc(n):
   return n + 2
 
-sum = 0
+num = 0
 i = 0
 while i < 10:
   for j in range(5):
     if i < 8 and j < 3:
-      # [[ Inc(sum) ]]
-      sum = inc(sum)
+      # [[ Inc(num) ]]
+      num = inc(num)
   i += 1
 
-print(sum)
+print(num)
 ";
       string expected = (
         $"Function <main>\n" +
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
         $"  2    LOADK     0 -1             ; Func <inc>        [Ln 2, Col 0 - Ln 3, Col 13]\n" +
         $"  3    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 3, Col 13]\n" +
+        $"                                 [Ln 2, Col 0 - Ln 3, Col 13]\n" +
         $"  4    VISNOTIFY 0 0                                  [Ln 5, Col 0 - Ln 5, Col 0]\n" +
         $"  5    LOADK     0 -2             ; 0                 [Ln 5, Col 6 - Ln 5, Col 6]\n" +
         $"  6    SETGLOB   0 {_firstGlob + 1}" +
-        $"                                  [Ln 5, Col 0 - Ln 5, Col 6]\n" +
+        $"                                 [Ln 5, Col 0 - Ln 5, Col 6]\n" +
         $"  7    VISNOTIFY 0 0                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
         $"  8    LOADK     0 -2             ; 0                 [Ln 6, Col 4 - Ln 6, Col 4]\n" +
         $"  9    SETGLOB   0 {_firstGlob + 2}" +
-        $"                                  [Ln 6, Col 0 - Ln 6, Col 4]\n" +
+        $"                                 [Ln 6, Col 0 - Ln 6, Col 4]\n" +
         $"  10   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
         $"  11   GETGLOB   0 {_firstGlob + 2}" +
-        $"                                  [Ln 7, Col 6 - Ln 7, Col 6]\n" +
+        $"                                 [Ln 7, Col 6 - Ln 7, Col 6]\n" +
         $"  12   LT        1 0 -3           ; 10                [Ln 7, Col 6 - Ln 7, Col 11]\n" +
         $"  13   JMP       0 29             ; to 43             [Ln 7, Col 6 - Ln 7, Col 11]\n" +
         $"  14   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
-        $"  15   GETGLOB   0 5                                  [Ln 8, Col 11 - Ln 8, Col 15]\n" +
+        $"  15   GETGLOB   0 {_rangeFunc}" +
+        $"                                  [Ln 8, Col 11 - Ln 8, Col 15]\n" +
         $"  16   LOADK     1 -4             ; 5                 [Ln 8, Col 17 - Ln 8, Col 17]\n" +
         $"  17   CALL      0 1 0                                [Ln 8, Col 11 - Ln 8, Col 18]\n" +
         $"  18   LOADK     1 -2             ; 0                 [Ln 8, Col 2 - Ln 11, Col 19]\n" +
@@ -275,7 +280,7 @@ print(sum)
         $"                                 [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  24   VISNOTIFY 0 0                                  [Ln 9, Col 0 - Ln 9, Col 0]\n" +
         $"  25   GETGLOB   4 {_firstGlob + 2}" +
-        $"                                  [Ln 9, Col 7 - Ln 9, Col 7]\n" +
+        $"                                 [Ln 9, Col 7 - Ln 9, Col 7]\n" +
         $"  26   LT        1 4 -6           ; 8                 [Ln 9, Col 7 - Ln 9, Col 11]\n" +
         $"  27   JMP       0 8              ; to 36             [Ln 9, Col 7 - Ln 9, Col 11]\n" +
         $"  28   GETGLOB   4 {_firstGlob + 3}" +
@@ -284,25 +289,26 @@ print(sum)
         $"  30   JMP       0 5              ; to 36             [Ln 9, Col 17 - Ln 9, Col 21]\n" +
         $"  31   VISNOTIFY 0 0                                  [Ln 11, Col 0 - Ln 11, Col 0]\n" +
         $"  32   GETGLOB   4 {_firstGlob}" +
-        $"                                  [Ln 11, Col 12 - Ln 11, Col 14]\n" +
+        $"                                 [Ln 11, Col 12 - Ln 11, Col 14]\n" +
         $"  33   GETGLOB   5 {_firstGlob + 1}" +
-        $"                                  [Ln 11, Col 16 - Ln 11, Col 18]\n" +
+        $"                                 [Ln 11, Col 16 - Ln 11, Col 18]\n" +
         $"  34   CALL      4 1 0                                [Ln 11, Col 12 - Ln 11, Col 19]\n" +
         $"  35   SETGLOB   4 {_firstGlob + 1}" +
-        $"                                  [Ln 11, Col 6 - Ln 11, Col 19]\n" +
+        $"                                 [Ln 11, Col 6 - Ln 11, Col 19]\n" +
         $"  36   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
         $"  37   FORLOOP   1 -16            ; to 22             [Ln 8, Col 2 - Ln 11, Col 19]\n" +
         $"  38   VISNOTIFY 0 0                                  [Ln 12, Col 0 - Ln 12, Col 0]\n" +
         $"  39   GETGLOB   5 {_firstGlob + 2}" +
-        $"                                  [Ln 12, Col 2 - Ln 12, Col 2]\n" +
+        $"                                 [Ln 12, Col 2 - Ln 12, Col 2]\n" +
         $"  40   ADD       4 5 -5           ; 1                 [Ln 12, Col 2 - Ln 12, Col 7]\n" +
         $"  41   SETGLOB   4 {_firstGlob + 2}" +
-        $"                                  [Ln 12, Col 2 - Ln 12, Col 7]\n" +
+        $"                                 [Ln 12, Col 2 - Ln 12, Col 7]\n" +
         $"  42   JMP       0 -33            ; to 10             [Ln 7, Col 0 - Ln 12, Col 7]\n" +
         $"  43   VISNOTIFY 0 0                                  [Ln 14, Col 0 - Ln 14, Col 0]\n" +
-        $"  44   GETGLOB   4 4                                  [Ln 14, Col 0 - Ln 14, Col 4]\n" +
+        $"  44   GETGLOB   4 {_printFunc}" +
+        $"                                  [Ln 14, Col 0 - Ln 14, Col 4]\n" +
         $"  45   GETGLOB   5 {_firstGlob + 1}" +
-        $"                                  [Ln 14, Col 6 - Ln 14, Col 8]\n" +
+        $"                                 [Ln 14, Col 6 - Ln 14, Col 8]\n" +
         $"  46   CALL      4 1 0                                [Ln 14, Col 0 - Ln 14, Col 9]\n" +
         $"  47   HALT      1 0                                  [Ln 14, Col 0 - Ln 14, Col 9]\n" +
         $"Notifications\n" +
@@ -335,23 +341,23 @@ flag = \
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 2, Col 0]\n" +
         $"  2    LOADK     0 -1             ; 0                 [Ln 2, Col 4 - Ln 2, Col 4]\n" +
         $"  3    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 2, Col 4]\n" +
+        $"                                 [Ln 2, Col 0 - Ln 2, Col 4]\n" +
         $"  4    VISNOTIFY 0 0                                  [Ln 4, Col 0 - Ln 4, Col 0]\n" +
         $"  5    GETGLOB   1 {_firstGlob}" +
-        $"                                  [Ln 4, Col 2 - Ln 4, Col 2]\n" +
+        $"                                 [Ln 4, Col 2 - Ln 4, Col 2]\n" +
         $"  6    LT        1 1 -2           ; 5                 [Ln 4, Col 2 - Ln 5, Col 2]\n" +
         $"  7    JMP       0 1              ; to 9              [Ln 4, Col 2 - Ln 5, Col 2]\n" +
         $"  8    LOADBOOL  0 1 1                                [Ln 4, Col 2 - Ln 5, Col 2]\n" +
         $"  9    LOADBOOL  0 0 0                                [Ln 4, Col 2 - Ln 5, Col 2]\n" +
         $"  10   VISNOTIFY 0 0                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  11   SETGLOB   0 {_firstGlob + 1}" +
-        $"                                  [Ln 3, Col 0 - Ln 5, Col 2]\n" +
+        $"                                 [Ln 3, Col 0 - Ln 5, Col 2]\n" +
         $"  12   VISNOTIFY 0 1                                  [Ln 6, Col 0 - Ln 8, Col 5]\n" +
         $"  13   VISNOTIFY 0 0                                  [Ln 8, Col 0 - Ln 8, Col 0]\n" +
         $"  14   LOADBOOL  0 1 0                                [Ln 8, Col 2 - Ln 8, Col 5]\n" +
         $"  15   VISNOTIFY 0 0                                  [Ln 7, Col 0 - Ln 7, Col 0]\n" +
         $"  16   SETGLOB   0 {_firstGlob + 1}" +
-        $"                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
+        $"                                 [Ln 7, Col 0 - Ln 8, Col 5]\n" +
         $"  17   VISNOTIFY 1 1                                  [Ln 6, Col 0 - Ln 8, Col 5]\n" +
         $"  18   HALT      1 0                                  [Ln 7, Col 0 - Ln 8, Col 5]\n" +
         $"Notifications\n" +
@@ -377,9 +383,9 @@ x = 1
         $"  2    VISNOTIFY 0 1                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  3    LOADK     0 -1             ; 1                 [Ln 3, Col 4 - Ln 3, Col 4]\n" +
         $"  4    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
+        $"                                 [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"  5    GETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
+        $"                                 [Ln 2, Col 12 - Ln 2, Col 12]\n" +
         $"  6    VISNOTIFY 1 2                                  [Ln 2, Col 0 - Ln 3, Col 4]\n" +
         $"  7    HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 4]\n" +
         $"Notifications\n" +
@@ -429,18 +435,18 @@ a[1] = 1
         $"  4    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 9]\n" +
         $"  5    VISNOTIFY 0 1                                  [Ln 2, Col 4 - Ln 2, Col 9]\n" +
         $"  6    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
+        $"                                 [Ln 2, Col 0 - Ln 2, Col 9]\n" +
         $"  7    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
         $"  8    VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 2, Col 9]\n" +
         $"  9    GETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"                                 [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  10   VISNOTIFY 0 4                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  11   SETELEM   0 -1 -1          ; 1 1               [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"  12   VISNOTIFY 0 5                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"  13   VISNOTIFY 0 3                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"  14   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 7]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VariableDefined: 'a' Global 7\n" +
+        $"  0    Notification.VariableDefined: 'a' Global {_firstGlob}\n" +
         $"  1    Notification.TempRegisterFreed: 1\n" +
         $"  2    Notification.Assignment: 'a' Global 0\n" +
         $"  3    Notification.TempRegisterFreed: 0\n" +
@@ -462,11 +468,11 @@ def func():
         $"  1    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  2    LOADK     0 -1             ; Func <func>       [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  3    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"                                 [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  4    VISNOTIFY 0 1                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  5    HALT      1 0                                  [Ln 4, Col 2 - Ln 4, Col 9]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VariableDefined: 'func' Global 7\n" +
+        $"  0    Notification.VariableDefined: 'func' Global {_firstGlob}\n" +
         $"  1    Notification.TempRegisterFreed: 0\n" +
         $"\n" +
         $"Function <func>\n" +
@@ -505,11 +511,11 @@ a[0][1] = 1
         $"  7    NEWLIST   0 1 2                                [Ln 2, Col 4 - Ln 2, Col 14]\n" +
         $"  8    VISNOTIFY 0 2                                  [Ln 2, Col 4 - Ln 2, Col 14]\n" +
         $"  9    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 2, Col 14]\n" +
+        $"                                 [Ln 2, Col 0 - Ln 2, Col 14]\n" +
         $"  10   VISNOTIFY 0 3                                  [Ln 2, Col 0 - Ln 2, Col 14]\n" +
         $"  11   VISNOTIFY 0 4                                  [Ln 2, Col 0 - Ln 2, Col 14]\n" +
         $"  12   GETGLOB   1 {_firstGlob}" +
-        $"                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
+        $"                                 [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  13   VISNOTIFY 0 5                                  [Ln 3, Col 0 - Ln 3, Col 0]\n" +
         $"  14   GETELEM   0 1 -4           ; 0                 [Ln 3, Col 0 - Ln 3, Col 3]\n" +
         $"  15   VISNOTIFY 0 6                                  [Ln 3, Col 0 - Ln 3, Col 3]\n" +
@@ -519,7 +525,7 @@ a[0][1] = 1
         $"  19   VISNOTIFY 0 4                                  [Ln 3, Col 0 - Ln 3, Col 10]\n" +
         $"  20   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 10]\n" +
         $"Notifications\n" +
-        $"  0    Notification.VariableDefined: 'a' Global 7\n" +
+        $"  0    Notification.VariableDefined: 'a' Global {_firstGlob}\n" +
         $"  1    Notification.TempRegisterFreed: 2\n" +
         $"  2    Notification.TempRegisterFreed: 1\n" +
         $"  3    Notification.Assignment: 'a' Global 0\n" +
@@ -546,18 +552,18 @@ x = add(1, 2)
         $"  2    VISNOTIFY 0 0                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  3    LOADK     0 -1             ; Func <add>        [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  4    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
+        $"                                 [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  5    VISNOTIFY 0 2                                  [Ln 2, Col 0 - Ln 4, Col 9]\n" +
         $"  6    VISNOTIFY 0 1                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
         $"  7    VISNOTIFY 0 3                                  [Ln 6, Col 0 - Ln 6, Col 0]\n" +
         $"  8    GETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 6, Col 4 - Ln 6, Col 6]\n" +
+        $"                                 [Ln 6, Col 4 - Ln 6, Col 6]\n" +
         $"  9    LOADK     1 -2             ; 1                 [Ln 6, Col 8 - Ln 6, Col 8]\n" +
         $"  10   LOADK     2 -3             ; 2                 [Ln 6, Col 11 - Ln 6, Col 11]\n" +
         $"  11   CALL      0 2 0                                [Ln 6, Col 4 - Ln 6, Col 12]\n" +
         $"  12   VISNOTIFY 0 4                                  [Ln 6, Col 4 - Ln 6, Col 12]\n" +
         $"  13   SETGLOB   0 {_firstGlob + 1}" +
-        $"                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
+        $"                                 [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"  14   VISNOTIFY 0 2                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"  15   HALT      1 0                                  [Ln 6, Col 0 - Ln 6, Col 12]\n" +
         $"Notifications\n" +
@@ -669,16 +675,16 @@ x, y = 1, 1 + 2
         $"  6    ADD       1 -1 -2          ; 1 2               [Ln 3, Col 10 - Ln 3, Col 14]\n" +
         $"  7    VISNOTIFY 0 3                                  [Ln 3, Col 10 - Ln 3, Col 14]\n" +
         $"  8    SETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"                                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"  9    VISNOTIFY 0 4                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"  10   SETGLOB   1 {_firstGlob + 1}" +
-        $"                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
+        $"                                 [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"  11   VISNOTIFY 0 5                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"  12   VISNOTIFY 0 6                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +
         $"  13   GETGLOB   0 {_firstGlob}" +
-        $"                                  [Ln 2, Col 12 - Ln 2, Col 12]\n" +
+        $"                                 [Ln 2, Col 12 - Ln 2, Col 12]\n" +
         $"  14   GETGLOB   1 {_firstGlob + 1}" +
-        $"                                  [Ln 2, Col 18 - Ln 2, Col 18]\n" +
+        $"                                 [Ln 2, Col 18 - Ln 2, Col 18]\n" +
         $"  15   ADD       2 -1 -2          ; 1 2               [Ln 2, Col 21 - Ln 2, Col 25]\n" +
         $"  16   VISNOTIFY 1 7                                  [Ln 2, Col 0 - Ln 4, Col 3]\n" +
         $"  17   HALT      1 0                                  [Ln 3, Col 0 - Ln 3, Col 14]\n" +

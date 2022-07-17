@@ -12,15 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SeedLang.Runtime;
 using SeedLang.Visualization;
 
-namespace SeedLang.Interpreter {
+namespace SeedLang.Runtime {
   internal class Module {
     public string Name { get; }
     public GlobalRegisters Registers { get; }
+
+    public VMValue Dir {
+      get {
+        var list = new List<VMValue>();
+        foreach (string name in _nameToIdMap.Keys) {
+          list.Add(new VMValue(name));
+        }
+        return new VMValue(list);
+      }
+    }
 
     public IReadOnlyList<IVM.VariableInfo> Globals {
       get {
@@ -31,7 +41,6 @@ namespace SeedLang.Interpreter {
     private const string _builtinsAliasName = "__builtins__";
     private const string _builtinsModuleName = "builtins";
 
-    private readonly Dictionary<string, Module> _submodules = new Dictionary<string, Module>();
     private readonly Dictionary<string, uint> _nameToIdMap = new Dictionary<string, uint>();
 
     internal static Module Create(string name) {
@@ -67,29 +76,40 @@ namespace SeedLang.Interpreter {
       return _nameToIdMap[name];
     }
 
-    internal uint? FindVariable(string name, string submoduleName = null) {
-      if (!(submoduleName is null)) {
-        if (_submodules.ContainsKey(submoduleName) &&
-            _submodules[submoduleName].FindVariable(name) is uint id) {
-          return id;
-        }
-      } else if (_nameToIdMap.ContainsKey(name)) {
+    internal uint? FindVariable(string name) {
+      if (_nameToIdMap.ContainsKey(name)) {
         return _nameToIdMap[name];
-      } else if (_submodules.ContainsKey(_builtinsAliasName) &&
-                 _submodules[_builtinsAliasName].FindVariable(name) is uint id) {
-        return id;
+      } else if (_nameToIdMap.ContainsKey(_builtinsAliasName)) {
+        VMValue value = Registers[_nameToIdMap[_builtinsAliasName]];
+        if (value.IsModule) {
+          return value.AsModule().FindVariable(name);
+        }
+      }
+      return null;
+    }
+
+    internal uint? FindVariable(Span<string> names) {
+      if (names.Length > 1) {
+        if (_nameToIdMap.ContainsKey(names[0])) {
+          VMValue value = Registers[_nameToIdMap[names[0]]];
+          if (value.IsModule) {
+            return value.AsModule().FindVariable(names[1..]);
+          }
+        }
+      } else if (names.Length == 1) {
+        return FindVariable(names[0]);
       }
       return null;
     }
 
     private void ImportBuiltinModule(string aliasName, string name,
                                      Dictionary<string, VMValue> variables) {
-      if (!_submodules.ContainsKey(aliasName)) {
+      if (!_nameToIdMap.ContainsKey(aliasName)) {
         var module = new Module(name, Registers);
         foreach (var v in variables) {
           module.DefineVariable(v.Key, v.Value);
         }
-        _submodules[aliasName] = module;
+        DefineVariable(aliasName, new VMValue(module));
       }
     }
   }

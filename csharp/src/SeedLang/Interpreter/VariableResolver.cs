@@ -112,19 +112,7 @@ namespace SeedLang.Interpreter {
       }
 
       public VariableInfo FindVariable(string name) {
-        string[] names = name.Split(".");
-        string moduleName = null;
-        string varName = null;
-        switch (names.Length) {
-          case 1:
-            varName = name;
-            break;
-          case 2:
-            moduleName = names[0];
-            varName = names[1];
-            break;
-        }
-        if (!(varName is null) && _module.FindVariable(varName, moduleName) is uint id) {
+        if (_module.FindVariable(name.Split(".")) is uint id) {
           return new VariableInfo(name, VariableType.Global, id);
         }
         return null;

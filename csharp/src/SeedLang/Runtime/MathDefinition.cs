@@ -15,10 +15,9 @@
 using System;
 using System.Collections.Generic;
 using SeedLang.Common;
-using SeedLang.Runtime;
 using SeedLang.Runtime.HeapObjects;
 
-namespace SeedLang.Interpreter {
+namespace SeedLang.Runtime {
   internal static class MathDefinition {
     public const string PI = "pi";
     public const string E = "e";

@@ -15,11 +15,10 @@
 using System;
 using FluentAssertions;
 using SeedLang.Common;
-using SeedLang.Runtime;
 using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
-namespace SeedLang.Interpreter.Tests {
+namespace SeedLang.Runtime.Tests {
   public class MathDefinitionTests {
     [Fact]
     public void TestFAbs() {

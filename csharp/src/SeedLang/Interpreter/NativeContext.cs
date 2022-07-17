@@ -24,5 +24,13 @@ namespace SeedLang.Interpreter {
     internal NativeContext(VM vm) {
       _vm = vm;
     }
+
+    public VMValue Dir() {
+      return _vm.Dir();
+    }
+
+    public VMValue Dir(VMValue value) {
+      return VM.Dir(value);
+    }
   }
 }

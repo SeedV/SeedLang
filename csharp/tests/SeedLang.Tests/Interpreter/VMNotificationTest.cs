@@ -18,6 +18,7 @@ using System.IO;
 using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
+using SeedLang.Runtime;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using SeedLang.X;

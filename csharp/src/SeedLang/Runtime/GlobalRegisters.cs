@@ -14,12 +14,13 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using SeedLang.Runtime;
 using SeedLang.Visualization;
 
-namespace SeedLang.Interpreter {
+namespace SeedLang.Runtime {
   // The environment to store names and values of build-in and global variables.
   internal class GlobalRegisters {
+    public int Count => _values.Count;
+
     private readonly List<VMValue> _values = new List<VMValue>();
     private readonly HashSet<string> _definedVariables = new HashSet<string>();
 

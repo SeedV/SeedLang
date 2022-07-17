@@ -38,6 +38,7 @@ namespace SeedLang.Runtime {
     public bool IsTuple => _object is Tuple;
     public bool IsRange => _object is Range;
     public bool IsSlice => _object is Slice;
+    public bool IsModule => _object is Module;
 
     public int Length {
       get {
@@ -68,7 +69,8 @@ namespace SeedLang.Runtime {
           break;
       }
       _object = obj;
-      Debug.Assert(IsString || IsFunction || IsDict || IsList || IsTuple || IsRange || IsSlice,
+      Debug.Assert(IsString || IsFunction || IsDict || IsList || IsTuple ||
+                   IsRange || IsSlice || IsModule,
                    $"Unsupported object type: {_object.GetType()}");
     }
 
@@ -196,6 +198,14 @@ namespace SeedLang.Runtime {
     internal Slice AsSlice() {
       return _object switch {
         Slice slice => slice,
+        _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                           Message.RuntimeErrorInvalidCast),
+      };
+    }
+
+    internal Module AsModule() {
+      return _object switch {
+        Module module => module,
         _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                            Message.RuntimeErrorInvalidCast),
       };
@@ -351,7 +361,7 @@ namespace SeedLang.Runtime {
       var intIndex = (int)index;
       if (intIndex != index) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidIntIndex);
+                                      Message.RuntimeErrorInvalidInteger);
       } else if (intIndex < -length || intIndex >= length) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorOutOfRange);

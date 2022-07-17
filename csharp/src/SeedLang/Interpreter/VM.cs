@@ -32,7 +32,8 @@ namespace SeedLang.Interpreter {
       Stopped,
     }
 
-    public TextWriter Stdout { get; private set; }
+    public TextWriter Stdout { get; private set; } = Console.Out;
+
     public bool IsRunning => _state == State.Running;
     public bool IsPaused => _state == State.Paused;
     public bool IsStopped => _state == State.Stopped;
@@ -47,12 +48,23 @@ namespace SeedLang.Interpreter {
     private Chunk _chunk;
     private int _pc;
 
+    internal static VMValue Dir(VMValue value) {
+      if (value.IsModule) {
+        return value.AsModule().Dir;
+      }
+      return new VMValue(new List<VMValue>());
+    }
+
     internal VM(VisualizerCenter visualizerCenter) {
       _visualizerCenter = visualizerCenter;
     }
 
     internal void RedirectStdout(TextWriter stdout) {
       Stdout = stdout;
+    }
+
+    internal VMValue Dir() {
+      return _module.Dir;
     }
 
     internal bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {

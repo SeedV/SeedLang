@@ -25,7 +25,6 @@ using Xunit;
 namespace SeedLang.Interpreter.Tests {
   public class ExprCompilerTests {
     private readonly TextRange _range = AstHelper.TextRange;
-    private static readonly int _firstGlob = BuiltinsDefinition.Variables.Count;
     private readonly Module _module;
     private readonly uint _printValFunc;
     private readonly uint _sliceFunc;
@@ -339,7 +338,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    LOADK     4 -2             ; 2                 {_range}\n" +
           $"  4    LOADK     5 -3             ; 3                 {_range}\n" +
           $"  5    NEWLIST   2 3 3                                {_range}\n" +
-          $"  6    GETGLOB   3 {_sliceFunc}                                  {_range}\n" +
+          $"  6    GETGLOB   3 {_sliceFunc}                                 {_range}\n" +
           $"  7    LOADK     4 -1             ; 1                 {_range}\n" +
           $"  8    LOADK     5 -2             ; 2                 {_range}\n" +
           $"  9    LOADK     6 -1             ; 1                 {_range}\n" +

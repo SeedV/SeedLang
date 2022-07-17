@@ -23,5 +23,8 @@ namespace SeedLang.Runtime {
   // different threads simultaneously.
   internal interface INativeContext {
     TextWriter Stdout { get; }
+
+    VMValue Dir();
+    VMValue Dir(VMValue value);
   }
 }

@@ -807,7 +807,7 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  2    GETGLOB   1 {_firstGlob + 3}                                 {_range}\n" +
+          $"  2    GETGLOB   1 {_firstGlob + 2}                                 {_range}\n" +
           $"  3    GETGLOB   2 {_firstGlob}                                 {_range}\n" +
           $"  4    CALL      1 1 0                                {_range}\n" +
           $"  5    CALL      0 1 0                                {_range}\n" +

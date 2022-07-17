@@ -3,7 +3,6 @@ import math
 r = 4
 print(math.pi * r * r)  # 50.26548245743669
 print(math.e)  # 2.718281828459045
-print(math.tau)  # 6.283185307179586
 
 a = 2.3
 print(math.ceil(a))  # 3
@@ -19,7 +18,6 @@ print(math.exp(test_float))  # 1
 print(math.pow(3, 4))  # 81
 
 print(math.log(2, 3))  # 0.6309297535714574
-print(math.log2(16))  # 4
 print(math.log10(10000))  # 4
 
 print(math.sqrt(0))  # 0

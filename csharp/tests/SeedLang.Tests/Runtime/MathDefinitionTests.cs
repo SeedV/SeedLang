@@ -191,18 +191,6 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
-    public void TestLog2() {
-      var log2Func = FindFunc(MathDefinition.Log2);
-      var args = new ValueSpan(new VMValue[] { new VMValue(2) }, 0, 1);
-      log2Func.Call(args, null).Should().Be(new VMValue(Math.Log2(2)));
-
-      args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => log2Func.Call(args, null);
-      action.Should().Throw<DiagnosticException>().Where(
-          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
-    }
-
-    [Fact]
     public void TestLog10() {
       var log10Func = FindFunc(MathDefinition.Log10);
       var args = new ValueSpan(new VMValue[] { new VMValue(2) }, 0, 1);

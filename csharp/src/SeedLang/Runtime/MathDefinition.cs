@@ -22,7 +22,6 @@ namespace SeedLang.Runtime {
   internal static class MathDefinition {
     public const string E = "e";
     public const string PI = "pi";
-    public const string Tau = "tau";
 
     public const string Acos = "acos";
     public const string Acosh = "acosh";
@@ -38,7 +37,6 @@ namespace SeedLang.Runtime {
     public const string Exp = "exp";
     public const string Floor = "floor";
     public const string Log = "log";
-    public const string Log2 = "log2";
     public const string Log10 = "log10";
     public const string Pow = "pow";
     public const string Radians = "radians";
@@ -51,7 +49,6 @@ namespace SeedLang.Runtime {
     public static Dictionary<string, VMValue> Variables = new Dictionary<string, VMValue> {
       [E] = new VMValue(Math.E),
       [PI] = new VMValue(Math.PI),
-      [Tau] = new VMValue(Math.Tau),
 
       [Acos] = new VMValue(new NativeFunction(Acos, AcosFunc)),
       [Acosh] = new VMValue(new NativeFunction(Acosh, AcoshFunc)),
@@ -67,7 +64,6 @@ namespace SeedLang.Runtime {
       [Exp] = new VMValue(new NativeFunction(Exp, ExpFunc)),
       [Floor] = new VMValue(new NativeFunction(Floor, FloorFunc)),
       [Log] = new VMValue(new NativeFunction(Log, LogFunc)),
-      [Log2] = new VMValue(new NativeFunction(Log2, Log2Func)),
       [Log10] = new VMValue(new NativeFunction(Log10, Log10Func)),
       [Pow] = new VMValue(new NativeFunction(Pow, PowFunc)),
       [Radians] = new VMValue(new NativeFunction(Radians, RadiansFunc)),
@@ -138,10 +134,6 @@ namespace SeedLang.Runtime {
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                     Message.RuntimeErrorIncorrectArgsCount);
-    }
-
-    private static VMValue Log2Func(ValueSpan args, INativeContext _) {
-      return NativeFunc1(args, Math.Log2);
     }
 
     private static VMValue Log10Func(ValueSpan args, INativeContext _) {

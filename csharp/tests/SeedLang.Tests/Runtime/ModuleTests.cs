@@ -54,11 +54,6 @@ namespace SeedLang.Runtime.Tests {
 
       module.Registers[(uint)module.FindVariable(new string[] {
         submoduleName,
-        MathDefinition.FAbs,
-      })].ToString().Should().Be("NativeFunction <fabs>");
-
-      module.Registers[(uint)module.FindVariable(new string[] {
-        submoduleName,
         MathDefinition.Sin,
       })].ToString().Should().Be("NativeFunction <sin>");
     }

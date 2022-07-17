@@ -799,8 +799,8 @@ namespace SeedLang.Interpreter.Tests {
         AstHelper.Import(moduleName),
         AstHelper.ExpressionStmt(
           AstHelper.Call(
-            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("sin")),
-            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("pi"))
+            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("acos")),
+            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("e"))
           )
         )
       );

@@ -234,7 +234,7 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestNativeFunction() {
       string add = "add";
-      var nativeFunc = new NativeFunction(add, (ValueSpan args, Sys _) => {
+      var nativeFunc = new NativeFunction(add, (ValueSpan args, INativeContext _) => {
         if (args.Count == 2) {
           return new VMValue(args[0].AsNumber() + args[1].AsNumber());
         }

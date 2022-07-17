@@ -1,4 +1,3 @@
-using System;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +13,16 @@ using System;
 // limitations under the License.
 
 using System.IO;
+using SeedLang.Runtime;
 
-namespace SeedLang.Runtime {
-  // The class to provide access of some system variables or functions.
-  //
-  // This class is not designed as a static or singleton class to support multiple interpreter
-  // instances running in different threads at the same time. One scenario is that xUnit will run
-  // all the test cases (some test cases need redirect stdout and verify the output from it) in
-  // different threads simultaneously.
-  internal class Sys {
-    public TextWriter Stdout { get; set; } = Console.Out;
+namespace SeedLang.Interpreter {
+  internal class NativeContext : INativeContext {
+    public TextWriter Stdout => _vm.Stdout;
+
+    private readonly VM _vm;
+
+    internal NativeContext(VM vm) {
+      _vm = vm;
+    }
   }
 }

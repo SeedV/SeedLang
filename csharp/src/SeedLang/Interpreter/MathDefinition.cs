@@ -33,7 +33,7 @@ namespace SeedLang.Interpreter {
       [Sin] = new VMValue(new NativeFunction(Sin, SinFunc)),
     };
 
-    private static VMValue FAbsFunc(ValueSpan args, Sys _) {
+    private static VMValue FAbsFunc(ValueSpan args, INativeContext _) {
       if (args.Count != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -41,7 +41,7 @@ namespace SeedLang.Interpreter {
       return new VMValue(Math.Abs(args[0].AsNumber()));
     }
 
-    private static VMValue SinFunc(ValueSpan args, Sys _) {
+    private static VMValue SinFunc(ValueSpan args, INativeContext _) {
       if (args.Count != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);

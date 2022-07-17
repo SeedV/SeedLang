@@ -32,13 +32,13 @@ namespace SeedLang.Interpreter {
       Stopped,
     }
 
-    private readonly Sys _sys = new Sys();
-    private readonly VisualizerCenter _visualizerCenter;
-    private readonly Registers _registers = new Registers();
-
+    public TextWriter Stdout { get; private set; }
     public bool IsRunning => _state == State.Running;
     public bool IsPaused => _state == State.Paused;
     public bool IsStopped => _state == State.Stopped;
+
+    private readonly VisualizerCenter _visualizerCenter;
+    private readonly Registers _registers = new Registers();
 
     private State _state = State.Stopped;
 
@@ -52,7 +52,7 @@ namespace SeedLang.Interpreter {
     }
 
     internal void RedirectStdout(TextWriter stdout) {
-      _sys.Stdout = stdout;
+      Stdout = stdout;
     }
 
     internal bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
@@ -453,7 +453,8 @@ namespace SeedLang.Interpreter {
       var callee = _registers.GetValueAt(instr.A).AsFunction();
       switch (callee) {
         case NativeFunction nativeFunc:
-          VMValue result = nativeFunc.Call(_registers.GetArguments(instr.A, (int)instr.B), _sys);
+          var context = new NativeContext(this);
+          VMValue result = nativeFunc.Call(_registers.GetArguments(instr.A, (int)instr.B), context);
           _registers.SetValueAt(instr.A, result);
           break;
         case Function func:

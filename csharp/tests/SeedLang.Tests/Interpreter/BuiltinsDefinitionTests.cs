@@ -1,4 +1,3 @@
-using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,19 +24,23 @@ using SeedLang.Runtime.HeapObjects;
 namespace SeedLang.Interpreter.Tests {
   using Range = Runtime.HeapObjects.Range;
 
+  internal class MockupNativeContext : INativeContext {
+    public TextWriter Stdout { get; } = new StringWriter();
+  }
+
   public class BuiltinsDefinitionTests {
     [Fact]
     public void TestPrintValFunc() {
       var printValFunc = FindFunc(BuiltinsDefinition.PrintVal);
-      var sys = new Sys() { Stdout = new StringWriter() };
+      var context = new MockupNativeContext();
       var args = new ValueSpan(new VMValue[] { new VMValue(), }, 0, 1);
-      printValFunc.Call(args, sys).Should().Be(new VMValue());
-      sys.Stdout.ToString().Should().Be("");
+      printValFunc.Call(args, context).Should().Be(new VMValue());
+      context.Stdout.ToString().Should().Be("");
       args = new ValueSpan(new VMValue[] { new VMValue(1), }, 0, 1);
-      printValFunc.Call(args, sys).Should().Be(new VMValue());
-      sys.Stdout.ToString().Should().Be("1" + Environment.NewLine);
+      printValFunc.Call(args, context).Should().Be(new VMValue());
+      context.Stdout.ToString().Should().Be("1" + Environment.NewLine);
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2), }, 0, 2);
-      Action action = () => printValFunc.Call(args, sys);
+      Action action = () => printValFunc.Call(args, context);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
@@ -105,15 +108,15 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestPrintFunc() {
-      var sys = new Sys() { Stdout = new StringWriter() };
+      var context = new MockupNativeContext();
       var printFunc = FindFunc(BuiltinsDefinition.Print);
       var args = new ValueSpan(new VMValue[] {
         new VMValue(1),
         new VMValue(2),
         new VMValue(3)
       }, 0, 3);
-      printFunc.Call(args, sys);
-      sys.Stdout.ToString().Should().Be("1 2 3" + Environment.NewLine);
+      printFunc.Call(args, context);
+      context.Stdout.ToString().Should().Be("1 2 3" + Environment.NewLine);
     }
 
     [Fact]

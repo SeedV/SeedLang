@@ -64,6 +64,11 @@ namespace SeedLang.Ast {
                                     Message.UnsupportedEvalSyntax);
     }
 
+    protected override void VisitImport(ImportStatement import, Result result) {
+      throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
+                                    Message.UnsupportedEvalSyntax);
+    }
+
     protected override void VisitPass(PassStatement pass, Result result) {
       throw new DiagnosticException(SystemReporters.SeedAst, Severity.Error, "", null,
                                     Message.UnsupportedEvalSyntax);

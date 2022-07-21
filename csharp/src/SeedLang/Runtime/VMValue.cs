@@ -45,6 +45,7 @@ namespace SeedLang.Runtime {
     public bool IsTuple => _type == ValueType.Object && _object.IsTuple;
     public bool IsRange => _type == ValueType.Object && _object.IsRange;
     public bool IsSlice => _type == ValueType.Object && _object.IsSlice;
+    public bool IsModule => _type == ValueType.Object && _object.IsModule;
 
     public bool IsIterable => IsString || IsDict || IsList || IsTuple || IsRange;
 
@@ -213,6 +214,15 @@ namespace SeedLang.Runtime {
     internal Slice AsSlice() {
       if (_type == ValueType.Object) {
         return _object.AsSlice();
+      } else {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidCast);
+      }
+    }
+
+    internal Module AsModule() {
+      if (_type == ValueType.Object) {
+        return _object.AsModule();
       } else {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorInvalidCast);

@@ -659,6 +659,19 @@ namespace SeedLang.X.Tests {
       TestPythonParser(source, expectedAst, expectedTokens);
     }
 
+    [Fact]
+    public void TestImport() {
+      string source = "import math";
+      var expectedAst = new string[] {
+        "[Ln 1, Col 0 - Ln 1, Col 10] ImportStatement (math)",
+      };
+      var expectedTokens = new string[] {
+        "Keyword [Ln 1, Col 0 - Ln 1, Col 5]",
+        "Namespace [Ln 1, Col 7 - Ln 1, Col 10]",
+      };
+      TestPythonParser(source, expectedAst, expectedTokens);
+    }
+
     private static void TestPythonParser(string source,
                                          string[] expectedAst,
                                          string[] expectedTokens) {

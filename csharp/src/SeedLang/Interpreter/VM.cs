@@ -32,31 +32,43 @@ namespace SeedLang.Interpreter {
       Stopped,
     }
 
-    private readonly Sys _sys = new Sys();
-    private readonly Registers _registers = new Registers();
-    private readonly VisualizerCenter _visualizerCenter;
-
-    public GlobalEnvironment Env { get; } = new GlobalEnvironment(NativeFunctions.Funcs.Values);
+    // The standard output that is used for print() and expression statements.
+    public TextWriter Stdout { get; private set; } = Console.Out;
 
     public bool IsRunning => _state == State.Running;
     public bool IsPaused => _state == State.Paused;
     public bool IsStopped => _state == State.Stopped;
 
+    private readonly VisualizerCenter _visualizerCenter;
+    private readonly Registers _registers = new Registers();
+
     private State _state = State.Stopped;
 
+    private Module _module;
     private CallStack _callStack;
     private Chunk _chunk;
     private int _pc;
 
-    // The hash table to store defined global variable names.
-    private HashSet<string> _globals;
+    // Returns the names in the module namespace, if the given value is a module object. Otherwise
+    // returns an empty list.
+    internal static VMValue ModuleDir(VMValue value) {
+      if (value.IsModule) {
+        return value.AsModule().Dir;
+      }
+      return new VMValue(new List<VMValue>());
+    }
 
     internal VM(VisualizerCenter visualizerCenter) {
       _visualizerCenter = visualizerCenter;
     }
 
     internal void RedirectStdout(TextWriter stdout) {
-      _sys.Stdout = stdout;
+      Stdout = stdout;
+    }
+
+    // Returns the names in current module namespace.
+    internal VMValue ModuleDir() {
+      return _module.Dir;
     }
 
     internal bool GetGlobals(out IReadOnlyList<IVM.VariableInfo> globals) {
@@ -64,13 +76,7 @@ namespace SeedLang.Interpreter {
         globals = new List<IVM.VariableInfo>();
         return false;
       }
-      var globalList = new List<IVM.VariableInfo>();
-      foreach (string name in _globals) {
-        if (Env.FindVariable(name) is uint id) {
-          globalList.Add(new IVM.VariableInfo(name, new Value(Env.GetVariable(id))));
-        }
-      }
-      globals = globalList;
+      globals = _module.Globals;
       return true;
     }
 
@@ -83,19 +89,19 @@ namespace SeedLang.Interpreter {
       return true;
     }
 
-    internal void Run(Function func) {
+    internal void Run(Module module, Function func) {
       Debug.Assert(!IsRunning, "VM shall not be running.");
       if (!IsStopped) {
         Stop();
       }
       _state = State.Running;
 
+      _module = module;
       _callStack = new CallStack();
       _registers.Reset();
       _callStack.PushFunc(func, _registers.Base, 0);
       _chunk = func.Chunk;
       _pc = 0;
-      _globals = new HashSet<string>();
       RunLoop();
     }
 
@@ -223,9 +229,8 @@ namespace SeedLang.Interpreter {
           //   for j in range(5):
           //     ...
           // Global variable j will be defined for several times. Only adds it in the first time.
-          if (!_globals.Contains(variableDefined.Info.Name)) {
+          if (_module.Registers.DefineVariable(variableDefined.Info.Name)) {
             isFirstTimeDefined = true;
-            _globals.Add(variableDefined.Info.Name);
           }
           break;
         case VariableType.Local:
@@ -307,10 +312,10 @@ namespace SeedLang.Interpreter {
               _registers.SetValueAt(instr.A, new VMValue(dict));
               break;
             case Opcode.GETGLOB:
-              _registers.SetValueAt(instr.A, Env.GetVariable(instr.Bx));
+              _registers.SetValueAt(instr.A, _module.Registers[instr.Bx]);
               break;
             case Opcode.SETGLOB:
-              Env.SetVariable(instr.Bx, _registers.GetValueAt(instr.A));
+              _module.Registers[instr.Bx] = _registers.GetValueAt(instr.A);
               break;
             case Opcode.GETELEM:
               GetElement(instr);
@@ -464,7 +469,8 @@ namespace SeedLang.Interpreter {
       var callee = _registers.GetValueAt(instr.A).AsFunction();
       switch (callee) {
         case NativeFunction nativeFunc:
-          VMValue result = nativeFunc.Call(_registers.GetArguments(instr.A, (int)instr.B), _sys);
+          var context = new NativeContext(this);
+          VMValue result = nativeFunc.Call(_registers.GetArguments(instr.A, (int)instr.B), context);
           _registers.SetValueAt(instr.A, result);
           break;
         case Function func:

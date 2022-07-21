@@ -1,4 +1,3 @@
-using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,16 +17,23 @@ using FluentAssertions;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Runtime;
-using SeedLang.Runtime.HeapObjects;
 using SeedLang.Tests.Helper;
 using SeedLang.Visualization;
 using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class ExprCompilerTests {
-    private static int _printValFunc => NativeFunctionIdOf(NativeFunctions.PrintVal);
-    private static int _sliceFunc => NativeFunctionIdOf(NativeFunctions.Slice);
     private readonly TextRange _range = AstHelper.TextRange;
+    private readonly Module _module;
+    private readonly uint _printValFunc;
+    private readonly uint _sliceFunc;
+
+    public ExprCompilerTests() {
+      _module = Module.Create("test");
+      _printValFunc = (uint)_module.FindVariable(BuiltinsDefinition.PrintVal);
+      _sliceFunc = (uint)_module.FindVariable(BuiltinsDefinition.Slice);
+    }
+
 
     [Fact]
     public void TestCompileNilConstant() {
@@ -331,7 +337,7 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    LOADK     4 -2             ; 2                 {_range}\n" +
           $"  4    LOADK     5 -3             ; 3                 {_range}\n" +
           $"  5    NEWLIST   2 3 3                                {_range}\n" +
-          $"  6    GETGLOB   3 {_sliceFunc}                                  {_range}\n" +
+          $"  6    GETGLOB   3 {_sliceFunc}                                 {_range}\n" +
           $"  7    LOADK     4 -1             ; 1                 {_range}\n" +
           $"  8    LOADK     5 -2             ; 2                 {_range}\n" +
           $"  9    LOADK     6 -1             ; 1                 {_range}\n" +
@@ -351,16 +357,11 @@ namespace SeedLang.Interpreter.Tests {
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorVariableNotDefined);
     }
 
-    private static void TestCompiler(Statement statement, string expected, RunMode mode) {
-      var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
+    private void TestCompiler(Statement statement, string expected, RunMode mode) {
       var visualizerCenter = new VisualizerCenter(() => null);
       var compiler = new Compiler();
-      var func = compiler.Compile(statement, env, visualizerCenter, mode);
+      var func = compiler.Compile(statement, _module, visualizerCenter, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
-    }
-
-    private static int NativeFunctionIdOf(string name) {
-      return NativeFunctions.Funcs.Values.ToList().FindIndex(func => { return func.Name == name; });
     }
   }
 }

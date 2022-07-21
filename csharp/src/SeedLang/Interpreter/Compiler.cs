@@ -23,14 +23,16 @@ namespace SeedLang.Interpreter {
     private RunMode _runMode;
     private CompilerHelper _helper;
     private ExprCompiler _exprCompiler;
+    private Module _module;
 
     // The range of the statement that is just compiled.
     private TextRange _rangeOfPrevStatement = null;
 
-    internal Function Compile(Statement program, GlobalEnvironment env,
-                              VisualizerCenter visualizerCenter, RunMode runMode) {
+    internal Function Compile(Statement program, Module module, VisualizerCenter visualizerCenter,
+                              RunMode runMode) {
+      _module = module;
       _runMode = runMode;
-      _helper = new CompilerHelper(visualizerCenter, env);
+      _helper = new CompilerHelper(visualizerCenter, module);
       _exprCompiler = new ExprCompiler(_helper);
       _helper.PushMainFunc();
       Visit(program, new NestedLoopStack());
@@ -81,7 +83,7 @@ namespace SeedLang.Interpreter {
       _helper.BeginExprScope();
       switch (_runMode) {
         case RunMode.Interactive:
-          Expression eval = Expression.Identifier(NativeFunctions.PrintVal, expr.Range);
+          Expression eval = Expression.Identifier(BuiltinsDefinition.PrintVal, expr.Range);
           _exprCompiler.Visit(Expression.Call(eval, new Expression[] { expr.Expr }, expr.Range),
                               new ExprCompiler.Context {
                                 TargetRegister = _helper.DefineTempVariable(),
@@ -186,6 +188,10 @@ namespace SeedLang.Interpreter {
         _helper.PatchJumpsToCurrentPos(_helper.ExprJumpStack.FalseJumps);
       }
       _helper.ExprJumpStack.PopFrame();
+    }
+
+    protected override void VisitImport(ImportStatement import, NestedLoopStack _) {
+      _module.ImportBuiltinModule(import.ModuleName);
     }
 
     protected override void VisitPass(PassStatement pass, NestedLoopStack _) { }

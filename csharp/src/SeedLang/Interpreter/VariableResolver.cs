@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using SeedLang.Runtime;
 using SeedLang.Visualization;
 
 namespace SeedLang.Interpreter {
@@ -99,18 +100,19 @@ namespace SeedLang.Interpreter {
       public string Path => null;
       public Registers Registers { get; } = new Registers();
 
-      private readonly GlobalEnvironment _env;
+      private readonly Module _module;
 
-      public GlobalScope(GlobalEnvironment env) {
-        _env = env;
+      public GlobalScope(Module module) {
+        _module = module;
       }
 
       public VariableInfo DefineVariable(string name) {
-        return new VariableInfo(name, VariableType.Global, _env.DefineVariable(name));
+        return new VariableInfo(name, VariableType.Global,
+                                _module.DefineVariable(name, new VMValue()));
       }
 
       public VariableInfo FindVariable(string name) {
-        if (_env.FindVariable(name) is uint id) {
+        if (_module.FindVariable(name.Split(".")) is uint id) {
           return new VariableInfo(name, VariableType.Global, id);
         }
         return null;
@@ -180,8 +182,8 @@ namespace SeedLang.Interpreter {
     private readonly List<IScope> _scopes = new List<IScope>();
     private IScope _currentScope => _scopes[^1];
 
-    internal VariableResolver(GlobalEnvironment env) {
-      _scopes.Add(new GlobalScope(env));
+    internal VariableResolver(Module module) {
+      _scopes.Add(new GlobalScope(module));
     }
 
     internal void BeginExprScope() {

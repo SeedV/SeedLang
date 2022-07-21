@@ -18,6 +18,7 @@ using System.IO;
 using SeedLang.Ast;
 using SeedLang.Common;
 using SeedLang.Interpreter;
+using SeedLang.Runtime;
 using SeedLang.Visualization;
 using SeedLang.X;
 
@@ -56,6 +57,8 @@ namespace SeedLang {
     private Statement _astTree;
     // The semantic tokens of the source code.
     private IReadOnlyList<TokenInfo> _semanticTokens;
+    // The module of the source code.
+    private Module _module;
     // The compiled bytecode function of the source code.
     private Function _func;
 
@@ -94,20 +97,23 @@ namespace SeedLang {
 
     // Parses and compiles valid SeedX source code into AST node, semantic tokens and bytecode
     // function. Returns false and sets them to null if the source code is not valid.
-    public bool Compile(string source, string module, DiagnosticCollection collection = null) {
+    public bool Compile(string source, string moduleName, DiagnosticCollection collection = null) {
       _semanticTokens = null;
       _astTree = null;
       _func = null;
-      if (string.IsNullOrEmpty(source) || module is null) {
+      if (string.IsNullOrEmpty(source) || moduleName is null) {
         return false;
       }
       try {
         BaseParser parser = MakeParser(_language);
-        if (!parser.Parse(source, module, collection ?? new DiagnosticCollection(), out _astTree,
-                          out _semanticTokens)) {
+        if (!parser.Parse(source, moduleName, collection ?? new DiagnosticCollection(),
+                          out _astTree, out _semanticTokens)) {
           return false;
         }
-        _func = new Compiler().Compile(_astTree, _vm.Env, _visualizerCenter, _runMode);
+        if (_module == null || _runMode == RunMode.Script) {
+          _module = Module.Create(moduleName);
+        }
+        _func = new Compiler().Compile(_astTree, _module, _visualizerCenter, _runMode);
         return true;
       } catch (DiagnosticException exception) {
         collection?.Report(exception.Diagnostic);
@@ -150,7 +156,7 @@ namespace SeedLang {
         if (!_vm.IsStopped) {
           _vm.Stop();
         }
-        _vm.Run(_func);
+        _vm.Run(_module, _func);
         return true;
       } catch (DiagnosticException exception) {
         collection?.Report(exception.Diagnostic);

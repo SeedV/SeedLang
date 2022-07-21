@@ -16,7 +16,7 @@ using System;
 using SeedLang.Common;
 
 namespace SeedLang.Runtime.HeapObjects {
-  using BuildInFunctionType = Func<ValueSpan, Sys, VMValue>;
+  using BuildInFunctionType = Func<ValueSpan, INativeContext, VMValue>;
 
   // An empty interface for all function value types. It's only used to identify function types.
   internal interface IFunction {
@@ -35,7 +35,7 @@ namespace SeedLang.Runtime.HeapObjects {
 
     // Calls the build-in function with given arguments that locate in the "args" array starting
     // from "offset". The number of arguments is "length".
-    internal VMValue Call(ValueSpan args, Sys sys) {
+    internal VMValue Call(ValueSpan args, INativeContext sys) {
       return _func(args, sys);
     }
 
@@ -103,7 +103,7 @@ namespace SeedLang.Runtime.HeapObjects {
           return (int)doubleValue;
         } else {
           throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidIntIndex);
+                                        Message.RuntimeErrorInvalidInteger);
         }
       }
       return null;

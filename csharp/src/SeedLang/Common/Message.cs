@@ -65,7 +65,7 @@ namespace SeedLang.Common {
     RuntimeErrorIncorrectSliceAssignCount,  // Incorrect count of the sequence for slice assignment.
     RuntimeErrorIncorrectUnpackCount,       // Incorrect number of values to be unpack.
     RuntimeErrorInvalidCast,                // Invalid cast of value types.
-    RuntimeErrorInvalidIntIndex,            // Not a valid integer index.
+    RuntimeErrorInvalidInteger,             // Not a valid integer.
     RuntimeErrorNoKey,                      // Couldn't find the given key in the dictionary.
     RuntimeErrorNotCallable,                // Value type not callable.
     RuntimeErrorNotCountable,               // Value type not countable.

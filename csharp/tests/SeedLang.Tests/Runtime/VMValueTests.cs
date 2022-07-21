@@ -234,7 +234,7 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestNativeFunction() {
       string add = "add";
-      var nativeFunc = new NativeFunction(add, (ValueSpan args, Sys _) => {
+      var nativeFunc = new NativeFunction(add, (ValueSpan args, INativeContext _) => {
         if (args.Count == 2) {
           return new VMValue(args[0].AsNumber() + args[1].AsNumber());
         }
@@ -449,17 +449,17 @@ namespace SeedLang.Runtime.Tests {
       });
       Action action = () => _ = list[new VMValue(0.5)];
       action.Should().Throw<DiagnosticException>().Where(
-          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidInteger);
 
       action = () => _ = list[new VMValue(new Slice(0.5))];
       action.Should().Throw<DiagnosticException>().Where(
-          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidInteger);
       action = () => _ = list[new VMValue(new Slice(null, 0.5))];
       action.Should().Throw<DiagnosticException>().Where(
-          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidInteger);
       action = () => _ = list[new VMValue(new Slice(null, null, 0.5))];
       action.Should().Throw<DiagnosticException>().Where(
-          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidIntIndex);
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidInteger);
     }
 
     [Fact]

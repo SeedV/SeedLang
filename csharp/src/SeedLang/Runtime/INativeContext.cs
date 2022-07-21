@@ -1,4 +1,3 @@
-using System;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +15,16 @@ using System;
 using System.IO;
 
 namespace SeedLang.Runtime {
-  // The class to provide access of some system variables or functions.
-  //
-  // This class is not designed as a static or singleton class to support multiple interpreter
-  // instances running in different threads at the same time. One scenario is that xUnit will run
-  // all the test cases (some test cases need redirect stdout and verify the output from it) in
-  // different threads simultaneously.
-  internal class Sys {
-    public TextWriter Stdout { get; set; } = Console.Out;
+  // The interface to provide context information for native functions.
+  internal interface INativeContext {
+    // The standard output that is used for print() and expression statements.
+    TextWriter Stdout { get; }
+
+    // Returns the names in current module namespace.
+    VMValue ModuleDir();
+
+    // Returns the names in the module namespace, if the given value is a module object. Otherwise
+    // returns an empty list.
+    VMValue ModuleDir(VMValue value);
   }
 }

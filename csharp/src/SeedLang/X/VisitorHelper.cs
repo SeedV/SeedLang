@@ -35,6 +35,23 @@ namespace SeedLang.X {
       _semanticTokens = tokens;
     }
 
+    // Builds block statements.
+    internal static Statement BuildBlock(ITerminalNode[] newLineNodes,
+                                         ParserRuleContext[] statementContexts,
+                                         AbstractParseTreeVisitor<AstNode> visitor) {
+      if (statementContexts.Length == 0) {
+        TextRange range = null;
+        if (newLineNodes.Length > 0) {
+          range = CodeReferenceUtils.RangeOfTokens(newLineNodes[0].Symbol, newLineNodes[^1].Symbol);
+        }
+        return Statement.Block(Array.Empty<Statement>(), range);
+      } else if (statementContexts.Length == 1) {
+        return visitor.Visit(statementContexts[0]) as Statement;
+      }
+      return BuildBlock(Array.ConvertAll(statementContexts,
+                                         context => visitor.Visit(context) as Statement));
+    }
+
     // Builds binary expressions.
     internal BinaryExpression BuildBinary(ParserRuleContext leftContext, IToken opToken,
                                           BinaryOperator op, ParserRuleContext rightContext,
@@ -314,29 +331,14 @@ namespace SeedLang.X {
                                       ParserRuleContext[] exprContexts, ITerminalNode[] commaNodes,
                                       IToken closeParenToken,
                                       AbstractParseTreeVisitor<AstNode> visitor) {
-      AstNode callee = visitor.Visit(primaryContext);
-      Expression func = null;
-      Expression firstParam = null;
-      if (callee is AttributeExpression attr) {
-        func = attr.Attr;
-        firstParam = attr.Value;
-      } else if (callee is Expression expr) {
-        func = expr;
-      }
-      if (!(func is null)) {
+      if (visitor.Visit(primaryContext) is Expression func) {
         AddSemanticToken(TokenType.OpenParenthesis,
                          CodeReferenceUtils.RangeOfToken(openParenToken));
         Debug.Assert(exprContexts.Length == 0 && commaNodes.Length == 0 ||
                      exprContexts.Length == commaNodes.Length + 1);
-        int additionalParam = firstParam is null ? 0 : 1;
-        var exprs = new Expression[exprContexts.Length + additionalParam];
-        if (!(firstParam is null)) {
-          exprs[0] = firstParam;
-        }
+        var exprs = new Expression[exprContexts.Length];
         for (int i = 0; i < exprContexts.Length; i++) {
-          if (visitor.Visit(exprContexts[i]) is Expression expr) {
-            exprs[i + additionalParam] = expr;
-          }
+          exprs[i] = visitor.Visit(exprContexts[i]) as Expression;
           if (i < commaNodes.Length) {
             AddSemanticToken(TokenType.Symbol,
                              CodeReferenceUtils.RangeOfToken(commaNodes[i].Symbol));
@@ -344,7 +346,7 @@ namespace SeedLang.X {
         }
         TextRange closeParenRange = CodeReferenceUtils.RangeOfToken(closeParenToken);
         AddSemanticToken(TokenType.CloseParenthesis, closeParenRange);
-        TextRange range = CodeReferenceUtils.CombineRanges(callee.Range, closeParenRange);
+        TextRange range = CodeReferenceUtils.CombineRanges(func.Range, closeParenRange);
         return Expression.Call(func, exprs, range);
       }
       return null;
@@ -385,23 +387,6 @@ namespace SeedLang.X {
         }
       }
       return null;
-    }
-
-    // Builds block statements.
-    internal static Statement BuildBlock(ITerminalNode[] newLineNodes,
-                                         ParserRuleContext[] statementContexts,
-                                         AbstractParseTreeVisitor<AstNode> visitor) {
-      if (statementContexts.Length == 0) {
-        TextRange range = null;
-        if (newLineNodes.Length > 0) {
-          range = CodeReferenceUtils.RangeOfTokens(newLineNodes[0].Symbol, newLineNodes[^1].Symbol);
-        }
-        return Statement.Block(Array.Empty<Statement>(), range);
-      } else if (statementContexts.Length == 1) {
-        return visitor.Visit(statementContexts[0]) as Statement;
-      }
-      return BuildBlock(Array.ConvertAll(statementContexts,
-                                         context => visitor.Visit(context) as Statement));
     }
 
     // Builds expression statements.
@@ -508,6 +493,16 @@ namespace SeedLang.X {
         range = CodeReferenceUtils.CombineRanges(returnRange, exprs[^1].Range);
       }
       return Statement.Return(exprs, range);
+    }
+
+    // Builds import statements.
+    internal AstNode BuildImport(IToken importToken, IToken nameToken) {
+      TextRange importRange = CodeReferenceUtils.RangeOfToken(importToken);
+      AddSemanticToken(TokenType.Keyword, importRange);
+      TextRange nameRange = CodeReferenceUtils.RangeOfToken(nameToken);
+      AddSemanticToken(TokenType.Namespace, nameRange);
+      TextRange range = CodeReferenceUtils.CombineRanges(importRange, nameRange);
+      return Statement.Import(nameToken.Text, range);
     }
 
     // Builds a block of simple statements.

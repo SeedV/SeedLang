@@ -63,6 +63,11 @@ namespace SeedLang.Ast {
       return new IfStatement(test, thenBody, elseBody, range);
     }
 
+    // The factory method to create import statements.
+    internal static ImportStatement Import(string moduleName, TextRange range) {
+      return new ImportStatement(moduleName, range);
+    }
+
     // The factory method to create pass statements.
     internal static PassStatement Pass(TextRange range) {
       return new PassStatement(range);
@@ -166,6 +171,14 @@ namespace SeedLang.Ast {
       Test = test;
       ThenBody = thenBody;
       ElseBody = elseBody;
+    }
+  }
+
+  internal class ImportStatement : Statement {
+    public string ModuleName { get; }
+
+    internal ImportStatement(string moduleName, TextRange range) : base(range) {
+      ModuleName = moduleName;
     }
   }
 

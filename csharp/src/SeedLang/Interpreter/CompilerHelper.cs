@@ -43,8 +43,8 @@ namespace SeedLang.Interpreter {
     // The flag to suspend emitting of notifications.
     private bool _suspendNotificationEmitting = false;
 
-    internal CompilerHelper(VisualizerCenter visualizerCenter, GlobalEnvironment env) {
-      _variableResolver = new VariableResolver(env);
+    internal CompilerHelper(VisualizerCenter visualizerCenter, Module module) {
+      _variableResolver = new VariableResolver(module);
       _visualizerCenter = visualizerCenter;
     }
 
@@ -143,7 +143,7 @@ namespace SeedLang.Interpreter {
     // Emits a CALL instruction. A VISNOTIFY instruction is also emitted if there are visualizers
     // for the FuncCalled event.
     internal void EmitCall(string name, uint funcRegister, uint argLength, TextRange range) {
-      bool isNormalFunc = !NativeFunctions.IsInternalFunction(name);
+      bool isNormalFunc = !Module.IsInternalFunction(name);
       bool notifyCalled = !_suspendNotificationEmitting && isNormalFunc &&
                           _visualizerCenter.HasVisualizer<Event.FuncCalled>();
       if (notifyCalled) {

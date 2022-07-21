@@ -1,4 +1,3 @@
-using System.Linq;
 // Copyright 2021-2022 The SeedV Lab.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +23,16 @@ using Xunit;
 
 namespace SeedLang.Interpreter.Tests {
   public class CompilerTests {
-    private static readonly int _printValFunc = NativeFunctionIdOf(NativeFunctions.PrintVal);
-    private static readonly int _firstGlob = NativeFunctions.Funcs.Count;
     private static readonly TextRange _range = AstHelper.TextRange;
+    private readonly Module _module;
+    private readonly int _firstGlob;
+    private readonly uint _printValFunc;
+
+    public CompilerTests() {
+      _module = Module.Create("test");
+      _firstGlob = _module.Registers.Count;
+      _printValFunc = (uint)_module.FindVariable(BuiltinsDefinition.PrintVal);
+    }
 
     [Fact]
     public void TestCompileAssignment() {
@@ -37,7 +43,7 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  3    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
@@ -54,8 +60,8 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
           $"  2    LOADK     1 -2             ; 2                 {_range}\n" +
-          $"  3    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  4    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  3    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
+          $"  4    SETGLOB   1 {_firstGlob + 1}                                 {_range}\n" +
           $"  5    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
@@ -71,7 +77,7 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    ADD       0 -1 -2          ; 1 2               {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  3    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
@@ -87,7 +93,7 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <func>       {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  3    HALT      1 0                                  {_range}\n" +
           $"\n" +
           $"Function <func>\n" +
@@ -111,9 +117,9 @@ namespace SeedLang.Interpreter.Tests {
           $"  1    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  2    LOADK     2 -2             ; 2                 {_range}\n" +
           $"  3    NEWTUPLE  0 1 2                                {_range}\n" +
-          $"  4    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  4    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  5    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  6    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  6    GETGLOB   1 {_firstGlob}                                 {_range}\n" +
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
@@ -139,15 +145,15 @@ namespace SeedLang.Interpreter.Tests {
           $"  3    NEWLIST   0 1 2                                {_range}\n" +
           $"  4    LOADK     2 -3             ; 0                 {_range}\n" +
           $"  5    GETELEM   1 0 2                                {_range}\n" +
-          $"  6    SETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  6    SETGLOB   1 {_firstGlob}                                 {_range}\n" +
           $"  7    LOADK     2 -1             ; 1                 {_range}\n" +
           $"  8    GETELEM   1 0 2                                {_range}\n" +
-          $"  9    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  9    SETGLOB   1 {_firstGlob + 1}                                 {_range}\n" +
           $"  10   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  11   GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  11   GETGLOB   1 {_firstGlob}                                 {_range}\n" +
           $"  12   CALL      0 1 0                                {_range}\n" +
           $"  13   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  14   GETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  14   GETGLOB   1 {_firstGlob + 1}                                 {_range}\n" +
           $"  15   CALL      0 1 0                                {_range}\n" +
           $"  16   HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
@@ -166,8 +172,8 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  3    SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
+          $"  3    SETGLOB   0 {_firstGlob + 1}                                 {_range}\n" +
           $"  4    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
@@ -187,12 +193,12 @@ namespace SeedLang.Interpreter.Tests {
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 1                 {_range}\n" +
           $"  2    LOADK     1 -2             ; 2                 {_range}\n" +
-          $"  3    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  4    SETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  3    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
+          $"  4    SETGLOB   1 {_firstGlob + 1}                                 {_range}\n" +
           $"  5    LOADK     3 -1             ; 1                 {_range}\n" +
           $"  6    LOADK     4 -2             ; 2                 {_range}\n" +
           $"  7    NEWTUPLE  2 3 2                                {_range}\n" +
-          $"  8    SETGLOB   2 {_firstGlob + 2}                                  {_range}\n" +
+          $"  8    SETGLOB   2 {_firstGlob + 2}                                 {_range}\n" +
           $"  9    HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
       TestCompiler(program, expected, RunMode.Interactive);
@@ -520,7 +526,7 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestCompileWhile() {
-      string sum = "sum";
+      string sum = "s";
       string i = "i";
       var program = AstHelper.Block(
         AstHelper.Assign(AstHelper.ChainedTargets(AstHelper.Targets(AstHelper.Id(sum))),
@@ -544,22 +550,22 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; 0                 {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  3    LOADK     0 -1             ; 0                 {_range}\n" +
-          $"  4    SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
-          $"  5    GETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
+          $"  4    SETGLOB   0 {_firstGlob + 1}                                 {_range}\n" +
+          $"  5    GETGLOB   0 {_firstGlob + 1}                                 {_range}\n" +
           $"  6    LE        1 0 -2           ; 10                {_range}\n" +
           $"  7    JMP       0 8              ; to 16             {_range}\n" +
-          $"  8    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
-          $"  9    GETGLOB   2 {_firstGlob + 1}                                  {_range}\n" +
+          $"  8    GETGLOB   1 {_firstGlob}                                 {_range}\n" +
+          $"  9    GETGLOB   2 {_firstGlob + 1}                                 {_range}\n" +
           $"  10   ADD       0 1 2                                {_range}\n" +
-          $"  11   SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  12   GETGLOB   1 {_firstGlob + 1}                                  {_range}\n" +
+          $"  11   SETGLOB   0 {_firstGlob}                                 {_range}\n" +
+          $"  12   GETGLOB   1 {_firstGlob + 1}                                 {_range}\n" +
           $"  13   ADD       0 1 -3           ; 1                 {_range}\n" +
-          $"  14   SETGLOB   0 {_firstGlob + 1}                                  {_range}\n" +
+          $"  14   SETGLOB   0 {_firstGlob + 1}                                 {_range}\n" +
           $"  15   JMP       0 -11            ; to 5              {_range}\n" +
           $"  16   GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  17   GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  17   GETGLOB   1 {_firstGlob}                                 {_range}\n" +
           $"  18   CALL      0 1 0                                {_range}\n" +
           $"  19   HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
@@ -581,9 +587,9 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <add>        {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  3    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  4    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  4    GETGLOB   1 {_firstGlob}                                 {_range}\n" +
           $"  5    LOADK     2 -2             ; 1                 {_range}\n" +
           $"  6    LOADK     3 -3             ; 2                 {_range}\n" +
           $"  7    CALL      1 2 0                                {_range}\n" +
@@ -600,43 +606,45 @@ namespace SeedLang.Interpreter.Tests {
 
     [Fact]
     public void TestRecursiveFuncCall() {
-      string sum = "sum";
+      string sumFunc = "sumFunc";
       var n = "n";
       var program = AstHelper.Block(
-        AstHelper.FuncDef(sum, AstHelper.Params(AstHelper.Id(n)), AstHelper.Block(
+        AstHelper.FuncDef(sumFunc, AstHelper.Params(AstHelper.Id(n)), AstHelper.Block(
           AstHelper.If(
             AstHelper.Comparison(AstHelper.Id(n), AstHelper.CompOps(ComparisonOperator.EqEqual),
                                  AstHelper.NumberConstant(1)),
             AstHelper.Return(AstHelper.NumberConstant(1)),
             AstHelper.Return(
               AstHelper.Binary(AstHelper.Id(n), BinaryOperator.Add,
-                               AstHelper.Call(AstHelper.Id(sum),
+                               AstHelper.Call(AstHelper.Id(sumFunc),
                                               AstHelper.Binary(AstHelper.Id(n),
                                                                BinaryOperator.Subtract,
                                                                AstHelper.NumberConstant(1)))
             ))
           )
         )),
-        AstHelper.ExpressionStmt(AstHelper.Call(AstHelper.Id(sum), AstHelper.NumberConstant(10)))
+        AstHelper.ExpressionStmt(
+          AstHelper.Call(AstHelper.Id(sumFunc), AstHelper.NumberConstant(10))
+        )
       );
       string expected = (
           $"Function <main>\n" +
-          $"  1    LOADK     0 -1             ; Func <sum>        {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  1    LOADK     0 -1             ; Func <sumFunc>    {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  3    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  4    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  4    GETGLOB   1 {_firstGlob}                                 {_range}\n" +
           $"  5    LOADK     2 -2             ; 10                {_range}\n" +
           $"  6    CALL      1 1 0                                {_range}\n" +
           $"  7    CALL      0 1 0                                {_range}\n" +
           $"  8    HALT      1 0                                  {_range}\n" +
           $"\n" +
-          $"Function <sum>\n" +
+          $"Function <sumFunc>\n" +
           $"  1    EQ        1 0 -1           ; 1                 {_range}\n" +
           $"  2    JMP       0 3              ; to 6              {_range}\n" +
           $"  3    LOADK     1 -1             ; 1                 {_range}\n" +
           $"  4    RETURN    1 1                                  {_range}\n" +
           $"  5    JMP       0 5              ; to 11             {_range}\n" +
-          $"  6    GETGLOB   2 {_firstGlob}                                  {_range}\n" +
+          $"  6    GETGLOB   2 {_firstGlob}                                 {_range}\n" +
           $"  7    SUB       3 0 -1           ; 1                 {_range}\n" +
           $"  8    CALL      2 1 0                                {_range}\n" +
           $"  9    ADD       1 0 2                                {_range}\n" +
@@ -667,11 +675,11 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    LOADK     2 -2             ; 2                 {_range}\n" +
           $"  3    LOADK     3 -3             ; 3                 {_range}\n" +
           $"  4    NEWLIST   0 1 3                                {_range}\n" +
-          $"  5    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  6    GETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  5    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
+          $"  6    GETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  7    SETELEM   0 -1 -4          ; 1 5               {_range}\n" +
           $"  8    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
-          $"  9    GETGLOB   2 {_firstGlob}                                  {_range}\n" +
+          $"  9    GETGLOB   2 {_firstGlob}                                 {_range}\n" +
           $"  10   GETELEM   1 2 -1           ; 1                 {_range}\n" +
           $"  11   CALL      0 1 0                                {_range}\n" +
           $"  12   HALT      1 0                                  {_range}\n"
@@ -702,14 +710,14 @@ namespace SeedLang.Interpreter.Tests {
           $"  2    LOADK     2 -2             ; 2                 {_range}\n" +
           $"  3    LOADK     3 -3             ; 3                 {_range}\n" +
           $"  4    NEWLIST   0 1 3                                {_range}\n" +
-          $"  5    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
-          $"  6    GETGLOB   1 {_firstGlob}                                  {_range}\n" +
+          $"  5    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
+          $"  6    GETGLOB   1 {_firstGlob}                                 {_range}\n" +
           $"  7    GETELEM   0 1 -1           ; 1                 {_range}\n" +
-          $"  8    GETGLOB   2 {_firstGlob}                                  {_range}\n" +
+          $"  8    GETGLOB   2 {_firstGlob}                                 {_range}\n" +
           $"  9    GETELEM   1 2 -4           ; 0                 {_range}\n" +
-          $"  10   GETGLOB   2 {_firstGlob}                                  {_range}\n" +
+          $"  10   GETGLOB   2 {_firstGlob}                                 {_range}\n" +
           $"  11   SETELEM   2 -4 0           ; 0                 {_range}\n" +
-          $"  12   GETGLOB   3 {_firstGlob}                                  {_range}\n" +
+          $"  12   GETGLOB   3 {_firstGlob}                                 {_range}\n" +
           $"  13   SETELEM   3 -1 1           ; 1                 {_range}\n" +
           $"  14   HALT      1 0                                  {_range}\n"
       ).Replace("\n", Environment.NewLine);
@@ -737,9 +745,9 @@ namespace SeedLang.Interpreter.Tests {
           $"  7    LOADK     3 -1             ; 1                 {_range}\n" +
           $"  8    FORPREP   1 5              ; to 14             {_range}\n" +
           $"  9    GETELEM   4 0 1                                {_range}\n" +
-          $"  10   SETGLOB   4 {_firstGlob}                                  {_range}\n" +
+          $"  10   SETGLOB   4 {_firstGlob}                                 {_range}\n" +
           $"  11   GETGLOB   4 {_printValFunc}                                  {_range}\n" +
-          $"  12   GETGLOB   5 {_firstGlob}                                  {_range}\n" +
+          $"  12   GETGLOB   5 {_firstGlob}                                 {_range}\n" +
           $"  13   CALL      4 1 0                                {_range}\n" +
           $"  14   FORLOOP   1 -6             ; to 9              {_range}\n" +
           $"  15   HALT      1 0                                  {_range}\n"
@@ -762,7 +770,7 @@ namespace SeedLang.Interpreter.Tests {
       string expected = (
           $"Function <main>\n" +
           $"  1    LOADK     0 -1             ; Func <func>       {_range}\n" +
-          $"  2    SETGLOB   0 {_firstGlob}                                  {_range}\n" +
+          $"  2    SETGLOB   0 {_firstGlob}                                 {_range}\n" +
           $"  3    HALT      1 0                                  {_range}\n" +
           $"\n" +
           $"Function <func>\n" +
@@ -785,6 +793,30 @@ namespace SeedLang.Interpreter.Tests {
     }
 
     [Fact]
+    public void TestCompileImport() {
+      string moduleName = "math";
+      var program = AstHelper.Block(
+        AstHelper.Import(moduleName),
+        AstHelper.ExpressionStmt(
+          AstHelper.Call(
+            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("acos")),
+            AstHelper.Attribute(AstHelper.Id(moduleName), AstHelper.Id("e"))
+          )
+        )
+      );
+      string expected = (
+          $"Function <main>\n" +
+          $"  1    GETGLOB   0 {_printValFunc}                                  {_range}\n" +
+          $"  2    GETGLOB   1 {_firstGlob + 2}                                 {_range}\n" +
+          $"  3    GETGLOB   2 {_firstGlob}                                 {_range}\n" +
+          $"  4    CALL      1 1 0                                {_range}\n" +
+          $"  5    CALL      0 1 0                                {_range}\n" +
+          $"  6    HALT      1 0                                  {_range}\n"
+      ).Replace("\n", Environment.NewLine);
+      TestCompiler(program, expected, RunMode.Interactive);
+    }
+
+    [Fact]
     public void TestBreakOutOfLoop() {
       var expr = AstHelper.Break();
       Action action = () => TestCompiler(expr, "", RunMode.Interactive);
@@ -800,16 +832,11 @@ namespace SeedLang.Interpreter.Tests {
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorContinueOutsideLoop);
     }
 
-    private static void TestCompiler(Statement statement, string expected, RunMode mode) {
-      var env = new GlobalEnvironment(NativeFunctions.Funcs.Values);
+    private void TestCompiler(Statement statement, string expected, RunMode mode) {
       var visualizerCenter = new VisualizerCenter(() => null);
       var compiler = new Compiler();
-      var func = compiler.Compile(statement, env, visualizerCenter, mode);
+      var func = compiler.Compile(statement, _module, visualizerCenter, mode);
       Assert.Equal(expected, new Disassembler(func).ToString());
-    }
-
-    private static int NativeFunctionIdOf(string name) {
-      return NativeFunctions.Funcs.Values.ToList().FindIndex(func => { return func.Name == name; });
     }
   }
 }

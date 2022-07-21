@@ -13,9 +13,8 @@
 // limitations under the License.
 
 using System;
-using System.Linq;
+using System.Reflection;
 using SeedLang.Runtime;
-using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
 namespace SeedLang.Tests {
@@ -153,8 +152,9 @@ for i in range(10):
     }
 
     private static int NativeFunctionIdOf(string name) {
-      return BuiltinsDefinition.Variables.Values.ToList().FindIndex(value => {
-        return value.IsFunction && (value.AsFunction() as NativeFunction).Name == name;
+      var fields = typeof(BuiltinsDefinition).GetFields(BindingFlags.Public | BindingFlags.Static);
+      return Array.FindIndex(fields, field => {
+        return field.GetValue(null) as string == name;
       });
     }
   }

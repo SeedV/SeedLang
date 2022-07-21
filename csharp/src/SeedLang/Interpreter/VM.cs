@@ -51,7 +51,7 @@ namespace SeedLang.Interpreter {
 
     // Returns the names in the module namespace, if the given value is a module object. Otherwise
     // returns an empty list.
-    internal static VMValue Dir(VMValue value) {
+    internal static VMValue ModuleDir(VMValue value) {
       if (value.IsModule) {
         return value.AsModule().Dir;
       }
@@ -67,7 +67,7 @@ namespace SeedLang.Interpreter {
     }
 
     // Returns the names in current module namespace.
-    internal VMValue Dir() {
+    internal VMValue ModuleDir() {
       return _module.Dir;
     }
 

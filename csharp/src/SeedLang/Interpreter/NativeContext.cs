@@ -26,12 +26,12 @@ namespace SeedLang.Interpreter {
       _vm = vm;
     }
 
-    public VMValue Dir() {
-      return _vm.Dir();
+    public VMValue ModuleDir() {
+      return _vm.ModuleDir();
     }
 
-    public VMValue Dir(VMValue value) {
-      return VM.Dir(value);
+    public VMValue ModuleDir(VMValue value) {
+      return VM.ModuleDir(value);
     }
   }
 }

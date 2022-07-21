@@ -15,9 +15,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using SeedLang.Runtime.HeapObjects;
 using SeedLang.Visualization;
 
 namespace SeedLang.Runtime {
+  using BuiltinFunctionType = Func<ValueSpan, INativeContext, VMValue>;
+
   internal class Module {
     public string Name { get; }
     public GlobalRegisters Registers { get; }
@@ -46,7 +50,7 @@ namespace SeedLang.Runtime {
     internal static Module Create(string name) {
       var module = new Module(name, new GlobalRegisters());
       module.ImportBuiltinModule(_builtinsAliasName, _builtinsModuleName,
-                                 BuiltinsDefinition.Variables);
+                                 typeof(BuiltinsDefinition));
       return module;
     }
 
@@ -62,10 +66,10 @@ namespace SeedLang.Runtime {
     internal void ImportBuiltinModule(string name) {
       switch (name) {
         case _builtinsModuleName:
-          ImportBuiltinModule(name, name, BuiltinsDefinition.Variables);
+          ImportBuiltinModule(name, name, typeof(BuiltinsDefinition));
           break;
         case "math":
-          ImportBuiltinModule(name, name, MathDefinition.Variables);
+          ImportBuiltinModule(name, name, typeof(MathDefinition));
           break;
       };
     }
@@ -102,13 +106,31 @@ namespace SeedLang.Runtime {
       return null;
     }
 
-    private void ImportBuiltinModule(string aliasName, string name,
-                                     Dictionary<string, VMValue> variables) {
+    private static void DefineModuleVariables(Module module, Type definition) {
+      var fields = definition.GetFields(BindingFlags.Public | BindingFlags.Static);
+      foreach (FieldInfo field in fields) {
+        var fieldName = field.GetValue(null) as string;
+        var constName = $"_{field.Name.ToLower()}";
+        var funcName = $"{field.Name}Func";
+        if (definition.GetField(constName, BindingFlags.NonPublic | BindingFlags.Static)
+            is FieldInfo constant) {
+          var value = (VMValue)constant.GetValue(null);
+          module.DefineVariable(fieldName, value);
+        } else if (definition.GetMethod(funcName, BindingFlags.NonPublic | BindingFlags.Static)
+                   is MethodInfo method) {
+          var func = method.CreateDelegate(typeof(BuiltinFunctionType)) as BuiltinFunctionType;
+          var value = new VMValue(new NativeFunction(fieldName, func));
+          module.DefineVariable(fieldName, value);
+        } else {
+          Debug.Fail($"Module variable {fieldName} shall be defined.");
+        }
+      }
+    }
+
+    private void ImportBuiltinModule(string aliasName, string name, Type definition) {
       if (!_nameToIdMap.ContainsKey(aliasName)) {
         var module = new Module(name, Registers);
-        foreach (var v in variables) {
-          module.DefineVariable(v.Key, v.Value);
-        }
+        DefineModuleVariables(module, definition);
         DefineVariable(aliasName, new VMValue(module));
       }
     }

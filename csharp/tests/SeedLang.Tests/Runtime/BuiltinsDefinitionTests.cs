@@ -18,7 +18,6 @@ using System.IO;
 using FluentAssertions;
 using SeedLang.Common;
 using Xunit;
-using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Runtime.Tests {
   using Range = HeapObjects.Range;
@@ -26,11 +25,11 @@ namespace SeedLang.Runtime.Tests {
   internal class MockupNativeContext : INativeContext {
     public TextWriter Stdout { get; } = new StringWriter();
 
-    VMValue INativeContext.Dir() {
+    VMValue INativeContext.ModuleDir() {
       return new VMValue(new List<VMValue> { new VMValue("__builtins__") });
     }
 
-    VMValue INativeContext.Dir(VMValue value) {
+    VMValue INativeContext.ModuleDir(VMValue value) {
       return new VMValue(new List<VMValue> { new VMValue("__builtins__") });
     }
   }
@@ -38,64 +37,64 @@ namespace SeedLang.Runtime.Tests {
   public class BuiltinsDefinitionTests {
     [Fact]
     public void TestPrintValFunc() {
-      var printValFunc = FindFunc(BuiltinsDefinition.PrintVal);
+      var printValFunc = BuiltinsDefinition.PrintValFunc;
       var context = new MockupNativeContext();
 
       var args = new ValueSpan(new VMValue[] { new VMValue(), }, 0, 1);
-      printValFunc.Call(args, context).Should().Be(new VMValue());
+      printValFunc(args, context).Should().Be(new VMValue());
       context.Stdout.ToString().Should().Be("");
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), }, 0, 1);
-      printValFunc.Call(args, context).Should().Be(new VMValue());
+      printValFunc(args, context).Should().Be(new VMValue());
       context.Stdout.ToString().Should().Be("1" + Environment.NewLine);
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2), }, 0, 2);
-      Action action = () => printValFunc.Call(args, context);
+      Action action = () => printValFunc(args, context);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAbsFunc() {
-      var absFunc = FindFunc(BuiltinsDefinition.Abs);
+      var absFunc = BuiltinsDefinition.AbsFunc;
 
       var args = new ValueSpan(new VMValue[] { new VMValue(3) }, 0, 1);
-      absFunc.Call(args, null).Should().Be(new VMValue(3));
+      absFunc(args, null).Should().Be(new VMValue(3));
       args = new ValueSpan(new VMValue[] { new VMValue(-3) }, 0, 1);
-      absFunc.Call(args, null).Should().Be(new VMValue(3));
+      absFunc(args, null).Should().Be(new VMValue(3));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => absFunc.Call(args, null);
+      Action action = () => absFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAllFunc() {
-      var allFunc = FindFunc(BuiltinsDefinition.All);
+      var allFunc = BuiltinsDefinition.AllFunc;
 
       var args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> { new VMValue(true), new VMValue(false), new VMValue(true) })
       }, 0, 1);
-      allFunc.Call(args, null).Should().Be(new VMValue(false));
+      allFunc(args, null).Should().Be(new VMValue(false));
 
       args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> { new VMValue(true), new VMValue(true), new VMValue(true) })
       }, 0, 1);
-      allFunc.Call(args, null).Should().Be(new VMValue(true));
+      allFunc(args, null).Should().Be(new VMValue(true));
 
       args = new ValueSpan(new VMValue[] { new VMValue(new List<VMValue>()) }, 0, 1);
-      allFunc.Call(args, null).Should().Be(new VMValue(true));
+      allFunc(args, null).Should().Be(new VMValue(true));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => allFunc.Call(args, null);
+      Action action = () => allFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAnyFunc() {
-      var anyFunc = FindFunc(BuiltinsDefinition.Any);
+      var anyFunc = BuiltinsDefinition.AnyFunc;
 
       var args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> {
@@ -104,7 +103,7 @@ namespace SeedLang.Runtime.Tests {
           new VMValue(true)
         }),
       }, 0, 1);
-      anyFunc.Call(args, null).Should().Be(new VMValue(true));
+      anyFunc(args, null).Should().Be(new VMValue(true));
 
       args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> {
@@ -113,81 +112,81 @@ namespace SeedLang.Runtime.Tests {
           new VMValue(false)
         }),
       }, 0, 1);
-      anyFunc.Call(args, null).Should().Be(new VMValue(false));
+      anyFunc(args, null).Should().Be(new VMValue(false));
 
       args = new ValueSpan(new VMValue[] { new VMValue(new List<VMValue>()) }, 0, 1);
-      anyFunc.Call(args, null).Should().Be(new VMValue(false));
+      anyFunc(args, null).Should().Be(new VMValue(false));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => anyFunc.Call(args, null);
+      Action action = () => anyFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAppendFunc() {
-      var appendFunc = FindFunc(BuiltinsDefinition.Append);
+      var appendFunc = BuiltinsDefinition.AppendFunc;
       var args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> { new VMValue(1), new VMValue(2) }),
         new VMValue(3),
       }, 0, 2);
-      appendFunc.Call(args, null).Should().Be(new VMValue());
+      appendFunc(args, null).Should().Be(new VMValue());
       args[0].Length.Should().Be(3);
       var expectedList = new List<VMValue> { new VMValue(1), new VMValue(2), new VMValue(3) };
       args[0].AsList().Should().BeEquivalentTo(expectedList);
       args = new ValueSpan(new VMValue[] { new VMValue(), }, 0, 1);
-      Action action = () => appendFunc.Call(args, null);
+      Action action = () => appendFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestDirFunc() {
-      var dirFunc = FindFunc(BuiltinsDefinition.Dir);
+      var dirFunc = BuiltinsDefinition.DirFunc;
 
       var args = new ValueSpan(Array.Empty<VMValue>(), 0, 0);
-      dirFunc.Call(args, new MockupNativeContext()).Should().Be(new VMValue(
+      dirFunc(args, new MockupNativeContext()).Should().Be(new VMValue(
         new List<VMValue> { new VMValue("__builtins__") }
       ));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => dirFunc.Call(args, null);
+      Action action = () => dirFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestLenFunc() {
-      var lenFunc = FindFunc(BuiltinsDefinition.Len);
+      var lenFunc = BuiltinsDefinition.LenFunc;
       var args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> { new VMValue(1), new VMValue(2) }),
       }, 0, 1);
-      lenFunc.Call(args, null).Should().Be(new VMValue(2));
+      lenFunc(args, null).Should().Be(new VMValue(2));
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => lenFunc.Call(args, null);
+      Action action = () => lenFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestListFunc() {
-      var listFunc = FindFunc(BuiltinsDefinition.List);
+      var listFunc = BuiltinsDefinition.ListFunc;
 
-      VMValue list = listFunc.Call(new ValueSpan(Array.Empty<VMValue>(), 0, 0), null);
+      VMValue list = listFunc(new ValueSpan(Array.Empty<VMValue>(), 0, 0), null);
       list.IsList.Should().Be(true);
       list.Length.Should().Be(0);
 
       var args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue>() { new VMValue(1), new VMValue(2) }),
       }, 0, 1);
-      list = listFunc.Call(args, null);
+      list = listFunc(args, null);
       list.IsList.Should().Be(true);
       var expectedList = new List<VMValue> { new VMValue(1), new VMValue(2) };
       list.AsList().Should().BeEquivalentTo(expectedList);
 
       int length = 10;
       args = new ValueSpan(new VMValue[] { new VMValue(new Range(length)) }, 0, 1);
-      list = listFunc.Call(args, null);
+      list = listFunc(args, null);
       list.IsList.Should().Be(true);
       list.Length.Should().Be(length);
       for (int i = 0; i < length; i++) {
@@ -195,7 +194,7 @@ namespace SeedLang.Runtime.Tests {
       }
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => listFunc.Call(args, null);
+      Action action = () => listFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
@@ -203,103 +202,97 @@ namespace SeedLang.Runtime.Tests {
     [Fact]
     public void TestPrintFunc() {
       var context = new MockupNativeContext();
-      var printFunc = FindFunc(BuiltinsDefinition.Print);
+      var printFunc = BuiltinsDefinition.PrintFunc;
       var args = new ValueSpan(new VMValue[] {
         new VMValue(1),
         new VMValue(2),
         new VMValue(3)
       }, 0, 3);
-      printFunc.Call(args, context);
+      printFunc(args, context);
       context.Stdout.ToString().Should().Be("1 2 3" + Environment.NewLine);
     }
 
     [Fact]
     public void TestRangFunc() {
-      var rangeFunc = FindFunc(BuiltinsDefinition.Range);
+      var rangeFunc = BuiltinsDefinition.RangeFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(10) }, 0, 1);
-      rangeFunc.Call(args, null).ToString().Should().Be("range(0, 10, 1)");
+      rangeFunc(args, null).ToString().Should().Be("range(0, 10, 1)");
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(10) }, 0, 2);
-      rangeFunc.Call(args, null).ToString().Should().Be("range(1, 10, 1)");
+      rangeFunc(args, null).ToString().Should().Be("range(1, 10, 1)");
       args = new ValueSpan(new VMValue[] {
         new VMValue(1),
         new VMValue(10),
         new VMValue(2)
       }, 0, 3);
-      rangeFunc.Call(args, null).ToString().Should().Be("range(1, 10, 2)");
+      rangeFunc(args, null).ToString().Should().Be("range(1, 10, 2)");
 
-      Action action = () => rangeFunc.Call(new ValueSpan(Array.Empty<VMValue>(), 0, 0), null);
+      Action action = () => rangeFunc(new ValueSpan(Array.Empty<VMValue>(), 0, 0), null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestRoundFunc() {
-      var roundFunc = FindFunc(BuiltinsDefinition.Round);
+      var roundFunc = BuiltinsDefinition.RoundFunc;
 
       var args = new ValueSpan(new VMValue[] { new VMValue(1.2) }, 0, 1);
-      roundFunc.Call(args, null).Should().Be(new VMValue(1));
+      roundFunc(args, null).Should().Be(new VMValue(1));
       args = new ValueSpan(new VMValue[] { new VMValue(1.5) }, 0, 1);
-      roundFunc.Call(args, null).Should().Be(new VMValue(2));
+      roundFunc(args, null).Should().Be(new VMValue(2));
       args = new ValueSpan(new VMValue[] { new VMValue(1.567), new VMValue(2) }, 0, 2);
-      roundFunc.Call(args, null).Should().Be(new VMValue(1.57));
+      roundFunc(args, null).Should().Be(new VMValue(1.57));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1.5), new VMValue(2.1) }, 0, 2);
-      Action action = () => roundFunc.Call(args, null);
+      Action action = () => roundFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidInteger);
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2), new VMValue(3) }, 0, 3);
-      action = () => roundFunc.Call(args, null);
+      action = () => roundFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestSlice() {
-      var sliceFunc = FindFunc(BuiltinsDefinition.Slice);
+      var sliceFunc = BuiltinsDefinition.SliceFunc;
       var args = new ValueSpan(new VMValue[] {
         new VMValue(1),
         new VMValue(2),
         new VMValue(3)
       }, 0, 3);
-      sliceFunc.Call(args, null).ToString().Should().Be("slice(1, 2, 3)");
+      sliceFunc(args, null).ToString().Should().Be("slice(1, 2, 3)");
       args = new ValueSpan(new VMValue[] {
         new VMValue(),
         new VMValue(2),
         new VMValue(),
       }, 0, 3);
-      sliceFunc.Call(args, null).ToString().Should().Be("slice(None, 2, None)");
+      sliceFunc(args, null).ToString().Should().Be("slice(None, 2, None)");
       args = new ValueSpan(new VMValue[] {
         new VMValue(),
         new VMValue(),
         new VMValue(),
       }, 0, 3);
-      sliceFunc.Call(args, null).ToString().Should().Be("slice(None, None, None)");
+      sliceFunc(args, null).ToString().Should().Be("slice(None, None, None)");
 
-      Action action = () => sliceFunc.Call(new ValueSpan(Array.Empty<VMValue>(), 0, 0), null);
+      Action action = () => sliceFunc(new ValueSpan(Array.Empty<VMValue>(), 0, 0), null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestSumFunc() {
-      var sumFunc = FindFunc(BuiltinsDefinition.Sum);
+      var sumFunc = BuiltinsDefinition.SumFunc;
 
       var args = new ValueSpan(new VMValue[] {
         new VMValue(new List<VMValue> { new VMValue(1), new VMValue(2), new VMValue(3) })
       }, 0, 1);
-      sumFunc.Call(args, null).Should().Be(new VMValue(6));
+      sumFunc(args, null).Should().Be(new VMValue(6));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => sumFunc.Call(args, null);
+      Action action = () => sumFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
-    }
-
-    private static NativeFunction FindFunc(string name) {
-      var value = BuiltinsDefinition.Variables[name];
-      value.IsFunction.Should().BeTrue();
-      return value.AsFunction() as NativeFunction;
     }
   }
 }

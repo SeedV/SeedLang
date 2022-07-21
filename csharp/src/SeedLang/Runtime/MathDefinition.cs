@@ -13,9 +13,7 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using SeedLang.Common;
-using SeedLang.Runtime.HeapObjects;
 
 namespace SeedLang.Runtime {
   // The static class to define all constants and functions for the builtin math library.
@@ -46,87 +44,62 @@ namespace SeedLang.Runtime {
     public const string Tan = "tan";
     public const string Tanh = "tanh";
 
-    public static Dictionary<string, VMValue> Variables = new Dictionary<string, VMValue> {
-      [E] = new VMValue(Math.E),
-      [PI] = new VMValue(Math.PI),
+    internal static readonly VMValue _e = new VMValue(Math.E);
+    internal static readonly VMValue _pi = new VMValue(Math.PI);
 
-      [Acos] = new VMValue(new NativeFunction(Acos, AcosFunc)),
-      [Acosh] = new VMValue(new NativeFunction(Acosh, AcoshFunc)),
-      [Asin] = new VMValue(new NativeFunction(Asin, AsinFunc)),
-      [Asinh] = new VMValue(new NativeFunction(Asinh, AsinhFunc)),
-      [Atan] = new VMValue(new NativeFunction(Atan, AtanFunc)),
-      [Atan2] = new VMValue(new NativeFunction(Atan2, Atan2Func)),
-      [Atanh] = new VMValue(new NativeFunction(Atanh, AtanhFunc)),
-      [Ceil] = new VMValue(new NativeFunction(Ceil, CeilFunc)),
-      [Cos] = new VMValue(new NativeFunction(Cos, CosFunc)),
-      [Cosh] = new VMValue(new NativeFunction(Cosh, CoshFunc)),
-      [Degrees] = new VMValue(new NativeFunction(Degrees, DegreesFunc)),
-      [Exp] = new VMValue(new NativeFunction(Exp, ExpFunc)),
-      [Floor] = new VMValue(new NativeFunction(Floor, FloorFunc)),
-      [Log] = new VMValue(new NativeFunction(Log, LogFunc)),
-      [Log10] = new VMValue(new NativeFunction(Log10, Log10Func)),
-      [Pow] = new VMValue(new NativeFunction(Pow, PowFunc)),
-      [Radians] = new VMValue(new NativeFunction(Radians, RadiansFunc)),
-      [Sin] = new VMValue(new NativeFunction(Sin, SinFunc)),
-      [Sinh] = new VMValue(new NativeFunction(Sinh, SinhFunc)),
-      [Sqrt] = new VMValue(new NativeFunction(Sqrt, SqrtFunc)),
-      [Tan] = new VMValue(new NativeFunction(Tan, TanFunc)),
-      [Tanh] = new VMValue(new NativeFunction(Tanh, TanhFunc)),
-    };
-
-    private static VMValue AcosFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue AcosFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Acos);
     }
 
-    private static VMValue AcoshFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue AcoshFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Acosh);
     }
 
-    private static VMValue AsinFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue AsinFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Asin);
     }
 
-    private static VMValue AsinhFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue AsinhFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Asinh);
     }
 
-    private static VMValue AtanFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue AtanFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Atan);
     }
 
-    private static VMValue Atan2Func(ValueSpan args, INativeContext _) {
+    internal static VMValue Atan2Func(ValueSpan args, INativeContext _) {
       return NativeFunc2(args, Math.Atan2);
     }
 
-    private static VMValue AtanhFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue AtanhFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Atanh);
     }
 
-    private static VMValue CeilFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue CeilFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Ceiling);
     }
 
-    private static VMValue CosFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue CosFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Cos);
     }
 
-    private static VMValue CoshFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue CoshFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Cosh);
     }
 
-    private static VMValue DegreesFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue DegreesFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, radian => 180 / Math.PI * radian);
     }
 
-    private static VMValue ExpFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue ExpFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Exp);
     }
 
-    private static VMValue FloorFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue FloorFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Floor);
     }
 
-    private static VMValue LogFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue LogFunc(ValueSpan args, INativeContext _) {
       if (args.Count == 1) {
         return new VMValue(Math.Log(args[0].AsNumber()));
       } else if (args.Count == 2) {
@@ -136,39 +109,39 @@ namespace SeedLang.Runtime {
                                     Message.RuntimeErrorIncorrectArgsCount);
     }
 
-    private static VMValue Log10Func(ValueSpan args, INativeContext _) {
+    internal static VMValue Log10Func(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Log10);
     }
 
-    private static VMValue PowFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue PowFunc(ValueSpan args, INativeContext _) {
       return NativeFunc2(args, Math.Pow);
     }
 
-    private static VMValue RadiansFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue RadiansFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, degree => Math.PI / 180 * degree);
     }
 
-    private static VMValue SinFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue SinFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Sin);
     }
 
-    private static VMValue SinhFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue SinhFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Sinh);
     }
 
-    private static VMValue SqrtFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue SqrtFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Sqrt);
     }
 
-    private static VMValue TanFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue TanFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Tan);
     }
 
-    private static VMValue TanhFunc(ValueSpan args, INativeContext _) {
+    internal static VMValue TanhFunc(ValueSpan args, INativeContext _) {
       return NativeFunc1(args, Math.Tanh);
     }
 
-    private static VMValue NativeFunc1(ValueSpan args, Func<double, double> func) {
+    internal static VMValue NativeFunc1(ValueSpan args, Func<double, double> func) {
       if (args.Count != 1) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);
@@ -176,7 +149,7 @@ namespace SeedLang.Runtime {
       return new VMValue(func(args[0].AsNumber()));
     }
 
-    private static VMValue NativeFunc2(ValueSpan args, Func<double, double, double> func) {
+    internal static VMValue NativeFunc2(ValueSpan args, Func<double, double, double> func) {
       if (args.Count != 2) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorIncorrectArgsCount);

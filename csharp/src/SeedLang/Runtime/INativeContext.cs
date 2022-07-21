@@ -21,10 +21,10 @@ namespace SeedLang.Runtime {
     TextWriter Stdout { get; }
 
     // Returns the names in current module namespace.
-    VMValue Dir();
+    VMValue ModuleDir();
 
     // Returns the names in the module namespace, if the given value is a module object. Otherwise
     // returns an empty list.
-    VMValue Dir(VMValue value);
+    VMValue ModuleDir(VMValue value);
   }
 }

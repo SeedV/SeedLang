@@ -15,281 +15,274 @@
 using System;
 using FluentAssertions;
 using SeedLang.Common;
-using SeedLang.Runtime.HeapObjects;
 using Xunit;
 
 namespace SeedLang.Runtime.Tests {
   public class MathDefinitionTests {
     [Fact]
     public void TestAcos() {
-      var acosFunc = FindFunc(MathDefinition.Acos);
+      var acosFunc = MathDefinition.AcosFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(0.5) }, 0, 1);
-      acosFunc.Call(args, null).Should().Be(new VMValue(Math.Acos(0.5)));
+      acosFunc(args, null).Should().Be(new VMValue(Math.Acos(0.5)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => acosFunc.Call(args, null);
+      Action action = () => acosFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAcosh() {
-      var acoshFunc = FindFunc(MathDefinition.Acosh);
+      var acoshFunc = MathDefinition.AcoshFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(2) }, 0, 1);
-      acoshFunc.Call(args, null).Should().Be(new VMValue(Math.Acosh(2)));
+      acoshFunc(args, null).Should().Be(new VMValue(Math.Acosh(2)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => acoshFunc.Call(args, null);
+      Action action = () => acoshFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAsin() {
-      var asinFunc = FindFunc(MathDefinition.Asin);
+      var asinFunc = MathDefinition.AsinFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(0.5) }, 0, 1);
-      asinFunc.Call(args, null).Should().Be(new VMValue(Math.Asin(0.5)));
+      asinFunc(args, null).Should().Be(new VMValue(Math.Asin(0.5)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => asinFunc.Call(args, null);
+      Action action = () => asinFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAsinh() {
-      var asinhFunc = FindFunc(MathDefinition.Asinh);
+      var asinhFunc = MathDefinition.AsinhFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(0.5) }, 0, 1);
-      asinhFunc.Call(args, null).Should().Be(new VMValue(Math.Asinh(0.5)));
+      asinhFunc(args, null).Should().Be(new VMValue(Math.Asinh(0.5)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => asinhFunc.Call(args, null);
+      Action action = () => asinhFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAtan() {
-      var atanFunc = FindFunc(MathDefinition.Atan);
+      var atanFunc = MathDefinition.AtanFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(0.5) }, 0, 1);
-      atanFunc.Call(args, null).Should().Be(new VMValue(Math.Atan(0.5)));
+      atanFunc(args, null).Should().Be(new VMValue(Math.Atan(0.5)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => atanFunc.Call(args, null);
+      Action action = () => atanFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAtan2() {
-      var atan2Func = FindFunc(MathDefinition.Atan2);
+      var atan2Func = MathDefinition.Atan2Func;
       var args = new ValueSpan(new VMValue[] { new VMValue(2), new VMValue(0.5) }, 0, 2);
-      atan2Func.Call(args, null).Should().Be(new VMValue(Math.Atan2(2, 0.5)));
+      atan2Func(args, null).Should().Be(new VMValue(Math.Atan2(2, 0.5)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2), new VMValue(3) }, 0, 3);
-      Action action = () => atan2Func.Call(args, null);
+      Action action = () => atan2Func(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestAtanh() {
-      var atanhFunc = FindFunc(MathDefinition.Atanh);
+      var atanhFunc = MathDefinition.AtanhFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(0.5) }, 0, 1);
-      atanhFunc.Call(args, null).Should().Be(new VMValue(Math.Atanh(0.5)));
+      atanhFunc(args, null).Should().Be(new VMValue(Math.Atanh(0.5)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => atanhFunc.Call(args, null);
+      Action action = () => atanhFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestCeil() {
-      var ceilFunc = FindFunc(MathDefinition.Ceil);
+      var ceilFunc = MathDefinition.CeilFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1.5) }, 0, 1);
-      ceilFunc.Call(args, null).Should().Be(new VMValue(2));
+      ceilFunc(args, null).Should().Be(new VMValue(2));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => ceilFunc.Call(args, null);
+      Action action = () => ceilFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestCos() {
-      var cosFunc = FindFunc(MathDefinition.Cos);
+      var cosFunc = MathDefinition.CosFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
-      cosFunc.Call(args, null).Should().Be(new VMValue(Math.Cos(1)));
+      cosFunc(args, null).Should().Be(new VMValue(Math.Cos(1)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => cosFunc.Call(args, null);
+      Action action = () => cosFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestCosh() {
-      var coshFunc = FindFunc(MathDefinition.Cosh);
+      var coshFunc = MathDefinition.CoshFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
-      coshFunc.Call(args, null).Should().Be(new VMValue(Math.Cosh(1)));
+      coshFunc(args, null).Should().Be(new VMValue(Math.Cosh(1)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => coshFunc.Call(args, null);
+      Action action = () => coshFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestDegrees() {
-      var degreesFunc = FindFunc(MathDefinition.Degrees);
+      var degreesFunc = MathDefinition.DegreesFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1.5) }, 0, 1);
-      degreesFunc.Call(args, null).Should().Be(new VMValue(180 / Math.PI * 1.5));
+      degreesFunc(args, null).Should().Be(new VMValue(180 / Math.PI * 1.5));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => degreesFunc.Call(args, null);
+      Action action = () => degreesFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestExp() {
-      var expFunc = FindFunc(MathDefinition.Exp);
+      var expFunc = MathDefinition.ExpFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(2) }, 0, 1);
-      expFunc.Call(args, null).Should().Be(new VMValue(Math.Exp(2)));
+      expFunc(args, null).Should().Be(new VMValue(Math.Exp(2)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => expFunc.Call(args, null);
+      Action action = () => expFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestFloor() {
-      var floorFunc = FindFunc(MathDefinition.Floor);
+      var floorFunc = MathDefinition.FloorFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1.5) }, 0, 1);
-      floorFunc.Call(args, null).Should().Be(new VMValue(1));
+      floorFunc(args, null).Should().Be(new VMValue(1));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => floorFunc.Call(args, null);
+      Action action = () => floorFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestLog() {
-      var logFunc = FindFunc(MathDefinition.Log);
+      var logFunc = MathDefinition.LogFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(2) }, 0, 1);
-      logFunc.Call(args, null).Should().Be(new VMValue(Math.Log(2)));
+      logFunc(args, null).Should().Be(new VMValue(Math.Log(2)));
       args = new ValueSpan(new VMValue[] { new VMValue(2), new VMValue(2) }, 0, 2);
-      logFunc.Call(args, null).Should().Be(new VMValue(Math.Log(2, 2)));
+      logFunc(args, null).Should().Be(new VMValue(Math.Log(2, 2)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2), new VMValue(3) }, 0, 3);
-      Action action = () => logFunc.Call(args, null);
+      Action action = () => logFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestLog10() {
-      var log10Func = FindFunc(MathDefinition.Log10);
+      var log10Func = MathDefinition.Log10Func;
       var args = new ValueSpan(new VMValue[] { new VMValue(2) }, 0, 1);
-      log10Func.Call(args, null).Should().Be(new VMValue(Math.Log10(2)));
+      log10Func(args, null).Should().Be(new VMValue(Math.Log10(2)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => log10Func.Call(args, null);
+      Action action = () => log10Func(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestPow() {
-      var powFunc = FindFunc(MathDefinition.Pow);
+      var powFunc = MathDefinition.PowFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(2), new VMValue(3) }, 0, 2);
-      powFunc.Call(args, null).Should().Be(new VMValue(Math.Pow(2, 3)));
+      powFunc(args, null).Should().Be(new VMValue(Math.Pow(2, 3)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
-      Action action = () => powFunc.Call(args, null);
+      Action action = () => powFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestRadians() {
-      var radiansFunc = FindFunc(MathDefinition.Radians);
+      var radiansFunc = MathDefinition.RadiansFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1.5) }, 0, 1);
-      radiansFunc.Call(args, null).Should().Be(new VMValue(Math.PI / 180 * 1.5));
+      radiansFunc(args, null).Should().Be(new VMValue(Math.PI / 180 * 1.5));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => radiansFunc.Call(args, null);
+      Action action = () => radiansFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestSin() {
-      var sinFunc = FindFunc(MathDefinition.Sin);
+      var sinFunc = MathDefinition.SinFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
-      sinFunc.Call(args, null).Should().Be(new VMValue(Math.Sin(1)));
+      sinFunc(args, null).Should().Be(new VMValue(Math.Sin(1)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => sinFunc.Call(args, null);
+      Action action = () => sinFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestSinh() {
-      var sinhFunc = FindFunc(MathDefinition.Sinh);
+      var sinhFunc = MathDefinition.SinhFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
-      sinhFunc.Call(args, null).Should().Be(new VMValue(Math.Sinh(1)));
+      sinhFunc(args, null).Should().Be(new VMValue(Math.Sinh(1)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => sinhFunc.Call(args, null);
+      Action action = () => sinhFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestSqrt() {
-      var sqrtFunc = FindFunc(MathDefinition.Sqrt);
+      var sqrtFunc = MathDefinition.SqrtFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(10) }, 0, 1);
-      sqrtFunc.Call(args, null).Should().Be(new VMValue(Math.Sqrt(10)));
+      sqrtFunc(args, null).Should().Be(new VMValue(Math.Sqrt(10)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => sqrtFunc.Call(args, null);
+      Action action = () => sqrtFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestTan() {
-      var tanFunc = FindFunc(MathDefinition.Tan);
+      var tanFunc = MathDefinition.TanFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
-      tanFunc.Call(args, null).Should().Be(new VMValue(Math.Tan(1)));
+      tanFunc(args, null).Should().Be(new VMValue(Math.Tan(1)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => tanFunc.Call(args, null);
+      Action action = () => tanFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }
 
     [Fact]
     public void TestTanh() {
-      var tanhFunc = FindFunc(MathDefinition.Tanh);
+      var tanhFunc = MathDefinition.TanhFunc;
       var args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
-      tanhFunc.Call(args, null).Should().Be(new VMValue(Math.Tanh(1)));
+      tanhFunc(args, null).Should().Be(new VMValue(Math.Tanh(1)));
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
-      Action action = () => tanhFunc.Call(args, null);
+      Action action = () => tanhFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
-    }
-
-    private static NativeFunction FindFunc(string name) {
-      var value = MathDefinition.Variables[name];
-      value.IsFunction.Should().BeTrue();
-      return value.AsFunction() as NativeFunction;
     }
   }
 }

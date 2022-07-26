@@ -18,7 +18,7 @@ cd csharp
 
 ## Run SeedLang scripts with SeedLang.Shell
 
-### SeedCalc
+### SeedCalc scripts
 
 A typical SeedCalc script is an arithmetic expression. For example:
 
@@ -36,25 +36,29 @@ dotnet run --project src/SeedLang.Shell -- -l SeedCalc
 You can also run a script file directly:
 
 ```shell
-dotnet run --project src/SeedLang.Shell -- -l SeedCalc -f ../examples/seedcalc/scripts/arithmetic.calc
+dotnet run --project src/SeedLang.Shell -- \
+-l SeedCalc -f ../example_scripts/seedcalc/arithmetic.calc
 ```
 
 Or, run the script file with all the shell-based visualizers on:
 
 ```shell
-dotnet run --project src/SeedLang.Shell -- -l SeedCalc -f ../examples/seedcalc/scripts/arithmetic.calc -v All
+dotnet run --project src/SeedLang.Shell -- \
+-l SeedCalc -f ../example_scripts/seedcalc/arithmetic.calc -v "*"
 ```
 
 Shell-based visualizers are the example visualizers predefined by
-SeedLang.Shell. By default, only the final `Eval` step is shown to the console.
-With command-line option `-v All`, every calculation step of an expression will
-be printed to the console. See SeedLang.Shell's
-[VisualizerManager.cs](../csharp/src/SeedLang.Shell/VisualizerManager.cs) for
-more details.
+SeedLang.Shell. With the command-line option `-v "*"`, every calculation step of
+an expression will be printed to the console. See SeedLang.Shell's usage info
+for more details:
 
-See also the dir of [SeedCalc Example Scripts](../examples/seedcalc/scripts/).
+```shell
+dotnet run --project src/SeedLang.Shell -- -h
+```
 
-### SeedPython
+See also the dir of [SeedCalc Example Scripts](../example_scripts/seedcalc/).
+
+### SeedPython scripts
 
 Start the interactive mode of SeedLang.Shell to parse and execute SeedPython
 statements:
@@ -66,36 +70,25 @@ dotnet run --project src/SeedLang.Shell -- -l SeedPython
 Run the fibonacci example:
 
 ```shell
-dotnet run --project src/SeedLang.Shell -- -l SeedPython -f ../examples/seedpython/scripts/fibonacci.py
+dotnet run --project src/SeedLang.Shell -- \
+-l SeedPython -f ../example_scripts/seedpython/function.py
 ```
 
 Run the fibonacci example with all the shell-based visualizers on:
 
 ```shell
-dotnet run --project src/SeedLang.Shell -- -l SeedPython -f ../examples/seedpython/scripts/fibonacci.py -v All
+dotnet run --project src/SeedLang.Shell -- \
+-l SeedPython -f ../example_scripts/seedpython/function.py -v "*"
 ```
 
 See also the dir of [SeedPython Example
-Scripts](../examples/seedpython/scripts/).
+Scripts](../example_scripts/seedpython/).
 
-## Embed SeedLang into .Net console applications
+## Example applications that embeds the SeedLang engine
 
-The [Apples](../examples/seedcalc/dotnet/apples) application shows the way how
-to embed SeedLang into a .Net console application. It also defines a customized
-visualizer to shows the integer numbers ranging from 1 to 20 as corresponding
-number of red apples.
+The SeedLang engine can be embedded in .Net applications or Unity games. We put
+all the example applications and games in the following git repo:
 
-Here is an example run of Apples:
+- [https://github.com/SeedV/SeedLangExamples](https://github.com/SeedV/SeedLangExamples)
 
-```shell
-dotnet run --project ../examples/seedcalc/dotnet/apples
-] 3+4*(5-3)-4
-STEP 1: 🍎🍎🍎🍎🍎 - 🍎🍎🍎 = 🍎🍎
-STEP 2: 🍎🍎🍎🍎 * 🍎🍎 = 🍎🍎🍎🍎🍎🍎🍎🍎
-STEP 3: 🍎🍎🍎 + 🍎🍎🍎🍎🍎🍎🍎🍎 = 🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎
-STEP 4: 🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎 - 🍎🍎🍎🍎 = 🍎🍎🍎🍎🍎🍎🍎
-Result: 🍎🍎🍎🍎🍎🍎🍎
-```
-
-See the [Source code of Apples](../examples/seedcalc/dotnet/apples/Apples.cs)
-for more details.
+Please check the `README.md` file of the `SeedLangExamples` for more info.

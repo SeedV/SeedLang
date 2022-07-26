@@ -32,15 +32,15 @@ namespace SeedLang.Visualization {
     // containers.
     public class Assignment : AbstractEvent {
       public LValue Target { get; }
-      public RValue Value { get; }
+      public RValue RValue { get; }
 
-      public Assignment(LValue target, RValue value, TextRange range) : base(range) {
+      public Assignment(LValue target, RValue rValue, TextRange range) : base(range) {
         Target = target;
-        Value = value;
+        RValue = rValue;
       }
 
       public override string ToString() {
-        return $"{Range} {Target} = {Value}";
+        return $"{Range} {Target} = {RValue}";
       }
     }
 

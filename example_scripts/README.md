@@ -7,10 +7,8 @@ SeedLang supports a few script languages, including:
 - SeedLua: not implemented yet,
 - SeedJS: not implemented yet.
 
-In this dir, there are examples script programs that can be run by the [SeedLang
-Shell](../csharp/src/SeedLang.Shell/).
-
-For example, the following command line runs the quick sort program in
+In this dir, there are examples script programs that can be run by the SeedLang
+Shell. For example, the following command line runs the quick sort program in
 SeedPython:
 
 ```shell

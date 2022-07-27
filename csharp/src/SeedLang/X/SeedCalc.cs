@@ -58,7 +58,7 @@ namespace SeedLang.X {
 
     protected override ParserRuleContext Program(Parser parser) {
       Debug.Assert(parser is SeedCalcParser, $"Incorrect parser type: {parser}");
-      return (parser as SeedCalcParser).expressionStatement();
+      return (parser as SeedCalcParser).expression_stmt();
     }
   }
 }

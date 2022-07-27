@@ -27,7 +27,7 @@ grammar SeedCalc;
  * Parser rules
  */
 
-expressionStatement: expression NEWLINE* EOF;
+expression_stmt: expression NEWLINE* EOF;
 
 expression: sum;
 

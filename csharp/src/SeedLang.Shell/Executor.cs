@@ -45,7 +45,9 @@ namespace SeedLang.Shell {
         Console.WriteLine($"Read file error: {ex}.");
         return;
       }
-      var engine = new Engine(language, RunMode.Script);
+      // Run mode is always interactive for SeedCalc to print results.
+      var mode = language == SeedXLanguage.SeedCalc ? RunMode.Interactive : RunMode.Script;
+      var engine = new Engine(language, mode);
       VisualizerManager.RegisterToEngine(engine);
       RunSource(engine, source, runType);
       VisualizerManager.UnregisterFromEngine(engine);

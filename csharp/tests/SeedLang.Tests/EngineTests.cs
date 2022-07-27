@@ -196,5 +196,16 @@ print(a + b)
       engine.Run().Should().Be(true);
       engine.IsStopped.Should().Be(true);
     }
+
+    [Fact]
+    public void TestRunCalc() {
+      var engine = new Engine(SeedXLanguage.SeedCalc, RunMode.Interactive);
+      var stringWriter = new StringWriter();
+      engine.RedirectStdout(stringWriter);
+      string source = "1 + 1";
+      engine.Compile(source, "").Should().Be(true);
+      engine.Run().Should().Be(true);
+      stringWriter.ToString().Should().Be("2" + Environment.NewLine);
+    }
   }
 }

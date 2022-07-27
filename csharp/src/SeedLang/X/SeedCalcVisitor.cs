@@ -31,8 +31,8 @@ namespace SeedLang.X {
       _helper = new VisitorHelper(tokens);
     }
 
-    public override AstNode VisitExpressionStatement(
-            [NotNull] SeedCalcParser.ExpressionStatementContext context) {
+    public override AstNode VisitExpression_stmt(
+        [NotNull] SeedCalcParser.Expression_stmtContext context) {
       var exprContexts = new ParserRuleContext[] { context.expression() };
       return _helper.BuildExpressionStmt(exprContexts, null, this);
     }

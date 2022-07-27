@@ -35,21 +35,43 @@ namespace SeedLang.Shell {
     }
 
     internal static void RunScript(string filename, SeedXLanguage language, RunType runType) {
+      if (language == SeedXLanguage.SeedCalc) {
+        RunCalcScript(filename, runType);
+      } else {
+        VisualizerManager.Source = new SourceCode();
+        var source = VisualizerManager.Source;
+        try {
+          foreach (string line in File.ReadLines(filename)) {
+            source.AddLine(line);
+          }
+        } catch (Exception ex) {
+          Console.WriteLine($"Read file error: {ex}.");
+          return;
+        }
+        var engine = new Engine(language, RunMode.Script);
+        VisualizerManager.RegisterToEngine(engine);
+        RunSource(engine, source, runType);
+        VisualizerManager.UnregisterFromEngine(engine);
+      }
+    }
+
+    private static void RunCalcScript(string filename, RunType runType) {
       VisualizerManager.Source = new SourceCode();
       var source = VisualizerManager.Source;
+      var engine = new Engine(SeedXLanguage.SeedCalc, RunMode.Interactive);
+      VisualizerManager.RegisterToEngine(engine);
       try {
         foreach (string line in File.ReadLines(filename)) {
-          source.AddLine(line);
+          if (!string.IsNullOrEmpty(line)) {
+            source.Reset();
+            source.AddLine(line);
+            RunSource(engine, source, runType);
+          }
         }
       } catch (Exception ex) {
         Console.WriteLine($"Read file error: {ex}.");
         return;
       }
-      // Run mode is always interactive for SeedCalc to print results.
-      var mode = language == SeedXLanguage.SeedCalc ? RunMode.Interactive : RunMode.Script;
-      var engine = new Engine(language, mode);
-      VisualizerManager.RegisterToEngine(engine);
-      RunSource(engine, source, runType);
       VisualizerManager.UnregisterFromEngine(engine);
     }
 

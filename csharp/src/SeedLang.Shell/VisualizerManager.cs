@@ -24,8 +24,10 @@ namespace SeedLang.Shell {
   internal static class VisualizerManager {
     // The visualizer for a specified event.
     private class Visualizer<Event> : IVisualizer<Event> where Event : AbstractEvent {
+      public bool Verbose { get; set; }
+
       public void On(Event e, IVM vm) {
-        if (e.Range is TextRange range) {
+        if (Verbose && e.Range is TextRange range) {
           Source.WriteSourceWithHighlight(range);
         }
         WriteEvent(e);
@@ -74,7 +76,14 @@ namespace SeedLang.Shell {
     private static readonly Dictionary<string, dynamic> _visualizers =
         new Dictionary<string, dynamic>();
 
-    internal static ICollection<string> CreateVisualizers(IEnumerable<string> visualizers) {
+    private static int _callStackDepth = 0;
+
+    internal static void ResetState() {
+      _callStackDepth = 0;
+    }
+
+    internal static ICollection<string> CreateVisualizers(IEnumerable<string> visualizers,
+                                                          bool verbose) {
       var qualifiedNames = new Dictionary<string, string>();
       var eventTypes = typeof(Event).GetNestedTypes();
       for (int i = 0; i < eventTypes.Length; i++) {
@@ -83,6 +92,7 @@ namespace SeedLang.Shell {
       foreach (var name in EventClassNames(visualizers, qualifiedNames)) {
         var type = typeof(Visualizer<>).MakeGenericType(Type.GetType(name.Value));
         _visualizers[name.Key] = Activator.CreateInstance(type);
+        _visualizers[name.Key].Verbose = verbose;
       }
       return _visualizers.Keys;
     }
@@ -136,12 +146,18 @@ namespace SeedLang.Shell {
             Console.Write($"Comparison: {ce.Left} {op} {ce.Right} = {ce.Result}");
             break;
           }
-        case Event.FuncCalled fce:
-          Console.Write($"FuncCalled: {fce.Name} {string.Join(", ", fce.Args)}");
-          break;
-        case Event.FuncReturned fre:
-          Console.Write($"FuncReturned: {fre.Name} {fre.Result}");
-          break;
+        case Event.FuncCalled fce: {
+            var indent = new string(' ', _callStackDepth * 2);
+            Console.Write($"{indent}FuncCalled: {fce.Name} {string.Join(", ", fce.Args)}");
+            _callStackDepth++;
+            break;
+          }
+        case Event.FuncReturned fre: {
+            _callStackDepth--;
+            var indent = new string(' ', _callStackDepth * 2);
+            Console.Write($"{indent}FuncReturned: {fre.Name} {fre.Result}");
+            break;
+          }
         case Event.SingleStep sse:
           Console.Write($"SingleStep: {sse.Range.Start.Line}");
           break;

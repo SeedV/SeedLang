@@ -61,6 +61,7 @@ namespace SeedLang.Shell {
           [ComparisonOperator.GreaterEqual] = ">=",
           [ComparisonOperator.EqEqual] = "==",
           [ComparisonOperator.NotEqual] = "!=",
+          [ComparisonOperator.In] = "in",
         };
 
     private static readonly Dictionary<UnaryOperator, string> _unaryOperatorStrings =

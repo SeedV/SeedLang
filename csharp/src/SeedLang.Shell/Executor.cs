@@ -76,6 +76,7 @@ namespace SeedLang.Shell {
     }
 
     private static void RunSource(Engine engine, SourceCode source, RunType runType) {
+      VisualizerManager.ResetState();
       var collection = new DiagnosticCollection();
       if (engine.Compile(source.Source, "", collection)) {
         source.WriteSourceWithTokens(engine.SemanticTokens);

@@ -36,6 +36,10 @@ namespace SeedLang.Shell {
                          "that start with \"Func\".")]
       public IEnumerable<string> Visualizers { get; set; }
 
+      [Option("verbose", Required = false, Default = false,
+        HelpText = "Print visualization info in verbose mode.")]
+      public bool Verbose { get; set; }
+
       [Option('f', "file", Required = false, Default = null,
               HelpText = "Path of the file to be executed.")]
       public string Filename { get; set; }
@@ -52,7 +56,7 @@ namespace SeedLang.Shell {
         Console.WriteLine(helpText.Heading);
         Console.WriteLine(helpText.Copyright);
         Console.WriteLine();
-        var visualizers = VisualizerManager.CreateVisualizers(options.Visualizers);
+        var visualizers = VisualizerManager.CreateVisualizers(options.Visualizers, options.Verbose);
         Console.WriteLine($"Enabled Visualizers: {string.Join(", ", visualizers)}");
         Console.WriteLine();
         Run(options);

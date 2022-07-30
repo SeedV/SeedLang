@@ -208,7 +208,8 @@ namespace SeedLang.Runtime {
       try {
         return double.Parse(value);
       } catch (System.Exception) {
-        return 0;
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorInvalidCast);
       }
     }
 

@@ -29,6 +29,7 @@ namespace SeedLang.Runtime {
     public const string Append = "append";
     public const string Bool = "bool";
     public const string Dir = "dir";
+    public const string Int = "int";
     public const string Len = "len";
     public const string List = "list";
     public const string Print = "print";
@@ -100,12 +101,14 @@ namespace SeedLang.Runtime {
       return new VMValue();
     }
 
-    internal static VMValue BoolFunc(ValueSpan args, INativeContext context) {
-      if (args.Count != 1) {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorIncorrectArgsCount);
+    internal static VMValue BoolFunc(ValueSpan args, INativeContext _) {
+      if (args.Count == 0) {
+        return new VMValue(false);
+      } else if (args.Count == 1) {
+        return new VMValue(args[0].AsBoolean());
       }
-      return new VMValue(args[0].AsBoolean());
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                    Message.RuntimeErrorIncorrectArgsCount);
     }
 
     internal static VMValue DirFunc(ValueSpan args, INativeContext context) {
@@ -113,6 +116,16 @@ namespace SeedLang.Runtime {
         return context.ModuleDir();
       } else if (args.Count == 1) {
         return context.ModuleDir(args[0]);
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                    Message.RuntimeErrorIncorrectArgsCount);
+    }
+
+    internal static VMValue IntFunc(ValueSpan args, INativeContext _) {
+      if (args.Count == 0) {
+        return new VMValue(0);
+      } else if (args.Count == 1) {
+        return new VMValue(args[0].AsNumber());
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                     Message.RuntimeErrorIncorrectArgsCount);

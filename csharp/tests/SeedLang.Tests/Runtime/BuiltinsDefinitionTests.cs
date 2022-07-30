@@ -145,7 +145,10 @@ namespace SeedLang.Runtime.Tests {
     public void TestBoolFunc() {
       var boolFunc = BuiltinsDefinition.BoolFunc;
 
-      var args = new ValueSpan(new VMValue[] { new VMValue() }, 0, 1);
+      var args = new ValueSpan(Array.Empty<VMValue>(), 0, 0);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+
+      args = new ValueSpan(new VMValue[] { new VMValue() }, 0, 1);
       boolFunc(args, null).Should().Be(new VMValue(false));
 
       args = new ValueSpan(new VMValue[] { new VMValue(false) }, 0, 1);
@@ -206,6 +209,29 @@ namespace SeedLang.Runtime.Tests {
 
       args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
       Action action = () => dirFunc(args, null);
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
+    }
+
+    [Fact]
+    public void TestIntFunc() {
+      var intFunc = BuiltinsDefinition.IntFunc;
+
+      var args = new ValueSpan(Array.Empty<VMValue>(), 0, 0);
+      intFunc(args, null).Should().Be(new VMValue(0));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(false) }, 0, 1);
+      intFunc(args, null).Should().Be(new VMValue(0));
+      args = new ValueSpan(new VMValue[] { new VMValue(true) }, 0, 1);
+      intFunc(args, null).Should().Be(new VMValue(1));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(0) }, 0, 1);
+      intFunc(args, null).Should().Be(new VMValue(0));
+      args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
+      intFunc(args, null).Should().Be(new VMValue(1));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
+      Action action = () => intFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }

@@ -156,7 +156,6 @@ namespace SeedLang.Runtime {
 
     internal double AsNumber() {
       return _type switch {
-        ValueType.Nil => 0,
         var type when type == ValueType.Boolean || type == ValueType.Number => _number,
         ValueType.Object => _object.AsNumber(),
         _ => throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,

@@ -31,7 +31,6 @@ namespace SeedLang.Runtime.Tests {
       var nil = new VMValue();
       nil.IsNil.Should().Be(true);
       nil.AsBoolean().Should().Be(false);
-      nil.AsNumber().Should().Be(0);
       nil.AsString().Should().Be(_expectedNilString);
       nil.ToString().Should().Be(_expectedNilString);
 
@@ -40,7 +39,10 @@ namespace SeedLang.Runtime.Tests {
       nil.Should().NotBe(new VMValue(""));
       nil.Should().Be(new VMValue());
 
-      Action action = () => _ = nil.Length;
+      Action action = () => nil.AsNumber();
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidCast);
+      action = () => _ = nil.Length;
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorNotCountable);
       action = () => _ = nil[new VMValue(0)];
@@ -126,7 +128,6 @@ namespace SeedLang.Runtime.Tests {
       var emptyStr = new VMValue("");
       emptyStr.IsString.Should().Be(true);
       emptyStr.AsBoolean().Should().Be(false);
-      emptyStr.AsNumber().Should().Be(0);
       emptyStr.AsString().Should().Be("");
       emptyStr.ToString().Should().Be("''");
 
@@ -138,7 +139,6 @@ namespace SeedLang.Runtime.Tests {
       var str = new VMValue(expectedStr);
       str.IsString.Should().Be(true);
       str.AsBoolean().Should().Be(true);
-      str.AsNumber().Should().Be(0);
       str.AsString().Should().Be($"{expectedStr}");
       str.ToString().Should().Be($"'{expectedStr}'");
 
@@ -149,6 +149,10 @@ namespace SeedLang.Runtime.Tests {
 
       str.Should().Be(new VMValue(expectedStr));
       str.Should().NotBe(new VMValue("another string"));
+
+      Action action = () => emptyStr.AsNumber();
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorInvalidCast);
     }
 
     [Fact]

@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using FluentAssertions;
 using SeedLang.Common;
@@ -136,6 +137,60 @@ namespace SeedLang.Runtime.Tests {
       args[0].AsList().Should().BeEquivalentTo(expectedList);
       args = new ValueSpan(new VMValue[] { new VMValue(), }, 0, 1);
       Action action = () => appendFunc(args, null);
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
+    }
+
+    [Fact]
+    public void TestBoolFunc() {
+      var boolFunc = BuiltinsDefinition.BoolFunc;
+
+      var args = new ValueSpan(new VMValue[] { new VMValue() }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(false) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+      args = new ValueSpan(new VMValue[] { new VMValue(true) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(true));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(0) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+      args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(true));
+
+      args = new ValueSpan(new VMValue[] { new VMValue("") }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+      args = new ValueSpan(new VMValue[] { new VMValue("test") }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(true));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(new List<VMValue> { }) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+      args = new ValueSpan(new VMValue[] {
+        new VMValue(new List<VMValue> { new VMValue(1), new VMValue(2) }),
+      }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(true));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(ImmutableArray.Create<VMValue>()) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+      args = new ValueSpan(new VMValue[] {
+        new VMValue(ImmutableArray.Create(new VMValue(1), new VMValue(2))),
+      }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(true));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(new Dictionary<VMValue, VMValue>()) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+      args = new ValueSpan(new VMValue[] {
+        new VMValue(new Dictionary<VMValue, VMValue>{[new VMValue(1)] = new VMValue("test")}),
+      }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(true));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(new Range(0)) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(false));
+      args = new ValueSpan(new VMValue[] { new VMValue(new Range(10)) }, 0, 1);
+      boolFunc(args, null).Should().Be(new VMValue(true));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
+      Action action = () => boolFunc(args, null);
       action.Should().Throw<DiagnosticException>().Where(
           ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
     }

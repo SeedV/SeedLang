@@ -27,6 +27,7 @@ namespace SeedLang.Runtime {
     public const string All = "all";
     public const string Any = "any";
     public const string Append = "append";
+    public const string Bool = "bool";
     public const string Dir = "dir";
     public const string Len = "len";
     public const string List = "list";
@@ -96,6 +97,14 @@ namespace SeedLang.Runtime {
         list.Add(args[1]);
       }
       return new VMValue();
+    }
+
+    internal static VMValue BoolFunc(ValueSpan args, INativeContext context) {
+      if (args.Count != 1) {
+        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                      Message.RuntimeErrorIncorrectArgsCount);
+      }
+      return new VMValue(args[0].AsBoolean());
     }
 
     internal static VMValue DirFunc(ValueSpan args, INativeContext context) {

@@ -35,6 +35,7 @@ namespace SeedLang.Runtime {
     public const string Range = "range";
     public const string Round = "round";
     public const string Slice = "slice";
+    public const string Str = "str";
     public const string Sum = "sum";
 
     // Prints a value when it's not nil. It's used in interactive mode to print the result of
@@ -189,6 +190,16 @@ namespace SeedLang.Runtime {
                                       Message.RuntimeErrorIncorrectArgsCount);
       }
       return new VMValue(new Slice(args[0], args[1], args[2]));
+    }
+
+    internal static VMValue StrFunc(ValueSpan args, INativeContext _) {
+      if (args.Count == 0) {
+        return new VMValue("");
+      } else if (args.Count == 1) {
+        return new VMValue(args[0].AsString());
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                    Message.RuntimeErrorIncorrectArgsCount);
     }
 
     internal static VMValue SumFunc(ValueSpan args, INativeContext _) {

@@ -336,6 +336,51 @@ namespace SeedLang.Runtime.Tests {
     }
 
     [Fact]
+    public void TestStrFunc() {
+      var strFunc = BuiltinsDefinition.StrFunc;
+
+      var args = new ValueSpan(Array.Empty<VMValue>(), 0, 0);
+      strFunc(args, null).Should().Be(new VMValue(""));
+
+      args = new ValueSpan(new VMValue[] { new VMValue() }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("None"));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(false) }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("False"));
+      args = new ValueSpan(new VMValue[] { new VMValue(true) }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("True"));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(1) }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("1"));
+
+      args = new ValueSpan(new VMValue[] { new VMValue("test") }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("test"));
+
+      args = new ValueSpan(new VMValue[] {
+        new VMValue(new List<VMValue> { new VMValue(1), new VMValue(2) }),
+      }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("[1, 2]"));
+
+      args = new ValueSpan(new VMValue[] {
+        new VMValue(ImmutableArray.Create(new VMValue(1), new VMValue(2))),
+      }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("(1, 2)"));
+
+      args = new ValueSpan(new VMValue[] {
+        new VMValue(new Dictionary<VMValue, VMValue>{[new VMValue(1)] = new VMValue("test")}),
+      }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("{1: 'test'}"));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(new Range(1, 10, 2)) }, 0, 1);
+      strFunc(args, null).Should().Be(new VMValue("range(1, 10, 2)"));
+
+      args = new ValueSpan(new VMValue[] { new VMValue(1), new VMValue(2) }, 0, 2);
+      Action action = () => strFunc(args, null);
+      action.Should().Throw<DiagnosticException>().Where(
+          ex => ex.Diagnostic.MessageId == Message.RuntimeErrorIncorrectArgsCount);
+    }
+
+    [Fact]
     public void TestSumFunc() {
       var sumFunc = BuiltinsDefinition.SumFunc;
 

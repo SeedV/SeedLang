@@ -28,5 +28,8 @@
     "alignActions": false,
     "alignLabels": true,
     "alignTrailers": false
+  },
+  "[asdl]": {
+    "editor.rulers": [80]
   }
 }

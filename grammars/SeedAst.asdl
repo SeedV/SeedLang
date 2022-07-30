@@ -13,20 +13,32 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- Each AST node has a Range member to indicate the block or text range of this node, which is ignored in following
--- definitions.
+-- Each AST node has a Range member to indicate the text range of this node,
+-- which is ignored in following definitions.
 module SeedAst {
-  Statement = AssignmentStatement(IdentifierExpression identifier, Expression expr)
+  Statement = AssignmentStatement(Expression** targets, Expression* value)
     | BlockStatement(Statement* statements)
+    | BreakStatement()
+    | ContinueStatement()
     | ExpressionStatement(Expression expr)
-    | FunctionStatement(string name, IdentifierExpression* args, BlockStatement body)
+    | ForInStatement(IdentifierExpression id, Expression expr, Statement body)
+    | FunctionStatement(string name,
+                        IdentifierExpression* parameters,
+                        Statement body)
     | IfStatement(Expression test, Statement thenBody, Statement elseBody)
-    | ReturnStatement(Expression value)
+    | ImportStatement(string moduleName)
+    | PassStatement()
+    | ReturnStatement(Expression* exprs)
     | WhileStatement(Expression test, Statement body)
+    | VTagStatement(VTagInfo* vTagInfos, Statement* statements)
 
-  Expression = BinaryExpression(Expression left, BinaryOperator op, Expression right)
+  Expression = BinaryExpression(Expression left,
+                                BinaryOperator op,
+                                Expression right)
     | BooleanExpression(BooleanOperator op, Expression* exprs)
-    | ComparisonExpression(Expression first, ComparisonOperator* ops, Expression* exprs)
+    | ComparisonExpression(Expression first,
+                           ComparisonOperator* ops,
+                           Expression* exprs)
     | UnaryExpression(UnaryOperator op, Expression expr)
 
     | IdentifierExpression(string name)
@@ -36,13 +48,22 @@ module SeedAst {
     | NumberConstantExpression(doubel value)
     | StringConstantExpression(string value)
 
+    | DictExpression(KeyValuePair* keyValues)
     | ListExpression(Expression* exprs)
-    | SubscriptExpression(Expression expr, Expression index)
+    | TupleExpression(Expression* exprs)
+    | SubscriptExpression(Expression container, Expression key)
+    | SliceExpression(Expression start, Expression stop, Expression step)
 
-    | CallExpression(string name, Expression* args)
+    | CallExpression(Expression func, Expression* args)
+    | AttributeExpression(Expression value, IdentifierExpression attr)
 
   BinaryOperator = Add | Subtract | Multiply | Divide | FloorDivide
   BooleanOperator = And | Or
-  ComparisonOperator = Less | LessEqual | Greater | GreaterEqual | EqEqual | NotEqual
+  ComparisonOperator = Less
+    | LessEqual
+    | Greater
+    | GreaterEqual
+    | EqEqual
+    | NotEqual
   UnaryOperator = Positive | Nagetive | Not
 }

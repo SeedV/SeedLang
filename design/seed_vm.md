@@ -20,12 +20,13 @@ Instructions](http:#underpop.free.fr/l/lua/docs/a-no-frills-introduction-to-lua-
 ## SeedLang Value Types
 
 SeedLang is a dynamically typed programming language. Types are attached to
-values rather than variables. There are 8 value types in SeedLang: `Nil`,
-`Boolean`, `Number`, `String`, `List`, `Table`, `Function` and `Module`.
+values rather than variables. There are several value types in SeedLang: `Nil`,
+`Boolean`, `Number`, `String`, `Function`, `Dict`, `List`, `Tuple`, `Range`
+`Slice` and `Module`.
 
 Values of all types are the first-class values. They can be stored in global
-variables, local variables, object properties, list and table fields. They can
-be passed as arguments to functions, and returned from functions as well.
+variables, local variables, object properties, list and dictionary fields. They
+can be passed as arguments to functions, and returned from functions as well.
 
 All the SeedLang values are objects from SeedLang's perspective. They all
 support properties and functions like `name`, `type`, `doc`, `toString()`, etc.
@@ -34,15 +35,20 @@ number types, other types are implemented with objects of the host language.
 
 The description of 8 value types are listed as follows:
 
-- `Nil`: Nil value, only one value `nil`
-- `Boolean`: Boolean value, `true` or `false`
-- `Number`: Double precision floating point number
-- `String`: A sequential collection of characters to represent a text
-- `List`: A list of values that can be access by index
-- `Table`: A dictionary to hold key and value pairs
+- `Nil`: Nil value, only one value `nil`.
+- `Boolean`: Boolean value, `true` or `false`.
+- `Number`: Double precision floating point number.
+- `String`: A sequential collection of characters to represent a text.
 - `Function`: Function object which could be a module-level function or a member
-  function
-- `Module`: Module object which can hold functions and objects in it
+  function.
+- `Dict`: A dictionary to hold key and value pairs, with the requirements that
+  the keys in one dictionary are unique.
+- `List`: A list of values that can be access by index.
+- `Tuple`: An immutable list of heterogeneous data.
+- `Range`: An immutable sequence of numbers and is commonly used for looping a
+  specific number of times in `for` loops.
+- `Slice`: An object contains a portion of a sequence_no.
+- `Module`: Module object which can hold functions and objects in it.
 
 ## Instruction Basics
 
@@ -84,8 +90,8 @@ can hold a maximum unsigned integer value of 262143, and so the bias is 131071
 | `Gbl[sym]`             | Global variable named with the string symbol `sym` |
 | `sBx`                  | Signed offset for `JMP` instruction                |
 
-For `RK(B)` and `RK(C)`, the `MSB` (most significant bit) of `B` or `C` is used to
-indicate if `B` or `C` is the index of the register or constant:
+For `RK(B)` and `RK(C)`, the `MSB` (most significant bit) of `B` or `C` is used
+to indicate if `B` or `C` is the index of the register or constant:
 
 - `MSB` == 0: `B` or `C` is the index of the register
 - `MSB` == 1: (`B` - 256) or (`C` - 256) is the index of the constant in the

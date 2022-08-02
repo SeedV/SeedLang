@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Building and Testing
-nav_order: 2
+nav_order: 3
 ---
 
 ## SeedLang for C# and Unity

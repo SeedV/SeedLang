@@ -89,6 +89,8 @@ namespace SeedLang.Common {
     public static string Get(this Message message, CultureInfo culture) {
       var ret = LocalizedMessages.Instance.Get(message, culture);
       if (ret is null) {
+        // If the message has not been localized, returns the enum name with its argument
+        // placeholders as the result.
         (string name, int requiredArgumentNumber) = Parse(message);
         var sb = new StringBuilder(name);
         for (var i = 0; i < requiredArgumentNumber; i++) {

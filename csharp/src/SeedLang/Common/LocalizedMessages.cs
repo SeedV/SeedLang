@@ -17,18 +17,13 @@ using System.Collections.Generic;
 using System.Globalization;
 
 namespace SeedLang.Common {
-
   // A singleton class to retrieve the localized strings of SeedLang messages.
   //
   // Compared to .Net's ResourceManager and Unity's Localization package, this implementation is
   // simpler and more straightforward. Hence it can be used in different hosting environments
   // without redefining localized strings.
   internal sealed class LocalizedMessages {
-    public static LocalizedMessages Instance {
-      get {
-        return _instance.Value;
-      }
-    }
+    public static LocalizedMessages Instance => _instance.Value;
 
     private static readonly Lazy<LocalizedMessages> _instance =
         new Lazy<LocalizedMessages>(() => new LocalizedMessages());
@@ -58,6 +53,8 @@ namespace SeedLang.Common {
             ["en"] = "Missing token. Found token: {0}. Expected token: {1}",
             ["zh-CN"] = "缺少 token. 遇到的 token: {0}. 期望的 token: {1}",
           },
+
+          // TODO: localize all other message strings.
         };
 
     private readonly Dictionary<(Message message, int LCID), string> _index =
@@ -73,8 +70,9 @@ namespace SeedLang.Common {
           // at all.
           return null;
         } else {
-          // In case "pl-PT" is not defined, its parent locale, "pl", will be used as a fallback. If
-          // "pl" is not defined, CultureInfo.InvariantCulture will be used as the final fallback.
+          // In case "pt-PT" is not defined, its parent locale, "pt", will be used as a fallback.
+          // And if "pt" is not defined, CultureInfo.InvariantCulture will be used as the final
+          // fallback.
           culture = culture.Parent;
         }
       }

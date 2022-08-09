@@ -106,7 +106,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("while True",
                 new string[] {
-                  @"SyntaxErrorMissingToken '\n' ':'",
+                  @"Missing token. Found token: '\n'. Expected token: ':'",
                   "SyntaxErrorInputMismatch '<EOF>' INDENT",
                 },
 

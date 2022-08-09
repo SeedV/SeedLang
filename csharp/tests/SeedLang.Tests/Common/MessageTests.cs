@@ -72,5 +72,18 @@ namespace SeedLang.Common.Tests {
                                                        string arg2) {
       Assert.Equal(localizedString, message.Format(new CultureInfo(locale), arg1, arg2));
     }
+
+    [Fact]
+    public void TestChangeCurrentCulture() {
+      Assert.Equal("Yes", Message.Yes.Format());
+      CultureInfo.CurrentCulture = new CultureInfo("zh-CN");
+      Assert.Equal("是", Message.Yes.Format());
+      CultureInfo.CurrentCulture = new CultureInfo("en-US");
+      Assert.Equal("Yes", Message.Yes.Format());
+      CultureInfo.CurrentCulture = new CultureInfo("en");
+      Assert.Equal("Yes", Message.Yes.Format());
+      CultureInfo.CurrentCulture = new CultureInfo("ab");
+      Assert.Equal("Yes", Message.Yes.Format());
+    }
   }
 }

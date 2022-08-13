@@ -1,4 +1,8 @@
-# Getting Started
+---
+layout: page
+title: Getting Started
+nav_order: 2
+---
 
 SeedLang supports a number of scripting languages.
 

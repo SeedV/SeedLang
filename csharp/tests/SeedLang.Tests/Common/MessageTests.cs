@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Globalization;
 using Xunit;
 
 namespace SeedLang.Common.Tests {
@@ -33,9 +34,56 @@ namespace SeedLang.Common.Tests {
       Assert.Equal("Yes", Message.Yes.Format("Unused Argument"));
       Assert.Equal("ExampleMessageWithOneArgument Hello",
                    Message.ExampleMessageWithOneArgument1.Format("Hello"));
-      Assert.Throws<ArgumentException>(() => Message.ExampleMessageWithOneArgument1.Format());
+      Assert.Throws<FormatException>(() => Message.ExampleMessageWithOneArgument1.Format());
       Assert.Equal("ExampleMessageWithTwoArguments Hello 3.14",
                    Message.ExampleMessageWithTwoArguments2.Format("Hello", (3.14).ToString()));
+    }
+
+    [Theory]
+    [InlineData(Message.Okay, "en", "Okay")]
+    [InlineData(Message.Okay, "zh-CN", "好")]
+    [InlineData(Message.Okay, "en-US", "Okay")]  // "en-US" is able to fall back to "en".
+    [InlineData(Message.Okay, "", "Okay")]       // Empty locale. Falls back to "en".
+    [InlineData(Message.Okay, "ab", "Okay")]     // Very rare locale. Falls back to "en".
+    public void TestLocalizedMessages(Message message, string locale, string localizedString) {
+      Assert.Equal(localizedString, message.Format(new CultureInfo(locale)));
+    }
+
+    [Theory]
+    [InlineData(Message.SyntaxErrorMissingToken2,
+                "en",
+                "Missing token. Found token: X. Expected token: Y",
+                "X",
+                "Y")]
+    [InlineData(Message.SyntaxErrorMissingToken2,
+                "en-US",
+                "Missing token. Found token: X. Expected token: Y",
+                "X",
+                "Y")]
+    [InlineData(Message.SyntaxErrorMissingToken2,
+                "zh-CN",
+                "缺少 token. 遇到的 token: X. 期望的 token: Y",
+                "X",
+                "Y")]
+    public void TestLocalizedMessagesWithTwoArguments(Message message,
+                                                       string locale,
+                                                       string localizedString,
+                                                       string arg1,
+                                                       string arg2) {
+      Assert.Equal(localizedString, message.Format(new CultureInfo(locale), arg1, arg2));
+    }
+
+    [Fact]
+    public void TestChangeCurrentCulture() {
+      Assert.Equal("Yes", Message.Yes.Format());
+      CultureInfo.CurrentCulture = new CultureInfo("zh-CN");
+      Assert.Equal("是", Message.Yes.Format());
+      CultureInfo.CurrentCulture = new CultureInfo("en-US");
+      Assert.Equal("Yes", Message.Yes.Format());
+      CultureInfo.CurrentCulture = new CultureInfo("en");
+      Assert.Equal("Yes", Message.Yes.Format());
+      CultureInfo.CurrentCulture = new CultureInfo("ab");
+      Assert.Equal("Yes", Message.Yes.Format());
     }
   }
 }

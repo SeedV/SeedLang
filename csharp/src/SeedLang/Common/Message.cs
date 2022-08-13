@@ -13,35 +13,27 @@
 // limitations under the License.
 
 using System;
+using System.Globalization;
 using System.Text;
 
 namespace SeedLang.Common {
   // The ID list of string messages.
   //
-  // SeedLang uses an intermediate <MessageId, MessageString> system to separate the client usages
-  // and the underlying implementation of localized messages.
+  // The trailing decimal digit of the message ID indicates the number of the required arguments,
+  // ranging from 0 to 9.
   //
-  // When developers come to a string which might be seen by the users, they simply add a new
-  // PascalCased ID to the following Enum. The last digit of the ID indicates the number of
-  // arguments that the string formatter requires.
-  //
-  // During the development stage, developers use code patterns
+  // To retrieve the raw localized string with argument placeholders such as "{0}":
   //
   //    Message.SomeId.Get()
+  //    Message.SomeId.Get(culture)
+  //
+  // To localizes and formats a message with given arguments:
   //
   //    Message.SomeIdWithThreeArguments3.Format(arg1, arg2, arg3)
+  //    Message.SomeIdWithThreeArguments3.Format(culture, arg1, arg2, arg3)
   //
-  // to fill a string message in their code. The default behavior of the MessageHelper utility
-  // generates a mock string according to the message ID. This is good enough for development and
-  // debugging.
-  //
-  // Once the message strings are translated and served by an underlying implementation, such as
-  // .Net's default ResourceManager, the MessageHelper utility will be updated to hide the
-  // implementation details so that the client code need no change to adapt a real localization
-  // mechanism.
-  //
-  // With this intermediate layer, we will be able to introduce lightweight or cross-platform
-  // localization solutions other than .Net's default ResourceManager when necessary.
+  // Both methods accept a CultureInfo object that specifies the expected locale. If the culture
+  // parameter is omitted, the current CultureInfo object will be used.
   public enum Message {
     // Example message strings.
 
@@ -87,35 +79,41 @@ namespace SeedLang.Common {
   }
 
   public static class MessageHelper {
-    // Returns the original message string without formatting it. The required arguments will be
-    // rendered as {n} inside the string. The trailing decimal digit of the message ID indicates the
-    // number of the required arguments, ranging from 0 to 9.
+    // Returns the raw message string without formatting it, using the current CultureInfo. The
+    // required arguments will be rendered as placeholders, in the "{n}" format.
     public static string Get(this Message message) {
-      // TODO: Support the real localization system once the strings are localized.
-      (string name, int requiredArgumentNumber) = Parse(message);
-      var sb = new StringBuilder(name);
-      for (var i = 0; i < requiredArgumentNumber; i++) {
-        sb.AppendFormat(" {{{0}}}", i);
-      }
-      return sb.ToString();
+      return Get(message, CultureInfo.CurrentCulture);
     }
 
-    // Formats the message string with the input arguments. The trailing decimal digit of the
-    // message ID indicates the number of the required arguments, ranging from 0 to 9.
+    // Returns the raw message string without formatting it, using the specified CultureInfo.
+    public static string Get(this Message message, CultureInfo culture) {
+      var ret = LocalizedMessages.Instance.Get(message, culture);
+      if (ret is null) {
+        // If the message has not been localized, returns the enum name with its argument
+        // placeholders as the result.
+        (string name, int requiredArgumentNumber) = Parse(message);
+        var sb = new StringBuilder(name);
+        for (var i = 0; i < requiredArgumentNumber; i++) {
+          sb.AppendFormat(" {{{0}}}", i);
+        }
+        return sb.ToString();
+      } else {
+        return ret;
+      }
+    }
+
+    // Formats the message string with the input arguments, using the current CultureInfo
     public static string Format(this Message message, params string[] arguments) {
-      // TODO: Support the real localization system once the strings are localized.
-      (string name, int requiredArgumentNumber) = Parse(message);
-      if (requiredArgumentNumber > arguments.Length) {
-        throw new ArgumentException($"Not enough arguments to format the string message: {name}.");
-      }
-      var sb = new StringBuilder(name);
-      for (var i = 0; i < requiredArgumentNumber; i++) {
-        sb.AppendFormat(" {0}", arguments[i]);
-      }
-      return sb.ToString();
+      return string.Format(Get(message), arguments);
     }
 
-    static (string name, int requiredArgumentNumber) Parse(Message message) {
+    // Formats the message string with the input arguments, using the specified CultureInfo.
+    public static string Format(this Message message, CultureInfo culture,
+                                params string[] arguments) {
+      return string.Format(Get(message, culture), arguments);
+    }
+
+    private static (string name, int requiredArgumentNumber) Parse(Message message) {
       string name = Enum.GetName(typeof(Message), message);
       if (name.Length <= 0) {
         return ("", 0);

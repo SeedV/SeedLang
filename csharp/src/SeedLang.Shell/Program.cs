@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using CommandLine;
 using CommandLine.Text;
 
@@ -36,13 +37,17 @@ namespace SeedLang.Shell {
                          "that start with \"Func\".")]
       public IEnumerable<string> Visualizers { get; set; }
 
-      [Option("verbose", Required = false, Default = false,
-        HelpText = "Print visualization info in verbose mode.")]
-      public bool Verbose { get; set; }
-
       [Option('f', "file", Required = false, Default = null,
               HelpText = "Path of the file to be executed.")]
       public string Filename { get; set; }
+
+      [Option('e', "engine-locale", Required = false, Default = null,
+              HelpText = "The locale of the SeedLang engine. e.g., en-US, zh-CN.")]
+      public string EngineLocale { get; set; }
+
+      [Option("verbose", Required = false, Default = false,
+        HelpText = "Print visualization info in verbose mode.")]
+      public bool Verbose { get; set; }
     }
 
     static void Main(string[] args) {
@@ -69,6 +74,9 @@ namespace SeedLang.Shell {
     }
 
     private static void Run(Options options) {
+      if (!string.IsNullOrEmpty(options.EngineLocale)) {
+        CultureInfo.CurrentCulture = new CultureInfo(options.EngineLocale);
+      }
       if (!string.IsNullOrEmpty(options.Filename)) {
         Executor.RunScript(options.Filename, options.Language, options.RunType);
       } else {

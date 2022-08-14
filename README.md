@@ -3,18 +3,29 @@
 ![build](https://github.com/SeedV/SeedLang/actions/workflows/csharp.yml/badge.svg)
 [![codecov](https://codecov.io/gh/SeedV/SeedLang/branch/main/graph/badge.svg?token=B8M1QLS0MT)](https://codecov.io/gh/SeedV/SeedLang)
 
-SeedLang is a visualizable low-code programming environment that focuses on
-educational purposes.
+SeedLang is an embeddable and visualizable scripting engine for .Net and Unity.
 
-## Getting Started
+Example 1 - [SortingBot - A visualization tool of sorting
+algorithms](https://github.com/SeedV/SeedLangExamples/tree/main/SortingBot). It
+leverages SeedLang as its scripting and visualization engine:
 
-Firstly, follow the [Building and Testing Guide](docs/building_and_testing.md)
-to build SeedLang.
+![SortingBot Demo](docs/images/sortingbot_demo.gif)
 
-See the [Getting Started](docs/getting_started.md) doc for the basic usage and
-examples of SeedLang.
+Example 2 - [SeedCalc - A Wonder Calculator](https://github.com/SeedV/SeedCalc).
+Its computing core is empowered by SeedLang:
 
-## Architecture
+![SortingBot Demo](docs/images/seedcalc_demo.gif)
+
+## Documentation
+
+See the [SeedLang Documentation](https://seedv.github.io/SeedLang/) site.
+
+## Building
+
+Please follow the [Building and Testing Guide](docs/building_and_testing.md) to
+build SeedLang.
+
+## Architecture Design
 
 See the [Architecture Design](design/overview.md) doc.
 

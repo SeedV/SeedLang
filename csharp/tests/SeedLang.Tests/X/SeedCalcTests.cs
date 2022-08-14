@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;
@@ -251,14 +252,14 @@ namespace SeedLang.X.Tests {
     [Theory]
     [InlineData("-",
                 new string[] {
-                  "SyntaxErrorInputMismatch '<EOF>' {'(', NUMBER}",
+                  "Mismatched input. Found token: '<EOF>'. Expected token: {'(', NUMBER}",
                 },
 
                 "Operator [Ln 1, Col 0 - Ln 1, Col 0]")]
 
     [InlineData("3-",
                 new string[] {
-                  "SyntaxErrorInputMismatch '<EOF>' {'+', '-', '(', NUMBER}",
+                  "Mismatched input. Found token: '<EOF>'. Expected token: {'+', '-', '(', NUMBER}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -266,7 +267,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("3+4-",
                 new string[] {
-                  "SyntaxErrorInputMismatch '<EOF>' {'+', '-', '(', NUMBER}",
+                  "Mismatched input. Found token: '<EOF>'. Expected token: {'+', '-', '(', NUMBER}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -276,8 +277,8 @@ namespace SeedLang.X.Tests {
 
     [InlineData("3+--4-",
                 new string[] {
-                  "SyntaxErrorUnwantedToken '-' {'(', NUMBER}",
-                  "SyntaxErrorInputMismatch '<EOF>' {'+', '-', '(', NUMBER}",
+                  "Unwanted token. Found token: '-'. Expected token: {'(', NUMBER}",
+                  "Mismatched input. Found token: '<EOF>'. Expected token: {'+', '-', '(', NUMBER}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -289,8 +290,8 @@ namespace SeedLang.X.Tests {
 
     [InlineData("3++--4-",
                 new string[] {
-                  "SyntaxErrorInputMismatch '-' {'(', NUMBER}",
-                  "SyntaxErrorInputMismatch '<EOF>' {'+', '-', '(', NUMBER}",
+                  "Mismatched input. Found token: '-'. Expected token: {'(', NUMBER}",
+                  "Mismatched input. Found token: '<EOF>'. Expected token: {'+', '-', '(', NUMBER}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -303,14 +304,14 @@ namespace SeedLang.X.Tests {
 
     [InlineData(".",
                 new string[] {
-                  "SyntaxErrorInputMismatch '.' {'+', '-', '(', NUMBER}",
+                  "Mismatched input. Found token: '.'. Expected token: {'+', '-', '(', NUMBER}",
                 },
 
                 "Unknown [Ln 1, Col 0 - Ln 1, Col 0]")]
 
     [InlineData(".3.",
                 new string[] {
-                  "SyntaxErrorUnwantedToken '.' {<EOF>, NEWLINE}",
+                  "Unwanted token. Found token: '.'. Expected token: {<EOF>, NEWLINE}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +
@@ -318,7 +319,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData(".3@",
                 new string[] {
-                  "SyntaxErrorUnwantedToken '@' {<EOF>, NEWLINE}",
+                  "Unwanted token. Found token: '@'. Expected token: {<EOF>, NEWLINE}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 1]," +
@@ -326,7 +327,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("3+++4",
                 new string[] {
-                  "SyntaxErrorUnwantedToken '+' {'(', NUMBER}",
+                  "Unwanted token. Found token: '+'. Expected token: {'(', NUMBER}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -336,6 +337,7 @@ namespace SeedLang.X.Tests {
                 "Number [Ln 1, Col 4 - Ln 1, Col 4]")]
     public void TestParsePartialOrInvalidExpressions(string input, string[] errorMessages,
                                                      string expectedTokens) {
+      CultureInfo.CurrentCulture = new CultureInfo("en-US");
       Assert.False(_parser.Parse(input, "", _collection, out Statement statement,
                    out IReadOnlyList<TokenInfo> semanticTokens));
       Assert.Null(statement);

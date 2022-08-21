@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Globalization;
 using SeedLang.Ast;
 using SeedLang.Common;
 using Xunit;
@@ -25,7 +26,7 @@ namespace SeedLang.X.Tests {
     [Theory]
     [InlineData("1.2 =",
                 new string[] {
-                  "SyntaxErrorUnwantedToken '=' {';', NEWLINE}",
+                  "Unwanted token. Found token: '='. Expected token: {';', NEWLINE}",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 2]," +
@@ -33,7 +34,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 +",
                 new string[] {
-                  @"SyntaxErrorInputMismatch '\n' " +
+                  @"Mismatched input. Found token: '\n'. Expected token: " +
                   @"{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
@@ -42,7 +43,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + (",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '(\n'",
+                  @"No viable alternative at input '(\n'",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -51,7 +52,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + ((",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '((\n'",
+                  @"No viable alternative at input '((\n'",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -61,7 +62,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + (((",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '(((\n'",
+                  @"No viable alternative at input '(((\n'",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -72,7 +73,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + (2 - 1",
                 new string[] {
-                  @"SyntaxErrorNoViableAlternative '(2-1\n'",
+                  @"No viable alternative at input '(2-1\n'",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 0]," +
@@ -84,7 +85,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 + ))",
                 new string[] {
-                  "SyntaxErrorInputMismatch ')' " +
+                  "Mismatched input. Found token: ')'. Expected token: " +
                   "{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
@@ -95,7 +96,7 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1 < 2 >=",
                 new string[] {
-                  @"SyntaxErrorInputMismatch '\n' " +
+                  @"Mismatched input. Found token: '\n'. Expected token: " +
                   @"{'True', 'False', 'None', '+', '-', '(', '[', '{', NAME, NUMBER, STRING}",
                 },
 
@@ -107,7 +108,7 @@ namespace SeedLang.X.Tests {
     [InlineData("while True",
                 new string[] {
                   @"Missing token. Found token: '\n'. Expected token: ':'",
-                  "SyntaxErrorInputMismatch '<EOF>' INDENT",
+                  "Mismatched input. Found token: '<EOF>'. Expected token: INDENT",
                 },
 
                 "Keyword [Ln 1, Col 0 - Ln 1, Col 4]," +
@@ -115,11 +116,12 @@ namespace SeedLang.X.Tests {
 
     [InlineData("1e9999",
                 new string[] {
-                  "RuntimeErrorOverflow",
+                  "Overflow",
                 },
 
                 "Number [Ln 1, Col 0 - Ln 1, Col 5]")]
     public void TestParseSyntaxError(string input, string[] errorMessages, string expectedTokens) {
+      CultureInfo.CurrentCulture = new CultureInfo("en-US");
       Assert.False(_parser.Parse(input, "", _collection, out Statement statement,
                                  out IReadOnlyList<TokenInfo> semanticTokens));
       Assert.Null(statement);

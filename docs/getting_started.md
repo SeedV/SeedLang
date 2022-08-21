@@ -60,7 +60,7 @@ for more details:
 dotnet run --project src/SeedLang.Shell -- -h
 ```
 
-See also the dir of [SeedCalc Example Scripts](../example_scripts/seedcalc/).
+See also the dir of [SeedCalc Example Scripts](https://github.com/SeedV/SeedLang/tree/main/example_scripts/seedcalc).
 
 ### SeedPython scripts
 
@@ -85,8 +85,7 @@ dotnet run --project src/SeedLang.Shell -- \
 -l SeedPython -f ../example_scripts/seedpython/function.py -v "*"
 ```
 
-See also the dir of [SeedPython Example
-Scripts](../example_scripts/seedpython/).
+See also the dir of [SeedPython Example Scripts](https://github.com/SeedV/SeedLang/tree/main/example_scripts/seedpython).
 
 ## Example applications that embeds the SeedLang engine
 

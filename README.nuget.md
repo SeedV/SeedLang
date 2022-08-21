@@ -1,7 +1,6 @@
 # SeedLang
 
-SeedLang is a visualizable low-code programming environment that focuses on
-educational purposes.
+SeedLang is an embeddable and visualizable scripting engine for .Net and Unity.
 
-See [SeedLang's GitHub page](https://github.com/SeedV/SeedLang) for more
+See the [SeedLang Documentation](https://seedv.github.io/SeedLang/) for more
 details.

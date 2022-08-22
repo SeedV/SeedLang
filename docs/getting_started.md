@@ -185,7 +185,7 @@ visualizer names include:
 - **VariableDeleted**: triggered when a variable is deleted from the current
   scope.
 - **VTagEntered**: triggered when a V-Tag scope is entered.
-- **VTagExited**: triggered when a V-Tag scope is entered.
+- **VTagExited**: triggered when a V-Tag scope is exited.
 
 See [SeedLang Visualization]({% link visualization.md %}) for more info about
 the visualization API and the definition of V-Tags.

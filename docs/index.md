@@ -47,4 +47,4 @@ for more example applications and games.
 ## Getting Started
 
 For the usage and the examples of SeedLang, see [Getting
-Started]({% link getting_started.md %}).
+Started]({{ site.baseurl }}{% link getting_started.md %}).

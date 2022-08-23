@@ -47,8 +47,8 @@ move(num, 'A', 'B', 'C')
 See [SeedPython Example
 Scripts](https://github.com/SeedV/SeedLang/tree/main/example_scripts/seedpython).
 
-See [SeedPython]({% link seedpython.md %}) for more details of the
-language.
+See [SeedPython]({{ site.baseurl }}{% link seedpython.md %}) for more details of
+the language.
 
 ## Install Microsoft .NET
 
@@ -187,8 +187,8 @@ visualizer names include:
 - **VTagEntered**: triggered when a V-Tag scope is entered.
 - **VTagExited**: triggered when a V-Tag scope is exited.
 
-See [SeedLang Visualization]({% link visualization.md %}) for more info about
-the visualization API and the definition of V-Tags.
+See [SeedLang Visualization]({{ site.baseurl }}{% link visualization.md %}) for
+more info about the visualization API and the definition of V-Tags.
 
 You can use the wildcard `*` to turn on multiple visualizers like below:
 
@@ -290,8 +290,10 @@ Please check the `README.md` file of the `SeedLangExamples` for more info.
 
 ### Embedding SeedLang in .Net applications
 
-Please read [Embedding SeedLang in .Net]({% link dotnet_embedding.md %}).
+Please read [Embedding SeedLang in .Net]({{ site.baseurl }}{% link
+dotnet_embedding.md %}).
 
 ### Embedding SeedLang in Unity games
 
-Please read [Embedding SeedLang in Unity]({% link unity_embedding.md %}).
+Please read [Embedding SeedLang in Unity]({{ site.baseurl }}{% link
+unity_embedding.md %}).

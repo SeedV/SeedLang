@@ -56,6 +56,11 @@ namespace SeedLang.Runtime.Tests {
       step = -1;
       range = new HeapObject(new Range(start, stop, step));
       range.Length.Should().Be(0);
+
+      Action action = () => _ = new Range(1.5);
+      action.Should().Throw<DiagnosticException>().Where(
+          e => e.Diagnostic.MessageId == Message.RuntimeErrorInvalidInteger
+      );
     }
 
     [Fact]

@@ -212,6 +212,14 @@ namespace SeedLang.Runtime {
       }
     }
 
+    internal static int DoubleToInt(double value) {
+      if ((int)value == value) {
+        return (int)value;
+      }
+      throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
+                                    Message.RuntimeErrorInvalidInteger);
+    }
+
     internal static void CheckOverflow(double value, TextRange range = null) {
       // TODO: do we need separate NaN as another runtime error?
       if (double.IsInfinity(value) || double.IsNaN(value)) {

@@ -163,11 +163,7 @@ namespace SeedLang.Runtime {
       if (args.Count == 1) {
         return new VMValue(Math.Round(args[0].AsNumber()));
       } else if (args.Count == 2) {
-        var digits = (int)args[1].AsNumber();
-        if (digits != args[1].AsNumber()) {
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidInteger);
-        }
+        int digits = ValueHelper.DoubleToInt(args[1].AsNumber());
         return new VMValue(Math.Round(args[0].AsNumber(), digits));
       }
       throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,

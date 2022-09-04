@@ -358,11 +358,8 @@ namespace SeedLang.Runtime {
     }
 
     private static int ToIntIndex(double index, int length) {
-      var intIndex = (int)index;
-      if (intIndex != index) {
-        throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                      Message.RuntimeErrorInvalidInteger);
-      } else if (intIndex < -length || intIndex >= length) {
+      var intIndex = ValueHelper.DoubleToInt(index);
+      if (intIndex < -length || intIndex >= length) {
         throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
                                       Message.RuntimeErrorOutOfRange);
       }

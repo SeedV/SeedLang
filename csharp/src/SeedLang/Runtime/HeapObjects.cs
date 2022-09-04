@@ -57,12 +57,12 @@ namespace SeedLang.Runtime.HeapObjects {
     private readonly int _stop;
     private readonly int _step;
 
-    internal Range(int stop) : this(0, stop) { }
+    internal Range(double stop) : this(0, stop) { }
 
-    internal Range(int start, int stop, int step = 1) {
-      _start = start;
-      _stop = stop;
-      _step = step;
+    internal Range(double start, double stop, double step = 1) {
+      _start = ValueHelper.DoubleToInt(start);
+      _stop = ValueHelper.DoubleToInt(stop);
+      _step = ValueHelper.DoubleToInt(step);
     }
 
     public override string ToString() {
@@ -98,15 +98,7 @@ namespace SeedLang.Runtime.HeapObjects {
     }
 
     private static int? ToInt(double? value) {
-      if (value is double doubleValue) {
-        if ((int)doubleValue == doubleValue) {
-          return (int)doubleValue;
-        } else {
-          throw new DiagnosticException(SystemReporters.SeedRuntime, Severity.Fatal, "", null,
-                                        Message.RuntimeErrorInvalidInteger);
-        }
-      }
-      return null;
+      return value is double v ? ValueHelper.DoubleToInt(v) : default(int?);
     }
 
     private static double? ToNumber(VMValue value) {

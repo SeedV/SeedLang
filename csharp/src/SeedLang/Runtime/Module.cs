@@ -71,6 +71,9 @@ namespace SeedLang.Runtime {
         case "math":
           ImportBuiltinModule(name, name, typeof(MathDefinition));
           break;
+        case "random":
+          ImportBuiltinModule(name, name, typeof(RandomDefinition));
+          break;
       };
     }
 

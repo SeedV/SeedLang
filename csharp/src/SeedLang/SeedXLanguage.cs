@@ -13,9 +13,17 @@
 // limitations under the License.
 
 namespace SeedLang {
-  // Supported SeedX languages.
+  /// <summary>
+  /// Supported SeedX languages.
+  /// </summary>
   public enum SeedXLanguage {
+    /// <summary>
+    /// A lightweight sub-language to parse and execute arithmetic expressions.
+    /// </summary>
     SeedCalc,
+    /// <summary>
+    /// A minimal subset of the Python programming language.
+    /// </summary>
     SeedPython,
   }
 }

@@ -23,18 +23,22 @@ using SeedLang.Visualization;
 using SeedLang.X;
 
 namespace SeedLang {
-  // Engine is the facade class of the SeedLang core library. It provides interfaces of compiling
-  // and executing SeedX programs, registering visualizers, and inspecting the execution status of
-  // programs.
+  /// <summary>
+  /// Engine is the facade class of the SeedLang core library. It provides interfaces of compiling
+  /// and executing SeedX programs, registering visualizers, and inspecting the execution status of
+  /// programs.
+  /// </summary>
   public class Engine {
     private readonly SeedXLanguage _language;
     private readonly RunMode _runMode;
     private readonly VisualizerCenter _visualizerCenter;
     private readonly VM _vm;
 
-    // The flag to indicate if variable tracking is enabled. The SeedVM will track information of
-    // all global and local variables if It is set to true explicitly or any variable related
-    // visualizers like "VariableDefined", "VariableDeleted" etc. are registered.
+    /// <summary>
+    /// The flag to indicate if variable tracking is enabled. The SeedVM will track information of
+    /// all global and local variables if It is set to true explicitly or any variable related
+    /// visualizers like "VariableDefined", "VariableDeleted" etc. are registered.
+    /// </summary>
     public bool IsVariableTrackingEnabled {
       get {
         return _visualizerCenter.IsVariableTrackingEnabled;
@@ -44,13 +48,28 @@ namespace SeedLang {
       }
     }
 
+    /// <summary>
+    /// If a program is compiled by the engine.
+    /// </summary>
     public bool IsProgramCompiled => !(_func is null);
+    /// <summary>
+    /// If the engine is running.
+    /// </summary>
     public bool IsRunning => _vm.IsRunning;
+    /// <summary>
+    /// If the engine is paused.
+    /// </summary>
     public bool IsPaused => _vm.IsPaused;
+    /// <summary>
+    /// If the engine is stopped.
+    /// </summary>
     public bool IsStopped => _vm.IsStopped;
 
-    // The semantic tokens of the source code. It falls back to syntax tokens when there are parsing
-    // or compiling errors.
+
+    /// <summary>
+    /// The semantic tokens of the source code. It falls back to syntax tokens when there are 
+    /// parsing or compiling errors.
+    /// </summary>
     public IReadOnlyList<TokenInfo> SemanticTokens => _semanticTokens;
 
     // The AST tree of the program.
@@ -62,6 +81,11 @@ namespace SeedLang {
     // The compiled bytecode function of the source code.
     private Function _func;
 
+    /// <summary>
+    /// Initializes a new instance of the Engine class.
+    /// </summary>
+    /// <param name="language">The SeedLang language.</param>
+    /// <param name="runMode">Running mode.</param>
     public Engine(SeedXLanguage language, RunMode runMode) {
       _language = language;
       _runMode = runMode;
@@ -69,9 +93,12 @@ namespace SeedLang {
       _vm = new VM(_visualizerCenter);
     }
 
-    // Redirects standard output to the given text writer.
-    public void RedirectStdout(TextWriter stdout) {
-      _vm.RedirectStdout(stdout);
+    /// <summary>
+    /// Redirects standard output to the specified text writer.
+    /// </summary>
+    /// <param name="writer">The text writer to redirect for standard output.</param>
+    public void RedirectStdout(TextWriter writer) {
+      _vm.RedirectStdout(writer);
     }
 
     // Registers a visualizer into the visualizer center.

@@ -16,6 +16,7 @@
     <RepositoryType>git</RepositoryType>
     <Description>SeedLang is a visualizable low-code programming environment that focuses on educational purposes.</Description>
     <PackageReadmeFile>README.nuget.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

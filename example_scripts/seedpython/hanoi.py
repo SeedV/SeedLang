@@ -1,3 +1,4 @@
+# Tower of Hanoi problem.
 def move(n, source, target, auxiliary):
     if n <= 0:
         return
@@ -7,4 +8,4 @@ def move(n, source, target, auxiliary):
 
 
 num = 3
-move(num, 'A', 'B', 'C')
+move(num, 'A', 'C', 'B')
